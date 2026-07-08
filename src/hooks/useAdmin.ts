@@ -96,6 +96,33 @@ export const useAdmin = (isAdmin: boolean) => {
         }
     };
 
+    const updateCourse = async (courseId: string, courseData: Partial<Course>) => {
+        try {
+            const { data, error } = await supabase
+                .from('courses')
+                .update({
+                    title: courseData.title,
+                    instructor: courseData.instructor,
+                    duration: courseData.duration,
+                    category: courseData.category,
+                    accessTier: courseData.accessTier,
+                    image_url: courseData.image,
+                    modules: courseData.sections,
+                    description: courseData.description,
+                    outcomes: courseData.outcomes
+                })
+                .eq('id', courseId)
+                .select().single();
+
+            if (error) throw new Error(error.message || JSON.stringify(error));
+            await fetchData(); // Refresh
+            return data;
+        } catch (err: any) {
+            console.error('Error updating course:', err);
+            throw err;
+        }
+    };
+
     const updateCourseQuiz = async (courseId: string, quizData: any) => {
         try {
             const { data, error } = await supabase
@@ -113,5 +140,5 @@ export const useAdmin = (isAdmin: boolean) => {
         }
     };
 
-    return { users, courses, loading, error, addCourse, updateCourseQuiz, refresh: fetchData };
+    return { users, courses, loading, error, addCourse, updateCourse, updateCourseQuiz, refresh: fetchData };
 };

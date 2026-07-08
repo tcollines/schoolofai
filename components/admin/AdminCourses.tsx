@@ -4,8 +4,10 @@ import { Course, CourseSection, CourseModule, ModuleType } from '../../types';
 import { Plus, X, ArrowRight, ArrowLeft, Save, Video, FileText, Trash2, GripVertical } from 'lucide-react';
 
 const AdminCourses: React.FC = () => {
-    const { courses, loading, addCourse } = useAdmin(true);
+    const { courses, loading, addCourse, updateCourse } = useAdmin(true);
     const [isWizardOpen, setIsWizardOpen] = useState(false);
+    const [isEditMode, setIsEditMode] = useState(false);
+    const [editingCourseId, setEditingCourseId] = useState<string | null>(null);
     
     // Wizard State
     const [step, setStep] = useState(1);
@@ -86,13 +88,20 @@ const AdminCourses: React.FC = () => {
 
     const handleSave = async () => {
         try {
-            await addCourse(newCourse);
+            if (isEditMode && editingCourseId) {
+                await updateCourse(editingCourseId, newCourse);
+                alert('Course updated successfully!');
+            } else {
+                await addCourse(newCourse);
+                alert('Course created successfully!');
+            }
             setIsWizardOpen(false);
+            setIsEditMode(false);
+            setEditingCourseId(null);
             setStep(1);
             setNewCourse({ title: '', instructor: '', duration: '', category: '', accessTier: 'FREE', image: '', sections: [], description: '', outcomes: [] });
-            alert('Course created successfully!');
         } catch (e: any) {
-            alert(`Error creating course: ${e?.message || e}`);
+            alert(`Error saving course: ${e?.message || e}`);
             console.error('Save error:', e);
         }
     };
@@ -130,7 +139,28 @@ const AdminCourses: React.FC = () => {
                             <p className="text-sm text-gray-500 mb-4">{c.category} • {c.instructor}</p>
                             <div className="flex justify-between items-center text-sm">
                                 <span className="font-medium text-gray-700">{c.duration}</span>
-                                <button className="text-violet-600 font-medium hover:text-violet-800">Edit</button>
+                                <button 
+                                    onClick={() => {
+                                        setIsEditMode(true);
+                                        setEditingCourseId(c.id);
+                                        setNewCourse({
+                                            title: c.title,
+                                            instructor: c.instructor,
+                                            duration: c.duration,
+                                            category: c.category,
+                                            accessTier: c.accessTier,
+                                            image: c.image,
+                                            sections: c.sections || c.modules || [],
+                                            description: c.description || '',
+                                            outcomes: c.outcomes || []
+                                        });
+                                        setStep(1);
+                                        setIsWizardOpen(true);
+                                    }}
+                                    className="text-violet-600 font-medium hover:text-violet-800 cursor-pointer"
+                                >
+                                    Edit
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -142,8 +172,17 @@ const AdminCourses: React.FC = () => {
                 <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
                     <div className="bg-white rounded-3xl w-full max-w-4xl overflow-hidden shadow-2xl flex flex-col max-h-[90vh]">
                         <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
-                            <h2 className="text-xl font-bold text-gray-900">Course Setup Wizard</h2>
-                            <button onClick={() => setIsWizardOpen(false)} className="p-2 text-gray-400 hover:text-gray-600 rounded-full hover:bg-gray-100">
+                            <h2 className="text-xl font-bold text-gray-900">{isEditMode ? 'Edit Course Settings' : 'Course Setup Wizard'}</h2>
+                            <button 
+                                onClick={() => {
+                                    setIsWizardOpen(false);
+                                    setIsEditMode(false);
+                                    setEditingCourseId(null);
+                                    setStep(1);
+                                    setNewCourse({ title: '', instructor: '', duration: '', category: '', accessTier: 'FREE', image: '', sections: [], description: '', outcomes: [] });
+                                }} 
+                                className="p-2 text-gray-400 hover:text-gray-600 rounded-full hover:bg-gray-100"
+                            >
                                 <X size={20} />
                             </button>
                         </div>
