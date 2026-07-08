@@ -4,7 +4,7 @@ import { Course, CourseSection, CourseModule, ModuleType } from '../../types';
 import { Plus, X, ArrowRight, ArrowLeft, Save, Video, FileText, Trash2, GripVertical } from 'lucide-react';
 
 const AdminCourses: React.FC = () => {
-    const { courses, loading, addCourse, updateCourse } = useAdmin(true);
+    const { courses, loading, addCourse, updateCourse, deleteCourse } = useAdmin(true);
     const [isWizardOpen, setIsWizardOpen] = useState(false);
     const [isEditMode, setIsEditMode] = useState(false);
     const [editingCourseId, setEditingCourseId] = useState<string | null>(null);
@@ -139,28 +139,45 @@ const AdminCourses: React.FC = () => {
                             <p className="text-sm text-gray-500 mb-4">{c.category} • {c.instructor}</p>
                             <div className="flex justify-between items-center text-sm">
                                 <span className="font-medium text-gray-700">{c.duration}</span>
-                                <button 
-                                    onClick={() => {
-                                        setIsEditMode(true);
-                                        setEditingCourseId(c.id);
-                                        setNewCourse({
-                                            title: c.title,
-                                            instructor: c.instructor,
-                                            duration: c.duration,
-                                            category: c.category,
-                                            accessTier: c.accessTier,
-                                            image: c.image,
-                                            sections: c.sections || c.modules || [],
-                                            description: c.description || '',
-                                            outcomes: c.outcomes || []
-                                        });
-                                        setStep(1);
-                                        setIsWizardOpen(true);
-                                    }}
-                                    className="text-violet-600 font-medium hover:text-violet-800 cursor-pointer"
-                                >
-                                    Edit
-                                </button>
+                                <div className="flex items-center gap-3">
+                                    <button 
+                                        onClick={() => {
+                                            setIsEditMode(true);
+                                            setEditingCourseId(c.id);
+                                            setNewCourse({
+                                                title: c.title,
+                                                instructor: c.instructor,
+                                                duration: c.duration,
+                                                category: c.category,
+                                                accessTier: c.accessTier,
+                                                image: c.image,
+                                                sections: c.sections || c.modules || [],
+                                                description: c.description || '',
+                                                outcomes: c.outcomes || []
+                                            });
+                                            setStep(1);
+                                            setIsWizardOpen(true);
+                                        }}
+                                        className="text-violet-600 font-medium hover:text-violet-850 cursor-pointer"
+                                    >
+                                        Edit
+                                    </button>
+                                    <button 
+                                        onClick={async () => {
+                                            if (window.confirm(`Are you sure you want to delete the course: "${c.title}"?`)) {
+                                                try {
+                                                    await deleteCourse(c.id);
+                                                    alert('Course deleted successfully!');
+                                                } catch (err: any) {
+                                                    alert(`Error deleting course: ${err.message || err}`);
+                                                }
+                                            }
+                                        }}
+                                        className="text-red-500 font-medium hover:text-red-700 cursor-pointer"
+                                    >
+                                        Delete
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>

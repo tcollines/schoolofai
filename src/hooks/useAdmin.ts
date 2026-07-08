@@ -123,6 +123,22 @@ export const useAdmin = (isAdmin: boolean) => {
         }
     };
 
+    const deleteCourse = async (courseId: string) => {
+        try {
+            const { data, error } = await supabase
+                .from('courses')
+                .delete()
+                .eq('id', courseId);
+
+            if (error) throw error;
+            await fetchData(); // Refresh
+            return data;
+        } catch (err: any) {
+            console.error('Error deleting course:', err);
+            throw err;
+        }
+    };
+
     const updateCourseQuiz = async (courseId: string, quizData: any) => {
         try {
             const { data, error } = await supabase
@@ -140,5 +156,5 @@ export const useAdmin = (isAdmin: boolean) => {
         }
     };
 
-    return { users, courses, loading, error, addCourse, updateCourse, updateCourseQuiz, refresh: fetchData };
+    return { users, courses, loading, error, addCourse, updateCourse, deleteCourse, updateCourseQuiz, refresh: fetchData };
 };
