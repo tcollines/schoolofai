@@ -8,52 +8,140 @@ interface LocalDB {
     enrollments: any[];
 }
 
+const defaultCourses = [
+    {
+        id: '1',
+        title: 'Introduction to AI',
+        instructor: 'Sarah Jenkins',
+        duration: '4h 30m',
+        category: 'Technology',
+        rating: 4.8,
+        lessons_total: 12,
+        image_url: 'https://images.unsplash.com/photo-1677442136019-21780ecad995?auto=format&fit=crop&q=80&w=800',
+        price: 0,
+        accessTier: 'FREE',
+        status: 'PUBLISHED',
+        modules: [
+            {
+                id: 'm1',
+                title: 'Week 1',
+                lessons: [
+                    { id: 'l1', title: 'What is AI?', type: 'video', duration: '10m', videoUrl: 'https://www.w3schools.com/html/mov_bbb.mp4' },
+                    { id: 'l2', title: 'History of AI', type: 'article', duration: '5m', content: 'AI started in the 1950s...' }
+                ]
+            }
+        ]
+    },
+    {
+        id: '2',
+        title: 'Deep Learning & Neural Networks',
+        instructor: 'Dr. Kenji Tanaka',
+        duration: '6h 15m',
+        category: 'Technology',
+        rating: 4.9,
+        lessons_total: 10,
+        image_url: 'https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?auto=format&fit=crop&q=80&w=800',
+        price: 0,
+        accessTier: 'FREE',
+        status: 'PUBLISHED',
+        modules: [
+            {
+                id: 'dl-m1',
+                title: 'Week 1 - Basics of Deep Learning',
+                lessons: [
+                    { id: 'dl-l1', title: 'What is Deep Learning?', type: 'video', duration: '12m', videoUrl: 'https://www.w3schools.com/html/mov_bbb.mp4' },
+                    { id: 'dl-l2', title: 'Neural Network Architectures', type: 'article', duration: '8m', content: 'An artificial neural network is inspired by biological brains...' }
+                ]
+            }
+        ]
+    },
+    {
+        id: '3',
+        title: 'Natural Language Processing (NLP)',
+        instructor: 'Sarah Jenkins',
+        duration: '5h 45m',
+        category: 'Technology',
+        rating: 4.7,
+        lessons_total: 8,
+        image_url: 'https://images.unsplash.com/photo-1544383835-bda2bc66a55d?auto=format&fit=crop&q=80&w=800',
+        price: 0,
+        accessTier: 'FREE',
+        status: 'PUBLISHED',
+        modules: [
+            {
+                id: 'nlp-m1',
+                title: 'Week 1 - Foundations of NLP',
+                lessons: [
+                    { id: 'nlp-l1', title: 'Intro to NLP', type: 'video', duration: '10m', videoUrl: 'https://www.w3schools.com/html/mov_bbb.mp4' },
+                    { id: 'nlp-l2', title: 'Text Tokenization', type: 'article', duration: '6m', content: 'Tokenization involves splitting text into individual words or tokens...' }
+                ]
+            }
+        ]
+    },
+    {
+        id: '4',
+        title: 'Python for Data Science',
+        instructor: 'Marcus Vance',
+        duration: '8h 20m',
+        category: 'Python',
+        rating: 4.9,
+        lessons_total: 15,
+        image_url: 'https://images.unsplash.com/photo-1526379095098-d400fd0bf935?auto=format&fit=crop&q=80&w=800',
+        price: 0,
+        accessTier: 'FREE',
+        status: 'PUBLISHED',
+        modules: [
+            {
+                id: 'py-m1',
+                title: 'Week 1 - Pandas & NumPy Essentials',
+                lessons: [
+                    { id: 'py-l1', title: 'Python Basics Recap', type: 'video', duration: '15m', videoUrl: 'https://www.w3schools.com/html/mov_bbb.mp4' },
+                    { id: 'py-l2', title: 'Dataframes with Pandas', type: 'article', duration: '10m', content: 'Pandas provides fast, flexible, and expressive data structures...' }
+                ]
+            }
+        ]
+    }
+];
+
 // Initial seed data
 const getDB = (): LocalDB => {
     const stored = localStorage.getItem(DB_KEY);
-    if (stored) return JSON.parse(stored);
+    let db: LocalDB;
+    if (stored) {
+        db = JSON.parse(stored);
+    } else {
+        db = {
+            courses: defaultCourses,
+            profiles: [
+                {
+                    id: 'user-1',
+                    full_name: 'Test Student',
+                    email: 'student@test.com',
+                    role: 'INDIVIDUAL',
+                    avatar_url: 'https://i.pravatar.cc/150?u=a042581f4e29026704d',
+                    wallet_balance: 100
+                }
+            ],
+            enrollments: []
+        };
+        localStorage.setItem(DB_KEY, JSON.stringify(db));
+        return db;
+    }
 
-    const initialDB: LocalDB = {
-        courses: [
-            {
-                id: '1',
-                title: 'Introduction to AI',
-                instructor: 'Sarah Jenkins',
-                duration: '4h 30m',
-                category: 'Technology',
-                rating: 4.8,
-                lessons_total: 12,
-                image_url: 'https://images.unsplash.com/photo-1677442136019-21780ecad995?auto=format&fit=crop&q=80&w=800',
-                price: 0,
-                accessTier: 'FREE',
-                status: 'PUBLISHED',
-                modules: [
-                    {
-                        id: 'm1',
-                        title: 'Week 1',
-                        lessons: [
-                            { id: 'l1', title: 'What is AI?', type: 'video', duration: '10m', videoUrl: 'https://www.w3schools.com/html/mov_bbb.mp4' },
-                            { id: 'l2', title: 'History of AI', type: 'article', duration: '5m', content: 'AI started in the 1950s...' }
-                        ]
-                    }
-                ]
-            }
-        ],
-        profiles: [
-            {
-                id: 'user-1',
-                full_name: 'Test Student',
-                email: 'student@test.com',
-                role: 'INDIVIDUAL',
-                avatar_url: 'https://i.pravatar.cc/150?u=a042581f4e29026704d',
-                wallet_balance: 100
-            }
-        ],
-        enrollments: []
-    };
-    
-    localStorage.setItem(DB_KEY, JSON.stringify(initialDB));
-    return initialDB;
+    // Ensure all default courses exist in the existing database
+    let updated = false;
+    defaultCourses.forEach(dc => {
+        if (!db.courses.some(c => c.id === dc.id)) {
+            db.courses.push(dc);
+            updated = true;
+        }
+    });
+
+    if (updated) {
+        localStorage.setItem(DB_KEY, JSON.stringify(db));
+    }
+
+    return db;
 };
 
 const saveDB = (db: LocalDB) => {
