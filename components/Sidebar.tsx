@@ -1,5 +1,5 @@
 import React from 'react';
-import { LayoutDashboard, BookOpen, MessageSquare, CreditCard, User, Award, Settings, LogOut, Briefcase, X, Compass } from 'lucide-react';
+import { LayoutDashboard, BookOpen, MessageSquare, CreditCard, User, Award, Settings, LogOut, Briefcase, X, Compass, Calendar } from 'lucide-react';
 import { supabase } from '../src/lib/supabase';
 
 import { useTranslation } from './translations';
@@ -19,6 +19,7 @@ const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, isOpen, onCl
     { id: 'dashboard', label: t('dashboard'), icon: LayoutDashboard },
     { id: 'discover', label: t('discover'), icon: Compass },
     { id: 'courses', label: t('my_courses'), icon: BookOpen },
+    { id: 'events', label: t('events') || 'Upcoming Events', icon: Calendar },
     { id: 'career', label: t('career_growth'), icon: Briefcase },
     { id: 'profile', label: t('my_profile'), icon: User },
     { id: 'settings', label: t('settings'), icon: Settings },
