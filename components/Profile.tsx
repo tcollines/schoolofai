@@ -57,6 +57,195 @@ interface AvatarUploadModalProps {
     onSelectImage: (imageUrl: string) => void;
 }
 
+interface EducationItem {
+    id: string;
+    institution: string;
+    degree: string;
+    status: 'In Progress' | 'Completed';
+    year: string;
+    fileName?: string;
+}
+
+interface AddEducationModalProps {
+    isOpen: boolean;
+    onClose: () => void;
+    onAdd: (institution: string, degree: string, status: 'In Progress' | 'Completed', year: string, fileName: string) => void;
+}
+
+const AddEducationModal: React.FC<AddEducationModalProps> = ({ isOpen, onClose, onAdd }) => {
+    const [institution, setInstitution] = useState('');
+    const [degree, setDegree] = useState('');
+    const [status, setStatus] = useState<'In Progress' | 'Completed'>('Completed');
+    const [year, setYear] = useState('');
+    const [file, setFile] = useState<File | null>(null);
+    const [error, setError] = useState<string | null>(null);
+    const [isSaving, setIsSaving] = useState(false);
+
+    useEffect(() => {
+        if (!isOpen) {
+            setInstitution('');
+            setDegree('');
+            setStatus('Completed');
+            setYear('');
+            setFile(null);
+            setError(null);
+        }
+    }, [isOpen]);
+
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const selected = e.target.files?.[0];
+        if (selected) {
+            if (!['application/pdf', 'image/jpeg', 'image/png'].includes(selected.type)) {
+                setError('Invalid file type. Only PDF, JPEG, or PNG files are accepted as proof.');
+                setFile(null);
+                return;
+            }
+            if (selected.size > 5 * 1024 * 1024) {
+                setError('File is too large. Maximum allowed size is 5MB.');
+                setFile(null);
+                return;
+            }
+            setFile(selected);
+            setError(null);
+        }
+    };
+
+    const handleSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!institution.trim() || !degree.trim() || !year.trim()) {
+            setError('Please fill in all required academic fields.');
+            return;
+        }
+        if (!file) {
+            setError('Strict verification requires uploading a proof document (PDF, PNG, or JPG).');
+            return;
+        }
+
+        setIsSaving(true);
+        setTimeout(() => {
+            onAdd(institution, degree, status, year, file.name);
+            setIsSaving(false);
+            onClose();
+        }, 800);
+    };
+
+    if (!isOpen) return null;
+
+    return (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <div className="fixed inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
+            <div className="bg-white dark:bg-slate-900 border border-gray-150 dark:border-slate-800 w-full max-w-md rounded-3xl p-6 shadow-2xl relative z-10 animate-in zoom-in-95 duration-200 text-gray-900 dark:text-white">
+                <button type="button" onClick={onClose} className="absolute top-4 right-4 text-gray-400 hover:text-gray-900 dark:hover:text-white cursor-pointer">
+                    <X size={20} />
+                </button>
+                
+                <h3 className="text-lg font-bold text-center mb-6">Add Education Entry</h3>
+
+                <form onSubmit={handleSubmit} className="space-y-4">
+                    {error && (
+                        <div className="bg-red-50 dark:bg-red-950/20 text-red-600 dark:text-red-400 p-3 rounded-xl text-xs font-semibold border border-red-100 dark:border-red-900/50">
+                            {error}
+                        </div>
+                    )}
+
+                    <div className="space-y-1">
+                        <label className="text-xs font-bold text-gray-500 dark:text-slate-400">School / Institution *</label>
+                        <input 
+                            type="text" 
+                            value={institution}
+                            onChange={(e) => setInstitution(e.target.value)}
+                            placeholder="e.g. University of Cape Town"
+                            className="w-full p-2.5 bg-gray-50 dark:bg-slate-800 border border-gray-250 dark:border-slate-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-purple-500/20 text-gray-900 dark:text-white placeholder-gray-400"
+                        />
+                    </div>
+
+                    <div className="space-y-1">
+                        <label className="text-xs font-bold text-gray-500 dark:text-slate-400">Degree / Qualification *</label>
+                        <input 
+                            type="text" 
+                            value={degree}
+                            onChange={(e) => setDegree(e.target.value)}
+                            placeholder="e.g. Bachelor of Science in Computer Science"
+                            className="w-full p-2.5 bg-gray-50 dark:bg-slate-800 border border-gray-250 dark:border-slate-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-purple-500/20 text-gray-900 dark:text-white placeholder-gray-400"
+                        />
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-1">
+                            <label className="text-xs font-bold text-gray-500 dark:text-slate-400">Status *</label>
+                            <select 
+                                value={status}
+                                onChange={(e) => setStatus(e.target.value as any)}
+                                className="w-full p-2.5 bg-gray-50 dark:bg-slate-800 border border-gray-250 dark:border-slate-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-purple-500/20 text-gray-900 dark:text-white"
+                            >
+                                <option value="Completed">Completed</option>
+                                <option value="In Progress">In Progress</option>
+                            </select>
+                        </div>
+                        <div className="space-y-1">
+                            <label className="text-xs font-bold text-gray-500 dark:text-slate-400">Year *</label>
+                            <input 
+                                type="text" 
+                                value={year}
+                                onChange={(e) => setYear(e.target.value)}
+                                placeholder="e.g. 2024"
+                                className="w-full p-2.5 bg-gray-50 dark:bg-slate-800 border border-gray-250 dark:border-slate-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-purple-500/20 text-gray-900 dark:text-white placeholder-gray-400"
+                            />
+                        </div>
+                    </div>
+
+                    <div className="space-y-1">
+                        <label className="text-xs font-bold text-gray-500 dark:text-slate-400">Upload Verification Proof *</label>
+                        <div className="border-2 border-dashed border-gray-250 dark:border-slate-700 rounded-xl p-4 text-center cursor-pointer hover:bg-gray-50 dark:hover:bg-slate-800/40 relative">
+                            <input 
+                                type="file" 
+                                onChange={handleFileChange}
+                                accept=".pdf,image/png,image/jpeg"
+                                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                            />
+                            {file ? (
+                                <div className="space-y-1">
+                                    <p className="text-xs font-bold text-green-600 dark:text-green-400">✓ Proof Uploaded Successfully</p>
+                                    <p className="text-[10px] text-gray-400 truncate max-w-[200px] mx-auto">{file.name}</p>
+                                </div>
+                            ) : (
+                                <div className="space-y-1">
+                                    <p className="text-xs text-gray-600 dark:text-slate-300 font-semibold">Click to upload document</p>
+                                    <p className="text-[10px] text-gray-400">PDF, PNG, JPG (Max 5MB)</p>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+
+                    <div className="flex gap-4 pt-2">
+                        <button 
+                            type="button"
+                            onClick={onClose}
+                            className="flex-1 py-2.5 rounded-xl border border-gray-250 dark:border-slate-800 text-gray-700 dark:text-slate-300 font-bold text-sm hover:bg-gray-50 dark:hover:bg-slate-800/40"
+                        >
+                            Cancel
+                        </button>
+                        <button 
+                            type="submit"
+                            disabled={isSaving}
+                            className="flex-1 bg-welile-purple text-white py-2.5 rounded-xl text-sm font-bold hover:bg-purple-700 transition-colors flex items-center justify-center gap-2 cursor-pointer"
+                        >
+                            {isSaving ? (
+                                <>
+                                    <Loader size={14} className="animate-spin text-white" />
+                                    Saving...
+                                </>
+                            ) : (
+                                'Add Record'
+                            )}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    );
+};
+
 const AvatarUploadModal: React.FC<AvatarUploadModalProps> = ({ isOpen, onClose, onSelectImage }) => {
     const [source, setSource] = useState<'menu' | 'camera' | 'google' | 'icloud' | 'crop'>('menu');
     const [loading, setLoading] = useState(false);
@@ -460,6 +649,22 @@ const Profile: React.FC<ProfileProps> = ({ user, onUpgradeClick }) => {
     });
     const [avatarError, setAvatarError] = useState(false);
     const [showUploadModal, setShowUploadModal] = useState(false);
+    const [showEduModal, setShowEduModal] = useState(false);
+
+    const [educationList, setEducationList] = useState<EducationItem[]>(() => {
+        const stored = localStorage.getItem('profile-education');
+        if (stored) return JSON.parse(stored);
+        return [
+            {
+                id: 'edu-default-1',
+                institution: 'University of Cape Town',
+                degree: 'Bachelor of Science in Computer Science',
+                status: 'Completed',
+                year: '2023',
+                fileName: 'uct_degree.pdf'
+            }
+        ];
+    });
 
     useEffect(() => {
         if (user) {
@@ -470,6 +675,26 @@ const Profile: React.FC<ProfileProps> = ({ user, onUpgradeClick }) => {
             setAvatarError(false);
         }
     }, [user]);
+
+    const handleAddEducation = (institution: string, degree: string, status: 'In Progress' | 'Completed', year: string, fileName: string) => {
+        const newItem = {
+            id: 'edu-' + Date.now(),
+            institution,
+            degree,
+            status,
+            year,
+            fileName
+        };
+        const updated = [...educationList, newItem];
+        setEducationList(updated);
+        localStorage.setItem('profile-education', JSON.stringify(updated));
+
+        addPortalNotification(
+            "Education Details Added",
+            `Successfully added verification proof for: ${degree} from ${institution}.`,
+            "profile"
+        );
+    };
 
     const addPortalNotification = (title: string, description: string, type: 'assignment' | 'profile' | 'course' | 'system') => {
         const stored = localStorage.getItem('portal-notifications');
@@ -697,17 +922,34 @@ const Profile: React.FC<ProfileProps> = ({ user, onUpgradeClick }) => {
                     {/* Academic */}
                     <div className="bg-white dark:bg-slate-900 p-6 rounded-3xl border border-gray-100 dark:border-slate-800 shadow-sm">
                         <h4 className="font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-2 pb-4 border-b border-gray-50 dark:border-slate-800">
-                            <GraduationCap size={18} className="text-welile-purple" /> Education
+                            <GraduationCap size={18} className="text-welile-purple" /> Education <span className="text-xs font-normal text-gray-400 ml-1">(Optional)</span>
                         </h4>
                         <div className="space-y-4">
-                            <div className="p-4 border border-gray-100 dark:border-slate-800 rounded-xl flex justify-between items-center hover:bg-gray-50 dark:hover:bg-slate-800 cursor-pointer">
-                                <div>
-                                    <p className="font-bold text-sm text-gray-900 dark:text-white">University of Cape Town</p>
-                                    <p className="text-xs text-gray-500 dark:text-slate-400">Bachelor of Science in Computer Science</p>
+                            {educationList.map((item) => (
+                                <div key={item.id} className="p-4 border border-gray-100 dark:border-slate-800 rounded-xl flex justify-between items-center hover:bg-gray-50 dark:hover:bg-slate-800/40 cursor-pointer">
+                                    <div>
+                                        <p className="font-bold text-sm text-gray-900 dark:text-white">{item.institution}</p>
+                                        <p className="text-xs text-gray-500 dark:text-slate-400">{item.degree} • {item.year}</p>
+                                        {item.fileName && (
+                                            <p className="text-[10px] text-green-600 dark:text-green-400 font-semibold mt-1 flex items-center gap-1">
+                                                ✓ Verified Proof: {item.fileName}
+                                            </p>
+                                        )}
+                                    </div>
+                                    <span className={`text-[10px] px-2 py-0.5 rounded font-bold uppercase tracking-wider ${
+                                        item.status === 'Completed'
+                                            ? 'bg-green-100 dark:bg-green-950/30 text-green-700 dark:text-green-400'
+                                            : 'bg-yellow-100 dark:bg-yellow-950/30 text-yellow-700 dark:text-yellow-400'
+                                    }`}>
+                                        {item.status}
+                                    </span>
                                 </div>
-                                <span className="text-xs bg-green-100 dark:bg-green-950/30 text-green-700 dark:text-green-400 px-2 py-1 rounded">Completed</span>
-                            </div>
-                            <button className="w-full py-2 border border-dashed border-gray-300 dark:border-slate-700 rounded-xl text-gray-500 dark:text-slate-400 text-sm hover:border-welile-purple hover:text-welile-purple transition-colors">
+                            ))}
+                            <button 
+                                type="button"
+                                onClick={() => setShowEduModal(true)}
+                                className="w-full py-2.5 border border-dashed border-gray-300 dark:border-slate-700 rounded-xl text-gray-500 dark:text-slate-400 text-sm hover:border-welile-purple hover:text-welile-purple transition-all cursor-pointer font-semibold"
+                            >
                                 + Add Education
                             </button>
                         </div>
@@ -720,6 +962,12 @@ const Profile: React.FC<ProfileProps> = ({ user, onUpgradeClick }) => {
                 isOpen={showUploadModal}
                 onClose={() => setShowUploadModal(false)}
                 onSelectImage={handleSelectImage}
+            />
+
+            <AddEducationModal
+                isOpen={showEduModal}
+                onClose={() => setShowEduModal(false)}
+                onAdd={handleAddEducation}
             />
         </div>
     );
