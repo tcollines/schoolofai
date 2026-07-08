@@ -308,8 +308,34 @@ const MyCourses: React.FC<MyCoursesProps> = ({ courses }) => {
                                                     </div>
                                                     <div className="flex-1">
                                                         <h5 className="font-bold text-gray-900 dark:text-white group-hover:text-violet-900 dark:group-hover:text-violet-300 transition-colors">{lesson.title}</h5>
-                                                        <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-slate-400 mt-1">
-                                                            <Clock size={12} /> {lesson.duration}
+                                                        <div className="flex flex-wrap items-center gap-4 text-xs text-gray-500 dark:text-slate-400 mt-2">
+                                                            <div className="flex items-center gap-1">
+                                                                <Clock size={12} /> <span>{lesson.duration}</span>
+                                                            </div>
+                                                            {/* PDF Attachment Action */}
+                                                            <button 
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    alert(`Downloading PDF Slides & Lecture Notes for: "${lesson.title}"`);
+                                                                    const link = document.createElement('a');
+                                                                    link.href = 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf';
+                                                                    link.download = `${lesson.title.replace(/\s+/g, '_')}_Notes.pdf`;
+                                                                    link.target = '_blank';
+                                                                    document.body.appendChild(link);
+                                                                    link.click();
+                                                                    document.body.removeChild(link);
+
+                                                                    addPortalNotification(
+                                                                        "Resource Downloaded",
+                                                                        `Lecture PDF notes for "${lesson.title}" downloaded successfully.`,
+                                                                        "system"
+                                                                    );
+                                                                }}
+                                                                className="flex items-center gap-1 text-welile-purple dark:text-purple-400 hover:underline font-bold cursor-pointer"
+                                                            >
+                                                                <FileText size={12} />
+                                                                <span>PDF Notes</span>
+                                                            </button>
                                                         </div>
                                                     </div>
                                                     <div className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center p-2 text-violet-600 bg-white dark:bg-slate-900 rounded-full shadow-sm">

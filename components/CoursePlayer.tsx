@@ -112,14 +112,25 @@ const CoursePlayer: React.FC<CoursePlayerProps> = ({ module, courseTitle, onBack
                 ) : (
                     <div className="flex-1 bg-gray-50 overflow-y-auto p-8">
                         <div className="max-w-3xl mx-auto bg-white p-10 rounded-2xl shadow-sm border border-gray-100 min-h-full">
-                            <div className="flex items-center gap-3 mb-8 pb-6 border-b border-gray-100">
-                                <div className="p-3 bg-emerald-50 text-emerald-600 rounded-xl">
-                                    <FileText size={28} />
+                            <div className="flex items-center justify-between mb-8 pb-6 border-b border-gray-100">
+                                <div className="flex items-center gap-3">
+                                    <div className="p-3 bg-emerald-50 text-emerald-600 rounded-xl">
+                                        <FileText size={28} />
+                                    </div>
+                                    <div>
+                                        <h1 className="text-3xl font-bold text-gray-900">{module.title}</h1>
+                                        <p className="text-gray-500 mt-1">Reading Material</p>
+                                    </div>
                                 </div>
-                                <div>
-                                    <h1 className="text-3xl font-bold text-gray-900">{module.title}</h1>
-                                    <p className="text-gray-500 mt-1">Reading Material</p>
-                                </div>
+                                <button 
+                                    onClick={() => {
+                                        alert(`Downloading: "${module.title}_Notes.pdf"`);
+                                        window.open('https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf', '_blank');
+                                    }}
+                                    className="flex items-center gap-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 px-4 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer shrink-0"
+                                >
+                                    <FileText size={14} /> Download PDF Version
+                                </button>
                             </div>
                             
                             <div className="prose prose-violet max-w-none text-gray-700 leading-relaxed whitespace-pre-wrap">
