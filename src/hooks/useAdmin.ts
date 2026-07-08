@@ -125,6 +125,13 @@ export const useAdmin = (isAdmin: boolean) => {
 
     const deleteCourse = async (courseId: string) => {
         try {
+            // Clean up enrollments associated with this course ID
+            await supabase
+                .from('enrollments')
+                .delete()
+                .eq('course_id', courseId);
+
+            // Delete the course from courses table
             const { data, error } = await supabase
                 .from('courses')
                 .delete()
