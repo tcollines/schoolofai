@@ -4,6 +4,12 @@ import { useNavigate } from 'react-router-dom';
 import { UserProfile, Course } from '../types';
 import { useTranslation } from './translations';
 
+const DefaultAvatar = () => (
+  <svg viewBox="0 0 128 128" className="w-full h-full text-gray-400 dark:text-slate-500 fill-current bg-gray-100 dark:bg-slate-800">
+    <path d="M64 8a26 26 0 100 52 26 26 0 000-52zm0 60c-29.07 0-52.61 20.62-55.77 48h111.54C116.61 88.62 93.07 68 64 68z" />
+  </svg>
+);
+
 interface HeaderProps {
   user: UserProfile;
   onMenuClick: () => void;
@@ -44,6 +50,25 @@ const Header: React.FC<HeaderProps> = ({
     };
   }, []);
 
+  const [avatar, setAvatar] = useState(() => {
+    return localStorage.getItem('user-avatar') || user.avatar;
+  });
+  const [avatarError, setAvatarError] = useState(false);
+
+  useEffect(() => {
+    const handleProfileUpdate = () => {
+      const storedAvatar = localStorage.getItem('user-avatar');
+      if (storedAvatar) {
+        setAvatar(storedAvatar);
+        setAvatarError(false);
+      }
+    };
+    window.addEventListener('profile-update', handleProfileUpdate);
+    return () => {
+      window.removeEventListener('profile-update', handleProfileUpdate);
+    };
+  }, []);
+
   const toggleTheme = () => {
     const nextDark = !isDark;
     setIsDark(nextDark);
@@ -78,11 +103,18 @@ const Header: React.FC<HeaderProps> = ({
           <Menu size={24} />
         </button>
         {showProfile && profilePosition === 'left' && (
-          <img
-            src={user.avatar}
-            alt="Profile"
-            className="w-8 h-8 rounded-full object-cover border-2 border-white dark:border-slate-800 shadow-sm"
-          />
+          !avatar || avatarError ? (
+            <div className="w-8 h-8 rounded-full border-2 border-white dark:border-slate-800 shadow-sm overflow-hidden bg-gray-100 dark:bg-slate-800 flex items-center justify-center shrink-0">
+              <DefaultAvatar />
+            </div>
+          ) : (
+            <img
+              src={avatar}
+              alt="Profile"
+              onError={() => setAvatarError(true)}
+              className="w-8 h-8 rounded-full object-cover border-2 border-white dark:border-slate-800 shadow-sm shrink-0"
+            />
+          )
         )}
         {showWelcome && (
           <div>
@@ -155,12 +187,19 @@ const Header: React.FC<HeaderProps> = ({
         )}
 
         {showProfile && profilePosition === 'right' && (
-          <div className="flex items-center gap-3 pl-2">
-            <img
-              src={user.avatar}
-              alt="Profile"
-              className="w-8 h-8 lg:w-10 lg:h-10 rounded-full object-cover border-2 border-white dark:border-slate-800 shadow-md"
-            />
+          <div className="flex items-center gap-3 pl-2 shrink-0">
+            {!avatar || avatarError ? (
+              <div className="w-8 h-8 lg:w-10 lg:h-10 rounded-full border-2 border-white dark:border-slate-800 shadow-md overflow-hidden bg-gray-100 dark:bg-slate-800 flex items-center justify-center shrink-0">
+                <DefaultAvatar />
+              </div>
+            ) : (
+              <img
+                src={avatar}
+                alt="Profile"
+                onError={() => setAvatarError(true)}
+                className="w-8 h-8 lg:w-10 lg:h-10 rounded-full object-cover border-2 border-white dark:border-slate-800 shadow-md shrink-0"
+              />
+            )}
           </div>
         )}
       </div>
