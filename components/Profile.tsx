@@ -9,6 +9,48 @@ const DefaultAvatar = () => (
     </svg>
 );
 
+const cropImage = (
+    imageSrc: string,
+    zoom: number,
+    panX: number,
+    panY: number,
+    callback: (croppedUrl: string) => void
+) => {
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.src = imageSrc;
+    img.onload = () => {
+        const canvas = document.createElement('canvas');
+        canvas.width = 256;
+        canvas.height = 256;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return;
+
+        const imgAspect = img.width / img.height;
+        let drawW = 256;
+        let drawH = 256;
+        if (imgAspect > 1) {
+            drawW = 256 * imgAspect;
+        } else {
+            drawH = 256 / imgAspect;
+        }
+
+        ctx.save();
+        ctx.translate(128, 128);
+        ctx.scale(zoom, zoom);
+        // Canvas is 256px, Preview circle is 224px (w-56)
+        const scaleFactor = 256 / 224;
+        ctx.translate(panX * scaleFactor, panY * scaleFactor);
+        ctx.drawImage(img, -drawW / 2, -drawH / 2, drawW, drawH);
+        ctx.restore();
+
+        callback(canvas.toDataURL('image/jpeg', 0.9));
+    };
+    img.onerror = () => {
+        callback(imageSrc);
+    };
+};
+
 interface AvatarUploadModalProps {
     isOpen: boolean;
     onClose: () => void;
@@ -16,11 +58,52 @@ interface AvatarUploadModalProps {
 }
 
 const AvatarUploadModal: React.FC<AvatarUploadModalProps> = ({ isOpen, onClose, onSelectImage }) => {
-    const [source, setSource] = useState<'menu' | 'camera' | 'google' | 'icloud'>('menu');
+    const [source, setSource] = useState<'menu' | 'camera' | 'google' | 'icloud' | 'crop'>('menu');
     const [loading, setLoading] = useState(false);
     const [cameraStream, setCameraStream] = useState<MediaStream | null>(null);
     const videoRef = useRef<HTMLVideoElement | null>(null);
     const fileInputRef = useRef<HTMLInputElement | null>(null);
+
+    // Cropping & Positioning State
+    const [tempImage, setTempImage] = useState<string | null>(null);
+    const [zoom, setZoom] = useState(1);
+    const [panX, setPanX] = useState(0);
+    const [panY, setPanY] = useState(0);
+    const [isDragging, setIsDragging] = useState(false);
+    const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
+
+    const handleMouseDown = (e: React.MouseEvent) => {
+        e.preventDefault();
+        setIsDragging(true);
+        setDragStart({ x: e.clientX - panX, y: e.clientY - panY });
+    };
+
+    const handleMouseMove = (e: React.MouseEvent) => {
+        if (!isDragging) return;
+        setPanX(e.clientX - dragStart.x);
+        setPanY(e.clientY - dragStart.y);
+    };
+
+    const handleMouseUp = () => {
+        setIsDragging(false);
+    };
+
+    const handleTouchStart = (e: React.TouchEvent) => {
+        if (e.touches.length === 1) {
+            setIsDragging(true);
+            setDragStart({ x: e.touches[0].clientX - panX, y: e.touches[0].clientY - panY });
+        }
+    };
+
+    const handleTouchMove = (e: React.TouchEvent) => {
+        if (!isDragging || e.touches.length !== 1) return;
+        setPanX(e.touches[0].clientX - dragStart.x);
+        setPanY(e.touches[0].clientY - dragStart.y);
+    };
+
+    const handleTouchEnd = () => {
+        setIsDragging(false);
+    };
 
     // Mock stock photos for Google & iCloud Photos
     const mockPhotos = [
@@ -74,10 +157,16 @@ const AvatarUploadModal: React.FC<AvatarUploadModalProps> = ({ isOpen, onClose, 
             canvas.height = 300;
             const ctx = canvas.getContext('2d');
             if (ctx) {
+                ctx.translate(300, 0);
+                ctx.scale(-1, 1);
                 ctx.drawImage(videoRef.current, 0, 0, 300, 300);
                 const dataUrl = canvas.toDataURL('image/jpeg');
-                onSelectImage(dataUrl);
-                onClose();
+                setTempImage(dataUrl);
+                setZoom(1);
+                setPanX(0);
+                setPanY(0);
+                setSource('crop');
+                stopCamera();
             }
         }
     };
@@ -88,8 +177,11 @@ const AvatarUploadModal: React.FC<AvatarUploadModalProps> = ({ isOpen, onClose, 
             const reader = new FileReader();
             reader.onload = () => {
                 if (typeof reader.result === 'string') {
-                    onSelectImage(reader.result);
-                    onClose();
+                    setTempImage(reader.result);
+                    setZoom(1);
+                    setPanX(0);
+                    setPanY(0);
+                    setSource('crop');
                 }
             };
             reader.readAsDataURL(file);
@@ -111,6 +203,7 @@ const AvatarUploadModal: React.FC<AvatarUploadModalProps> = ({ isOpen, onClose, 
                     {source === 'camera' && 'Take Profile Picture'}
                     {source === 'google' && 'Import from Google Photos'}
                     {source === 'icloud' && 'Import from iCloud'}
+                    {source === 'crop' && 'Position & Zoom Photo'}
                 </h3>
 
                 <input 
@@ -207,8 +300,11 @@ const AvatarUploadModal: React.FC<AvatarUploadModalProps> = ({ isOpen, onClose, 
                                         <div 
                                             key={idx}
                                             onClick={() => {
-                                                onSelectImage(url);
-                                                onClose();
+                                                setTempImage(url);
+                                                setZoom(1);
+                                                setPanX(0);
+                                                setPanY(0);
+                                                setSource('crop');
                                             }}
                                             className="aspect-square rounded-2xl overflow-hidden cursor-pointer hover:ring-4 hover:ring-welile-purple/50 border border-gray-100 dark:border-slate-800 transition-all"
                                         >
@@ -224,6 +320,121 @@ const AvatarUploadModal: React.FC<AvatarUploadModalProps> = ({ isOpen, onClose, 
                                 </button>
                             </div>
                         )}
+                    </div>
+                )}
+
+                {source === 'crop' && tempImage && (
+                    <div className="flex flex-col items-center gap-6">
+                        <p className="text-xs text-gray-500 dark:text-slate-400 text-center">
+                            Drag the photo to position it, or adjust the sliders below:
+                        </p>
+                        
+                        {/* Interactive circle boundary */}
+                        <div 
+                            className="relative w-56 h-56 rounded-full overflow-hidden border-4 border-welile-purple bg-black flex items-center justify-center cursor-move select-none"
+                            onMouseDown={handleMouseDown}
+                            onMouseMove={handleMouseMove}
+                            onMouseUp={handleMouseUp}
+                            onMouseLeave={handleMouseUp}
+                            onTouchStart={handleTouchStart}
+                            onTouchMove={handleTouchMove}
+                            onTouchEnd={handleTouchEnd}
+                        >
+                            <img 
+                                src={tempImage} 
+                                alt="Crop Preview" 
+                                className="max-w-none max-h-none w-full h-full object-cover pointer-events-none select-none"
+                                style={{ 
+                                    transform: `scale(${zoom}) translate(${panX}px, ${panY}px)`, 
+                                    transformOrigin: 'center center' 
+                                }} 
+                            />
+                        </div>
+
+                        {/* Adjuster sliders */}
+                        <div className="w-full space-y-4">
+                            <div className="space-y-1">
+                                <div className="flex justify-between text-xs text-gray-500 dark:text-slate-400 font-medium">
+                                    <span>Zoom</span>
+                                    <span>{Math.round(zoom * 100)}%</span>
+                                </div>
+                                <input 
+                                    type="range" 
+                                    min="1" 
+                                    max="3" 
+                                    step="0.01" 
+                                    value={zoom} 
+                                    onChange={(e) => setZoom(parseFloat(e.target.value))} 
+                                    className="w-full accent-welile-purple cursor-pointer bg-gray-200 dark:bg-slate-700 h-1.5 rounded-lg"
+                                />
+                            </div>
+
+                            <div className="space-y-1">
+                                <div className="flex justify-between text-xs text-gray-500 dark:text-slate-400 font-medium">
+                                    <span>Horizontal Adjust</span>
+                                    <span>{panX}px</span>
+                                </div>
+                                <input 
+                                    type="range" 
+                                    min="-150" 
+                                    max="150" 
+                                    step="1" 
+                                    value={panX} 
+                                    onChange={(e) => setPanX(parseInt(e.target.value))} 
+                                    className="w-full accent-welile-purple/60 cursor-pointer bg-gray-200 dark:bg-slate-700 h-1.5 rounded-lg"
+                                />
+                            </div>
+
+                            <div className="space-y-1">
+                                <div className="flex justify-between text-xs text-gray-500 dark:text-slate-400 font-medium">
+                                    <span>Vertical Adjust</span>
+                                    <span>{panY}px</span>
+                                </div>
+                                <input 
+                                    type="range" 
+                                    min="-150" 
+                                    max="150" 
+                                    step="1" 
+                                    value={panY} 
+                                    onChange={(e) => setPanY(parseInt(e.target.value))} 
+                                    className="w-full accent-welile-purple/60 cursor-pointer bg-gray-200 dark:bg-slate-700 h-1.5 rounded-lg"
+                                />
+                            </div>
+                        </div>
+
+                        {/* Actions */}
+                        <div className="flex gap-4 w-full mt-2">
+                            <button 
+                                onClick={() => {
+                                    setSource('menu');
+                                    stopCamera();
+                                }}
+                                className="flex-1 py-2.5 rounded-xl border border-gray-200 dark:border-slate-800 text-gray-700 dark:text-slate-300 font-bold text-sm hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors"
+                            >
+                                Back
+                            </button>
+                            <button 
+                                onClick={() => {
+                                    setLoading(true);
+                                    cropImage(tempImage, zoom, panX, panY, (croppedUrl) => {
+                                        setLoading(false);
+                                        onSelectImage(croppedUrl);
+                                        onClose();
+                                    });
+                                }}
+                                disabled={loading}
+                                className="flex-1 bg-welile-purple text-white py-2.5 rounded-xl text-sm font-bold hover:bg-purple-700 transition-colors flex items-center justify-center gap-2"
+                            >
+                                {loading ? (
+                                    <>
+                                        <Loader size={14} className="animate-spin" />
+                                        Saving...
+                                    </>
+                                ) : (
+                                    'Save Picture'
+                                )}
+                            </button>
+                        </div>
                     </div>
                 )}
             </div>
