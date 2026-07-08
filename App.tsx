@@ -140,7 +140,7 @@ function App() {
             <Route path="/plans" element={<PlansPage currentPlan={UserRole.INDIVIDUAL} onUpgrade={() => {}} onBack={() => window.location.href = '/profile'} />} />
             <Route path="/settings" element={<SettingsPage />} />
             <Route path="/notifications" element={<NotificationsPage />} />
-            <Route path="/events" element={<EventsPage />} />
+            <Route path="/events" element={<EventsPage courses={courses} />} />
             
             {/* Default fallback route inside Layout */}
             <Route path="*" element={<Navigate to={isAuthenticated ? "/dashboard" : "/"} replace />} />

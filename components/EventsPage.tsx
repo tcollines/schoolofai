@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Calendar, Clock, MapPin, Video, Users, Check, ExternalLink, ArrowRight, Loader } from 'lucide-react';
 import { useTranslation } from './translations';
+import { Course, CourseStatus } from '../types';
 
 interface EventItem {
     id: string;
@@ -11,31 +12,27 @@ interface EventItem {
     type: 'Workshop' | 'Webinar' | 'Panel';
     speaker: string;
     tags: string[];
+    courseId?: string;
+    isAnnouncement?: boolean;
     attendeeCount: number;
 }
 
-const initialEvents: EventItem[] = [
+interface EventsPageProps {
+    courses?: Course[];
+}
+
+const defaultAdminEvents = [
     {
         id: 'ev-1',
         title: 'Generative AI Hackathon: Building with LLMs',
         description: 'Join WSAI instructors and mentors for an intensive hackathon where you will build and deploy functional GenAI projects using OpenAI API, LangChain, and Streamlit.',
         date: '2026-07-15',
         time: '14:00 - 17:00 (SAST)',
-        type: 'Workshop',
+        type: 'Workshop' as const,
         speaker: 'Dr. Sarah Jenkins, Head of Generative AI Research',
         tags: ['LLMs', 'LangChain', 'GenAI'],
+        courseId: 'global',
         attendeeCount: 142
-    },
-    {
-        id: 'ev-2',
-        title: 'MLOps Masterclass: Deploying Models to Production',
-        description: 'Learn how to build production-grade MLOps pipelines. We will cover versioning datasets, model registries with MLflow, and containerizing deployment packages with Docker.',
-        date: '2026-07-22',
-        time: '10:00 - 12:30 (SAST)',
-        type: 'Webinar',
-        speaker: 'Marcus Vance, Lead MLOps Engineer',
-        tags: ['MLOps', 'Docker', 'Production'],
-        attendeeCount: 89
     },
     {
         id: 'ev-3',
@@ -43,25 +40,15 @@ const initialEvents: EventItem[] = [
         description: 'A curated expert panel discussion exploring global policies, bias mitigation strategies, and commercial transparency guidelines for enterprise machine learning products.',
         date: '2026-08-05',
         time: '16:00 - 18:00 (SAST)',
-        type: 'Panel',
+        type: 'Panel' as const,
         speaker: 'Panel of Legal Counsel and AI Ethicists',
         tags: ['Ethics', 'Compliance', 'Policy'],
+        courseId: 'global',
         attendeeCount: 206
-    },
-    {
-        id: 'ev-4',
-        title: 'Computer Vision Workshop: Object Detection in Real-time',
-        description: 'Step-by-step tutorial on training YOLO model extensions using PyTorch and running real-time object tracking over live video streams.',
-        date: '2026-08-18',
-        time: '13:00 - 15:30 (SAST)',
-        type: 'Workshop',
-        speaker: 'Dr. Kenji Tanaka, Senior Computer Vision Scientist',
-        tags: ['Computer Vision', 'YOLO', 'PyTorch'],
-        attendeeCount: 115
     }
 ];
 
-const EventsPage: React.FC = () => {
+const EventsPage: React.FC<EventsPageProps> = ({ courses = [] }) => {
     const { t } = useTranslation();
     const [filter, setFilter] = useState<'All' | 'Workshop' | 'Webinar' | 'Panel'>('All');
     const [rsvps, setRsvps] = useState<Record<string, 'yes' | 'loading' | 'no'>>(() => {
@@ -69,6 +56,29 @@ const EventsPage: React.FC = () => {
         return stored ? JSON.parse(stored) : {};
     });
     const [timeLeft, setTimeLeft] = useState({ hours: 2, minutes: 42, seconds: 15 });
+    const [adminEvents, setAdminEvents] = useState<EventItem[]>([]);
+
+    // Filter enrolled courses
+    const enrolledCourses = courses.filter(c => c.status === CourseStatus.IN_PROGRESS || c.status === CourseStatus.COMPLETED);
+
+    // Initial seed & fetch admin events
+    useEffect(() => {
+        const stored = localStorage.getItem('admin-events');
+        let currentAdminList = [];
+        if (!stored) {
+            localStorage.setItem('admin-events', JSON.stringify(defaultAdminEvents));
+            currentAdminList = defaultAdminEvents;
+        } else {
+            currentAdminList = JSON.parse(stored);
+        }
+
+        // Filter: only show global admin events OR if student is enrolled in that specific course
+        const enrolledIds = enrolledCourses.map(c => c.id);
+        const filtered = currentAdminList.filter((e: any) => 
+            e.courseId === 'global' || enrolledIds.includes(e.courseId)
+        );
+        setAdminEvents(filtered);
+    }, [courses]);
 
     // Simple ticking countdown for the next live workshop
     useEffect(() => {
@@ -81,12 +91,42 @@ const EventsPage: React.FC = () => {
                 } else if (prev.hours > 0) {
                     return { hours: prev.hours - 1, minutes: 59, seconds: 59 };
                 } else {
-                    return { hours: 2, minutes: 42, seconds: 15 }; // Reset mock count
+                    return { hours: 2, minutes: 42, seconds: 15 };
                 }
             });
         }, 1000);
         return () => clearInterval(timer);
     }, []);
+
+    // Generate dynamic course meetings for each enrolled course
+    const dynamicCourseEvents: EventItem[] = enrolledCourses.flatMap((course, index) => [
+        {
+            id: `course-qa-${course.id}`,
+            title: `Live Q&A Session: ${course.title}`,
+            description: `Join your instructor ${course.instructor} for a live interactive question and answer session regarding the latest lessons and modules in ${course.title}.`,
+            date: new Date(Date.now() + (3 + index * 2) * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // 3, 5, 7 days from now
+            time: '15:00 - 16:30 (SAST)',
+            type: 'Webinar' as const,
+            speaker: course.instructor || 'Course Instructor',
+            tags: ['Q&A', course.category || 'General'],
+            courseId: course.id,
+            attendeeCount: 45 + (index * 12)
+        },
+        {
+            id: `course-workshop-${course.id}`,
+            title: `Hands-on Project Review: ${course.title}`,
+            description: `Collaborate with peer students enrolled in ${course.title} to review intermediate coding challenges, project guidelines, and optimization hacks.`,
+            date: new Date(Date.now() + (6 + index * 2) * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // 6, 8, 10 days from now
+            time: '11:00 - 13:00 (SAST)',
+            type: 'Workshop' as const,
+            speaker: 'WSAI Mentor Panel',
+            tags: ['Hands-on', course.category || 'General'],
+            courseId: course.id,
+            attendeeCount: 62 + (index * 8)
+        }
+    ]);
+
+    const allEvents = [...dynamicCourseEvents, ...adminEvents];
 
     const handleRSVP = (eventId: string) => {
         setRsvps(prev => ({ ...prev, [eventId]: 'loading' }));
@@ -99,7 +139,7 @@ const EventsPage: React.FC = () => {
                 // Trigger notification in student portal
                 const storedNotifs = localStorage.getItem('portal-notifications');
                 const list = storedNotifs ? JSON.parse(storedNotifs) : [];
-                const matchedEvent = initialEvents.find(e => e.id === eventId);
+                const matchedEvent = allEvents.find(e => e.id === eventId);
                 if (matchedEvent) {
                     const isRsvpJoin = nextState[eventId] === 'yes';
                     const newItem = {
@@ -121,7 +161,7 @@ const EventsPage: React.FC = () => {
         }, 800);
     };
 
-    const filteredEvents = initialEvents.filter(e => filter === 'All' || e.type === filter);
+    const filteredEvents = allEvents.filter(e => filter === 'All' || e.type === filter);
 
     return (
         <div className="max-w-5xl mx-auto space-y-8 animate-in fade-in duration-300">
@@ -176,7 +216,7 @@ const EventsPage: React.FC = () => {
                 <div>
                     <h3 className="text-xl font-bold text-gray-900 dark:text-white">{t('events') || 'Upcoming Events'}</h3>
                     <p className="text-xs text-gray-500 dark:text-slate-400 mt-1">
-                        Accelerate your learning through live interactive program events.
+                        Dynamic scheduling synced to your enrolled courses and announcements published by WSAI Admin.
                     </p>
                 </div>
 
@@ -198,116 +238,155 @@ const EventsPage: React.FC = () => {
                 </div>
             </div>
 
+            {/* Enrolled Courses Status Callout (If none) */}
+            {enrolledCourses.length === 0 && (
+                <div className="bg-gradient-to-r from-violet-50 to-indigo-50 dark:from-slate-900/60 dark:to-slate-850/40 p-6 rounded-3xl border border-violet-100/80 dark:border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-4">
+                    <div>
+                        <h4 className="font-bold text-sm text-violet-900 dark:text-violet-400">No Course Meetings Scheduled</h4>
+                        <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                            Enroll in Python, GenAI or MLOps courses to unlock course-specific live tutor QA webinars and study workshops!
+                        </p>
+                    </div>
+                    <button 
+                        onClick={() => window.location.href = '/discover'}
+                        className="px-5 py-2 bg-welile-purple text-white text-xs font-bold rounded-xl hover:bg-purple-700 transition-colors shadow-md shadow-purple-900/10 cursor-pointer shrink-0"
+                    >
+                        Browse Courses
+                    </button>
+                </div>
+            )}
+
             {/* Events Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {filteredEvents.map((event) => {
-                    const rsvp = rsvps[event.id] || 'no';
-                    const isRsvp = rsvp === 'yes';
-                    const isLoading = rsvp === 'loading';
-                    const actualAttendees = event.attendeeCount + (isRsvp ? 1 : 0);
+            {filteredEvents.length === 0 ? (
+                <div className="text-center py-12 bg-white dark:bg-slate-900 rounded-3xl border border-gray-100 dark:border-slate-800/80">
+                    <p className="text-sm text-gray-500 dark:text-slate-400 font-medium">No upcoming events found under this category.</p>
+                </div>
+            ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {filteredEvents.map((event) => {
+                        const rsvp = rsvps[event.id] || 'no';
+                        const isRsvp = rsvp === 'yes';
+                        const isLoading = rsvp === 'loading';
+                        const actualAttendees = event.attendeeCount + (isRsvp ? 1 : 0);
 
-                    // Colors based on event type
-                    const typeStyles = {
-                        Workshop: { border: 'border-l-welile-lime', bg: 'bg-lime-50 dark:bg-lime-950/20 text-lime-700 dark:text-lime-400' },
-                        Webinar: { border: 'border-l-welile-purple', bg: 'bg-purple-50 dark:bg-purple-950/20 text-purple-700 dark:text-purple-400' },
-                        Panel: { border: 'border-l-pink-500', bg: 'bg-pink-50 dark:bg-pink-950/20 text-pink-700 dark:text-pink-400' }
-                    }[event.type];
+                        // Colors based on event type
+                        const typeStyles = {
+                            Workshop: { border: 'border-l-welile-lime', bg: 'bg-lime-50 dark:bg-lime-950/20 text-lime-700 dark:text-lime-400' },
+                            Webinar: { border: 'border-l-welile-purple', bg: 'bg-purple-50 dark:bg-purple-950/20 text-purple-700 dark:text-purple-400' },
+                            Panel: { border: 'border-l-pink-500', bg: 'bg-pink-50 dark:bg-pink-950/20 text-pink-700 dark:text-pink-400' }
+                        }[event.type];
 
-                    return (
-                        <div 
-                            key={event.id} 
-                            className={`bg-white dark:bg-slate-900 border-y border-r border-gray-100 dark:border-slate-800/80 border-l-4 ${typeStyles.border} rounded-3xl p-6 shadow-sm hover:shadow-md transition-shadow relative overflow-hidden flex flex-col justify-between`}
-                        >
-                            <div className="space-y-4">
-                                <div className="flex justify-between items-start">
-                                    <span className={`text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full ${typeStyles.bg}`}>
-                                        {event.type}
-                                    </span>
-                                    <div className="flex items-center gap-1.5 text-xs text-gray-500 dark:text-slate-400 font-medium">
-                                        <Users size={13} />
-                                        <span>{actualAttendees} registered</span>
+                        const isCourseSpecific = event.courseId && event.courseId !== 'global';
+                        const courseName = isCourseSpecific ? courses.find(c => c.id === event.courseId)?.title : null;
+
+                        return (
+                            <div 
+                                key={event.id} 
+                                className={`bg-white dark:bg-slate-900 border-y border-r border-gray-100 dark:border-slate-800/80 border-l-4 ${typeStyles.border} rounded-3xl p-6 shadow-sm hover:shadow-md transition-shadow relative overflow-hidden flex flex-col justify-between`}
+                            >
+                                <div className="space-y-4">
+                                    <div className="flex justify-between items-start">
+                                        <div className="flex gap-2">
+                                            <span className={`text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full ${typeStyles.bg}`}>
+                                                {event.type}
+                                            </span>
+                                            {event.isAnnouncement && (
+                                                <span className="text-[10px] font-bold bg-orange-100 dark:bg-orange-950/20 text-orange-600 dark:text-orange-400 px-2.5 py-1 rounded-full uppercase tracking-wider">
+                                                    Announcement
+                                                </span>
+                                            )}
+                                        </div>
+                                        <div className="flex items-center gap-1.5 text-xs text-gray-500 dark:text-slate-400 font-medium">
+                                            <Users size={13} />
+                                            <span>{actualAttendees} registered</span>
+                                        </div>
                                     </div>
-                                </div>
 
-                                <div className="space-y-2">
-                                    <h4 className="font-bold text-gray-900 dark:text-white leading-snug text-base hover:text-welile-purple dark:hover:text-purple-400 cursor-pointer transition-colors">
-                                        {event.title}
-                                    </h4>
-                                    <p className="text-xs text-gray-400 dark:text-slate-500 font-medium">
-                                        Host: {event.speaker}
-                                    </p>
-                                    <p className="text-xs text-gray-600 dark:text-slate-400 leading-relaxed line-clamp-3">
-                                        {event.description}
-                                    </p>
-                                </div>
-                            </div>
-
-                            <div className="mt-6 pt-5 border-t border-gray-50 dark:border-slate-800 space-y-4">
-                                {/* Date and Location */}
-                                <div className="grid grid-cols-2 gap-3 text-xs text-gray-600 dark:text-slate-400 font-semibold">
-                                    <div className="flex items-center gap-2">
-                                        <Calendar size={13} className="text-welile-purple shrink-0" />
-                                        <span>{event.date}</span>
-                                    </div>
-                                    <div className="flex items-center gap-2">
-                                        <Clock size={13} className="text-welile-purple shrink-0" />
-                                        <span className="truncate">{event.time}</span>
-                                    </div>
-                                    <div className="flex items-center gap-2 col-span-2">
-                                        <Video size={13} className="text-welile-purple shrink-0" />
-                                        <span>Virtual Live Meeting (WSAI Link provided on RSVP)</span>
-                                    </div>
-                                </div>
-
-                                {/* Tags */}
-                                <div className="flex flex-wrap gap-1.5">
-                                    {event.tags.map((tag) => (
-                                        <span key={tag} className="text-[10px] font-bold bg-gray-50 dark:bg-slate-800 text-gray-500 dark:text-slate-400 px-2 py-0.5 rounded">
-                                            #{tag}
-                                        </span>
-                                    ))}
-                                </div>
-
-                                {/* Action Buttons */}
-                                <div className="flex gap-3">
-                                    <button 
-                                        onClick={() => handleRSVP(event.id)}
-                                        disabled={isLoading}
-                                        className={`flex-1 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer ${
-                                            isRsvp
-                                                ? 'bg-green-500 text-white shadow-md shadow-green-500/10 hover:bg-green-600'
-                                                : 'bg-black dark:bg-slate-800 hover:bg-gray-800 dark:hover:bg-slate-700 text-white'
-                                        }`}
-                                    >
-                                        {isLoading ? (
-                                            <>
-                                                <Loader size={12} className="animate-spin" />
-                                                Processing...
-                                            </>
-                                        ) : isRsvp ? (
-                                            <>
-                                                <Check size={12} />
-                                                RSVP'd (Cancel)
-                                            </>
-                                        ) : (
-                                            'RSVP for Event'
+                                    <div className="space-y-2">
+                                        <h4 className="font-bold text-gray-900 dark:text-white leading-snug text-base hover:text-welile-purple dark:hover:text-purple-400 cursor-pointer transition-colors">
+                                            {event.title}
+                                        </h4>
+                                        {courseName && (
+                                            <p className="text-[10px] font-bold text-welile-purple uppercase tracking-wider">
+                                                Course: {courseName}
+                                            </p>
                                         )}
-                                    </button>
-                                    <button 
-                                        onClick={() => {
-                                            alert(`"${event.title}" invitation link copied to clipboard!`);
-                                        }}
-                                        className="px-3.5 bg-gray-50 dark:bg-slate-800 hover:bg-gray-100 dark:hover:bg-slate-700 border border-gray-200 dark:border-slate-800 rounded-xl flex items-center justify-center text-gray-500 dark:text-slate-300 transition-colors"
-                                        title="Copy Link"
-                                    >
-                                        <ExternalLink size={14} />
-                                    </button>
+                                        <p className="text-xs text-gray-400 dark:text-slate-500 font-medium">
+                                            Host: {event.speaker}
+                                        </p>
+                                        <p className="text-xs text-gray-600 dark:text-slate-400 leading-relaxed line-clamp-3">
+                                            {event.description}
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <div className="mt-6 pt-5 border-t border-gray-50 dark:border-slate-800 space-y-4">
+                                    {/* Date and Location */}
+                                    <div className="grid grid-cols-2 gap-3 text-xs text-gray-600 dark:text-slate-400 font-semibold">
+                                        <div className="flex items-center gap-2">
+                                            <Calendar size={13} className="text-welile-purple shrink-0" />
+                                            <span>{event.date}</span>
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                            <Clock size={13} className="text-welile-purple shrink-0" />
+                                            <span className="truncate">{event.time}</span>
+                                        </div>
+                                        <div className="flex items-center gap-2 col-span-2">
+                                            <Video size={13} className="text-welile-purple shrink-0" />
+                                            <span>Virtual Live Meeting (WSAI Link provided on RSVP)</span>
+                                        </div>
+                                    </div>
+
+                                    {/* Tags */}
+                                    <div className="flex flex-wrap gap-1.5">
+                                        {event.tags.map((tag) => (
+                                            <span key={tag} className="text-[10px] font-bold bg-gray-50 dark:bg-slate-800 text-gray-500 dark:text-slate-400 px-2 py-0.5 rounded">
+                                                #{tag}
+                                            </span>
+                                        ))}
+                                    </div>
+
+                                    {/* Action Buttons */}
+                                    <div className="flex gap-3">
+                                        <button 
+                                            onClick={() => handleRSVP(event.id)}
+                                            disabled={isLoading}
+                                            className={`flex-1 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer ${
+                                                isRsvp
+                                                    ? 'bg-green-500 text-white shadow-md shadow-green-500/10 hover:bg-green-600'
+                                                    : 'bg-black dark:bg-slate-800 hover:bg-gray-800 dark:hover:bg-slate-700 text-white'
+                                            }`}
+                                        >
+                                            {isLoading ? (
+                                                <>
+                                                    <Loader size={12} className="animate-spin" />
+                                                    Processing...
+                                                </>
+                                            ) : isRsvp ? (
+                                                <>
+                                                    <Check size={12} />
+                                                    RSVP'd (Cancel)
+                                                </>
+                                            ) : (
+                                                'RSVP for Event'
+                                            )}
+                                        </button>
+                                        <button 
+                                            onClick={() => {
+                                                alert(`"${event.title}" invitation link copied to clipboard!`);
+                                            }}
+                                            className="px-3.5 bg-gray-50 dark:bg-slate-800 hover:bg-gray-100 dark:hover:bg-slate-700 border border-gray-200 dark:border-slate-800 rounded-xl flex items-center justify-center text-gray-500 dark:text-slate-300 transition-colors"
+                                            title="Copy Link"
+                                        >
+                                            <ExternalLink size={14} />
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                    );
-                })}
-            </div>
+                        );
+                    })}
+                </div>
+            )}
         </div>
     );
 };
