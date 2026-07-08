@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { User, MapPin, Briefcase, GraduationCap, Save, Camera, FileImage, Cloud, X, Loader } from 'lucide-react';
+import { User, MapPin, Briefcase, GraduationCap, Save, Camera, FileImage, Cloud, X, Loader, Trash2 } from 'lucide-react';
 import { UserProfile } from '../types';
 import { useTranslation } from './translations';
 
@@ -295,6 +295,26 @@ const Profile: React.FC<ProfileProps> = ({ user, onUpgradeClick }) => {
         }
     };
 
+    const handleDeleteAvatar = () => {
+        if (formData) {
+            const updated = {
+                ...formData,
+                avatar: ''
+            };
+            setFormData(updated);
+            setAvatarError(false);
+            
+            localStorage.removeItem('user-avatar');
+            window.dispatchEvent(new Event('profile-update'));
+
+            addPortalNotification(
+                "Profile Picture Removed",
+                "Your profile avatar was successfully removed.",
+                "profile"
+            );
+        }
+    };
+
     if (!formData) return <div>Loading...</div>;
 
     return (
@@ -340,11 +360,20 @@ const Profile: React.FC<ProfileProps> = ({ user, onUpgradeClick }) => {
                             >
                                 <Camera size={14} />
                             </button>
+                            {formData.avatar && !avatarError && (
+                                <button 
+                                    onClick={handleDeleteAvatar}
+                                    className="absolute bottom-0 left-0 bg-red-100 text-red-600 dark:bg-red-950/40 dark:text-red-400 p-1.5 rounded-full border-2 border-white dark:border-slate-900 hover:bg-red-200 dark:hover:bg-red-900/40 cursor-pointer transition-colors"
+                                    title="Delete profile picture"
+                                >
+                                    <Trash2 size={14} />
+                                </button>
+                            )}
                         </div>
                         <h3 className="mt-4 font-bold text-lg text-gray-900 dark:text-white">{formData.name}</h3>
                         <p className="text-gray-500 dark:text-slate-400 text-sm mb-4">{formData.email}</p>
                         <div className="inline-block bg-purple-50 dark:bg-purple-950/30 text-welile-purple dark:text-purple-400 text-xs font-bold px-3 py-1 rounded-full border border-purple-100 dark:border-purple-900/50">
-                            {formData.role === 'SPONSORED' ? 'Enterprise Plan' : formData.role === 'INDIVIDUAL' ? 'Basic Plan' : (formData.role || '').replace('_', ' ')}
+                            {formData.role === 'SPONSORED' ? 'Enterprise Plan' : formData.role === 'INDIVIDUAL' ? 'Basic Plan' : (formData.role || 'Student').replace('_', ' ')}
                         </div>
 
                         <div className="mt-6 pt-6 border-t border-gray-50 dark:border-slate-800">
