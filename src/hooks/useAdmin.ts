@@ -8,9 +8,9 @@ export const useAdmin = (isAdmin: boolean) => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
-    const fetchData = async () => {
+    const fetchData = async (silent = false) => {
         if (!isAdmin) return;
-        setLoading(true);
+        if (!silent) setLoading(true);
         setError(null);
         try {
             // Fetch Profiles
@@ -63,7 +63,7 @@ export const useAdmin = (isAdmin: boolean) => {
             console.error('Error in useAdmin:', err);
             setError(err.message);
         } finally {
-            setLoading(false);
+            if (!silent) setLoading(false);
         }
     };
 
@@ -88,7 +88,7 @@ export const useAdmin = (isAdmin: boolean) => {
             ]).select().single();
 
             if (error) throw new Error(error.message || JSON.stringify(error));
-            await fetchData(); // Refresh
+            await fetchData(true); // Refresh silently
             return data;
         } catch (err: any) {
             console.error('Error adding course:', err);
@@ -115,7 +115,7 @@ export const useAdmin = (isAdmin: boolean) => {
                 .select().single();
 
             if (error) throw new Error(error.message || JSON.stringify(error));
-            await fetchData(); // Refresh
+            await fetchData(true); // Refresh silently
             return data;
         } catch (err: any) {
             console.error('Error updating course:', err);
@@ -138,7 +138,7 @@ export const useAdmin = (isAdmin: boolean) => {
                 .eq('id', courseId);
 
             if (error) throw error;
-            await fetchData(); // Refresh
+            await fetchData(true); // Refresh silently
             return data;
         } catch (err: any) {
             console.error('Error deleting course:', err);
@@ -155,7 +155,7 @@ export const useAdmin = (isAdmin: boolean) => {
                 .select().single();
 
             if (error) throw error;
-            await fetchData(); // Refresh
+            await fetchData(true); // Refresh silently
             return data;
         } catch (err: any) {
             console.error('Error updating quiz:', err);
