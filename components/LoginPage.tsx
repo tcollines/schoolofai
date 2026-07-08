@@ -14,6 +14,11 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onNavigateToSignup, onBa
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
+    const [step, setStep] = useState<'login' | 'mfa'>('login');
+    const [mfaCode, setMfaCode] = useState('');
+    const [correctCode, setCorrectCode] = useState('');
+    const [showGmailToast, setShowGmailToast] = useState(false);
+
     const handleEmailLogin = async (e: React.FormEvent) => {
         e.preventDefault();
         setLoading(true);
@@ -26,10 +31,33 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onNavigateToSignup, onBa
             });
 
             if (error) throw error;
-            onLogin();
+
+            const has2FA = localStorage.getItem('twoFactor') === 'true';
+            if (has2FA) {
+                const code = Math.floor(100000 + Math.random() * 900000).toString();
+                setCorrectCode(code);
+                setStep('mfa');
+                setShowGmailToast(true);
+                setLoading(false);
+            } else {
+                onLogin();
+            }
         } catch (err: any) {
             setError(err.message);
-        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleMfaVerify = (e: React.FormEvent) => {
+        e.preventDefault();
+        setLoading(true);
+        setError(null);
+
+        if (mfaCode === correctCode) {
+            setShowGmailToast(false);
+            onLogin();
+        } else {
+            setError('Invalid verification code. Please check the code sent to your Gmail.');
             setLoading(false);
         }
     };
@@ -50,6 +78,23 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onNavigateToSignup, onBa
 
     return (
         <div className="min-h-screen bg-white flex">
+            {showGmailToast && (
+                <div className="fixed top-4 left-1/2 -translate-x-1/2 z-50 w-full max-w-md bg-slate-900 border border-slate-800 text-white rounded-2xl shadow-2xl p-4 flex gap-3 animate-in slide-in-from-top-10 duration-300">
+                    <div className="w-10 h-10 bg-red-100 dark:bg-red-950/40 text-red-600 dark:text-red-400 rounded-full flex items-center justify-center shrink-0">
+                        <Mail size={20} />
+                    </div>
+                    <div className="flex-1 text-xs text-left">
+                        <div className="flex justify-between items-center mb-1">
+                            <span className="font-bold text-red-500">Gmail • Verified Sender</span>
+                            <span className="text-[10px] text-gray-400">Just now</span>
+                        </div>
+                        <p className="font-semibold text-gray-200">From: auth-service@gmail.com</p>
+                        <p className="text-gray-400 mt-1 text-left">
+                            Your WSAI 2FA verification code is: <span className="font-mono font-bold text-sm text-yellow-400 bg-black/45 px-2 py-0.5 rounded">{correctCode}</span>
+                        </p>
+                    </div>
+                </div>
+            )}
             {/* Left Side - Image/Brand */}
             <div className="hidden lg:block w-1/2 bg-gray-900 relative overflow-hidden">
                 <div className="absolute inset-0 bg-gradient-to-br from-violet-600/30 to-blue-600/30 mix-blend-overlay"></div>
@@ -94,59 +139,115 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onNavigateToSignup, onBa
                         </div>
                     )}
 
-                    <form onSubmit={handleEmailLogin} className="space-y-6">
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
-                            <div className="relative">
-                                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
-                                    <Mail className="w-5 h-5" />
+                    {step === 'login' ? (
+                        <form onSubmit={handleEmailLogin} className="space-y-6">
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
+                                <div className="relative">
+                                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
+                                        <Mail className="w-5 h-5" />
+                                    </div>
+                                    <input
+                                        type="email"
+                                        required
+                                        value={email}
+                                        onChange={(e) => setEmail(e.target.value)}
+                                        className="block w-full pl-10 pr-3 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-violet-500 focus:border-transparent transition-all outline-none"
+                                        placeholder="you@example.com"
+                                    />
                                 </div>
-                                <input
-                                    type="email"
-                                    required
-                                    value={email}
-                                    onChange={(e) => setEmail(e.target.value)}
-                                    className="block w-full pl-10 pr-3 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-violet-500 focus:border-transparent transition-all outline-none"
-                                    placeholder="you@example.com"
-                                />
                             </div>
-                        </div>
 
-                        <div>
-                            <div className="flex justify-between items-center mb-1">
-                                <label className="block text-sm font-medium text-gray-700">Password</label>
-                                <a href="#" className="text-sm text-gray-500 hover:text-gray-900">Forgot password?</a>
-                            </div>
-                            <div className="relative">
-                                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
-                                    <Lock className="w-5 h-5" />
+                            <div>
+                                <div className="flex justify-between items-center mb-1">
+                                    <label className="block text-sm font-medium text-gray-700">Password</label>
+                                    <a href="#" className="text-sm text-gray-500 hover:text-gray-900">Forgot password?</a>
                                 </div>
-                                <input
-                                    type="password"
-                                    required
-                                    value={password}
-                                    onChange={(e) => setPassword(e.target.value)}
-                                    className="block w-full pl-10 pr-3 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-violet-500 focus:border-transparent transition-all outline-none"
-                                    placeholder="••••••••"
-                                />
+                                <div className="relative">
+                                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
+                                        <Lock className="w-5 h-5" />
+                                    </div>
+                                    <input
+                                        type="password"
+                                        required
+                                        value={password}
+                                        onChange={(e) => setPassword(e.target.value)}
+                                        className="block w-full pl-10 pr-3 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-violet-500 focus:border-transparent transition-all outline-none"
+                                        placeholder="••••••••"
+                                    />
+                                </div>
                             </div>
-                        </div>
 
-                        <button
-                            type="submit"
-                            disabled={loading}
-                            className="w-full flex justify-center py-3 px-4 border border-transparent rounded-xl shadow-sm text-sm font-medium text-white bg-violet-600 hover:bg-violet-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-violet-500 transition-colors disabled:opacity-70 disabled:cursor-not-allowed"
-                        >
-                            {loading ? (
-                                <>
-                                    <Loader2 className="animate-spin -ml-1 mr-2 h-4 w-4" />
-                                    Logging in...
-                                </>
-                            ) : (
-                                'Log in'
-                            )}
-                        </button>
-                    </form>
+                            <button
+                                type="submit"
+                                disabled={loading}
+                                className="w-full flex justify-center py-3 px-4 border border-transparent rounded-xl shadow-sm text-sm font-medium text-white bg-violet-600 hover:bg-violet-750 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-violet-500 transition-colors disabled:opacity-70 disabled:cursor-not-allowed cursor-pointer"
+                            >
+                                {loading ? (
+                                    <>
+                                        <Loader2 className="animate-spin -ml-1 mr-2 h-4 w-4" />
+                                        Logging in...
+                                    </>
+                                ) : (
+                                    'Log in'
+                                )}
+                            </button>
+                        </form>
+                    ) : (
+                        <form onSubmit={handleMfaVerify} className="space-y-6">
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    Enter 6-digit Verification Code
+                                </label>
+                                <p className="text-xs text-gray-500 mb-3">
+                                    A 2FA code has been sent via verified Gmail to <span className="font-bold text-gray-805">{email}</span>.
+                                </p>
+                                <div className="relative">
+                                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
+                                        <Lock className="w-5 h-5" />
+                                    </div>
+                                    <input
+                                        type="text"
+                                        required
+                                        maxLength={6}
+                                        pattern="[0-9]{6}"
+                                        value={mfaCode}
+                                        onChange={(e) => setMfaCode(e.target.value.replace(/\D/g, ''))}
+                                        className="block w-full pl-10 pr-3 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-violet-500 focus:border-transparent outline-none tracking-widest font-mono text-lg text-center"
+                                        placeholder="000000"
+                                    />
+                                </div>
+                            </div>
+
+                            <button
+                                type="submit"
+                                disabled={loading}
+                                className="w-full flex justify-center py-3 px-4 border border-transparent rounded-xl shadow-sm text-sm font-medium text-white bg-violet-600 hover:bg-violet-750 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-violet-500 transition-colors disabled:opacity-70 disabled:cursor-not-allowed cursor-pointer"
+                            >
+                                {loading ? (
+                                    <>
+                                        <Loader2 className="animate-spin -ml-1 mr-2 h-4 w-4" />
+                                        Verifying...
+                                    </>
+                                ) : (
+                                    'Verify Code'
+                                )}
+                            </button>
+
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    const code = Math.floor(100000 + Math.random() * 900000).toString();
+                                    setCorrectCode(code);
+                                    setShowGmailToast(true);
+                                    alert('A new verification code has been sent to your Gmail.');
+                                }}
+                                className="w-full text-center text-xs text-violet-600 hover:text-violet-750 font-bold cursor-pointer"
+                            >
+                                Resend Verification Code
+                            </button>
+                        </form>
+                    )}
 
                     <div className="mt-8 relative">
                         <div className="absolute inset-0 flex items-center">

@@ -13,6 +13,9 @@ const AdminOverview: React.FC = () => {
     const [date, setDate] = useState('');
     const [time, setTime] = useState('');
     const [courseId, setCourseId] = useState('global');
+    const [meetLink, setMeetLink] = useState('');
+    const [medium, setMedium] = useState<'Online' | 'Physical'>('Online');
+    const [location, setLocation] = useState('');
 
     if (loading) return <div>Loading statistics...</div>;
 
@@ -26,6 +29,24 @@ const AdminOverview: React.FC = () => {
             return;
         }
 
+        if (type === 'Meeting') {
+            if (medium === 'Online') {
+                if (!meetLink) {
+                    alert('Please provide a Google Meet link for the online session.');
+                    return;
+                }
+                if (!meetLink.includes('meet.google.com') && !meetLink.startsWith('http')) {
+                    alert('Please enter a valid Google Meet link (e.g. https://meet.google.com/abc-defg-hij).');
+                    return;
+                }
+            } else {
+                if (!location) {
+                    alert('Please provide a physical location/address for the session.');
+                    return;
+                }
+            }
+        }
+
         const newEvent = {
             id: 'admin-' + Date.now(),
             title,
@@ -37,7 +58,10 @@ const AdminOverview: React.FC = () => {
             speaker,
             tags: courseId === 'global' ? ['Global'] : [courses.find(c => c.id === courseId)?.title || 'Course'],
             courseId,
-            attendeeCount: 0
+            attendeeCount: 0,
+            medium: type === 'Meeting' ? medium : undefined,
+            meetLink: type === 'Meeting' && medium === 'Online' ? meetLink : undefined,
+            location: type === 'Meeting' && medium === 'Physical' ? location : undefined
         };
 
         const stored = localStorage.getItem('admin-events');
@@ -65,6 +89,9 @@ const AdminOverview: React.FC = () => {
         setTime('');
         setSpeaker('Admin Team');
         setCourseId('global');
+        setMeetLink('');
+        setMedium('Online');
+        setLocation('');
     };
 
     return (
@@ -198,6 +225,46 @@ const AdminOverview: React.FC = () => {
                                 ))}
                             </select>
                         </div>
+
+                        {type === 'Meeting' && (
+                            <>
+                                <div className="space-y-1">
+                                    <label className="text-xs font-semibold text-gray-600">Event Medium</label>
+                                    <select 
+                                        value={medium} 
+                                        onChange={(e) => setMedium(e.target.value as any)}
+                                        className="w-full p-2 bg-gray-50 border border-gray-250 rounded-xl text-sm"
+                                    >
+                                        <option value="Online">Online / Virtual Meeting</option>
+                                        <option value="Physical">Physical / In-Person Campus</option>
+                                    </select>
+                                </div>
+
+                                {medium === 'Online' ? (
+                                    <div className="space-y-1">
+                                        <label className="text-xs font-semibold text-gray-600">Google Meet Link</label>
+                                        <input 
+                                            type="text" 
+                                            value={meetLink} 
+                                            onChange={(e) => setMeetLink(e.target.value)}
+                                            className="w-full p-2 bg-gray-50 border border-gray-250 rounded-xl text-sm"
+                                            placeholder="https://meet.google.com/abc-defg-hij" 
+                                        />
+                                    </div>
+                                ) : (
+                                    <div className="space-y-1">
+                                        <label className="text-xs font-semibold text-gray-600">Physical Location / Room</label>
+                                        <input 
+                                            type="text" 
+                                            value={location} 
+                                            onChange={(e) => setLocation(e.target.value)}
+                                            className="w-full p-2 bg-gray-50 border border-gray-250 rounded-xl text-sm"
+                                            placeholder="e.g. WSAI Campus Hall A, Johannesburg" 
+                                        />
+                                    </div>
+                                )}
+                            </>
+                        )}
 
                         <button 
                             type="submit" 

@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Routes, Route, useNavigate, useLocation, Navigate } from 'react-router-dom';
-import { LayoutDashboard, Users, BookOpen, FileQuestion, LogOut } from 'lucide-react';
+import { LayoutDashboard, Users, BookOpen, FileQuestion, LogOut, Sun, Moon } from 'lucide-react';
 import AdminOverview from './AdminOverview';
 import AdminEnrollments from './AdminEnrollments';
 import AdminCourses from './AdminCourses';
@@ -15,6 +15,33 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ onExit }) => {
     const location = useLocation();
     
     const activeTab = location.pathname.split('/')[2] || 'overview';
+
+    const [isDark, setIsDark] = useState(() => {
+        return document.documentElement.classList.contains('dark');
+    });
+
+    useEffect(() => {
+        const handleThemeChange = () => {
+            setIsDark(document.documentElement.classList.contains('dark'));
+        };
+        window.addEventListener('theme-change', handleThemeChange);
+        return () => {
+            window.removeEventListener('theme-change', handleThemeChange);
+        };
+    }, []);
+
+    const toggleTheme = () => {
+        const nextDark = !isDark;
+        setIsDark(nextDark);
+        if (nextDark) {
+            document.documentElement.classList.add('dark');
+            localStorage.setItem('theme', 'dark');
+        } else {
+            document.documentElement.classList.remove('dark');
+            localStorage.setItem('theme', 'light');
+        }
+        window.dispatchEvent(new Event('theme-change'));
+    };
 
     const menuItems = [
         { id: 'overview', label: 'Overview', icon: LayoutDashboard },
@@ -36,7 +63,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ onExit }) => {
     };
 
     return (
-        <div className="flex min-h-screen bg-gray-50 text-gray-900 font-sans">
+        <div className="flex min-h-screen bg-gray-50 dark:bg-slate-950 text-gray-900 dark:text-slate-100 font-sans transition-colors duration-200">
             {/* Admin Sidebar */}
             <div className="w-64 bg-slate-900 text-white flex flex-col fixed inset-y-0 z-50 shadow-2xl">
                 <div className="p-6 border-b border-slate-800 flex items-center justify-between">
@@ -78,10 +105,19 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ onExit }) => {
             {/* Main Content Area */}
             <main className="flex-1 ml-64 flex flex-col min-h-screen">
                 {/* Admin Header */}
-                <header className="h-16 bg-white border-b border-gray-200 flex items-center px-8 shadow-sm">
-                    <h1 className="text-xl font-semibold text-gray-800 capitalize">
+                <header className="h-16 bg-white dark:bg-slate-900 border-b border-gray-200 dark:border-slate-800 flex items-center justify-between px-8 shadow-sm transition-colors">
+                    <h1 className="text-xl font-semibold text-gray-800 dark:text-white capitalize">
                         {menuItems.find(i => i.id === activeTab)?.label}
                     </h1>
+
+                    {/* Theme Toggle Shortcut */}
+                    <button 
+                        onClick={toggleTheme}
+                        className="p-2 bg-gray-50 dark:bg-slate-800 hover:bg-gray-100 dark:hover:bg-slate-700 border border-gray-200 dark:border-slate-700 rounded-xl flex items-center justify-center text-gray-700 dark:text-slate-300 transition-colors shadow-sm cursor-pointer"
+                        title="Toggle Theme"
+                    >
+                        {isDark ? <Sun size={18} /> : <Moon size={18} />}
+                    </button>
                 </header>
 
                 <div className="p-8 flex-1 overflow-y-auto">

@@ -29,8 +29,12 @@ const SettingsPage: React.FC = () => {
     });
 
     // 5. Security State
-    const [twoFactor, setTwoFactor] = useState(false);
-    const [publicProfile, setPublicProfile] = useState(true);
+    const [twoFactor, setTwoFactor] = useState(() => {
+        return localStorage.getItem('twoFactor') === 'true';
+    });
+    const [publicProfile, setPublicProfile] = useState(() => {
+        return localStorage.getItem('publicProfile') !== 'false';
+    });
 
     // 6. UI State
     const [isSaving, setIsSaving] = useState(false);
@@ -61,9 +65,11 @@ const SettingsPage: React.FC = () => {
 
     const handleSave = () => {
         setIsSaving(true);
-        // Persist language and timezone
+        // Persist language, timezone, and security preferences
         localStorage.setItem('language', language);
         localStorage.setItem('timezone', timezone);
+        localStorage.setItem('twoFactor', String(twoFactor));
+        localStorage.setItem('publicProfile', String(publicProfile));
         window.dispatchEvent(new Event('language-change'));
 
         // Mock network delay for premium feel

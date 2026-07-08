@@ -96,7 +96,7 @@ function App() {
 
         {/* Student Routes wrapper */}
         <Route element={<StudentLayout session={session} isAuthenticated={isAuthenticated} isAdminMode={false} courses={courses} />}>
-            <Route path="/dashboard" element={<DashboardHome courses={courses} userId={session?.user?.id} />} />
+            <Route path="/dashboard" element={<DashboardHome courses={courses} userId={session?.user?.id || 'guest'} />} />
             
             <Route path="/discover" element={
                 <DiscoverCourses 

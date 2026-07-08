@@ -15,6 +15,9 @@ interface EventItem {
     courseId?: string;
     isAnnouncement?: boolean;
     attendeeCount: number;
+    meetLink?: string;
+    medium?: 'Online' | 'Physical';
+    location?: string;
 }
 
 interface EventsPageProps {
@@ -32,7 +35,9 @@ const defaultAdminEvents = [
         speaker: 'Dr. Sarah Jenkins, Head of Generative AI Research',
         tags: ['LLMs', 'LangChain', 'GenAI'],
         courseId: 'global',
-        attendeeCount: 142
+        attendeeCount: 142,
+        medium: 'Online' as const,
+        meetLink: 'https://meet.google.com/zgd-bexr-jfy'
     },
     {
         id: 'ev-3',
@@ -44,7 +49,9 @@ const defaultAdminEvents = [
         speaker: 'Panel of Legal Counsel and AI Ethicists',
         tags: ['Ethics', 'Compliance', 'Policy'],
         courseId: 'global',
-        attendeeCount: 206
+        attendeeCount: 206,
+        medium: 'Physical' as const,
+        location: 'Main Auditorium, Campus A, Cape Town'
     }
 ];
 
@@ -110,7 +117,9 @@ const EventsPage: React.FC<EventsPageProps> = ({ courses = [] }) => {
             speaker: course.instructor || 'Course Instructor',
             tags: ['Q&A', course.category || 'General'],
             courseId: course.id,
-            attendeeCount: 45 + (index * 12)
+            attendeeCount: 45 + (index * 12),
+            medium: 'Online' as const,
+            meetLink: `https://meet.google.com/qna-${course.id}ai-edu`
         },
         {
             id: `course-workshop-${course.id}`,
@@ -122,7 +131,9 @@ const EventsPage: React.FC<EventsPageProps> = ({ courses = [] }) => {
             speaker: 'WSAI Mentor Panel',
             tags: ['Hands-on', course.category || 'General'],
             courseId: course.id,
-            attendeeCount: 62 + (index * 8)
+            attendeeCount: 62 + (index * 8),
+            medium: 'Online' as const,
+            meetLink: `https://meet.google.com/wkp-${course.id}ai-edu`
         }
     ]);
 
@@ -290,6 +301,15 @@ const EventsPage: React.FC<EventsPageProps> = ({ courses = [] }) => {
                                             <span className={`text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full ${typeStyles.bg}`}>
                                                 {event.type}
                                             </span>
+                                            {event.medium && (
+                                                <span className={`text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full ${
+                                                    event.medium === 'Physical'
+                                                        ? 'bg-blue-50 dark:bg-blue-950/20 text-blue-700 dark:text-blue-400'
+                                                        : 'bg-emerald-50 dark:bg-emerald-950/20 text-emerald-700 dark:text-emerald-400'
+                                                }`}>
+                                                    {event.medium}
+                                                </span>
+                                            )}
                                             {event.isAnnouncement && (
                                                 <span className="text-[10px] font-bold bg-orange-100 dark:bg-orange-950/20 text-orange-600 dark:text-orange-400 px-2.5 py-1 rounded-full uppercase tracking-wider">
                                                     Announcement
@@ -332,8 +352,30 @@ const EventsPage: React.FC<EventsPageProps> = ({ courses = [] }) => {
                                             <span className="truncate">{event.time}</span>
                                         </div>
                                         <div className="flex items-center gap-2 col-span-2">
-                                            <Video size={13} className="text-welile-purple shrink-0" />
-                                            <span>Virtual Live Meeting (WSAI Link provided on RSVP)</span>
+                                            {event.medium === 'Physical' ? (
+                                                <>
+                                                    <MapPin size={13} className="text-welile-purple shrink-0" />
+                                                    <span className="truncate">Campus: {event.location || 'WSAI Campus'}</span>
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <Video size={13} className="text-welile-purple shrink-0" />
+                                                    {isRsvp && event.meetLink ? (
+                                                        <a 
+                                                            href={event.meetLink}
+                                                            target="_blank"
+                                                            rel="noopener noreferrer"
+                                                            className="text-violet-600 dark:text-violet-400 hover:underline font-bold flex items-center gap-1.5"
+                                                            onClick={(e) => e.stopPropagation()}
+                                                        >
+                                                            Join Google Meet
+                                                            <ExternalLink size={12} />
+                                                        </a>
+                                                    ) : (
+                                                        <span>Online Meeting (Link provided on RSVP)</span>
+                                                    )}
+                                                </>
+                                            )}
                                         </div>
                                     </div>
 
@@ -373,7 +415,12 @@ const EventsPage: React.FC<EventsPageProps> = ({ courses = [] }) => {
                                         </button>
                                         <button 
                                             onClick={() => {
-                                                alert(`"${event.title}" invitation link copied to clipboard!`);
+                                                if (isRsvp && event.meetLink) {
+                                                    navigator.clipboard.writeText(event.meetLink);
+                                                    alert(`"${event.title}" Google Meet link copied to clipboard!`);
+                                                } else {
+                                                    alert(`"${event.title}" invitation link copied to clipboard!`);
+                                                }
                                             }}
                                             className="px-3.5 bg-gray-50 dark:bg-slate-800 hover:bg-gray-100 dark:hover:bg-slate-700 border border-gray-200 dark:border-slate-800 rounded-xl flex items-center justify-center text-gray-500 dark:text-slate-300 transition-colors"
                                             title="Copy Link"

@@ -10,6 +10,7 @@
       body {
         font-family: 'Inter', sans-serif;
         background-color: #f3f4f6; /* Light gray background */
+        transition: background-color 0.2s, color 0.2s;
       }
       /* Custom scrollbar for webkit */
       ::-webkit-scrollbar {
@@ -25,6 +26,53 @@
       }
       ::-webkit-scrollbar-thumb:hover {
         background: #94a3b8;
+      }
+
+      /* Dark mode CSS overrides for Admin Console and other legacy sections */
+      .dark body {
+        background-color: #020617; /* slate-950 */
+      }
+      .dark .bg-white {
+        background-color: #0f172a !important; /* slate-900 */
+        border-color: #1e293b !important; /* slate-800 */
+        color: #f8fafc !important; /* slate-50 */
+      }
+      .dark .border-gray-50,
+      .dark .border-gray-100,
+      .dark .border-gray-150,
+      .dark .border-gray-200,
+      .dark .border-gray-250,
+      .dark .divide-gray-100,
+      .dark .divide-gray-200 {
+        border-color: #1e293b !important;
+      }
+      .dark .bg-gray-50 {
+        background-color: #1e293b !important; /* slate-800 */
+      }
+      .dark .hover\:bg-gray-50:hover,
+      .dark tr.hover\:bg-gray-50:hover {
+        background-color: #1e293b !important;
+      }
+      .dark .text-gray-900,
+      .dark .text-gray-800,
+      .dark .text-gray-700 {
+        color: #f1f5f9 !important; /* slate-100 */
+      }
+      .dark .text-gray-600,
+      .dark .text-gray-500,
+      .dark .text-gray-400 {
+        color: #94a3b8 !important; /* slate-400 */
+      }
+      .dark input,
+      .dark select,
+      .dark textarea {
+        background-color: #1e293b !important;
+        border-color: #334155 !important;
+        color: #f8fafc !important;
+      }
+      .dark input::placeholder,
+      .dark textarea::placeholder {
+        color: #64748b !important;
       }
     </style>
     <script>

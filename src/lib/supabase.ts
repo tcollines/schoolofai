@@ -208,7 +208,7 @@ class QueryBuilder {
     async execute(isSingle = false) {
         // Simulate network delay
         await new Promise(resolve => setTimeout(resolve, 300));
-        
+
         const db = getDB();
         let tableData = db[this.table];
 
@@ -230,7 +230,7 @@ class QueryBuilder {
                 }));
                 db[this.table] = [...tableData, ...inserted];
                 saveDB(db);
-                
+
                 if (isSingle) return { data: inserted[0], error: null };
                 return { data: inserted, error: null };
             }
@@ -297,7 +297,7 @@ export const supabase = {
                     callback('SIGNED_IN', { user: { id: 'user-1' } });
                 }
             }, 100);
-            return { data: { subscription: { unsubscribe: () => {} } } };
+            return { data: { subscription: { unsubscribe: () => { } } } };
         },
         signInWithPassword: async ({ email }: any) => {
             localStorage.removeItem('mock_logged_out');

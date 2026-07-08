@@ -50,7 +50,7 @@ export const translations = {
         security_privacy: "Security & Privacy",
         configure_security: "Configure profile visibility and security authentications.",
         two_factor: "Two-Factor Authentication (2FA)",
-        two_factor_desc: "Require an authentication code from your mobile app when signing in.",
+        two_factor_desc: "Require a verification code sent via verified Gmail when logging in.",
         public_profile: "Public Profile Visibility",
         public_profile_desc: "Allow partners and other students to see your career goal, wallet rank, and skill badges.",
         save_changes: "Save Changes",
