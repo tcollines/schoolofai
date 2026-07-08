@@ -125,7 +125,7 @@ const AvatarUploadModal: React.FC<AvatarUploadModalProps> = ({ isOpen, onClose, 
                     <div className="grid grid-cols-2 gap-4">
                         <button 
                             onClick={() => setSource('camera')}
-                            className="flex flex-col items-center justify-center p-5 rounded-2xl border border-gray-100 dark:border-slate-800 bg-gray-50 dark:bg-slate-850 hover:bg-violet-50/50 dark:hover:bg-slate-800/40 hover:border-violet-300 dark:hover:border-slate-700 transition-all text-center gap-3"
+                            className="flex flex-col items-center justify-center p-5 rounded-2xl border border-gray-100 dark:border-slate-800 bg-gray-50 dark:bg-slate-800 hover:bg-violet-50/50 dark:hover:bg-slate-800/40 hover:border-violet-300 dark:hover:border-slate-700 transition-all text-center gap-3"
                         >
                             <span className="p-3 bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 rounded-xl">
                                 <Camera size={24} />
@@ -135,7 +135,7 @@ const AvatarUploadModal: React.FC<AvatarUploadModalProps> = ({ isOpen, onClose, 
 
                         <button 
                             onClick={() => fileInputRef.current?.click()}
-                            className="flex flex-col items-center justify-center p-5 rounded-2xl border border-gray-100 dark:border-slate-800 bg-gray-50 dark:bg-slate-850 hover:bg-violet-50/50 dark:hover:bg-slate-800/40 hover:border-violet-300 dark:hover:border-slate-700 transition-all text-center gap-3"
+                            className="flex flex-col items-center justify-center p-5 rounded-2xl border border-gray-100 dark:border-slate-800 bg-gray-50 dark:bg-slate-800 hover:bg-violet-50/50 dark:hover:bg-slate-800/40 hover:border-violet-300 dark:hover:border-slate-700 transition-all text-center gap-3"
                         >
                             <span className="p-3 bg-purple-50 dark:bg-purple-950/40 text-purple-600 dark:text-purple-400 rounded-xl">
                                 <FileImage size={24} />
@@ -145,7 +145,7 @@ const AvatarUploadModal: React.FC<AvatarUploadModalProps> = ({ isOpen, onClose, 
 
                         <button 
                             onClick={() => setSource('google')}
-                            className="flex flex-col items-center justify-center p-5 rounded-2xl border border-gray-100 dark:border-slate-800 bg-gray-50 dark:bg-slate-850 hover:bg-violet-50/50 dark:hover:bg-slate-800/40 hover:border-violet-300 dark:hover:border-slate-700 transition-all text-center gap-3"
+                            className="flex flex-col items-center justify-center p-5 rounded-2xl border border-gray-100 dark:border-slate-800 bg-gray-50 dark:bg-slate-800 hover:bg-violet-50/50 dark:hover:bg-slate-800/40 hover:border-violet-300 dark:hover:border-slate-700 transition-all text-center gap-3"
                         >
                             <span className="p-3 bg-red-50 dark:bg-red-950/40 text-red-600 dark:text-red-400 rounded-xl">
                                 <Cloud size={24} />
@@ -155,7 +155,7 @@ const AvatarUploadModal: React.FC<AvatarUploadModalProps> = ({ isOpen, onClose, 
 
                         <button 
                             onClick={() => setSource('icloud')}
-                            className="flex flex-col items-center justify-center p-5 rounded-2xl border border-gray-100 dark:border-slate-800 bg-gray-50 dark:bg-slate-850 hover:bg-violet-50/50 dark:hover:bg-slate-800/40 hover:border-violet-300 dark:hover:border-slate-700 transition-all text-center gap-3"
+                            className="flex flex-col items-center justify-center p-5 rounded-2xl border border-gray-100 dark:border-slate-800 bg-gray-50 dark:bg-slate-800 hover:bg-violet-50/50 dark:hover:bg-slate-800/40 hover:border-violet-300 dark:hover:border-slate-700 transition-all text-center gap-3"
                         >
                             <span className="p-3 bg-sky-50 dark:bg-sky-950/40 text-sky-600 dark:text-sky-400 rounded-xl">
                                 <Cloud size={24} />
@@ -178,7 +178,7 @@ const AvatarUploadModal: React.FC<AvatarUploadModalProps> = ({ isOpen, onClose, 
                         <div className="flex gap-4">
                             <button 
                                 onClick={() => setSource('menu')}
-                                className="px-6 py-2.5 rounded-xl border border-gray-200 dark:border-slate-800 text-gray-700 dark:text-slate-300 font-bold text-sm hover:bg-gray-50 dark:hover:bg-slate-850"
+                                className="px-6 py-2.5 rounded-xl border border-gray-200 dark:border-slate-800 text-gray-700 dark:text-slate-300 font-bold text-sm hover:bg-gray-50 dark:hover:bg-slate-800"
                             >
                                 Back
                             </button>
@@ -218,7 +218,7 @@ const AvatarUploadModal: React.FC<AvatarUploadModalProps> = ({ isOpen, onClose, 
                                 </div>
                                 <button 
                                     onClick={() => setSource('menu')}
-                                    className="w-full mt-6 py-2.5 rounded-xl border border-gray-200 dark:border-slate-800 text-gray-700 dark:text-slate-300 font-bold text-sm hover:bg-gray-50 dark:hover:bg-slate-850"
+                                    className="w-full mt-6 py-2.5 rounded-xl border border-gray-200 dark:border-slate-800 text-gray-700 dark:text-slate-300 font-bold text-sm hover:bg-gray-50 dark:hover:bg-slate-800"
                                 >
                                     Back
                                 </button>
@@ -323,7 +323,7 @@ const Profile: React.FC<ProfileProps> = ({ user, onUpgradeClick }) => {
                     <div className="bg-white dark:bg-slate-900 p-6 rounded-3xl border border-gray-100 dark:border-slate-800 text-center shadow-sm">
                         <div className="relative inline-block">
                             {!formData.avatar || avatarError ? (
-                                <div className="w-24 h-24 rounded-full mx-auto overflow-hidden border-4 border-gray-50 dark:border-slate-850 flex items-center justify-center bg-gray-100 dark:bg-slate-800">
+                                <div className="w-24 h-24 rounded-full mx-auto overflow-hidden border-4 border-gray-50 dark:border-slate-800 flex items-center justify-center bg-gray-100 dark:bg-slate-800">
                                     <DefaultAvatar />
                                 </div>
                             ) : (
@@ -331,7 +331,7 @@ const Profile: React.FC<ProfileProps> = ({ user, onUpgradeClick }) => {
                                     src={formData.avatar} 
                                     alt="Profile" 
                                     onError={() => setAvatarError(true)}
-                                    className="w-24 h-24 rounded-full mx-auto object-cover border-4 border-gray-50 dark:border-slate-850" 
+                                    className="w-24 h-24 rounded-full mx-auto object-cover border-4 border-gray-50 dark:border-slate-800" 
                                 />
                             )}
                             <button 
@@ -460,7 +460,7 @@ const Profile: React.FC<ProfileProps> = ({ user, onUpgradeClick }) => {
                             <GraduationCap size={18} className="text-welile-purple" /> Education
                         </h4>
                         <div className="space-y-4">
-                            <div className="p-4 border border-gray-100 dark:border-slate-800 rounded-xl flex justify-between items-center hover:bg-gray-50 dark:hover:bg-slate-850 cursor-pointer">
+                            <div className="p-4 border border-gray-100 dark:border-slate-800 rounded-xl flex justify-between items-center hover:bg-gray-50 dark:hover:bg-slate-800 cursor-pointer">
                                 <div>
                                     <p className="font-bold text-sm text-gray-900 dark:text-white">University of Cape Town</p>
                                     <p className="text-xs text-gray-500 dark:text-slate-400">Bachelor of Science in Computer Science</p>
