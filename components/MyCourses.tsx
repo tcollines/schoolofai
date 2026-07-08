@@ -15,6 +15,22 @@ interface MyCoursesProps {
 
 const MyCourses: React.FC<MyCoursesProps> = ({ courses }) => {
     const { t } = useTranslation();
+
+    const addPortalNotification = (title: string, description: string, type: 'assignment' | 'profile' | 'course' | 'system') => {
+        const stored = localStorage.getItem('portal-notifications');
+        const list = stored ? JSON.parse(stored) : [];
+        const newItem = {
+            id: Date.now().toString(),
+            title,
+            description,
+            timestamp: new Date().toISOString(),
+            read: false,
+            type
+        };
+        localStorage.setItem('portal-notifications', JSON.stringify([newItem, ...list]));
+        window.dispatchEvent(new Event('notifications-update'));
+    };
+
     const [filter, setFilter] = useState('ALL'); // ALL, IN_PROGRESS, COMPLETED
     const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
     const [activeModule, setActiveModule] = useState<CourseModule | null>(null);
@@ -216,7 +232,14 @@ const MyCourses: React.FC<MyCoursesProps> = ({ courses }) => {
                                     <p className="text-xs text-indigo-700 dark:text-indigo-300">Test your knowledge to earn your certificate.</p>
                                 </div>
                                 <button 
-                                    onClick={() => setTakingExam(true)}
+                                    onClick={() => {
+                                        addPortalNotification(
+                                            `Started Final Exam: ${selectedCourse.title}`,
+                                            "You have successfully initiated the exam room environment. Avoid minimizing the window or switching tabs.",
+                                            "course"
+                                        );
+                                        setTakingExam(true);
+                                    }}
                                     className="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-indigo-700"
                                 >
                                     {t('start_exam')}

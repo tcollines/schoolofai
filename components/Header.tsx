@@ -69,6 +69,25 @@ const Header: React.FC<HeaderProps> = ({
     };
   }, []);
 
+  const [unreadCount, setUnreadCount] = useState(0);
+
+  useEffect(() => {
+    const updateUnreadCount = () => {
+      const stored = localStorage.getItem('portal-notifications');
+      if (stored) {
+        const list = JSON.parse(stored);
+        setUnreadCount(list.filter((n: any) => !n.read).length);
+      } else {
+        setUnreadCount(1);
+      }
+    };
+    updateUnreadCount();
+    window.addEventListener('notifications-update', updateUnreadCount);
+    return () => {
+      window.removeEventListener('notifications-update', updateUnreadCount);
+    };
+  }, []);
+
   const toggleTheme = () => {
     const nextDark = !isDark;
     setIsDark(nextDark);
@@ -180,9 +199,15 @@ const Header: React.FC<HeaderProps> = ({
         </button>
 
         {showNotifications && (
-          <button className="relative p-2 lg:p-2.5 bg-white dark:bg-slate-900 rounded-full border border-gray-100 dark:border-slate-800 hover:bg-gray-50 dark:hover:bg-slate-800 shadow-sm">
+          <button 
+            onClick={() => navigate('/notifications')}
+            className="relative p-2 lg:p-2.5 bg-white dark:bg-slate-900 rounded-full border border-gray-100 dark:border-slate-800 hover:bg-gray-50 dark:hover:bg-slate-800 shadow-sm cursor-pointer"
+            title="Notifications"
+          >
             <Bell size={20} className="text-gray-700 dark:text-slate-300" />
-            <span className="absolute top-2 right-2.5 w-2 h-2 bg-red-500 rounded-full border-2 border-white dark:border-slate-900"></span>
+            {unreadCount > 0 && (
+              <span className="absolute top-2 right-2.5 w-2 h-2 bg-red-500 rounded-full border-2 border-white dark:border-slate-900"></span>
+            )}
           </button>
         )}
 

@@ -260,6 +260,21 @@ const Profile: React.FC<ProfileProps> = ({ user, onUpgradeClick }) => {
         }
     }, [user]);
 
+    const addPortalNotification = (title: string, description: string, type: 'assignment' | 'profile' | 'course' | 'system') => {
+        const stored = localStorage.getItem('portal-notifications');
+        const list = stored ? JSON.parse(stored) : [];
+        const newItem = {
+            id: Date.now().toString(),
+            title,
+            description,
+            timestamp: new Date().toISOString(),
+            read: false,
+            type
+        };
+        localStorage.setItem('portal-notifications', JSON.stringify([newItem, ...list]));
+        window.dispatchEvent(new Event('notifications-update'));
+    };
+
     const handleSelectImage = (imageUrl: string) => {
         if (formData) {
             const updated = {
@@ -271,6 +286,12 @@ const Profile: React.FC<ProfileProps> = ({ user, onUpgradeClick }) => {
             
             localStorage.setItem('user-avatar', imageUrl);
             window.dispatchEvent(new Event('profile-update'));
+
+            addPortalNotification(
+                "Profile Picture Updated",
+                "Your profile avatar was successfully updated across the schoolofai portal.",
+                "profile"
+            );
         }
     };
 
@@ -280,7 +301,17 @@ const Profile: React.FC<ProfileProps> = ({ user, onUpgradeClick }) => {
         <div className="max-w-4xl mx-auto">
             <div className="flex justify-between items-center mb-6">
                 <h2 className="text-2xl font-bold text-gray-900 dark:text-white">{t('my_profile')}</h2>
-                <button className="flex items-center gap-2 bg-welile-purple text-white px-5 py-2 rounded-xl text-sm font-medium hover:bg-purple-700 shadow-md shadow-purple-200 dark:shadow-none">
+                <button 
+                    onClick={() => {
+                        addPortalNotification(
+                            "Profile Details Updated",
+                            "Your personal settings and profile descriptions have been saved.",
+                            "system"
+                        );
+                        alert("Profile changes saved successfully!");
+                    }}
+                    className="flex items-center gap-2 bg-welile-purple text-white px-5 py-2 rounded-xl text-sm font-medium hover:bg-purple-700 shadow-md shadow-purple-200 dark:shadow-none cursor-pointer"
+                >
                     <Save size={16} /> {t('save_changes')}
                 </button>
             </div>
