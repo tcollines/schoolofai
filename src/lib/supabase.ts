@@ -125,20 +125,25 @@ const getDB = (): LocalDB => {
             enrollments: []
         };
         localStorage.setItem(DB_KEY, JSON.stringify(db));
+        localStorage.setItem('default-courses-seeded', 'true');
         return db;
     }
 
-    // Ensure all default courses exist in the existing database
-    let updated = false;
-    defaultCourses.forEach(dc => {
-        if (!db.courses.some(c => c.id === dc.id)) {
-            db.courses.push(dc);
-            updated = true;
-        }
-    });
+    // Ensure all default courses exist in the existing database ONCE
+    const seeded = localStorage.getItem('default-courses-seeded') === 'true';
+    if (!seeded) {
+        let updated = false;
+        defaultCourses.forEach(dc => {
+            if (!db.courses.some(c => c.id === dc.id)) {
+                db.courses.push(dc);
+                updated = true;
+            }
+        });
 
-    if (updated) {
-        localStorage.setItem(DB_KEY, JSON.stringify(db));
+        if (updated) {
+            localStorage.setItem(DB_KEY, JSON.stringify(db));
+        }
+        localStorage.setItem('default-courses-seeded', 'true');
     }
 
     return db;
