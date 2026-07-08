@@ -386,19 +386,31 @@ const Profile: React.FC<ProfileProps> = ({ user, onUpgradeClick }) => {
                         <div className="grid md:grid-cols-2 gap-4">
                             <div className="space-y-1">
                                 <label className="text-sm font-medium text-gray-600 dark:text-slate-350">Full Name</label>
-                                <input type="text" defaultValue={formData.name} className="w-full p-2 bg-gray-50 dark:bg-slate-805 border-none text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500/20" />
+                                <input 
+                                    type="text" 
+                                    defaultValue={formData.name} 
+                                    placeholder="Enter your full name"
+                                    className="w-full p-3 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-slate-500 focus:ring-2 focus:ring-purple-500/25 outline-none transition-all" 
+                                />
                             </div>
                             <div className="space-y-1">
                                 <label className="text-sm font-medium text-gray-600 dark:text-slate-355">Date of Birth</label>
-                                <input type="date" className="w-full p-2 bg-gray-50 dark:bg-slate-805 border-none text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500/20" />
+                                <input 
+                                    type="date" 
+                                    className="w-full p-3 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-slate-500 focus:ring-2 focus:ring-purple-500/25 outline-none transition-all" 
+                                />
                             </div>
                             <div className="space-y-1">
                                 <label className="text-sm font-medium text-gray-600 dark:text-slate-355">Phone</label>
-                                <input type="tel" placeholder="+1 234 567 890" className="w-full p-2 bg-gray-50 dark:bg-slate-805 border-none text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500/20" />
+                                <input 
+                                    type="tel" 
+                                    placeholder="+1 234 567 890" 
+                                    className="w-full p-3 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-slate-500 focus:ring-2 focus:ring-purple-500/25 outline-none transition-all" 
+                                />
                             </div>
                             <div className="space-y-1">
                                 <label className="text-sm font-medium text-gray-600 dark:text-slate-355">Nationality</label>
-                                <select className="w-full p-2 bg-gray-50 dark:bg-slate-805 border-none text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500/20">
+                                <select className="w-full p-3 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500/25 outline-none transition-all">
                                     <option>South Africa</option>
                                     <option>Nigeria</option>
                                     <option>Kenya</option>
@@ -416,15 +428,28 @@ const Profile: React.FC<ProfileProps> = ({ user, onUpgradeClick }) => {
                         <div className="grid md:grid-cols-2 gap-4">
                             <div className="space-y-1 md:col-span-2">
                                 <label className="text-sm font-medium text-gray-600 dark:text-slate-355">Physical Address</label>
-                                <input type="text" defaultValue={formData.location} className="w-full p-2 bg-gray-50 dark:bg-slate-805 border-none text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500/20" />
+                                <input 
+                                    type="text" 
+                                    defaultValue={formData.location} 
+                                    placeholder="Enter physical address"
+                                    className="w-full p-3 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-slate-500 focus:ring-2 focus:ring-purple-500/25 outline-none transition-all" 
+                                />
                             </div>
                             <div className="space-y-1">
                                 <label className="text-sm font-medium text-gray-600 dark:text-slate-355">City</label>
-                                <input type="text" className="w-full p-2 bg-gray-50 dark:bg-slate-805 border-none text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500/20" />
+                                <input 
+                                    type="text" 
+                                    placeholder="e.g. Cape Town"
+                                    className="w-full p-3 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-slate-500 focus:ring-2 focus:ring-purple-500/25 outline-none transition-all" 
+                                />
                             </div>
                             <div className="space-y-1">
                                 <label className="text-sm font-medium text-gray-600 dark:text-slate-355">Zip Code</label>
-                                <input type="text" className="w-full p-2 bg-gray-50 dark:bg-slate-805 border-none text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500/20" />
+                                <input 
+                                    type="text" 
+                                    placeholder="e.g. 7700"
+                                    className="w-full p-3 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-slate-500 focus:ring-2 focus:ring-purple-500/25 outline-none transition-all" 
+                                />
                             </div>
                         </div>
                     </div>
