@@ -67,8 +67,7 @@ const Header: React.FC<HeaderProps> = ({
   };
 
   return (
-    <header className={`flex items-center justify-between sticky top-0 bg-[#f3f4f6] dark:bg-slate-950 z-30 lg:relative lg:top-auto lg:bg-transparent transition-colors duration-200 ${isCompact ? 'py-1 mb-1' : 'py-2 lg:py-2 mb-4 lg:mb-6'
-      }`}>
+    <header className="flex items-center justify-between sticky top-0 bg-[#f3f4f6]/95 dark:bg-slate-950/95 backdrop-blur-md border-b border-gray-200/30 dark:border-slate-800/30 z-30 w-full px-4 lg:px-8 py-3.5 transition-colors duration-200">
       <div className="flex items-center gap-3">
         <button
           onClick={onMenuClick}

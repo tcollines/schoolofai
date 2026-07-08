@@ -51,7 +51,7 @@ const StudentLayout: React.FC<StudentLayoutProps> = ({ session, isAuthenticated,
             />
 
             {/* Main Content Area */}
-            <main className="flex-1 w-full lg:ml-64 p-4 lg:px-8 lg:pb-8 lg:pt-4 max-w-7xl transition-all duration-200">
+            <div className="flex-1 flex flex-col min-w-0 lg:ml-64">
                 <Header
                     user={displayUser}
                     onMenuClick={() => setIsMobileMenuOpen(true)}
@@ -63,10 +63,12 @@ const StudentLayout: React.FC<StudentLayoutProps> = ({ session, isAuthenticated,
                     courses={courses}
                 />
 
-                <div className="animate-in fade-in duration-500">
-                    <Outlet context={{ displayUser, setShowAuthModal }} />
-                </div>
-            </main>
+                <main className="flex-1 w-full p-4 lg:px-8 lg:pb-8 max-w-7xl transition-all duration-200">
+                    <div className="animate-in fade-in duration-500">
+                        <Outlet context={{ displayUser, setShowAuthModal }} />
+                    </div>
+                </main>
+            </div>
 
             {/* Global Auth Modal for Guest Users hitting restricted actions */}
             <AuthModal
