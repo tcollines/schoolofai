@@ -187,7 +187,11 @@ const Header: React.FC<HeaderProps> = ({
         )}
 
         {showProfile && profilePosition === 'right' && (
-          <div className="flex items-center gap-3 pl-2 shrink-0">
+          <div className="flex items-center gap-2.5 pl-2 shrink-0">
+            <div className="text-right hidden sm:block">
+              <p className="text-sm font-bold text-gray-900 dark:text-white leading-tight">{user.name}</p>
+              <p className="text-[10px] font-semibold text-gray-500 dark:text-slate-400 capitalize">{user.role.toLowerCase()}</p>
+            </div>
             {!avatar || avatarError ? (
               <div className="w-8 h-8 lg:w-10 lg:h-10 rounded-full border-2 border-white dark:border-slate-800 shadow-md overflow-hidden bg-gray-100 dark:bg-slate-800 flex items-center justify-center shrink-0">
                 <DefaultAvatar />
