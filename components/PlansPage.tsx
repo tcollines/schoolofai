@@ -99,7 +99,7 @@ const PlansPage: React.FC<PlansPageProps> = ({ currentPlan, onUpgrade, onBack })
                 <div className="p-8 rounded-2xl bg-gray-900 border border-gray-800 text-white relative overflow-hidden hover:transform hover:-translate-y-1 transition-all duration-300">
                     <div className="absolute top-0 right-0 w-32 h-32 bg-purple-500 blur-3xl opacity-20 -mr-16 -mt-16"></div>
                     <h3 className="text-2xl font-bold text-white mb-2">Pro</h3>
-                    <div className="text-4xl font-bold text-white mb-6">$49<span className="text-lg text-gray-400 font-normal">/mo</span></div>
+                    <div className="text-4xl font-bold text-white mb-6">$100<span className="text-lg text-gray-400 font-normal">/mo</span></div>
                     <p className="text-gray-400 mb-8">Master every subject with unlimited access to everything.</p>
 
                     <div className="mb-8">

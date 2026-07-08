@@ -221,7 +221,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLoginClick, onSignupClick, 
                         <div className="bg-white rounded-2xl p-8 border-2 border-violet-600 shadow-xl relative transform md:-translate-y-4">
                             <div className="absolute top-0 right-0 bg-violet-600 text-white text-xs font-bold px-3 py-1 rounded-bl-xl rounded-tr-lg">POPULAR</div>
                             <h3 className="text-lg font-semibold text-gray-900 mb-2">Pro</h3>
-                            <div className="text-4xl font-bold text-gray-900 mb-4">$29 <span className="text-sm font-medium text-gray-500">/mo</span></div>
+                            <div className="text-4xl font-bold text-gray-900 mb-4">$100 <span className="text-sm font-medium text-gray-500">/mo</span></div>
                             <p className="text-gray-500 mb-6 text-sm">For serious learners.</p>
                             <ul className="space-y-4 mb-8">
                                 <li className="flex items-start text-sm text-gray-600">
