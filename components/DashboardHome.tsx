@@ -2,6 +2,7 @@ import React from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { TrendingUp, CheckCircle, PlayCircle, BookOpen } from 'lucide-react';
 import { Course, CourseStatus } from '../types';
+import { useTranslation } from './translations';
 
 interface DashboardHomeProps {
     courses: Course[];
@@ -9,6 +10,7 @@ interface DashboardHomeProps {
 }
 
 const DashboardHome: React.FC<DashboardHomeProps> = ({ courses, userId }) => {
+    const { t } = useTranslation();
     const activeCourse = courses.find(c => c.status === CourseStatus.IN_PROGRESS);
     const enrolledCourses = courses.filter(c => c.status === CourseStatus.IN_PROGRESS || c.status === CourseStatus.COMPLETED);
 
@@ -57,8 +59,8 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({ courses, userId }) => {
                 {/* New Courses / Recommended Row */}
                 <section>
                     <div className="flex justify-between items-center mb-4">
-                        <h3 className="font-bold text-gray-800 dark:text-slate-200">New Courses</h3>
-                        <button className="text-sm text-welile-purple font-medium hover:underline">View All</button>
+                        <h3 className="font-bold text-gray-800 dark:text-slate-200">{t('new_courses')}</h3>
+                        <button className="text-sm text-welile-purple font-medium hover:underline">{t('view_all')}</button>
                     </div>
                     {courses.filter(c => c.status === CourseStatus.NOT_STARTED).length === 0 ? (
                         <div className="bg-white dark:bg-slate-900 p-8 rounded-3xl border border-dashed border-gray-200 dark:border-slate-800 text-center">
@@ -97,7 +99,7 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({ courses, userId }) => {
                 <section className="bg-white dark:bg-slate-900 p-4 lg:p-6 rounded-3xl shadow-sm border border-gray-100 dark:border-slate-800">
                     <div className="flex justify-between items-center mb-6">
                         <div>
-                            <h3 className="font-bold text-gray-800 dark:text-slate-200">Hours Activity</h3>
+                            <h3 className="font-bold text-gray-800 dark:text-slate-200">{t('learning_activity')}</h3>
                             <div className="flex items-center gap-2 mt-1">
                                 <TrendingUp size={14} className="text-green-500" />
                                 <p className="text-xs text-gray-500 dark:text-slate-400"><span className="text-green-500 font-bold">+3%</span> increase than last week</p>
@@ -166,10 +168,10 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({ courses, userId }) => {
                 {/* Premium Banner */}
                 <div className="bg-[#1a1a2e] p-6 rounded-3xl text-white relative overflow-hidden">
                     <div className="relative z-10">
-                        <h3 className="font-bold text-xl mb-1">Go Premium</h3>
-                        <p className="text-xs text-gray-400 mb-4 max-w-[150px]">Explore 25k+ courses with lifetime membership</p>
+                        <h3 className="font-bold text-xl mb-1">{t('go_premium')}</h3>
+                        <p className="text-xs text-gray-400 mb-4 max-w-[150px]">{t('explore_courses')}</p>
                         <button className="bg-welile-lime text-black text-xs font-bold px-4 py-2 rounded-full hover:bg-lime-300 transition-colors">
-                            Get Access
+                            {t('go_premium')}
                         </button>
                     </div>
                     {/* Abstract illustration circles */}
@@ -179,7 +181,7 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({ courses, userId }) => {
 
                 {/* Schedule */}
                 <div className="bg-white dark:bg-slate-900 p-6 rounded-3xl shadow-sm border border-gray-100 dark:border-slate-800">
-                    <h3 className="font-bold text-gray-800 dark:text-slate-200 mb-4">Daily Schedule</h3>
+                    <h3 className="font-bold text-gray-800 dark:text-slate-200 mb-4">{t('daily_schedule')}</h3>
                     {schedule.length === 0 ? (
                         <p className="text-xs text-gray-400 dark:text-slate-500 text-center py-4">No classes scheduled today.</p>
                     ) : (
@@ -207,7 +209,7 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({ courses, userId }) => {
                 {/* Assignments */}
                 <div className="bg-white dark:bg-slate-900 p-6 rounded-3xl shadow-sm border border-gray-100 dark:border-slate-800">
                     <div className="flex justify-between items-center mb-4">
-                        <h3 className="font-bold text-gray-800 dark:text-slate-200 mb-4">Assignments</h3>
+                        <h3 className="font-bold text-gray-800 dark:text-slate-200 mb-4">{t('assignments')}</h3>
                         <button className="w-6 h-6 bg-welile-lime rounded-full flex items-center justify-center text-xs font-bold">+</button>
                     </div>
                     {assignments.length === 0 ? (

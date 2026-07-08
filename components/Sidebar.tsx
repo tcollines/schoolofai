@@ -2,6 +2,8 @@ import React from 'react';
 import { LayoutDashboard, BookOpen, MessageSquare, CreditCard, User, Award, Settings, LogOut, Briefcase, X, Compass } from 'lucide-react';
 import { supabase } from '../src/lib/supabase';
 
+import { useTranslation } from './translations';
+
 interface SidebarProps {
   activeTab: string;
   setActiveTab: (tab: string) => void;
@@ -11,13 +13,15 @@ interface SidebarProps {
 }
 
 const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, isOpen, onClose, isAdmin }) => {
+  const { t } = useTranslation();
+
   const menuItems = [
-    { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
-    { id: 'discover', label: 'Discover', icon: Compass },
-    { id: 'courses', label: 'My Courses', icon: BookOpen },
-    { id: 'career', label: 'Career Growth', icon: Briefcase },
-    { id: 'profile', label: 'My Profile', icon: User },
-    { id: 'settings', label: 'Settings', icon: Settings },
+    { id: 'dashboard', label: t('dashboard'), icon: LayoutDashboard },
+    { id: 'discover', label: t('discover'), icon: Compass },
+    { id: 'courses', label: t('my_courses'), icon: BookOpen },
+    { id: 'career', label: t('career_growth'), icon: Briefcase },
+    { id: 'profile', label: t('my_profile'), icon: User },
+    { id: 'settings', label: t('settings'), icon: Settings },
   ];
 
   return (
@@ -73,8 +77,8 @@ const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, isOpen, onCl
         <div className="p-4 mt-auto">
           <div className="bg-gray-900 rounded-2xl p-4 relative overflow-hidden group cursor-pointer hidden md:block">
             <div className="absolute top-0 right-0 w-16 h-16 bg-welile-lime rounded-full blur-2xl opacity-10 group-hover:opacity-20 transition-opacity"></div>
-            <h4 className="font-semibold text-sm mb-1">Mobile App</h4>
-            <p className="text-xs text-gray-400 mb-3">Download for iOS & Android</p>
+            <h4 className="font-semibold text-sm mb-1">{t('mobile_app')}</h4>
+            <p className="text-xs text-gray-400 mb-3">{t('download_app')}</p>
             <div className="w-8 h-8 bg-welile-lime rounded-full flex items-center justify-center text-black">
               <LayoutDashboard size={14} />
             </div>
@@ -87,7 +91,7 @@ const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, isOpen, onCl
             className="flex items-center gap-3 text-gray-400 hover:text-white px-4 py-4 w-full mt-2 text-sm"
           >
             <LogOut size={18} />
-            Sign Out
+            {t('sign_out')}
           </button>
         </div>
       </div>

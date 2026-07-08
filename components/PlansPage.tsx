@@ -1,6 +1,7 @@
 import React from 'react';
 import { CheckCircle, Sparkles } from 'lucide-react';
 import { UserRole } from '../types';
+import { useTranslation } from './translations';
 
 interface PlansPageProps {
     currentPlan: UserRole;
@@ -9,19 +10,20 @@ interface PlansPageProps {
 }
 
 const PlansPage: React.FC<PlansPageProps> = ({ currentPlan, onUpgrade, onBack }) => {
+    const { t } = useTranslation();
     return (
         <div className="max-w-6xl mx-auto">
             <div className="flex items-center justify-between mb-8">
                 <div>
-                    <h2 className="text-3xl font-bold text-gray-900 dark:text-white">Subscription Plans</h2>
-                    <p className="text-gray-500 dark:text-slate-400 mt-2">Choose the plan that best fits your learning journey.</p>
+                    <h2 className="text-3xl font-bold text-gray-900 dark:text-white">{t('subscription_plans')}</h2>
+                    <p className="text-gray-500 dark:text-slate-400 mt-2">{t('choose_plan')}</p>
                 </div>
                 {onBack && (
                     <button
                         onClick={onBack}
                         className="text-gray-500 dark:text-slate-400 hover:text-gray-900 dark:hover:text-white font-medium px-4 py-2 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
                     >
-                        ← Back to Profile
+                        ← {t('back_to_profile')}
                     </button>
                 )}
             </div>
@@ -36,7 +38,7 @@ const PlansPage: React.FC<PlansPageProps> = ({ currentPlan, onUpgrade, onBack })
                     <div className="mb-8">
                         {currentPlan === 'INDIVIDUAL' ? (
                             <div className="w-full py-3 rounded-xl bg-gray-100 dark:bg-slate-800 text-gray-500 dark:text-slate-400 font-bold text-center">
-                                Current Plan
+                                {t('current_plan')}
                             </div>
                         ) : (
                             <button className="w-full py-3 rounded-xl border-2 border-gray-200 dark:border-slate-800 font-bold text-gray-700 dark:text-slate-300 hover:border-gray-300 dark:hover:border-slate-700">

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { User, MapPin, Briefcase, GraduationCap, Save } from 'lucide-react';
 import { UserProfile } from '../types';
+import { useTranslation } from './translations';
 
 interface ProfileProps {
     user?: UserProfile;
@@ -8,6 +9,7 @@ interface ProfileProps {
 }
 
 const Profile: React.FC<ProfileProps> = ({ user, onUpgradeClick }) => {
+    const { t } = useTranslation();
     const [formData, setFormData] = useState<UserProfile | undefined>(user);
 
     useEffect(() => {
@@ -19,9 +21,9 @@ const Profile: React.FC<ProfileProps> = ({ user, onUpgradeClick }) => {
     return (
         <div className="max-w-4xl mx-auto">
             <div className="flex justify-between items-center mb-6">
-                <h2 className="text-2xl font-bold text-gray-900 dark:text-white">My Profile</h2>
+                <h2 className="text-2xl font-bold text-gray-900 dark:text-white">{t('my_profile')}</h2>
                 <button className="flex items-center gap-2 bg-welile-purple text-white px-5 py-2 rounded-xl text-sm font-medium hover:bg-purple-700 shadow-md shadow-purple-200 dark:shadow-none">
-                    <Save size={16} /> Save Changes
+                    <Save size={16} /> {t('save_changes')}
                 </button>
             </div>
 

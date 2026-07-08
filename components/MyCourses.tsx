@@ -7,12 +7,14 @@ import ExamPlayer from './ExamPlayer';
 import RatingModal from './RatingModal';
 import { Star } from 'lucide-react';
 import { supabase } from '../src/lib/supabase';
+import { useTranslation } from './translations';
 
 interface MyCoursesProps {
     courses: Course[];
 }
 
 const MyCourses: React.FC<MyCoursesProps> = ({ courses }) => {
+    const { t } = useTranslation();
     const [filter, setFilter] = useState('ALL'); // ALL, IN_PROGRESS, COMPLETED
     const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
     const [activeModule, setActiveModule] = useState<CourseModule | null>(null);
@@ -160,7 +162,7 @@ const MyCourses: React.FC<MyCoursesProps> = ({ courses }) => {
                     onClick={() => setSelectedCourse(null)}
                     className="mb-6 flex items-center gap-2 text-sm font-bold text-gray-500 dark:text-slate-400 hover:text-gray-900 dark:hover:text-white transition-colors"
                 >
-                    <ArrowLeft size={18} /> Back to My Courses
+                    <ArrowLeft size={18} /> {t('back_to_profile')}
                 </button>
 
                 <div className="bg-white dark:bg-slate-900 rounded-3xl overflow-hidden shadow-sm border border-gray-100 dark:border-slate-800 md:flex mb-8">
@@ -182,7 +184,7 @@ const MyCourses: React.FC<MyCoursesProps> = ({ courses }) => {
                         <div className="flex flex-wrap items-center gap-6 mb-6">
                             <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-slate-400">
                                 <BookOpen size={18} className="text-welile-purple" />
-                                <span className="font-medium">{selectedCourse.lessonsTotal} Lessons</span>
+                                <span className="font-medium">{selectedCourse.lessonsTotal} {t('lessons')}</span>
                             </div>
                             <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-slate-400">
                                 <Clock size={18} className="text-welile-purple" />
@@ -217,7 +219,7 @@ const MyCourses: React.FC<MyCoursesProps> = ({ courses }) => {
                                     onClick={() => setTakingExam(true)}
                                     className="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-indigo-700"
                                 >
-                                    Start Exam
+                                    {t('start_exam')}
                                 </button>
                             </div>
                         )}
@@ -353,8 +355,8 @@ const MyCourses: React.FC<MyCoursesProps> = ({ courses }) => {
             {/* Header and Filters */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
-                    <h2 className="text-2xl font-bold text-gray-900 dark:text-white">My Learning</h2>
-                    <p className="text-gray-500 dark:text-slate-400">Track your progress and continue learning.</p>
+                    <h2 className="text-2xl font-bold text-gray-900 dark:text-white">{t('my_learning')}</h2>
+                    <p className="text-gray-500 dark:text-slate-400">{t('ongoing_courses')}</p>
                 </div>
 
                 <div className="flex items-center gap-3 bg-white dark:bg-slate-900 p-1 rounded-xl border border-gray-200 dark:border-slate-800 shadow-sm overflow-hidden">
@@ -367,7 +369,7 @@ const MyCourses: React.FC<MyCoursesProps> = ({ courses }) => {
                                 : 'text-gray-500 dark:text-slate-400 hover:bg-gray-50 dark:hover:bg-slate-800'
                                 }`}
                         >
-                            {tab === 'ALL' ? 'All Courses' : tab === 'IN_PROGRESS' ? 'In Progress' : 'Completed'}
+                            {tab === 'ALL' ? t('all_courses') : tab === 'IN_PROGRESS' ? t('in_progress') : t('completed')}
                         </button>
                     ))}
                 </div>

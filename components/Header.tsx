@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Search, Bell, Menu, Sun, Moon } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { UserProfile, Course } from '../types';
+import { useTranslation } from './translations';
 
 interface HeaderProps {
   user: UserProfile;
@@ -24,6 +25,7 @@ const Header: React.FC<HeaderProps> = ({
   profilePosition = 'right',
   courses = []
 }) => {
+  const { t } = useTranslation();
   const isCompact = !showWelcome;
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
@@ -85,10 +87,10 @@ const Header: React.FC<HeaderProps> = ({
         {showWelcome && (
           <div>
             <h1 className="text-xl lg:text-2xl font-bold text-gray-900 dark:text-white">
-              Welcome back, {user.name.split(' ')[0]} 👋
+              {t('welcome_back')}, {user.name.split(' ')[0]} 👋
             </h1>
             <p className="text-gray-500 dark:text-slate-400 text-xs lg:text-sm mt-1 hidden sm:block">
-              {user.role === 'SPONSORED' ? 'Company Sponsored • ' + user.companyName : 'Individual Learner'}
+              {user.role === 'SPONSORED' ? 'Company Sponsored • ' + user.companyName : t('individual_learner')}
             </p>
           </div>
         )}
@@ -100,7 +102,7 @@ const Header: React.FC<HeaderProps> = ({
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
             <input
               type="text"
-              placeholder="Search courses..."
+              placeholder={t('search_courses')}
               value={searchTerm}
               onChange={(e) => {
                 setSearchTerm(e.target.value);

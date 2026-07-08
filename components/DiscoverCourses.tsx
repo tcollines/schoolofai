@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { Search, Compass, BookOpen, Clock, Star, PlayCircle, Eye } from 'lucide-react';
 import { Course, CourseStatus } from '../types';
+import { useTranslation } from './translations';
 
 interface DiscoverCoursesProps {
     courses: Course[];
@@ -11,6 +12,7 @@ interface DiscoverCoursesProps {
 }
 
 const DiscoverCourses: React.FC<DiscoverCoursesProps> = ({ courses, onEnroll, isAuthenticated, onLoginClick }) => {
+    const { t } = useTranslation();
     const [searchParams] = useSearchParams();
     const navigate = useNavigate();
     const initialQuery = searchParams.get('q') || '';
@@ -41,9 +43,9 @@ const DiscoverCourses: React.FC<DiscoverCoursesProps> = ({ courses, onEnroll, is
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
                 <div>
                     <h2 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
-                        <Compass className="text-welile-purple" /> Discover Courses
+                        <Compass className="text-welile-purple" /> {t('discover_courses')}
                     </h2>
-                    <p className="text-gray-500 dark:text-slate-400 text-sm mt-1">Explore our catalog and start learning today.</p>
+                    <p className="text-gray-500 dark:text-slate-400 text-sm mt-1">{t('explore_catalog')}</p>
                 </div>
             </div>
 
@@ -53,7 +55,7 @@ const DiscoverCourses: React.FC<DiscoverCoursesProps> = ({ courses, onEnroll, is
                     <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
                     <input
                         type="text"
-                        placeholder="Search for courses, skills, or instructors..."
+                        placeholder={t('search_placeholder')}
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                         className="w-full bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 text-gray-900 dark:text-white rounded-2xl py-3 pl-12 pr-4 focus:outline-none focus:ring-2 focus:ring-welile-purple transition-shadow"
