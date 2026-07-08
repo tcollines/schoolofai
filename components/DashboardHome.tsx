@@ -182,28 +182,36 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({ courses, userId }) => {
                 {/* Schedule */}
                 <div className="bg-white dark:bg-slate-900 p-6 rounded-3xl shadow-sm border border-gray-100 dark:border-slate-800">
                     <h3 className="font-bold text-gray-800 dark:text-slate-200 mb-4">{t('daily_schedule')}</h3>
-                    {schedule.length === 0 ? (
-                        <p className="text-xs text-gray-400 dark:text-slate-500 text-center py-4">No classes scheduled today.</p>
-                    ) : (
-                        <div className="space-y-4">
-                            {schedule.map((item, idx) => (
-                                <div key={idx} className="flex items-center justify-between group cursor-pointer hover:bg-gray-50 dark:hover:bg-slate-800/40 p-2 rounded-xl transition-colors">
-                                    <div className="flex items-center gap-3">
-                                        <div className={`w-10 h-10 rounded-xl ${item.color || 'bg-gray-100 text-gray-600'} flex items-center justify-center font-bold text-sm`}>
-                                            {item.icon}
-                                        </div>
-                                        <div>
-                                            <h4 className="font-bold text-sm text-gray-900 dark:text-white">{item.title}</h4>
-                                            <p className="text-xs text-gray-500 dark:text-slate-400">{item.type} • {item.time}</p>
-                                        </div>
-                                    </div>
-                                    <div className="w-8 h-8 rounded-full border border-gray-200 dark:border-slate-800 flex items-center justify-center text-gray-400 dark:text-slate-500">
-                                        ›
-                                    </div>
+                    <div 
+                        onClick={() => window.location.href = '/events'}
+                        className="flex items-center justify-between group cursor-pointer hover:bg-gray-50 dark:hover:bg-slate-800/40 p-2 rounded-2xl transition-colors"
+                    >
+                        <div className="flex items-center gap-3">
+                            <div className="w-12 h-12 rounded-2xl bg-blue-50 dark:bg-blue-950/40 text-blue-500 flex items-center justify-center shrink-0">
+                                <BookOpen size={20} />
+                            </div>
+                            <div>
+                                <div className="flex flex-wrap items-center gap-2">
+                                    <h4 className="font-bold text-sm text-gray-900 dark:text-white leading-tight">
+                                        {enrolledCourses.length > 0 ? enrolledCourses[0].title : 'Introduction to AI'}
+                                    </h4>
+                                    <span className="flex h-2 w-2 relative shrink-0">
+                                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                                        <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
+                                    </span>
+                                    <span className="text-[10px] text-red-500 dark:text-red-400 font-bold bg-red-50 dark:bg-red-950/20 px-1.5 py-0.5 rounded shrink-0">
+                                        Starts in 5m
+                                    </span>
                                 </div>
-                            ))}
+                                <p className="text-xs text-gray-500 dark:text-slate-400 mt-1">
+                                    Lecture • 9:00 AM
+                                </p>
+                            </div>
                         </div>
-                    )}
+                        <div className="w-8 h-8 rounded-full border border-gray-150 dark:border-slate-800 flex items-center justify-center text-gray-400 dark:text-slate-500 group-hover:bg-gray-105 dark:group-hover:bg-slate-800 transition-colors shrink-0">
+                            ›
+                        </div>
+                    </div>
                 </div>
 
                 {/* Assignments */}
