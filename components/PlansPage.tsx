@@ -13,13 +13,13 @@ const PlansPage: React.FC<PlansPageProps> = ({ currentPlan, onUpgrade, onBack })
         <div className="max-w-6xl mx-auto">
             <div className="flex items-center justify-between mb-8">
                 <div>
-                    <h2 className="text-3xl font-bold text-gray-900">Subscription Plans</h2>
-                    <p className="text-gray-500 mt-2">Choose the plan that best fits your learning journey.</p>
+                    <h2 className="text-3xl font-bold text-gray-900 dark:text-white">Subscription Plans</h2>
+                    <p className="text-gray-500 dark:text-slate-400 mt-2">Choose the plan that best fits your learning journey.</p>
                 </div>
                 {onBack && (
                     <button
                         onClick={onBack}
-                        className="text-gray-500 hover:text-gray-900 font-medium px-4 py-2 hover:bg-gray-100 rounded-lg transition-colors"
+                        className="text-gray-500 dark:text-slate-400 hover:text-gray-900 dark:hover:text-white font-medium px-4 py-2 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
                     >
                         ← Back to Profile
                     </button>
@@ -28,45 +28,45 @@ const PlansPage: React.FC<PlansPageProps> = ({ currentPlan, onUpgrade, onBack })
 
             <div className="grid md:grid-cols-3 gap-8">
                 {/* Basic Plan */}
-                <div className={`p-8 rounded-2xl bg-white border ${currentPlan === 'INDIVIDUAL' ? 'border-gray-200' : 'border-gray-100'} shadow-sm relative group hover:border-welile-purple hover:shadow-lg transition-all`}>
-                    <h3 className="text-2xl font-bold text-gray-900 mb-2">Basic</h3>
-                    <div className="text-4xl font-bold text-gray-900 mb-6">Free<span className="text-lg text-gray-500 font-normal">/forever</span></div>
-                    <p className="text-gray-600 mb-8">Perfect for exploring new topics and getting started.</p>
+                <div className={`p-8 rounded-2xl bg-white dark:bg-slate-900 border ${currentPlan === 'INDIVIDUAL' ? 'border-gray-200 dark:border-slate-700' : 'border-gray-100 dark:border-slate-805'} shadow-sm relative group hover:border-welile-purple dark:hover:border-purple-600 hover:shadow-lg transition-all`}>
+                    <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Basic</h3>
+                    <div className="text-4xl font-bold text-gray-900 dark:text-white mb-6">Free<span className="text-lg text-gray-500 dark:text-slate-400 font-normal">/forever</span></div>
+                    <p className="text-gray-600 dark:text-slate-350 mb-8">Perfect for exploring new topics and getting started.</p>
 
                     <div className="mb-8">
                         {currentPlan === 'INDIVIDUAL' ? (
-                            <div className="w-full py-3 rounded-xl bg-gray-100 text-gray-500 font-bold text-center">
+                            <div className="w-full py-3 rounded-xl bg-gray-100 dark:bg-slate-800 text-gray-500 dark:text-slate-400 font-bold text-center">
                                 Current Plan
                             </div>
                         ) : (
-                            <button className="w-full py-3 rounded-xl border-2 border-gray-200 font-bold text-gray-700 hover:border-gray-300">
+                            <button className="w-full py-3 rounded-xl border-2 border-gray-200 dark:border-slate-800 font-bold text-gray-700 dark:text-slate-300 hover:border-gray-300 dark:hover:border-slate-700">
                                 Downgrade
                             </button>
                         )}
                     </div>
 
                     <ul className="space-y-4">
-                        <li className="flex items-center gap-3 text-gray-700">
+                        <li className="flex items-center gap-3 text-gray-700 dark:text-slate-300">
                             <CheckCircle size={18} className="text-green-500 flex-shrink-0" />
                             <span>Access to <strong>Introduction</strong> modules</span>
                         </li>
-                        <li className="flex items-center gap-3 text-gray-400">
-                            <span className="w-4 h-4 rounded-full border border-gray-300 flex-shrink-0"></span>
+                        <li className="flex items-center gap-3 text-gray-400 dark:text-slate-500">
+                            <span className="w-4 h-4 rounded-full border border-gray-300 dark:border-slate-700 flex-shrink-0"></span>
                             <span>Fundamentals modules</span>
                         </li>
-                        <li className="flex items-center gap-3 text-gray-400">
-                            <span className="w-4 h-4 rounded-full border border-gray-300 flex-shrink-0"></span>
+                        <li className="flex items-center gap-3 text-gray-400 dark:text-slate-500">
+                            <span className="w-4 h-4 rounded-full border border-gray-300 dark:border-slate-700 flex-shrink-0"></span>
                             <span>Advanced Application modules</span>
                         </li>
                     </ul>
                 </div>
 
                 {/* Plus Plan - Highlighted */}
-                <div className="p-8 rounded-2xl bg-white border-2 border-welile-purple shadow-xl relative transform md:-translate-y-4 z-10">
+                <div className="p-8 rounded-2xl bg-white dark:bg-slate-900 border-2 border-welile-purple shadow-xl relative transform md:-translate-y-4 z-10">
                     <div className="absolute top-0 right-0 bg-welile-purple text-white text-xs font-bold px-3 py-1 rounded-bl-xl rounded-tr-xl">POPULAR</div>
-                    <h3 className="text-2xl font-bold text-gray-900 mb-2">Plus</h3>
-                    <div className="text-4xl font-bold text-gray-900 mb-6">$19<span className="text-lg text-gray-500 font-normal">/mo</span></div>
-                    <p className="text-gray-600 mb-8">Deepen your knowledge with core concepts and theory.</p>
+                    <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Plus</h3>
+                    <div className="text-4xl font-bold text-gray-900 dark:text-white mb-6">$19<span className="text-lg text-gray-500 dark:text-slate-400 font-normal">/mo</span></div>
+                    <p className="text-gray-600 dark:text-slate-350 mb-8">Deepen your knowledge with core concepts and theory.</p>
 
                     <div className="mb-8">
                         <button
@@ -78,16 +78,16 @@ const PlansPage: React.FC<PlansPageProps> = ({ currentPlan, onUpgrade, onBack })
                     </div>
 
                     <ul className="space-y-4">
-                        <li className="flex items-center gap-3 text-gray-700">
+                        <li className="flex items-center gap-3 text-gray-700 dark:text-slate-300">
                             <CheckCircle size={18} className="text-green-500 flex-shrink-0" />
                             <span>Access to <strong>Introduction</strong> modules</span>
                         </li>
-                        <li className="flex items-center gap-3 text-gray-700">
+                        <li className="flex items-center gap-3 text-gray-700 dark:text-slate-300">
                             <CheckCircle size={18} className="text-green-500 flex-shrink-0" />
                             <span>Access to <strong>Fundamentals</strong> modules</span>
                         </li>
-                        <li className="flex items-center gap-3 text-gray-400">
-                            <span className="w-4 h-4 rounded-full border border-gray-300 flex-shrink-0"></span>
+                        <li className="flex items-center gap-3 text-gray-400 dark:text-slate-500">
+                            <span className="w-4 h-4 rounded-full border border-gray-300 dark:border-slate-700 flex-shrink-0"></span>
                             <span>Advanced Application modules</span>
                         </li>
                     </ul>

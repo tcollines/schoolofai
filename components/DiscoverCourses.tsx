@@ -40,10 +40,10 @@ const DiscoverCourses: React.FC<DiscoverCoursesProps> = ({ courses, onEnroll, is
         <div className="space-y-6 lg:space-y-8">
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
                 <div>
-                    <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+                    <h2 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
                         <Compass className="text-welile-purple" /> Discover Courses
                     </h2>
-                    <p className="text-gray-500 text-sm mt-1">Explore our catalog and start learning today.</p>
+                    <p className="text-gray-500 dark:text-slate-400 text-sm mt-1">Explore our catalog and start learning today.</p>
                 </div>
             </div>
 
@@ -56,7 +56,7 @@ const DiscoverCourses: React.FC<DiscoverCoursesProps> = ({ courses, onEnroll, is
                         placeholder="Search for courses, skills, or instructors..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
-                        className="w-full bg-white border border-gray-200 rounded-2xl py-3 pl-12 pr-4 focus:outline-none focus:ring-2 focus:ring-welile-purple transition-shadow"
+                        className="w-full bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 text-gray-900 dark:text-white rounded-2xl py-3 pl-12 pr-4 focus:outline-none focus:ring-2 focus:ring-welile-purple transition-shadow"
                     />
                 </div>
                 <div className="flex gap-2 overflow-x-auto pb-2 md:pb-0 hide-scrollbar">
@@ -66,8 +66,8 @@ const DiscoverCourses: React.FC<DiscoverCoursesProps> = ({ courses, onEnroll, is
                             onClick={() => setSelectedCategory(category)}
                             className={`px-6 py-3 rounded-2xl whitespace-nowrap text-sm font-bold transition-colors ${
                                 selectedCategory === category
-                                    ? 'bg-gray-900 text-white'
-                                    : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-50'
+                                    ? 'bg-gray-950 dark:bg-slate-100 text-white dark:text-gray-900 hover:bg-black dark:hover:bg-slate-200'
+                                    : 'bg-white dark:bg-slate-900 text-gray-600 dark:text-slate-350 border border-gray-200 dark:border-slate-800 hover:bg-gray-50 dark:hover:bg-slate-800'
                             }`}
                         >
                             {category}
@@ -78,12 +78,12 @@ const DiscoverCourses: React.FC<DiscoverCoursesProps> = ({ courses, onEnroll, is
 
             {/* Course Grid */}
             {filteredCourses.length === 0 ? (
-                <div className="text-center py-20 bg-white rounded-3xl border border-gray-100">
-                    <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <Search className="w-8 h-8 text-gray-400" />
+                <div className="text-center py-20 bg-white dark:bg-slate-900 rounded-3xl border border-gray-100 dark:border-slate-800">
+                    <div className="w-16 h-16 bg-gray-50 dark:bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <Search className="w-8 h-8 text-gray-400 dark:text-slate-500" />
                     </div>
-                    <h3 className="text-lg font-bold text-gray-900 mb-1">No courses found</h3>
-                    <p className="text-gray-500 text-sm">Try adjusting your search or filters.</p>
+                    <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-1">No courses found</h3>
+                    <p className="text-gray-500 dark:text-slate-400 text-sm">Try adjusting your search or filters.</p>
                 </div>
             ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
@@ -91,7 +91,7 @@ const DiscoverCourses: React.FC<DiscoverCoursesProps> = ({ courses, onEnroll, is
                         <div 
                             key={course.id} 
                             onClick={() => navigate(`/discover/${course.id}`)}
-                            className="bg-white rounded-3xl overflow-hidden border border-gray-100 shadow-sm hover:shadow-md transition-shadow group flex flex-col h-full cursor-pointer"
+                            className="bg-white dark:bg-slate-900 rounded-3xl overflow-hidden border border-gray-100 dark:border-slate-800 shadow-sm hover:shadow-md transition-shadow group flex flex-col h-full cursor-pointer"
                         >
                             <div className="relative h-48 overflow-hidden">
                                 <img
@@ -100,7 +100,7 @@ const DiscoverCourses: React.FC<DiscoverCoursesProps> = ({ courses, onEnroll, is
                                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                                 />
                                 <div className="absolute top-4 left-4">
-                                    <span className="px-3 py-1 bg-white/90 backdrop-blur-sm rounded-full text-xs font-bold text-gray-900 shadow-sm">
+                                    <span className="px-3 py-1 bg-white/90 dark:bg-slate-900/90 backdrop-blur-sm rounded-full text-xs font-bold text-gray-900 dark:text-white shadow-sm">
                                         {course.category}
                                     </span>
                                 </div>
@@ -115,12 +115,12 @@ const DiscoverCourses: React.FC<DiscoverCoursesProps> = ({ courses, onEnroll, is
                             <div className="p-6 flex flex-col flex-grow">
                                 <div className="flex items-center gap-2 mb-3">
                                     <Star className="w-4 h-4 text-yellow-400 fill-current" />
-                                    <span className="text-sm font-bold text-gray-900">{course.rating || 'New'}</span>
+                                    <span className="text-sm font-bold text-gray-900 dark:text-white">{course.rating || 'New'}</span>
                                 </div>
-                                <h3 className="font-bold text-gray-900 mb-1 line-clamp-2">{course.title}</h3>
-                                <p className="text-sm text-gray-500 mb-4">{course.instructor}</p>
+                                <h3 className="font-bold text-gray-900 dark:text-white mb-1 line-clamp-2">{course.title}</h3>
+                                <p className="text-sm text-gray-500 dark:text-slate-400 mb-4">{course.instructor}</p>
                                 
-                                <div className="flex items-center gap-4 text-xs font-medium text-gray-500 mb-6 mt-auto">
+                                <div className="flex items-center gap-4 text-xs font-medium text-gray-500 dark:text-slate-450 mb-6 mt-auto">
                                     <div className="flex items-center gap-1.5">
                                         <Clock className="w-4 h-4" />
                                         {course.duration}
@@ -131,8 +131,8 @@ const DiscoverCourses: React.FC<DiscoverCoursesProps> = ({ courses, onEnroll, is
                                     </div>
                                 </div>
                                 
-                                <div className="pt-4 border-t border-gray-100 flex items-center justify-between">
-                                    <span className="font-bold text-lg text-gray-900">
+                                <div className="pt-4 border-t border-gray-100 dark:border-slate-800 flex items-center justify-between">
+                                    <span className="font-bold text-lg text-gray-900 dark:text-white">
                                         {course.price === 0 ? 'Free' : `$${course.price}`}
                                     </span>
                                     <button
@@ -142,8 +142,8 @@ const DiscoverCourses: React.FC<DiscoverCoursesProps> = ({ courses, onEnroll, is
                                         }}
                                         className={`px-6 py-2 rounded-xl text-sm font-bold transition-colors flex items-center gap-2 ${
                                             course.status !== CourseStatus.NOT_STARTED 
-                                                ? 'bg-emerald-100 text-emerald-700 cursor-default'
-                                                : 'bg-gray-100 hover:bg-gray-200 text-gray-900'
+                                                ? 'bg-emerald-100 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-400 cursor-default'
+                                                : 'bg-gray-100 dark:bg-slate-800 hover:bg-gray-200 dark:hover:bg-slate-700 text-gray-900 dark:text-white'
                                         }`}
                                     >
                                         {course.status !== CourseStatus.NOT_STARTED ? (

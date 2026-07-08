@@ -13,11 +13,11 @@ const CourseCard: React.FC<CourseCardProps> = ({ course, onClick }) => {
   const getStatusColor = (status: CourseStatus) => {
     switch (status) {
       case CourseStatus.COMPLETED:
-        return 'bg-green-100 text-green-700';
+        return 'bg-green-100 dark:bg-green-950/30 text-green-700 dark:text-green-400';
       case CourseStatus.IN_PROGRESS:
-        return 'bg-purple-100 text-purple-700';
+        return 'bg-purple-100 dark:bg-purple-950/30 text-purple-700 dark:text-purple-400';
       default:
-        return 'bg-gray-100 text-gray-700';
+        return 'bg-gray-100 dark:bg-slate-800 text-gray-700 dark:text-slate-300';
     }
   };
 
@@ -35,7 +35,7 @@ const CourseCard: React.FC<CourseCardProps> = ({ course, onClick }) => {
   return (
     <div
       onClick={onClick}
-      className="bg-white rounded-3xl border border-gray-100 overflow-hidden hover:shadow-lg transition-shadow duration-300 group flex flex-col h-full cursor-pointer"
+      className="bg-white dark:bg-slate-900 rounded-3xl border border-gray-100 dark:border-slate-800 overflow-hidden hover:shadow-lg transition-shadow duration-300 group flex flex-col h-full cursor-pointer"
     >
       {/* Course Image */}
       <div className="relative h-48 overflow-hidden">
@@ -62,25 +62,25 @@ const CourseCard: React.FC<CourseCardProps> = ({ course, onClick }) => {
       {/* Content */}
       <div className="p-5 flex flex-col flex-grow">
         <div className="flex justify-between items-start mb-2">
-          <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">{course.category}</span>
+          <span className="text-xs font-bold text-gray-400 dark:text-slate-500 uppercase tracking-wider">{course.category}</span>
           <div className="flex items-center gap-1 text-amber-400 text-xs font-bold">
             <span>★</span> <span>{course.rating}</span>
           </div>
         </div>
 
-        <h3 className="font-bold text-lg text-gray-900 mb-1 line-clamp-2">{course.title}</h3>
-        <p className="text-sm text-gray-500 mb-4">{course.instructor}</p>
+        <h3 className="font-bold text-lg text-gray-900 dark:text-white mb-1 line-clamp-2">{course.title}</h3>
+        <p className="text-sm text-gray-500 dark:text-slate-400 mb-4">{course.instructor}</p>
 
         <div className="mt-auto">
           {/* Progress Section */}
           <div className="mb-4">
             <div className="flex justify-between text-xs mb-1.5">
-              <span className="font-medium text-gray-600">
+              <span className="font-medium text-gray-600 dark:text-slate-350">
                 {course.lessonsCompleted} / {course.lessonsTotal} Lessons
               </span>
               <span className="font-bold text-welile-purple">{progress}%</span>
             </div>
-            <div className="w-full bg-gray-100 rounded-full h-2">
+            <div className="w-full bg-gray-100 dark:bg-slate-800 rounded-full h-2">
               <div
                 className={`h-2 rounded-full transition-all duration-1000 ${course.status === CourseStatus.COMPLETED ? 'bg-green-500' : 'bg-welile-purple'}`}
                 style={{ width: `${progress}%` }}
@@ -89,15 +89,15 @@ const CourseCard: React.FC<CourseCardProps> = ({ course, onClick }) => {
           </div>
 
           {/* Footer Action */}
-          <div className="pt-4 border-t border-gray-50 flex items-center justify-between">
+          <div className="pt-4 border-t border-gray-50 dark:border-slate-850 flex items-center justify-between">
             <div className="flex -space-x-2">
               {/* Mock avatars for enrolled students */}
               {[1, 2, 3].map((i) => (
-                <div key={i} className="w-6 h-6 rounded-full border-2 border-white bg-gray-200 overflow-hidden">
+                <div key={i} className="w-6 h-6 rounded-full border-2 border-white dark:border-slate-900 bg-gray-200 dark:bg-slate-800 overflow-hidden">
                   <img src={`https://i.pravatar.cc/100?img=${i + 10}`} alt="Student" className="w-full h-full object-cover" />
                 </div>
               ))}
-              <div className="w-6 h-6 rounded-full border-2 border-white bg-gray-100 flex items-center justify-center text-[10px] text-gray-500 font-bold">
+              <div className="w-6 h-6 rounded-full border-2 border-white dark:border-slate-900 bg-gray-100 dark:bg-slate-800 flex items-center justify-center text-[10px] text-gray-500 dark:text-slate-400 font-bold">
                 +42
               </div>
             </div>

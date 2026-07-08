@@ -12,6 +12,7 @@ import MyCourses from './components/MyCourses';
 import DiscoverCourses from './components/DiscoverCourses';
 import CourseOverview from './components/CourseOverview';
 import Certificates from './components/Certificates';
+import SettingsPage from './components/SettingsPage';
 import { supabase } from './src/lib/supabase';
 import { useCourses } from './src/hooks/useCourses';
 import { UserRole } from './types';
@@ -135,6 +136,7 @@ function App() {
             <Route path="/career" element={<Certificates courses={isAuthenticated ? courses : []} />} />
             <Route path="/profile" element={<Profile user={{} as any} onUpgradeClick={() => window.location.href = '/plans'} />} />
             <Route path="/plans" element={<PlansPage currentPlan={UserRole.INDIVIDUAL} onUpgrade={() => {}} onBack={() => window.location.href = '/profile'} />} />
+            <Route path="/settings" element={<SettingsPage />} />
             
             {/* Default fallback route inside Layout */}
             <Route path="*" element={<Navigate to={isAuthenticated ? "/dashboard" : "/"} replace />} />

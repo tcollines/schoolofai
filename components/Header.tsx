@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Search, Bell, Menu } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Search, Bell, Menu, Sun, Moon } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { UserProfile, Course } from '../types';
 
@@ -28,6 +28,32 @@ const Header: React.FC<HeaderProps> = ({
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
   const [showSuggestions, setShowSuggestions] = useState(false);
+  const [isDark, setIsDark] = useState(() => {
+    return document.documentElement.classList.contains('dark');
+  });
+
+  useEffect(() => {
+    const handleThemeChange = () => {
+      setIsDark(document.documentElement.classList.contains('dark'));
+    };
+    window.addEventListener('theme-change', handleThemeChange);
+    return () => {
+      window.removeEventListener('theme-change', handleThemeChange);
+    };
+  }, []);
+
+  const toggleTheme = () => {
+    const nextDark = !isDark;
+    setIsDark(nextDark);
+    if (nextDark) {
+      document.documentElement.classList.add('dark');
+      localStorage.setItem('theme', 'dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+      localStorage.setItem('theme', 'light');
+    }
+    window.dispatchEvent(new Event('theme-change'));
+  };
 
   const suggestedCourses = courses
     .filter(c => c.title.toLowerCase().includes(searchTerm.toLowerCase()))
@@ -41,12 +67,12 @@ const Header: React.FC<HeaderProps> = ({
   };
 
   return (
-    <header className={`flex items-center justify-between sticky top-0 bg-[#f3f4f6] z-30 lg:relative lg:top-auto lg:bg-transparent ${isCompact ? 'py-1 mb-1' : 'py-2 lg:py-2 mb-4 lg:mb-6'
+    <header className={`flex items-center justify-between sticky top-0 bg-[#f3f4f6] dark:bg-slate-950 z-30 lg:relative lg:top-auto lg:bg-transparent transition-colors duration-200 ${isCompact ? 'py-1 mb-1' : 'py-2 lg:py-2 mb-4 lg:mb-6'
       }`}>
       <div className="flex items-center gap-3">
         <button
           onClick={onMenuClick}
-          className="lg:hidden p-2 -ml-2 text-gray-600 hover:text-gray-900 hover:bg-gray-200 rounded-lg transition-colors"
+          className="lg:hidden p-2 -ml-2 text-gray-600 dark:text-slate-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-250 dark:hover:bg-slate-800 rounded-lg transition-colors"
         >
           <Menu size={24} />
         </button>
@@ -54,15 +80,15 @@ const Header: React.FC<HeaderProps> = ({
           <img
             src={user.avatar}
             alt="Profile"
-            className="w-8 h-8 rounded-full object-cover border-2 border-white shadow-sm"
+            className="w-8 h-8 rounded-full object-cover border-2 border-white dark:border-slate-800 shadow-sm"
           />
         )}
         {showWelcome && (
           <div>
-            <h1 className="text-xl lg:text-2xl font-bold text-gray-900">
+            <h1 className="text-xl lg:text-2xl font-bold text-gray-900 dark:text-white">
               Welcome back, {user.name.split(' ')[0]} 👋
             </h1>
-            <p className="text-gray-500 text-xs lg:text-sm mt-1 hidden sm:block">
+            <p className="text-gray-500 dark:text-slate-400 text-xs lg:text-sm mt-1 hidden sm:block">
               {user.role === 'SPONSORED' ? 'Company Sponsored • ' + user.companyName : 'Individual Learner'}
             </p>
           </div>
@@ -84,15 +110,15 @@ const Header: React.FC<HeaderProps> = ({
               onKeyDown={handleSearch}
               onFocus={() => setShowSuggestions(true)}
               onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
-              className="pl-10 pr-4 py-2.5 bg-white border border-gray-100 rounded-full text-sm w-64 focus:outline-none focus:ring-2 focus:ring-purple-500/20 shadow-sm"
+              className="pl-10 pr-4 py-2.5 bg-white dark:bg-slate-900 border border-gray-100 dark:border-slate-800 text-gray-900 dark:text-white rounded-full text-sm w-64 focus:outline-none focus:ring-2 focus:ring-purple-500/20 shadow-sm"
             />
             
             {showSuggestions && searchTerm.trim() && suggestedCourses.length > 0 && (
-               <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-gray-100 shadow-xl rounded-2xl overflow-hidden z-50 max-h-80 overflow-y-auto">
+               <div className="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-slate-900 border border-gray-100 dark:border-slate-800 shadow-xl rounded-2xl overflow-hidden z-50 max-h-80 overflow-y-auto">
                  {suggestedCourses.map(course => (
                    <div 
                      key={course.id} 
-                     className="px-4 py-3 hover:bg-gray-50 cursor-pointer border-b border-gray-50 last:border-0 transition-colors flex items-center gap-3"
+                     className="px-4 py-3 hover:bg-gray-50 dark:hover:bg-slate-800/50 cursor-pointer border-b border-gray-50 dark:border-slate-800/30 last:border-0 transition-colors flex items-center gap-3"
                      onClick={() => {
                         navigate(`/discover/${course.id}`);
                         setSearchTerm('');
@@ -101,8 +127,8 @@ const Header: React.FC<HeaderProps> = ({
                    >
                      <img src={course.image} alt={course.title} className="w-10 h-10 rounded-lg object-cover" />
                      <div>
-                        <p className="font-semibold text-sm text-gray-900 line-clamp-1">{course.title}</p>
-                        <p className="text-xs text-gray-500">{course.category}</p>
+                        <p className="font-semibold text-sm text-gray-900 dark:text-white line-clamp-1">{course.title}</p>
+                        <p className="text-xs text-gray-500 dark:text-slate-400">{course.category}</p>
                      </div>
                    </div>
                  ))}
@@ -111,10 +137,19 @@ const Header: React.FC<HeaderProps> = ({
           </div>
         )}
 
+        {/* Theme Toggle Shortcut */}
+        <button 
+          onClick={toggleTheme}
+          className="p-2 lg:p-2.5 bg-white dark:bg-slate-900 rounded-full border border-gray-100 dark:border-slate-800 hover:bg-gray-50 dark:hover:bg-slate-800 shadow-sm text-gray-700 dark:text-slate-300 transition-colors"
+          title="Toggle Theme"
+        >
+          {isDark ? <Sun size={20} /> : <Moon size={20} />}
+        </button>
+
         {showNotifications && (
-          <button className="relative p-2 lg:p-2.5 bg-white rounded-full border border-gray-100 hover:bg-gray-50 shadow-sm">
-            <Bell size={20} className="text-gray-700" />
-            <span className="absolute top-2 right-2.5 w-2 h-2 bg-red-500 rounded-full border-2 border-white"></span>
+          <button className="relative p-2 lg:p-2.5 bg-white dark:bg-slate-900 rounded-full border border-gray-100 dark:border-slate-800 hover:bg-gray-50 dark:hover:bg-slate-800 shadow-sm">
+            <Bell size={20} className="text-gray-700 dark:text-slate-300" />
+            <span className="absolute top-2 right-2.5 w-2 h-2 bg-red-500 rounded-full border-2 border-white dark:border-slate-900"></span>
           </button>
         )}
 
@@ -123,7 +158,7 @@ const Header: React.FC<HeaderProps> = ({
             <img
               src={user.avatar}
               alt="Profile"
-              className="w-8 h-8 lg:w-10 lg:h-10 rounded-full object-cover border-2 border-white shadow-md"
+              className="w-8 h-8 lg:w-10 lg:h-10 rounded-full object-cover border-2 border-white dark:border-slate-800 shadow-md"
             />
           </div>
         )}

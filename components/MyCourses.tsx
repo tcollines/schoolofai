@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import CourseCard from './CourseCard';
 import { Course, CourseStatus, CourseModule, CourseSection } from '../types';
 import { Search, Filter, Clock, ArrowLeft, PlayCircle, Youtube, BookOpen, FileText, ChevronDown } from 'lucide-react';
@@ -6,6 +6,7 @@ import CoursePlayer from './CoursePlayer';
 import ExamPlayer from './ExamPlayer';
 import RatingModal from './RatingModal';
 import { Star } from 'lucide-react';
+import { supabase } from '../src/lib/supabase';
 
 interface MyCoursesProps {
     courses: Course[];
@@ -19,9 +20,15 @@ const MyCourses: React.FC<MyCoursesProps> = ({ courses }) => {
     const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({});
     const [isRatingModalOpen, setIsRatingModalOpen] = useState(false);
     const [hasRated, setHasRated] = useState(false);
+    const [localCourses, setLocalCourses] = useState<Course[]>(courses);
+
+    // Sync localCourses with props changes
+    useEffect(() => {
+        setLocalCourses(courses);
+    }, [courses]);
 
     // Only show enrolled courses for "My Learning"
-    const myCourses = courses.filter(c => c.status === CourseStatus.IN_PROGRESS || c.status === CourseStatus.COMPLETED);
+    const myCourses = localCourses.filter(c => c.status === CourseStatus.IN_PROGRESS || c.status === CourseStatus.COMPLETED);
 
     const filteredCourses = myCourses.filter(course => {
         if (filter === 'ALL') return true;
@@ -69,9 +76,44 @@ const MyCourses: React.FC<MyCoursesProps> = ({ courses }) => {
         return allModules;
     };
 
-    const handleNextModule = () => {
+    const handleNextModule = async () => {
         const allModules = getAllModules();
         const currentIndex = getModuleIndex();
+
+        // Update progress if the lesson completed is newer than current progress
+        if (currentIndex !== -1 && selectedCourse) {
+            const completedCount = currentIndex + 1;
+            if (completedCount > selectedCourse.lessonsCompleted) {
+                const newStatus = completedCount >= selectedCourse.lessonsTotal ? CourseStatus.COMPLETED : CourseStatus.IN_PROGRESS;
+                
+                // Update local states immediately
+                const updatedCourse = {
+                    ...selectedCourse,
+                    lessonsCompleted: completedCount,
+                    status: newStatus
+                };
+                setSelectedCourse(updatedCourse);
+                setLocalCourses(prev => prev.map(c => c.id === selectedCourse.id ? updatedCourse : c));
+
+                // Persist in background Supabase
+                try {
+                    const { data: { user } } = await supabase.auth.getUser();
+                    if (user) {
+                        await supabase
+                            .from('enrollments')
+                            .update({ 
+                                progress: completedCount,
+                                status: newStatus
+                            })
+                            .eq('user_id', user.id)
+                            .eq('course_id', selectedCourse.id);
+                    }
+                } catch (err) {
+                    console.error("Error updating progress in Supabase:", err);
+                }
+            }
+        }
+
         if (currentIndex !== -1 && currentIndex < allModules.length - 1) {
             setActiveModule(allModules[currentIndex + 1]);
         } else {
@@ -116,12 +158,12 @@ const MyCourses: React.FC<MyCoursesProps> = ({ courses }) => {
             <div className="animate-in fade-in slide-in-from-right-8 duration-500">
                 <button
                     onClick={() => setSelectedCourse(null)}
-                    className="mb-6 flex items-center gap-2 text-sm font-bold text-gray-500 hover:text-gray-900 transition-colors"
+                    className="mb-6 flex items-center gap-2 text-sm font-bold text-gray-500 dark:text-slate-400 hover:text-gray-900 dark:hover:text-white transition-colors"
                 >
                     <ArrowLeft size={18} /> Back to My Courses
                 </button>
 
-                <div className="bg-white rounded-3xl overflow-hidden shadow-sm border border-gray-100 md:flex mb-8">
+                <div className="bg-white dark:bg-slate-900 rounded-3xl overflow-hidden shadow-sm border border-gray-100 dark:border-slate-800 md:flex mb-8">
                     <div className="md:w-1/3 min-h-[250px] relative bg-gray-900">
                         <img
                             src={selectedCourse.image}
@@ -138,11 +180,11 @@ const MyCourses: React.FC<MyCoursesProps> = ({ courses }) => {
                     </div>
                     <div className="p-6 md:p-8 md:w-2/3 flex flex-col">
                         <div className="flex flex-wrap items-center gap-6 mb-6">
-                            <div className="flex items-center gap-2 text-sm text-gray-500">
+                            <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-slate-400">
                                 <BookOpen size={18} className="text-welile-purple" />
                                 <span className="font-medium">{selectedCourse.lessonsTotal} Lessons</span>
                             </div>
-                            <div className="flex items-center gap-2 text-sm text-gray-500">
+                            <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-slate-400">
                                 <Clock size={18} className="text-welile-purple" />
                                 <span className="font-medium">{selectedCourse.duration}</span>
                             </div>
@@ -150,14 +192,14 @@ const MyCourses: React.FC<MyCoursesProps> = ({ courses }) => {
 
                         <div className="mb-6">
                             <div className="flex justify-between text-xs mb-2">
-                                <span className="font-medium text-gray-600">
+                                <span className="font-medium text-gray-600 dark:text-slate-350">
                                     {selectedCourse.lessonsCompleted} / {selectedCourse.lessonsTotal} Completed
                                 </span>
                                 <span className="font-bold text-welile-purple">
                                     {Math.round((selectedCourse.lessonsCompleted / selectedCourse.lessonsTotal) * 100)}%
                                 </span>
                             </div>
-                            <div className="w-full bg-gray-100 rounded-full h-2">
+                            <div className="w-full bg-gray-100 dark:bg-slate-800 rounded-full h-2">
                                 <div
                                     className="h-2 rounded-full bg-welile-purple transition-all duration-1000"
                                     style={{ width: `${(selectedCourse.lessonsCompleted / selectedCourse.lessonsTotal) * 100}%` }}
@@ -165,11 +207,11 @@ const MyCourses: React.FC<MyCoursesProps> = ({ courses }) => {
                             </div>
                         </div>
 
-                        {selectedCourse.quiz && (
-                            <div className="mt-4 p-4 bg-indigo-50 border border-indigo-100 rounded-xl flex items-center justify-between">
+                        {selectedCourse.quiz && (selectedCourse.status === CourseStatus.COMPLETED || (selectedCourse.lessonsTotal > 0 && selectedCourse.lessonsCompleted >= selectedCourse.lessonsTotal)) && (
+                            <div className="mt-4 p-4 bg-indigo-50 dark:bg-indigo-950/20 border border-indigo-100 dark:border-indigo-900/50 rounded-xl flex items-center justify-between">
                                 <div>
-                                    <h4 className="font-bold text-indigo-900">Final Exam Available</h4>
-                                    <p className="text-xs text-indigo-700">Test your knowledge to earn your certificate.</p>
+                                    <h4 className="font-bold text-indigo-900 dark:text-indigo-200">Final Exam Available</h4>
+                                    <p className="text-xs text-indigo-700 dark:text-indigo-300">Test your knowledge to earn your certificate.</p>
                                 </div>
                                 <button 
                                     onClick={() => setTakingExam(true)}
@@ -182,13 +224,13 @@ const MyCourses: React.FC<MyCoursesProps> = ({ courses }) => {
 
                         {/* Rating Prompt - Show if completed or near completion */}
                         {((selectedCourse.status === CourseStatus.COMPLETED) || (selectedCourse.lessonsTotal > 0 && selectedCourse.lessonsCompleted >= selectedCourse.lessonsTotal)) && !hasRated && (
-                            <div className="mt-4 p-4 bg-yellow-50 border border-yellow-100 rounded-xl flex items-center justify-between">
+                            <div className="mt-4 p-4 bg-yellow-50 dark:bg-yellow-950/20 border border-yellow-100 dark:border-yellow-900/50 rounded-xl flex items-center justify-between">
                                 <div>
-                                    <h4 className="font-bold text-yellow-900 flex items-center gap-2">
+                                    <h4 className="font-bold text-yellow-900 dark:text-yellow-200 flex items-center gap-2">
                                         <Star size={18} className="text-yellow-500 fill-yellow-500" />
                                         Rate this Course
                                     </h4>
-                                    <p className="text-xs text-yellow-700 mt-1">Share your experience to help other students.</p>
+                                    <p className="text-xs text-yellow-700 dark:text-yellow-300 mt-1">Share your experience to help other students.</p>
                                 </div>
                                 <button 
                                     onClick={() => setIsRatingModalOpen(true)}
@@ -199,13 +241,13 @@ const MyCourses: React.FC<MyCoursesProps> = ({ courses }) => {
                             </div>
                         )}
                         {hasRated && (
-                            <div className="mt-4 p-4 bg-green-50 border border-green-100 rounded-xl flex items-center justify-between">
+                            <div className="mt-4 p-4 bg-green-50 dark:bg-green-950/20 border border-green-100 dark:border-green-900/50 rounded-xl flex items-center justify-between">
                                 <div>
-                                    <h4 className="font-bold text-green-900 flex items-center gap-2">
+                                    <h4 className="font-bold text-green-900 dark:text-green-200 flex items-center gap-2">
                                         <Star size={18} className="text-green-500 fill-green-500" />
                                         Thank you for your review!
                                     </h4>
-                                    <p className="text-xs text-green-700 mt-1">Your feedback helps us improve.</p>
+                                    <p className="text-xs text-green-700 dark:text-green-300 mt-1">Your feedback helps us improve.</p>
                                 </div>
                             </div>
                         )}
@@ -213,39 +255,39 @@ const MyCourses: React.FC<MyCoursesProps> = ({ courses }) => {
                 </div>
 
                 <div className="space-y-4 max-w-3xl">
-                    <h3 className="text-xl font-bold text-gray-900">Course Content</h3>
+                    <h3 className="text-xl font-bold text-gray-900 dark:text-white">Course Content</h3>
                     <div className="grid gap-4">
                         {selectedCourse.sections && selectedCourse.sections.length > 0 ? (
                             selectedCourse.sections.map((section: CourseSection) => (
-                                <div key={section.id} className="bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-sm">
+                                <div key={section.id} className="bg-white dark:bg-slate-900 rounded-2xl border border-gray-200 dark:border-slate-800 overflow-hidden shadow-sm">
                                     <button 
                                         onClick={() => setExpandedSections(prev => ({...prev, [section.id]: !prev[section.id]}))}
-                                        className="w-full bg-gray-50 p-4 border-b border-gray-200 flex justify-between items-center hover:bg-gray-100 transition-colors"
+                                        className="w-full bg-gray-50 dark:bg-slate-800/50 p-4 border-b border-gray-200 dark:border-slate-800 flex justify-between items-center hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors"
                                     >
-                                        <h4 className="font-bold text-gray-900">{section.title}</h4>
+                                        <h4 className="font-bold text-gray-900 dark:text-white">{section.title}</h4>
                                         <div className="flex items-center gap-3">
-                                            <span className="text-xs text-gray-500 font-medium bg-white px-2 py-1 rounded border border-gray-200">{section.lessons.length} Lessons</span>
-                                            <ChevronDown size={20} className={`text-gray-500 transition-transform ${expandedSections[section.id] ? 'rotate-180' : ''}`} />
+                                            <span className="text-xs text-gray-500 dark:text-slate-400 font-medium bg-white dark:bg-slate-900 px-2 py-1 rounded border border-gray-200 dark:border-slate-800">{section.lessons.length} Lessons</span>
+                                            <ChevronDown size={20} className={`text-gray-500 dark:text-slate-400 transition-transform ${expandedSections[section.id] ? 'rotate-180' : ''}`} />
                                         </div>
                                     </button>
                                     
                                     {expandedSections[section.id] && (
                                         <div className="p-4 space-y-3">
                                             {section.lessons.length === 0 && (
-                                                <div className="text-center py-4 text-sm text-gray-400">No content available.</div>
+                                                <div className="text-center py-4 text-sm text-gray-400 dark:text-slate-500">No content available.</div>
                                             )}
                                             {section.lessons.map((lesson: CourseModule) => (
-                                                <div key={lesson.id} onClick={() => setActiveModule(lesson)} className="p-4 rounded-xl border border-gray-100 hover:border-violet-300 hover:bg-violet-50 transition-colors cursor-pointer flex gap-4 items-start group">
-                                                    <div className={`p-3 rounded-xl shrink-0 ${lesson.type === 'video' ? 'bg-blue-100 text-blue-600' : 'bg-emerald-100 text-emerald-600'}`}>
+                                                <div key={lesson.id} onClick={() => setActiveModule(lesson)} className="p-4 rounded-xl border border-gray-100 dark:border-slate-800 hover:border-violet-300 dark:hover:border-violet-800 hover:bg-violet-50 dark:hover:bg-violet-955 transition-colors cursor-pointer flex gap-4 items-start group">
+                                                    <div className={`p-3 rounded-xl shrink-0 ${lesson.type === 'video' ? 'bg-blue-100 dark:bg-blue-950/20 text-blue-600 dark:text-blue-400' : 'bg-emerald-100 dark:bg-emerald-950/20 text-emerald-600 dark:text-emerald-400'}`}>
                                                         {lesson.type === 'video' ? <Youtube size={24} /> : <FileText size={24} />}
                                                     </div>
                                                     <div className="flex-1">
-                                                        <h5 className="font-bold text-gray-900 group-hover:text-violet-900 transition-colors">{lesson.title}</h5>
-                                                        <div className="flex items-center gap-2 text-xs text-gray-500 mt-1">
+                                                        <h5 className="font-bold text-gray-900 dark:text-white group-hover:text-violet-900 dark:group-hover:text-violet-300 transition-colors">{lesson.title}</h5>
+                                                        <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-slate-400 mt-1">
                                                             <Clock size={12} /> {lesson.duration}
                                                         </div>
                                                     </div>
-                                                    <div className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center p-2 text-violet-600 bg-white rounded-full shadow-sm">
+                                                    <div className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center p-2 text-violet-600 bg-white dark:bg-slate-900 rounded-full shadow-sm">
                                                         <PlayCircle size={20} />
                                                     </div>
                                                 </div>
@@ -256,12 +298,12 @@ const MyCourses: React.FC<MyCoursesProps> = ({ courses }) => {
                             ))
                         ) : selectedCourse.modules && selectedCourse.modules.length > 0 ? (
                             selectedCourse.modules.map((module: any, idx: number) => (
-                                <div key={idx} className="bg-white p-5 rounded-2xl border border-gray-100 hover:shadow-md transition-shadow flex flex-col sm:flex-row gap-4 items-start sm:items-center">
-                                    <div className="w-24 h-16 rounded-lg bg-gray-100 shrink-0 overflow-hidden relative group cursor-pointer border border-gray-200" onClick={() => setActiveModule(module)}>
+                                <div key={idx} className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-gray-100 dark:border-slate-800 hover:shadow-md transition-shadow flex flex-col sm:flex-row gap-4 items-start sm:items-center">
+                                    <div className="w-24 h-16 rounded-lg bg-gray-100 dark:bg-slate-800 shrink-0 overflow-hidden relative group cursor-pointer border border-gray-200 dark:border-slate-700" onClick={() => setActiveModule(module)}>
                                         {module.thumbnail ? (
                                             <img src={module.thumbnail} alt={module.title} className="w-full h-full object-cover" />
                                         ) : (
-                                            <div className="w-full h-full flex items-center justify-center bg-gray-200 text-gray-400">
+                                            <div className="w-full h-full flex items-center justify-center bg-gray-200 dark:bg-slate-800 text-gray-400 dark:text-slate-500">
                                                 <Youtube size={20} />
                                             </div>
                                         )}
@@ -270,8 +312,8 @@ const MyCourses: React.FC<MyCoursesProps> = ({ courses }) => {
                                         </div>
                                     </div>
                                     <div className="flex-1 min-w-0">
-                                        <h4 className="font-bold text-gray-900 text-base mb-1 truncate" title={module.title}>{module.title}</h4>
-                                        <div className="flex items-center gap-2 text-xs text-gray-500 mb-1">
+                                        <h4 className="font-bold text-gray-900 dark:text-white text-base mb-1 truncate" title={module.title}>{module.title}</h4>
+                                        <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-slate-400 mb-1">
                                             <span className="flex items-center gap-1"><Clock size={12} /> {module.duration}</span>
                                         </div>
                                     </div>
@@ -311,18 +353,18 @@ const MyCourses: React.FC<MyCoursesProps> = ({ courses }) => {
             {/* Header and Filters */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
-                    <h2 className="text-2xl font-bold text-gray-900">My Learning</h2>
-                    <p className="text-gray-500">Track your progress and continue learning.</p>
+                    <h2 className="text-2xl font-bold text-gray-900 dark:text-white">My Learning</h2>
+                    <p className="text-gray-500 dark:text-slate-400">Track your progress and continue learning.</p>
                 </div>
 
-                <div className="flex items-center gap-3 bg-white p-1 rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+                <div className="flex items-center gap-3 bg-white dark:bg-slate-900 p-1 rounded-xl border border-gray-200 dark:border-slate-800 shadow-sm overflow-hidden">
                     {['ALL', 'IN_PROGRESS', 'COMPLETED'].map((tab) => (
                         <button
                             key={tab}
                             onClick={() => setFilter(tab)}
                             className={`px-4 py-2 rounded-lg text-xs font-bold transition-colors ${filter === tab
                                 ? 'bg-welile-purple text-white shadow-md'
-                                : 'text-gray-500 hover:bg-gray-50'
+                                : 'text-gray-500 dark:text-slate-400 hover:bg-gray-50 dark:hover:bg-slate-800'
                                 }`}
                         >
                             {tab === 'ALL' ? 'All Courses' : tab === 'IN_PROGRESS' ? 'In Progress' : 'Completed'}
@@ -333,31 +375,31 @@ const MyCourses: React.FC<MyCoursesProps> = ({ courses }) => {
 
             {/* Stats Overview */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                <div className="bg-white p-4 rounded-2xl border border-gray-100 flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center font-bold text-lg">
+                <div className="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-gray-100 dark:border-slate-800 flex items-center gap-4">
+                    <div className="w-12 h-12 rounded-full bg-blue-50 dark:bg-blue-950/30 text-blue-600 dark:text-blue-400 flex items-center justify-center font-bold text-lg">
                         {myCourses.length}
                     </div>
                     <div>
-                        <p className="text-xs text-gray-400 font-medium">Total Enrolled</p>
-                        <p className="font-bold text-gray-900">Courses</p>
+                        <p className="text-xs text-gray-400 dark:text-slate-500 font-medium">Total Enrolled</p>
+                        <p className="font-bold text-gray-900 dark:text-white">Courses</p>
                     </div>
                 </div>
-                <div className="bg-white p-4 rounded-2xl border border-gray-100 flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-full bg-purple-50 text-welile-purple flex items-center justify-center font-bold text-lg">
+                <div className="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-gray-100 dark:border-slate-800 flex items-center gap-4">
+                    <div className="w-12 h-12 rounded-full bg-purple-50 dark:bg-purple-950/30 text-welile-purple dark:text-purple-400 flex items-center justify-center font-bold text-lg">
                         {inProgressCount}
                     </div>
                     <div>
-                        <p className="text-xs text-gray-400 font-medium">Active Now</p>
-                        <p className="font-bold text-gray-900">In Progress</p>
+                        <p className="text-xs text-gray-400 dark:text-slate-500 font-medium">Active Now</p>
+                        <p className="font-bold text-gray-900 dark:text-white">In Progress</p>
                     </div>
                 </div>
-                <div className="bg-white p-4 rounded-2xl border border-gray-100 flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-full bg-green-50 text-green-600 flex items-center justify-center font-bold text-lg">
+                <div className="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-gray-100 dark:border-slate-800 flex items-center gap-4">
+                    <div className="w-12 h-12 rounded-full bg-green-50 dark:bg-green-950/30 text-green-600 dark:text-green-400 flex items-center justify-center font-bold text-lg">
                         {completedCount}
                     </div>
                     <div>
-                        <p className="text-xs text-gray-400 font-medium">Completed</p>
-                        <p className="font-bold text-gray-900">Certificates</p>
+                        <p className="text-xs text-gray-400 dark:text-slate-500 font-medium">Completed</p>
+                        <p className="font-bold text-gray-900 dark:text-white">Certificates</p>
                     </div>
                 </div>
                 <div className="bg-gradient-to-r from-welile-purple to-purple-600 p-4 rounded-2xl text-white flex items-center justify-between">
@@ -383,12 +425,12 @@ const MyCourses: React.FC<MyCoursesProps> = ({ courses }) => {
                     ))}
                 </div>
             ) : (
-                <div className="text-center py-20 bg-white rounded-3xl border border-dashed border-gray-200">
-                    <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4 text-gray-400">
+                <div className="text-center py-20 bg-white dark:bg-slate-900 rounded-3xl border border-dashed border-gray-200 dark:border-slate-850">
+                    <div className="w-16 h-16 bg-gray-50 dark:bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-4 text-gray-400 dark:text-slate-500">
                         <Search size={24} />
                     </div>
-                    <h3 className="font-bold text-gray-900 mb-1">No courses found</h3>
-                    <p className="text-gray-500 text-sm">Try changing the filter or explore new courses.</p>
+                    <h3 className="font-bold text-gray-900 dark:text-white mb-1">No courses found</h3>
+                    <p className="text-gray-500 dark:text-slate-400 text-sm">Try changing the filter or explore new courses.</p>
                 </div>
             )}
         </div>

@@ -33,11 +33,11 @@ const StudentLayout: React.FC<StudentLayoutProps> = ({ session, isAuthenticated,
 
     // Derived state for Header visibility based on current route
     const currentPath = location.pathname.split('/')[1] || '';
-    const hideHeaderWidgets = ['courses', 'career', 'profile', 'plans', 'discover'].includes(currentPath);
-    const profilePosition = ['courses', 'discover'].includes(currentPath) ? 'left' : 'right';
+    const hideHeaderWidgets = ['courses', 'career', 'profile', 'plans', 'discover', 'settings'].includes(currentPath);
+    const profilePosition = ['courses', 'discover', 'settings'].includes(currentPath) ? 'left' : 'right';
 
     return (
-        <div className="flex min-h-screen bg-[#f3f4f6]">
+        <div className="flex min-h-screen bg-[#f3f4f6] dark:bg-slate-950 dark:text-slate-100 transition-colors duration-200">
             {/* Sidebar */}
             <Sidebar
                 activeTab={currentPath || 'dashboard'}

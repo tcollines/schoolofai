@@ -24,14 +24,14 @@ const CourseOverview: React.FC<CourseOverviewProps> = ({ courses, onEnroll, isAu
     if (!course) {
         return (
             <div className="flex flex-col items-center justify-center py-32 text-center">
-                <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mb-6">
-                    <BookOpen size={32} className="text-gray-400" />
+                <div className="w-20 h-20 bg-gray-100 dark:bg-slate-800 rounded-full flex items-center justify-center mb-6">
+                    <BookOpen size={32} className="text-gray-400 dark:text-slate-500" />
                 </div>
-                <h2 className="text-2xl font-bold text-gray-900 mb-2">Course Not Found</h2>
-                <p className="text-gray-500 mb-6 max-w-md">We couldn't find the course you're looking for. It might have been removed or the URL is incorrect.</p>
+                <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Course Not Found</h2>
+                <p className="text-gray-500 dark:text-slate-400 mb-6 max-w-md">We couldn't find the course you're looking for. It might have been removed or the URL is incorrect.</p>
                 <button 
                     onClick={() => navigate('/discover')}
-                    className="px-6 py-3 bg-gray-900 hover:bg-welile-purple text-white font-bold rounded-xl transition-colors"
+                    className="px-6 py-3 bg-gray-900 dark:bg-white hover:bg-welile-purple text-white dark:text-gray-900 font-bold rounded-xl transition-colors"
                 >
                     Back to Discover
                 </button>
@@ -49,13 +49,13 @@ const CourseOverview: React.FC<CourseOverviewProps> = ({ courses, onEnroll, isAu
             {/* Back Button */}
             <button 
                 onClick={() => navigate(-1)}
-                className="text-gray-500 hover:text-gray-900 font-medium text-sm flex items-center gap-2 transition-colors"
+                className="text-gray-500 dark:text-slate-400 hover:text-gray-900 dark:hover:text-white font-medium text-sm flex items-center gap-2 transition-colors"
             >
                 &larr; Back
             </button>
 
             {/* Hero Section */}
-            <div className="bg-white rounded-3xl overflow-hidden border border-gray-100 shadow-sm">
+            <div className="bg-white dark:bg-slate-900 rounded-3xl overflow-hidden border border-gray-100 dark:border-slate-800 shadow-sm">
                 <div className="relative h-64 md:h-80 lg:h-96 w-full">
                     <img 
                         src={course.image} 
@@ -86,43 +86,43 @@ const CourseOverview: React.FC<CourseOverviewProps> = ({ courses, onEnroll, isAu
                 </div>
 
                 {/* Quick Info Bar */}
-                <div className="flex flex-col md:flex-row items-center justify-between p-6 md:p-8 bg-white gap-6">
+                <div className="flex flex-col md:flex-row items-center justify-between p-6 md:p-8 bg-white dark:bg-slate-900 gap-6">
                     <div className="flex flex-wrap items-center gap-6 md:gap-10 w-full md:w-auto">
                         <div className="flex items-center gap-3">
-                            <div className="w-12 h-12 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center">
+                            <div className="w-12 h-12 rounded-full bg-blue-50 dark:bg-blue-950/30 text-blue-600 dark:text-blue-400 flex items-center justify-center">
                                 <Clock size={24} />
                             </div>
                             <div>
-                                <p className="text-xs text-gray-500 font-semibold uppercase tracking-wider mb-0.5">Duration</p>
-                                <p className="font-bold text-gray-900">{course.duration}</p>
+                                <p className="text-xs text-gray-500 dark:text-slate-450 font-semibold uppercase tracking-wider mb-0.5">Duration</p>
+                                <p className="font-bold text-gray-900 dark:text-white">{course.duration}</p>
                             </div>
                         </div>
                         <div className="flex items-center gap-3">
-                            <div className="w-12 h-12 rounded-full bg-purple-50 text-purple-600 flex items-center justify-center">
+                            <div className="w-12 h-12 rounded-full bg-purple-50 dark:bg-purple-950/30 text-purple-600 dark:text-purple-400 flex items-center justify-center">
                                 <BookOpen size={24} />
                             </div>
                             <div>
-                                <p className="text-xs text-gray-500 font-semibold uppercase tracking-wider mb-0.5">Lessons</p>
-                                <p className="font-bold text-gray-900">{course.lessonsTotal || 0} Total</p>
+                                <p className="text-xs text-gray-500 dark:text-slate-455 font-semibold uppercase tracking-wider mb-0.5">Lessons</p>
+                                <p className="font-bold text-gray-900 dark:text-white">{course.lessonsTotal || 0} Total</p>
                             </div>
                         </div>
                         <div className="flex items-center gap-3">
-                            <div className="w-12 h-12 rounded-full bg-yellow-50 text-yellow-600 flex items-center justify-center">
+                            <div className="w-12 h-12 rounded-full bg-yellow-50 dark:bg-yellow-950/30 text-yellow-600 dark:text-yellow-400 flex items-center justify-center">
                                 <Star size={24} />
                             </div>
                             <div>
-                                <p className="text-xs text-gray-500 font-semibold uppercase tracking-wider mb-0.5">Rating</p>
-                                <p className="font-bold text-gray-900">{course.rating || 'New'}</p>
+                                <p className="text-xs text-gray-500 dark:text-slate-455 font-semibold uppercase tracking-wider mb-0.5">Rating</p>
+                                <p className="font-bold text-gray-900 dark:text-white">{course.rating || 'New'}</p>
                             </div>
                         </div>
                     </div>
 
-                    <div className="w-full md:w-auto flex flex-col items-center md:items-end gap-3 border-t md:border-t-0 pt-6 md:pt-0 border-gray-100">
+                    <div className="w-full md:w-auto flex flex-col items-center md:items-end gap-3 border-t md:border-t-0 pt-6 md:pt-0 border-gray-100 dark:border-slate-800">
                         <div className="text-center md:text-right">
-                            <span className="text-3xl font-black text-gray-900">
+                            <span className="text-3xl font-black text-gray-900 dark:text-white">
                                 {course.price === 0 ? 'Free' : `$${course.price}`}
                             </span>
-                            <p className="text-xs text-gray-500 font-medium">Lifetime Access</p>
+                            <p className="text-xs text-gray-500 dark:text-slate-400 font-medium">Lifetime Access</p>
                         </div>
                         
                         <button
@@ -135,8 +135,8 @@ const CourseOverview: React.FC<CourseOverviewProps> = ({ courses, onEnroll, isAu
                             }}
                             className={`w-full md:w-48 py-3.5 rounded-xl text-base font-bold transition-colors flex items-center justify-center gap-2 shadow-sm ${
                                 isEnrolled 
-                                    ? 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200'
-                                    : 'bg-gray-900 hover:bg-welile-purple text-white shadow-lg shadow-gray-900/20'
+                                    ? 'bg-emerald-100 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-200 dark:hover:bg-emerald-900/50'
+                                    : 'bg-gray-900 dark:bg-slate-100 hover:bg-welile-purple text-white dark:text-gray-900 dark:hover:text-white shadow-lg shadow-gray-900/20 dark:shadow-none'
                             }`}
                         >
                             {isEnrolled ? (
@@ -153,39 +153,39 @@ const CourseOverview: React.FC<CourseOverviewProps> = ({ courses, onEnroll, isAu
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 {/* Syllabus Column */}
                 <div className="lg:col-span-2 space-y-6">
-                    <div className="bg-white p-6 md:p-8 rounded-3xl border border-gray-100 shadow-sm">
-                        <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+                    <div className="bg-white dark:bg-slate-900 p-6 md:p-8 rounded-3xl border border-gray-100 dark:border-slate-800 shadow-sm">
+                        <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-2">
                             <BookOpen className="text-welile-purple" size={24} />
                             Course Syllabus
                         </h2>
                         
                         {syllabus.length === 0 ? (
-                            <p className="text-gray-500 italic">Syllabus is being updated. Check back soon.</p>
+                            <p className="text-gray-500 dark:text-slate-400 italic">Syllabus is being updated. Check back soon.</p>
                         ) : (
                             <div className="space-y-6">
                                 {syllabus.map((section, idx) => (
-                                    <div key={section.id || idx} className="border border-gray-100 rounded-2xl overflow-hidden">
-                                        <div className="bg-gray-50 p-4 border-b border-gray-100">
-                                            <h3 className="font-bold text-gray-900">Module {idx + 1}: {section.title}</h3>
-                                            <p className="text-sm text-gray-500 mt-1">{section.lessons.length} lessons</p>
+                                    <div key={section.id || idx} className="border border-gray-100 dark:border-slate-800 rounded-2xl overflow-hidden">
+                                        <div className="bg-gray-50 dark:bg-slate-850 p-4 border-b border-gray-100 dark:border-slate-800">
+                                            <h3 className="font-bold text-gray-900 dark:text-white">Module {idx + 1}: {section.title}</h3>
+                                            <p className="text-sm text-gray-500 dark:text-slate-400 mt-1">{section.lessons.length} lessons</p>
                                         </div>
-                                        <div className="divide-y divide-gray-50">
+                                        <div className="divide-y divide-gray-50 dark:divide-slate-800">
                                             {section.lessons.map((lesson: any, lIdx: number) => (
-                                                <div key={lesson.id || lIdx} className="p-4 flex items-center justify-between hover:bg-gray-50 transition-colors group">
+                                                <div key={lesson.id || lIdx} className="p-4 flex items-center justify-between hover:bg-gray-50 dark:hover:bg-slate-800/40 transition-colors group">
                                                     <div className="flex items-center gap-3">
-                                                        <div className="w-8 h-8 rounded-full bg-purple-50 text-purple-600 flex items-center justify-center flex-shrink-0 group-hover:bg-purple-100">
+                                                        <div className="w-8 h-8 rounded-full bg-purple-50 dark:bg-purple-950/30 text-purple-600 dark:text-purple-400 flex items-center justify-center flex-shrink-0 group-hover:bg-purple-100 dark:group-hover:bg-purple-900/40">
                                                             {lesson.type === 'video' ? <Video size={14} /> : 
                                                              lesson.type === 'quiz' ? <Award size={14} /> : 
                                                              <FileText size={14} />}
                                                         </div>
                                                         <div>
-                                                            <p className="font-medium text-gray-900 text-sm group-hover:text-welile-purple transition-colors">
+                                                            <p className="font-medium text-gray-900 dark:text-white text-sm group-hover:text-welile-purple dark:group-hover:text-purple-300 transition-colors">
                                                                 {lIdx + 1}. {lesson.title}
                                                             </p>
                                                         </div>
                                                     </div>
                                                     {lesson.duration && (
-                                                        <span className="text-xs font-medium text-gray-400 bg-gray-100 px-2 py-1 rounded-md">
+                                                        <span className="text-xs font-medium text-gray-400 dark:text-slate-500 bg-gray-100 dark:bg-slate-800 px-2 py-1 rounded-md">
                                                             {lesson.duration}
                                                         </span>
                                                     )}
@@ -201,18 +201,20 @@ const CourseOverview: React.FC<CourseOverviewProps> = ({ courses, onEnroll, isAu
 
                 {/* Info Sidebar Column */}
                 <div className="space-y-6">
-                    <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm">
-                        <h3 className="font-bold text-gray-900 mb-4">About the Course</h3>
+                    <div className="bg-white dark:bg-slate-900 p-6 rounded-3xl border border-gray-100 dark:border-slate-800 shadow-sm">
+                        <h3 className="font-bold text-gray-900 dark:text-white mb-4">About the Course</h3>
                         <div className="flex items-center gap-4 mb-4">
-                            <div className="w-14 h-14 rounded-full bg-gray-200 border-2 border-white shadow-sm overflow-hidden flex-shrink-0">
+                            <div className="w-14 h-14 rounded-full bg-gray-200 dark:bg-slate-800 border-2 border-white dark:border-slate-900 shadow-sm overflow-hidden flex-shrink-0">
                                 <img src={`https://api.dicebear.com/7.x/notionists/svg?seed=${course.instructor}`} alt={course.instructor} className="w-full h-full object-cover" />
                             </div>
                             <div>
-                                <p className="font-bold text-gray-900">{course.instructor}</p>
-                                <p className="text-sm text-gray-500">Expert Educator</p>
+                                <p className="font-bold text-gray-900 dark:text-white">
+                                    {course.instructor}
+                                </p>
+                                <p className="text-sm text-gray-500 dark:text-slate-400">Expert Educator</p>
                             </div>
                         </div>
-                        <p className="text-sm text-gray-600 leading-relaxed whitespace-pre-wrap">
+                        <p className="text-sm text-gray-600 dark:text-slate-300 leading-relaxed whitespace-pre-wrap">
                             {course.description || `${course.instructor} brings years of industry experience and academic excellence to this course. Dedicated to helping students master complex topics with simple, practical examples.`}
                         </p>
                     </div>
