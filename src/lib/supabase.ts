@@ -176,6 +176,11 @@ class QueryBuilder {
         return this;
     }
 
+    delete() {
+        this.pendingOperation = 'delete';
+        return this;
+    }
+
     eq(column: string, value: any) {
         this.conditions.push((item: any) => item[column] === value);
         return this;
@@ -242,6 +247,20 @@ class QueryBuilder {
                     return { data: updatedItems[0], error: null };
                 }
                 return { data: updatedItems, error: null };
+            }
+
+            if (this.pendingOperation === 'delete') {
+                let deletedItems: any[] = [];
+                db[this.table] = tableData.filter(item => {
+                    const match = this.conditions.every(cond => cond(item));
+                    if (match) {
+                        deletedItems.push(item);
+                        return false;
+                    }
+                    return true;
+                });
+                saveDB(db);
+                return { data: deletedItems, error: null };
             }
 
             throw new Error('Unsupported operation');
