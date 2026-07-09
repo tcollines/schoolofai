@@ -44,8 +44,7 @@ const CourseCard: React.FC<CourseCardProps> = ({ course, onClick }) => {
           alt={course.title}
           className="w-full h-full object-cover transition-transform duration-500"
           style={{
-              objectPosition: `${course.imagePositionX ?? 50}% ${course.imagePositionY ?? 50}%`,
-              transform: `scale(${course.imageScale ?? 1})`
+              transform: `scale(${course.imageScale ?? 1}) translate(${(course.imagePositionX ?? 50) - 50}%, ${(course.imagePositionY ?? 50) - 50}%)`
           }}
         />
         <div className="absolute top-4 right-4">

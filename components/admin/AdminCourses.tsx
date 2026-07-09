@@ -134,8 +134,7 @@ const AdminCourses: React.FC = () => {
                                     alt={c.title} 
                                     className="w-full h-full object-cover" 
                                     style={{
-                                        objectPosition: `${c.imagePositionX ?? 50}% ${c.imagePositionY ?? 50}%`,
-                                        transform: `scale(${c.imageScale ?? 1})`
+                                        transform: `scale(${c.imageScale ?? 1}) translate(${(c.imagePositionX ?? 50) - 50}%, ${(c.imagePositionY ?? 50) - 50}%)`
                                     }}
                                 />
                             )}
@@ -266,8 +265,7 @@ const AdminCourses: React.FC = () => {
                                                             alt="Preview" 
                                                             className="w-full h-full object-cover" 
                                                             style={{
-                                                                objectPosition: `${newCourse.imagePositionX ?? 50}% ${newCourse.imagePositionY ?? 50}%`,
-                                                                transform: `scale(${newCourse.imageScale ?? 1})`
+                                                                transform: `scale(${newCourse.imageScale ?? 1}) translate(${(newCourse.imagePositionX ?? 50) - 50}%, ${(newCourse.imagePositionY ?? 50) - 50}%)`
                                                             }}
                                                         />
                                                     ) : (
@@ -512,8 +510,7 @@ const AdminCourses: React.FC = () => {
                                     alt="Live Preview" 
                                     className="w-full h-full object-cover"
                                     style={{
-                                        objectPosition: `${newCourse.imagePositionX ?? 50}% ${newCourse.imagePositionY ?? 50}%`,
-                                        transform: `scale(${newCourse.imageScale ?? 1})`
+                                        transform: `scale(${newCourse.imageScale ?? 1}) translate(${(newCourse.imagePositionX ?? 50) - 50}%, ${(newCourse.imagePositionY ?? 50) - 50}%)`
                                     }}
                                 />
                             </div>
