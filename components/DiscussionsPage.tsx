@@ -1,11 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useOutletContext } from 'react-router-dom';
 import { useCourses } from '../src/hooks/useCourses';
-import { Send, Users, ShieldAlert, MessageSquare, Bot, User, CheckCircle2, ChevronRight } from 'lucide-react';
+import { Send, Users, ShieldAlert, MessageSquare, Bot, User, CheckCircle2, ChevronRight, Trash2 } from 'lucide-react';
 import { Course } from '../types';
 
 interface Message {
     id: string;
+    senderId?: string;
     senderName: string;
     senderAvatar: string;
     role: 'instructor' | 'student' | 'ai';
@@ -142,6 +143,7 @@ const DiscussionsPage: React.FC = () => {
 
         const newUserMessage: Message = {
             id: 'user-' + Date.now(),
+            senderId: userId,
             senderName: displayUser?.name || 'Student',
             senderAvatar: displayUser?.avatar || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&auto=format&fit=crop&q=60',
             role: 'student',
@@ -186,6 +188,20 @@ const DiscussionsPage: React.FC = () => {
                 setGroups(finalGroups);
             }, 1200);
         }
+    };
+
+    const handleDeleteMessage = (messageId: string) => {
+        if (!activeGroup) return;
+        const updatedMessages = activeGroup.messages.filter(m => m.id !== messageId);
+        const updatedGroups = groups.map(g => {
+            if (g.id === activeGroup.id) {
+                const newG = { ...g, messages: updatedMessages };
+                localStorage.setItem(`chat-messages-${newG.id}`, JSON.stringify(updatedMessages));
+                return newG;
+            }
+            return g;
+        });
+        setGroups(updatedGroups);
     };
 
     const getRoleBadgeClass = (role: string) => {
@@ -297,6 +313,16 @@ const DiscussionsPage: React.FC = () => {
                                         <span className="text-[10px] text-gray-400 ml-auto">
                                             {msg.timestamp}
                                         </span>
+                                        {msg.senderId === userId && (
+                                            <button
+                                                type="button"
+                                                onClick={() => handleDeleteMessage(msg.id)}
+                                                className="text-gray-400 hover:text-red-500 transition-colors p-1 rounded cursor-pointer ml-1"
+                                                title="Delete Message"
+                                            >
+                                                <Trash2 size={13} />
+                                            </button>
+                                        )}
                                     </div>
                                     <p className="text-sm text-gray-700 dark:text-slate-350 bg-white dark:bg-slate-850 p-3 rounded-2xl rounded-tl-none border border-gray-100 dark:border-slate-850 inline-block max-w-full break-words shadow-sm">
                                         {msg.content}
