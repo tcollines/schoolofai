@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { Routes, Route, useNavigate, useLocation, Navigate } from 'react-router-dom';
-import { LayoutDashboard, Users, BookOpen, FileQuestion, LogOut, Sun, Moon } from 'lucide-react';
+import { LayoutDashboard, Users, BookOpen, FileQuestion, LogOut, Sun, Moon, Calendar } from 'lucide-react';
 import AdminOverview from './AdminOverview';
 import AdminEnrollments from './AdminEnrollments';
 import AdminCourses from './AdminCourses';
 import AdminExams from './AdminExams';
+import AdminEvents from './AdminEvents';
 
 interface AdminLayoutProps {
     onExit: () => void;
@@ -48,6 +49,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ onExit }) => {
         { id: 'enrollments', label: 'Enrollments', icon: Users },
         { id: 'courses', label: 'Course Setup', icon: BookOpen },
         { id: 'exams', label: 'Exam Setup', icon: FileQuestion },
+        { id: 'events', label: 'Ongoing Events', icon: Calendar },
     ] as const;
 
     const renderContent = () => {
@@ -58,6 +60,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ onExit }) => {
                 <Route path="enrollments" element={<AdminEnrollments />} />
                 <Route path="courses" element={<AdminCourses />} />
                 <Route path="exams" element={<AdminExams />} />
+                <Route path="events" element={<AdminEvents />} />
             </Routes>
         );
     };
