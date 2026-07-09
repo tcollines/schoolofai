@@ -247,7 +247,7 @@ const AdminCourses: React.FC = () => {
                                             {newCourse.image && <img src={newCourse.image} alt="Preview" className="w-20 h-20 object-cover rounded-xl border border-gray-200 shadow-sm flex-shrink-0" />}
                                             <div className="flex-1">
                                                 <input value={newCourse.image?.startsWith('data:') ? '' : newCourse.image} onChange={e => setNewCourse({...newCourse, image: e.target.value})} className="w-full p-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-violet-500 outline-none transition-all mb-2 text-sm" placeholder="Paste URL or upload image..." />
-                                                <label className="cursor-pointer bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 text-sm px-4 py-2 rounded-xl font-medium flex items-center justify-center w-full transition-colors">
+                                                <label className="cursor-pointer bg-white dark:bg-slate-850 border border-gray-200 dark:border-slate-750 hover:bg-gray-50 dark:hover:bg-slate-800 text-gray-700 dark:text-slate-200 text-sm px-4 py-2 rounded-xl font-medium flex items-center justify-center w-full transition-colors">
                                                     <span>Browse Image File...</span>
                                                     <input 
                                                         type="file" 
@@ -387,7 +387,7 @@ const AdminCourses: React.FC = () => {
                                                                             className="flex-1 text-sm border border-gray-200 rounded p-1.5 outline-none focus:border-blue-400"
                                                                             placeholder="Paste raw MP4 URL (e.g. https://example.com/video.mp4)"
                                                                         />
-                                                                        <label className="cursor-pointer bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs px-3 py-1.5 rounded font-medium flex items-center">
+                                                                        <label className="cursor-pointer bg-gray-100 dark:bg-slate-800 border border-transparent dark:border-slate-750 hover:bg-gray-200 dark:hover:bg-slate-700 text-gray-700 dark:text-slate-200 text-xs px-3 py-1.5 rounded font-medium flex items-center">
                                                                             <span>Browse MP4...</span>
                                                                             <input 
                                                                                 type="file" 
