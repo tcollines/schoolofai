@@ -69,6 +69,25 @@ export const useAdmin = (isAdmin: boolean) => {
 
     useEffect(() => {
         fetchData();
+
+        const handleUpdate = () => {
+            fetchData(true); // reload silently
+        };
+
+        const handleStorage = (e: StorageEvent) => {
+            if (e.key === 'welile_local_db' || e.key === 'admin-events') {
+                fetchData(true);
+            }
+        };
+
+        window.addEventListener('courses-update', handleUpdate);
+        window.addEventListener('admin-events-update', handleUpdate);
+        window.addEventListener('storage', handleStorage);
+        return () => {
+            window.removeEventListener('courses-update', handleUpdate);
+            window.removeEventListener('admin-events-update', handleUpdate);
+            window.removeEventListener('storage', handleStorage);
+        };
     }, [isAdmin]);
 
     const addCourse = async (courseData: Partial<Course>) => {
