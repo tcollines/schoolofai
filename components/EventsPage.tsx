@@ -403,7 +403,7 @@ const EventsPage: React.FC<EventsPageProps> = ({ courses = [] }) => {
                                                 className="flex-1 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer bg-violet-600 hover:bg-violet-750 text-white shadow-md shadow-violet-200 dark:shadow-none"
                                             >
                                                 <Video size={12} />
-                                                Join Live Session
+                                                GO LIVE
                                             </button>
                                         ) : (
                                             <button 
@@ -411,7 +411,7 @@ const EventsPage: React.FC<EventsPageProps> = ({ courses = [] }) => {
                                                 className="flex-1 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer bg-black dark:bg-slate-800 hover:bg-gray-800 dark:hover:bg-slate-700 text-white"
                                             >
                                                 <Eye size={12} />
-                                                Read Details
+                                                READ
                                             </button>
                                         )}
                                         {event.meetLink && (
@@ -517,7 +517,7 @@ const EventsPage: React.FC<EventsPageProps> = ({ courses = [] }) => {
                                     onClick={() => window.open(selectedEvent.meetLink, '_blank')}
                                     className="flex-1 py-3 bg-violet-600 hover:bg-violet-750 text-white rounded-xl text-sm font-semibold transition-colors flex items-center justify-center gap-2 cursor-pointer shadow-md shadow-violet-200 dark:shadow-none"
                                 >
-                                    <Video size={16} /> Join Live Session
+                                    <Video size={16} /> GO LIVE
                                 </button>
                             )}
                         </div>
