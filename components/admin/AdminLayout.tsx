@@ -6,6 +6,7 @@ import AdminEnrollments from './AdminEnrollments';
 import AdminCourses from './AdminCourses';
 import AdminExams from './AdminExams';
 import AdminEvents from './AdminEvents';
+import AdminLoginPage from './AdminLoginPage';
 
 interface AdminLayoutProps {
     onExit: () => void;
@@ -16,6 +17,10 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ onExit }) => {
     const location = useLocation();
     
     const activeTab = location.pathname.split('/')[2] || 'overview';
+
+    const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(() => {
+        return localStorage.getItem('admin-session') === 'true';
+    });
 
     const [isDark, setIsDark] = useState(() => {
         return document.documentElement.classList.contains('dark');
@@ -43,6 +48,22 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ onExit }) => {
         }
         window.dispatchEvent(new Event('theme-change'));
     };
+
+    const handleExitConsole = () => {
+        localStorage.removeItem('admin-session');
+        onExit();
+    };
+
+    if (!isAdminAuthenticated) {
+        return (
+            <AdminLoginPage 
+                onLoginSuccess={() => {
+                    setIsAdminAuthenticated(true);
+                }}
+                onBackToStudentPortal={onExit}
+            />
+        );
+    }
 
     const menuItems = [
         { id: 'overview', label: 'Overview', icon: LayoutDashboard },
@@ -97,7 +118,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ onExit }) => {
 
                 <div className="p-4 mt-auto border-t border-slate-800">
                     <button 
-                        onClick={onExit}
+                        onClick={handleExitConsole}
                         className="flex items-center justify-center gap-2 w-full px-4 py-3 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white rounded-xl transition-colors text-sm font-medium"
                     >
                         <LogOut size={16} /> Exit Admin Console
