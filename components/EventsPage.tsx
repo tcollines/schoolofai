@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Calendar, Clock, MapPin, Video, Users, Check, ExternalLink, ArrowRight, Loader } from 'lucide-react';
+import { Calendar, Clock, MapPin, Video, Users, Check, ExternalLink, ArrowRight, Loader, Eye, X } from 'lucide-react';
 import { useTranslation } from './translations';
 import { Course, CourseStatus } from '../types';
 
@@ -64,6 +64,7 @@ const EventsPage: React.FC<EventsPageProps> = ({ courses = [] }) => {
     });
     const [timeLeft, setTimeLeft] = useState({ hours: 2, minutes: 42, seconds: 15 });
     const [adminEvents, setAdminEvents] = useState<EventItem[]>([]);
+    const [selectedEvent, setSelectedEvent] = useState<EventItem | null>(null);
 
     // Filter enrolled courses
     const enrolledCourses = courses.filter(c => c.status === CourseStatus.IN_PROGRESS || c.status === CourseStatus.COMPLETED);
@@ -396,40 +397,45 @@ const EventsPage: React.FC<EventsPageProps> = ({ courses = [] }) => {
 
                                     {/* Action Buttons */}
                                     <div className="flex gap-3">
-                                        <button 
-                                            onClick={() => handleRSVP(event.id)}
-                                            disabled={isLoading}
-                                            className={`flex-1 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer ${
-                                                isRsvp
-                                                    ? 'bg-green-500 text-white shadow-md shadow-green-500/10 hover:bg-green-600'
-                                                    : 'bg-black dark:bg-slate-800 hover:bg-gray-800 dark:hover:bg-slate-700 text-white'
-                                            }`}
-                                        >
-                                            {isLoading ? (
-                                                <>
-                                                    <Loader size={12} className="animate-spin" />
-                                                    Processing...
-                                                </>
-                                            ) : isRsvp ? (
-                                                <>
-                                                    <Check size={12} />
-                                                    RSVP'd (Cancel)
-                                                </>
-                                            ) : (
-                                                'RSVP for Event'
-                                            )}
-                                        </button>
+                                        {event.meetLink ? (
+                                            <button 
+                                                onClick={() => window.open(event.meetLink, '_blank')}
+                                                className="flex-1 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer bg-violet-600 hover:bg-violet-750 text-white shadow-md shadow-violet-200 dark:shadow-none"
+                                            >
+                                                <Video size={12} />
+                                                Join Live Session
+                                            </button>
+                                        ) : (
+                                            <button 
+                                                onClick={() => setSelectedEvent(event)}
+                                                className="flex-1 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer bg-black dark:bg-slate-800 hover:bg-gray-800 dark:hover:bg-slate-700 text-white"
+                                            >
+                                                <Eye size={12} />
+                                                Read Details
+                                            </button>
+                                        )}
+                                        {event.meetLink && (
+                                            <button 
+                                                onClick={() => setSelectedEvent(event)}
+                                                className="px-3 bg-gray-50 dark:bg-slate-800 hover:bg-gray-100 dark:hover:bg-slate-700 border border-gray-200 dark:border-slate-800 rounded-xl flex items-center justify-center text-gray-500 dark:text-slate-300 transition-colors cursor-pointer"
+                                                title="Read Details / Info"
+                                            >
+                                                <Eye size={14} />
+                                            </button>
+                                        )}
                                         <button 
                                             onClick={() => {
-                                                if (isRsvp && event.meetLink) {
+                                                if (event.meetLink) {
                                                     navigator.clipboard.writeText(event.meetLink);
                                                     alert(`"${event.title}" Google Meet link copied to clipboard!`);
                                                 } else {
-                                                    alert(`"${event.title}" invitation link copied to clipboard!`);
+                                                    const detailsText = `${event.title}\nDate: ${event.date}\nTime: ${event.time}\nLocation: ${event.location || 'Physical Campus'}`;
+                                                    navigator.clipboard.writeText(detailsText);
+                                                    alert(`"${event.title}" invitation details copied to clipboard!`);
                                                 }
                                             }}
-                                            className="px-3.5 bg-gray-50 dark:bg-slate-800 hover:bg-gray-100 dark:hover:bg-slate-700 border border-gray-200 dark:border-slate-800 rounded-xl flex items-center justify-center text-gray-500 dark:text-slate-300 transition-colors"
-                                            title="Copy Link"
+                                            className="px-3 bg-gray-50 dark:bg-slate-800 hover:bg-gray-100 dark:hover:bg-slate-700 border border-gray-200 dark:border-slate-800 rounded-xl flex items-center justify-center text-gray-500 dark:text-slate-300 transition-colors cursor-pointer"
+                                            title="Copy Link / Details"
                                         >
                                             <ExternalLink size={14} />
                                         </button>
@@ -438,6 +444,84 @@ const EventsPage: React.FC<EventsPageProps> = ({ courses = [] }) => {
                             </div>
                         );
                     })}
+                </div>
+            )}
+
+            {/* Event Details Modal (Read Mode) */}
+            {selectedEvent && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
+                    <div className="bg-white dark:bg-slate-900 rounded-3xl w-full max-w-lg p-8 relative animate-in zoom-in-95 duration-200 border border-gray-100 dark:border-slate-800 text-left">
+                        <button
+                            onClick={() => setSelectedEvent(null)}
+                            className="absolute top-5 right-5 text-gray-400 hover:text-gray-600 dark:hover:text-slate-200 cursor-pointer border-0 bg-transparent"
+                        >
+                            <X size={20} />
+                        </button>
+
+                        <div className="flex items-center gap-2 mb-4">
+                            <span className="px-2.5 py-1 bg-violet-50 dark:bg-violet-950/30 text-violet-600 dark:text-violet-400 rounded-full text-xs font-bold uppercase tracking-wider">
+                                {selectedEvent.type}
+                            </span>
+                            <span className={`px-2.5 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${
+                                selectedEvent.medium === 'Online' 
+                                    ? 'bg-green-50 dark:bg-green-950/30 text-green-600 dark:text-green-400' 
+                                    : 'bg-blue-50 dark:bg-blue-950/30 text-blue-600 dark:text-blue-400'
+                            }`}>
+                                {selectedEvent.medium || 'Online'}
+                            </span>
+                        </div>
+
+                        <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
+                            {selectedEvent.title}
+                        </h3>
+
+                        <p className="text-gray-600 dark:text-slate-350 text-sm leading-relaxed mb-6 whitespace-pre-line">
+                            {selectedEvent.description}
+                        </p>
+
+                        <div className="space-y-3.5 text-xs text-gray-600 dark:text-slate-350 border-t border-gray-100 dark:border-slate-800 pt-6">
+                            <div className="flex items-center gap-2">
+                                <Clock size={16} className="text-violet-500 shrink-0" />
+                                <span className="font-semibold text-gray-800 dark:text-gray-200">{selectedEvent.date} @ {selectedEvent.time}</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <Users size={16} className="text-violet-500 shrink-0" />
+                                <span>Speaker / Host: <strong className="text-gray-800 dark:text-gray-200">{selectedEvent.speaker}</strong></span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                {selectedEvent.medium === 'Online' ? (
+                                    <>
+                                        <Video size={16} className="text-green-500 shrink-0" />
+                                        <a href={selectedEvent.meetLink} target="_blank" rel="noopener noreferrer" className="text-green-600 dark:text-green-400 hover:underline">
+                                            {selectedEvent.meetLink}
+                                        </a>
+                                    </>
+                                ) : (
+                                    <>
+                                        <MapPin size={16} className="text-blue-500 shrink-0" />
+                                        <span className="text-gray-800 dark:text-gray-200">{selectedEvent.location}</span>
+                                    </>
+                                )}
+                            </div>
+                        </div>
+
+                        <div className="mt-8 flex gap-3">
+                            <button
+                                onClick={() => setSelectedEvent(null)}
+                                className="flex-1 py-3 border border-gray-200 dark:border-slate-700 text-gray-700 dark:text-slate-300 rounded-xl text-sm font-medium hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors cursor-pointer bg-transparent"
+                            >
+                                Close Details
+                            </button>
+                            {selectedEvent.meetLink && (
+                                <button
+                                    onClick={() => window.open(selectedEvent.meetLink, '_blank')}
+                                    className="flex-1 py-3 bg-violet-600 hover:bg-violet-750 text-white rounded-xl text-sm font-semibold transition-colors flex items-center justify-center gap-2 cursor-pointer shadow-md shadow-violet-200 dark:shadow-none"
+                                >
+                                    <Video size={16} /> Join Live Session
+                                </button>
+                            )}
+                        </div>
+                    </div>
                 </div>
             )}
         </div>
