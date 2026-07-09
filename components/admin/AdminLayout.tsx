@@ -60,7 +60,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ onExit }) => {
                 onLoginSuccess={() => {
                     setIsAdminAuthenticated(true);
                 }}
-                onBackToStudentPortal={onExit}
+                onBackToStudentPortal={() => window.location.href = '/'}
             />
         );
     }
