@@ -61,7 +61,8 @@ const AdminOverview: React.FC = () => {
             attendeeCount: 0,
             medium: type === 'Meeting' ? medium : undefined,
             meetLink: type === 'Meeting' && medium === 'Online' ? meetLink : undefined,
-            location: type === 'Meeting' && medium === 'Physical' ? location : undefined
+            location: type === 'Meeting' && medium === 'Physical' ? location : undefined,
+            premiered: false
         };
 
         const stored = localStorage.getItem('admin-events');

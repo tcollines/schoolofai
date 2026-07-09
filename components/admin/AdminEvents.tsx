@@ -16,6 +16,7 @@ interface EventItem {
     courseId: string;
     attendeeCount: number;
     tags?: string[];
+    premiered?: boolean;
 }
 
 const defaultAdminEvents = [
@@ -31,7 +32,8 @@ const defaultAdminEvents = [
         courseId: 'global',
         attendeeCount: 142,
         medium: 'Online',
-        meetLink: 'https://meet.google.com/zgd-bexr-jfy'
+        meetLink: 'https://meet.google.com/zgd-bexr-jfy',
+        premiered: true
     },
     {
         id: 'ev-3',
@@ -66,6 +68,7 @@ const AdminEvents: React.FC = () => {
     const [medium, setMedium] = useState<'Online' | 'Physical'>('Online');
     const [meetLink, setMeetLink] = useState('');
     const [location, setLocation] = useState('');
+    const [premiered, setPremiered] = useState(false);
 
     const openCreateModal = () => {
         setEditingEvent(null);
@@ -79,6 +82,7 @@ const AdminEvents: React.FC = () => {
         setMedium('Online');
         setMeetLink('');
         setLocation('');
+        setPremiered(false);
         setIsModalOpen(true);
     };
 
@@ -94,6 +98,7 @@ const AdminEvents: React.FC = () => {
         setMedium(event.medium || 'Online');
         setMeetLink(event.meetLink || '');
         setLocation(event.location || '');
+        setPremiered(!!event.premiered);
         setIsModalOpen(true);
     };
 
@@ -160,7 +165,8 @@ const AdminEvents: React.FC = () => {
                 medium,
                 meetLink: medium === 'Online' ? meetLink : undefined,
                 location: medium === 'Physical' ? location : undefined,
-                tags: courseId === 'global' ? ['Global'] : [courses.find(c => c.id === courseId)?.title || 'Course']
+                tags: courseId === 'global' ? ['Global'] : [courses.find(c => c.id === courseId)?.title || 'Course'],
+                premiered
             } : e);
         } else {
             const newEvent: EventItem = {
@@ -176,7 +182,8 @@ const AdminEvents: React.FC = () => {
                 medium,
                 meetLink: medium === 'Online' ? meetLink : undefined,
                 location: medium === 'Physical' ? location : undefined,
-                tags: courseId === 'global' ? ['Global'] : [courses.find(c => c.id === courseId)?.title || 'Course']
+                tags: courseId === 'global' ? ['Global'] : [courses.find(c => c.id === courseId)?.title || 'Course'],
+                premiered
             };
             updated = [newEvent, ...events];
         }
@@ -211,6 +218,7 @@ const AdminEvents: React.FC = () => {
         setMeetLink('');
         setMedium('Online');
         setLocation('');
+        setPremiered(false);
     };
 
     return (
@@ -448,6 +456,19 @@ const AdminEvents: React.FC = () => {
                                     />
                                 </div>
                             )}
+
+                            <div className="flex items-center gap-2 pt-2 text-left">
+                                <input 
+                                    type="checkbox" 
+                                    id="premiered" 
+                                    checked={premiered} 
+                                    onChange={(e) => setPremiered(e.target.checked)}
+                                    className="w-4 h-4 text-violet-600 border-gray-300 rounded focus:ring-violet-500 cursor-pointer"
+                                />
+                                <label htmlFor="premiered" className="text-xs font-semibold text-gray-700 dark:text-slate-350 cursor-pointer select-none">
+                                    Premiere Event (Always show ticking countdown on student portal)
+                                </label>
+                            </div>
 
                             <div className="pt-4 border-t border-gray-100 dark:border-slate-800 flex justify-end gap-3">
                                 <button 

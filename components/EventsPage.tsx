@@ -18,6 +18,7 @@ interface EventItem {
     meetLink?: string;
     medium?: 'Online' | 'Physical';
     location?: string;
+    premiered?: boolean;
 }
 
 interface EventsPageProps {
@@ -37,7 +38,8 @@ const defaultAdminEvents = [
         courseId: 'global',
         attendeeCount: 142,
         medium: 'Online' as const,
-        meetLink: 'https://meet.google.com/zgd-bexr-jfy'
+        meetLink: 'https://meet.google.com/zgd-bexr-jfy',
+        premiered: true
     },
     {
         id: 'ev-3',
@@ -152,10 +154,12 @@ const EventsPage: React.FC<EventsPageProps> = ({ courses = [] }) => {
             
             for (const event of allEvents) {
                 const diff = getMsToEvent(event);
-                if (diff !== null && diff > 0 && diff <= 30 * 60 * 1000) {
-                    if (diff < minDiff) {
-                        minDiff = diff;
-                        imminent = event;
+                if (diff !== null && diff > 0) {
+                    if (diff <= 30 * 60 * 1000 || event.premiered) {
+                        if (diff < minDiff) {
+                            minDiff = diff;
+                            imminent = event;
+                        }
                     }
                 }
             }
