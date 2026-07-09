@@ -68,7 +68,9 @@ const DiscussionsPage: React.FC = () => {
     const { courses } = useCourses(userId === 'guest' ? undefined : userId);
 
     const [groups, setGroups] = useState<ChatGroup[]>([]);
-    const [selectedGroupId, setSelectedGroupId] = useState<string>('general');
+    const [selectedGroupId, setSelectedGroupId] = useState<string>(() => {
+        return localStorage.getItem('selected-discussion-group-id') || 'general';
+    });
     const [inputText, setInputText] = useState('');
     const [editingMessageId, setEditingMessageId] = useState<string | null>(null);
     const [editInputText, setEditInputText] = useState('');
@@ -267,7 +269,10 @@ const DiscussionsPage: React.FC = () => {
                         {groups.map(group => (
                             <button
                                 key={group.id}
-                                onClick={() => setSelectedGroupId(group.id)}
+                                onClick={() => {
+                                    setSelectedGroupId(group.id);
+                                    localStorage.setItem('selected-discussion-group-id', group.id);
+                                }}
                                 className={`w-full text-left p-3 rounded-2xl transition-all duration-200 flex items-start gap-3 relative ${
                                     selectedGroupId === group.id
                                         ? 'bg-violet-50 dark:bg-violet-950/20 border border-violet-100 dark:border-violet-900/30'

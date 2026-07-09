@@ -1,6 +1,6 @@
 import React from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { TrendingUp, CheckCircle, PlayCircle, BookOpen } from 'lucide-react';
+import { TrendingUp, CheckCircle, PlayCircle, BookOpen, MessageSquare } from 'lucide-react';
 import { Course, CourseStatus } from '../types';
 import { useTranslation } from './translations';
 
@@ -40,6 +40,16 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({ courses, userId }) => {
         dueDate: `Tomorrow, ${10 + idx}:00 AM`,
         status: idx === 0 ? 'Completed' : 'In Progress'
     }));
+
+    const frequentGroups = [
+        { id: 'general', name: 'General Discussion', desc: 'Global community chat room' },
+        { id: 'ai-help', name: 'AI Study Assistant Help Desk', desc: 'Interactive AI tutor guidance' },
+        ...enrolledCourses.slice(0, 1).map(c => ({
+            id: `course-${c.id}`,
+            name: `${c.title} Study Group`,
+            desc: 'Course curriculum study channel'
+        }))
+    ];
 
     if (!userId) return <div className="p-8 text-center text-gray-500 dark:text-slate-400">Loading dashboard...</div>;
 
@@ -211,6 +221,36 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({ courses, userId }) => {
                         <div className="w-8 h-8 rounded-full border border-gray-150 dark:border-slate-800 flex items-center justify-center text-gray-400 dark:text-slate-500 group-hover:bg-gray-105 dark:group-hover:bg-slate-800 transition-colors shrink-0">
                             ›
                         </div>
+                    </div>
+                </div>
+
+                {/* Frequent Discussion Groups */}
+                <div className="bg-white dark:bg-slate-900 p-6 rounded-3xl shadow-sm border border-gray-100 dark:border-slate-800">
+                    <h3 className="font-bold text-gray-800 dark:text-slate-200 mb-4">Frequent Groups</h3>
+                    <div className="space-y-3">
+                        {frequentGroups.map((group) => (
+                            <div 
+                                key={group.id}
+                                onClick={() => {
+                                    localStorage.setItem('selected-discussion-group-id', group.id);
+                                    window.location.href = '/discussions';
+                                }}
+                                className="flex items-center justify-between p-3 bg-gray-55 dark:bg-slate-800/40 rounded-2xl cursor-pointer hover:bg-gray-100 dark:hover:bg-slate-800/80 transition-colors"
+                            >
+                                <div className="flex items-center gap-3">
+                                    <div className="p-2 bg-violet-100 dark:bg-violet-955/40 text-violet-600 dark:text-violet-400 rounded-xl shrink-0">
+                                        <MessageSquare size={16} />
+                                    </div>
+                                    <div className="min-w-0">
+                                        <p className="text-sm font-bold text-gray-900 dark:text-white leading-tight truncate">{group.name}</p>
+                                        <p className="text-[10px] text-gray-400 mt-0.5 truncate">{group.desc}</p>
+                                    </div>
+                                </div>
+                                <div className="text-[10px] text-violet-600 dark:text-violet-400 font-bold bg-violet-50 dark:bg-violet-950/20 px-2.5 py-1 rounded-full shrink-0">
+                                    Open
+                                </div>
+                            </div>
+                        ))}
                     </div>
                 </div>
 
