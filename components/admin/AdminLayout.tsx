@@ -16,7 +16,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ onExit }) => {
     const navigate = useNavigate();
     const location = useLocation();
     
-    const activeTab = location.pathname.split('/')[2] || 'overview';
+    const activeTab = location.pathname.split('/')[2] || 'enrollments';
 
     const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(() => {
         return localStorage.getItem('admin-session') === 'true';
@@ -66,7 +66,6 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ onExit }) => {
     }
 
     const menuItems = [
-        { id: 'overview', label: 'Overview', icon: LayoutDashboard },
         { id: 'enrollments', label: 'Enrollments', icon: Users },
         { id: 'courses', label: 'Course Setup', icon: BookOpen },
         { id: 'exams', label: 'Exam Setup', icon: FileQuestion },
@@ -76,8 +75,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ onExit }) => {
     const renderContent = () => {
         return (
             <Routes>
-                <Route path="/" element={<Navigate to="overview" replace />} />
-                <Route path="overview" element={<AdminOverview />} />
+                <Route path="/" element={<Navigate to="enrollments" replace />} />
                 <Route path="enrollments" element={<AdminEnrollments />} />
                 <Route path="courses" element={<AdminCourses />} />
                 <Route path="exams" element={<AdminExams />} />
