@@ -80,12 +80,8 @@ const EventsPage: React.FC<EventsPageProps> = ({ courses = [] }) => {
                 currentAdminList = JSON.parse(stored);
             }
 
-            // Filter: only show global admin events OR if student is enrolled in that specific course
-            const enrolledIds = enrolledCourses.map(c => c.id);
-            const filtered = currentAdminList.filter((e: any) => 
-                e.courseId === 'global' || enrolledIds.includes(e.courseId)
-            );
-            setAdminEvents(filtered);
+            // Show all admin-published events to students (allows discovery of course events to encourage enrollment)
+            setAdminEvents(currentAdminList);
         };
 
         updateEvents();
