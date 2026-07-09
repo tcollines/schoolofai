@@ -135,6 +135,29 @@ const AdminEvents: React.FC = () => {
             return;
         }
 
+        // Validate that event is scheduled at least 30 minutes in the future
+        try {
+            const timePart = time.trim().split(' ')[0]; // "14:00"
+            const [hours, minutes] = timePart.split(':').map(Number);
+            const [year, month, day] = date.split('-').map(Number);
+            
+            if (isNaN(hours) || isNaN(minutes) || isNaN(year) || isNaN(month) || isNaN(day)) {
+                alert('Please enter a valid date (YYYY-MM-DD) and start time in HH:MM format (e.g. 14:00 or 14:00 - 16:30).');
+                return;
+            }
+            
+            const eventDate = new Date(year, month - 1, day, hours, minutes, 0, 0);
+            const diffMs = eventDate.getTime() - Date.now();
+            
+            if (diffMs < 30 * 60 * 1000) {
+                alert('Events must be scheduled at least 30 minutes in the future, as the live countdown begins at 30 minutes.');
+                return;
+            }
+        } catch (err) {
+            alert('Please check the date and time format.');
+            return;
+        }
+
         if (medium === 'Online') {
             if (!meetLink) {
                 alert('Please provide a Google Meet link for the online session.');
