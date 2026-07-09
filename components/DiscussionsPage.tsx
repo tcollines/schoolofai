@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useOutletContext } from 'react-router-dom';
 import { useCourses } from '../src/hooks/useCourses';
-import { Send, Users, ShieldAlert, MessageSquare, Bot, User, CheckCircle2, ChevronRight, Trash2 } from 'lucide-react';
+import { Send, Users, ShieldAlert, MessageSquare, Bot, User, CheckCircle2, ChevronRight, Trash2, MoreVertical, Copy, Edit2 } from 'lucide-react';
 import { Course } from '../types';
 
 interface Message {
@@ -70,7 +70,19 @@ const DiscussionsPage: React.FC = () => {
     const [groups, setGroups] = useState<ChatGroup[]>([]);
     const [selectedGroupId, setSelectedGroupId] = useState<string>('general');
     const [inputText, setInputText] = useState('');
+    const [editingMessageId, setEditingMessageId] = useState<string | null>(null);
+    const [editInputText, setEditInputText] = useState('');
+    const [activeDropdownMessageId, setActiveDropdownMessageId] = useState<string | null>(null);
     const messagesEndRef = useRef<HTMLDivElement>(null);
+
+    // Click outside listener to close dropdowns
+    useEffect(() => {
+        const handleClickOutside = () => {
+            setActiveDropdownMessageId(null);
+        };
+        window.addEventListener('click', handleClickOutside);
+        return () => window.removeEventListener('click', handleClickOutside);
+    }, []);
 
     // Initialize groups based on general channels + student's enrolled courses
     useEffect(() => {
@@ -204,6 +216,26 @@ const DiscussionsPage: React.FC = () => {
         setGroups(updatedGroups);
     };
 
+    const handleSaveEdit = (messageId: string) => {
+        if (!activeGroup || !editInputText.trim()) return;
+        const updatedMessages = activeGroup.messages.map(m => {
+            if (m.id === messageId) {
+                return { ...m, content: editInputText, isEdited: true };
+            }
+            return m;
+        });
+        const updatedGroups = groups.map(g => {
+            if (g.id === activeGroup.id) {
+                const newG = { ...g, messages: updatedMessages };
+                localStorage.setItem(`chat-messages-${newG.id}`, JSON.stringify(updatedMessages));
+                return newG;
+            }
+            return g;
+        });
+        setGroups(updatedGroups);
+        setEditingMessageId(null);
+    };
+
     const getRoleBadgeClass = (role: string) => {
         switch (role) {
             case 'instructor':
@@ -313,20 +345,86 @@ const DiscussionsPage: React.FC = () => {
                                         <span className="text-[10px] text-gray-400 ml-auto">
                                             {msg.timestamp}
                                         </span>
-                                        {msg.senderId === userId && (
-                                            <button
+                                        {/* Dropdown Options trigger */}
+                                        <div className="relative inline-block ml-2 self-center shrink-0">
+                                            <button 
                                                 type="button"
-                                                onClick={() => handleDeleteMessage(msg.id)}
-                                                className="text-gray-400 hover:text-red-500 transition-colors p-1 rounded cursor-pointer ml-1"
-                                                title="Delete Message"
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    setActiveDropdownMessageId(activeDropdownMessageId === msg.id ? null : msg.id);
+                                                }}
+                                                className="text-gray-400 hover:text-gray-600 dark:hover:text-slate-300 p-1 rounded-full hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+                                                title="Message Actions"
                                             >
-                                                <Trash2 size={13} />
+                                                <MoreVertical size={13} />
                                             </button>
-                                        )}
+                                            
+                                            {activeDropdownMessageId === msg.id && (
+                                                <div className="absolute right-0 mt-1 w-36 bg-white dark:bg-slate-800 rounded-xl border border-gray-100 dark:border-slate-700 shadow-xl z-50 p-1 animate-in fade-in slide-in-from-top-2 duration-150">
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => {
+                                                            navigator.clipboard.writeText(msg.content);
+                                                            setActiveDropdownMessageId(null);
+                                                        }}
+                                                        className="w-full text-left px-3 py-2 rounded-lg text-xs hover:bg-gray-50 dark:hover:bg-slate-700 text-gray-700 dark:text-slate-305 flex items-center gap-2 cursor-pointer border-none bg-transparent"
+                                                    >
+                                                        <Copy size={12} />
+                                                        <span>Copy Text</span>
+                                                    </button>
+                                                    
+                                                    {msg.senderId === userId && (
+                                                        <>
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => {
+                                                                    setEditingMessageId(msg.id);
+                                                                    setEditInputText(msg.content);
+                                                                    setActiveDropdownMessageId(null);
+                                                                }}
+                                                                className="w-full text-left px-3 py-2 rounded-lg text-xs hover:bg-gray-50 dark:hover:bg-slate-700 text-gray-700 dark:text-slate-305 flex items-center gap-2 cursor-pointer border-none bg-transparent"
+                                                            >
+                                                                <Edit2 size={12} />
+                                                                <span>Edit Message</span>
+                                                            </button>
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => {
+                                                                    handleDeleteMessage(msg.id);
+                                                                    setActiveDropdownMessageId(null);
+                                                                }}
+                                                                className="w-full text-left px-3 py-2 rounded-lg text-xs hover:bg-red-50 dark:hover:bg-red-950/20 text-red-650 dark:text-red-400 flex items-center gap-2 cursor-pointer border-none bg-transparent"
+                                                            >
+                                                                <Trash2 size={12} />
+                                                                <span>Delete</span>
+                                                            </button>
+                                                        </>
+                                                    )}
+                                                </div>
+                                            )}
+                                        </div>
                                     </div>
-                                    <p className="text-sm text-gray-700 dark:text-slate-350 bg-white dark:bg-slate-850 p-3 rounded-2xl rounded-tl-none border border-gray-100 dark:border-slate-850 inline-block max-w-full break-words shadow-sm">
-                                        {msg.content}
-                                    </p>
+                                    {editingMessageId === msg.id ? (
+                                        <form onSubmit={(e) => {
+                                            e.preventDefault();
+                                            handleSaveEdit(msg.id);
+                                        }} className="flex gap-2 items-center mt-1">
+                                            <input 
+                                                type="text" 
+                                                value={editInputText} 
+                                                onChange={(e) => setEditInputText(e.target.value)}
+                                                className="px-3 py-1.5 text-sm bg-gray-50 dark:bg-slate-800 border border-gray-250 dark:border-slate-700 text-gray-900 dark:text-white rounded-xl focus:ring-2 focus:ring-violet-500 outline-none w-64"
+                                                autoFocus
+                                            />
+                                            <button type="submit" className="text-xs bg-violet-600 hover:bg-violet-750 text-white px-2.5 py-1.5 rounded-lg font-bold cursor-pointer">Save</button>
+                                            <button type="button" onClick={() => setEditingMessageId(null)} className="text-xs bg-gray-100 hover:bg-gray-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-gray-700 dark:text-slate-350 px-2.5 py-1.5 rounded-lg cursor-pointer">Cancel</button>
+                                        </form>
+                                    ) : (
+                                        <p className="text-sm text-gray-700 dark:text-slate-350 bg-white dark:bg-slate-850 p-3 rounded-2xl rounded-tl-none border border-gray-100 dark:border-slate-850 inline-block max-w-full break-words shadow-sm">
+                                            {msg.content}
+                                            {msg.isEdited && <span className="text-[10px] text-gray-400 dark:text-slate-500 ml-1.5 font-normal italic">(edited)</span>}
+                                        </p>
+                                    )}
                                 </div>
                             </div>
                         ))}
