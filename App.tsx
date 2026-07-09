@@ -35,9 +35,40 @@ function App() {
 
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
+    } = supabase.auth.onAuthStateChange((event, session) => {
       setSession(session);
       setIsAuthenticated(!!session);
+      
+      if (event === 'SIGNED_IN' && session) {
+          // Trigger login notification
+          const emailAddress = session.user?.email || 'student@test.com';
+          const storedNotifs = localStorage.getItem('portal-notifications');
+          const notifList = storedNotifs ? JSON.parse(storedNotifs) : [];
+          
+          // Check if we already registered a login notification for this exact timestamp (within 3 seconds) to avoid duplicate fires on redirects
+          const isDuplicate = notifList.some((n: any) => 
+              n.title === "New Login Detected" && 
+              (Date.now() - new Date(n.timestamp).getTime()) < 3000
+          );
+          
+          if (!isDuplicate) {
+              const now = new Date();
+              const dateStr = now.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+              const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+              
+              const newNotif = {
+                  id: 'login-' + Date.now(),
+                  title: "New Login Detected",
+                  description: `A successful login was registered for ${emailAddress} on ${dateStr} at ${timeStr}.`,
+                  timestamp: now.toISOString(),
+                  read: false,
+                  type: 'system'
+              };
+              localStorage.setItem('portal-notifications', JSON.stringify([newNotif, ...notifList]));
+              window.dispatchEvent(new Event('notifications-update'));
+          }
+      }
+
       if (session && window.location.pathname === '/login') {
           window.location.href = '/dashboard';
       }
