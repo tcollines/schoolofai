@@ -137,9 +137,22 @@ const Header: React.FC<HeaderProps> = ({
         )}
         {showWelcome && (
           <div>
-            <h1 className="text-xl lg:text-2xl font-bold text-gray-900 dark:text-white">
-              {t('welcome_back')}, {user.name.split(' ')[0]} 👋
-            </h1>
+            <div className="flex flex-wrap items-center gap-2.5">
+              <h1 className="text-xl lg:text-2xl font-bold text-gray-900 dark:text-white">
+                {t('welcome_back')}, {user.name.split(' ')[0]} 👋
+              </h1>
+              <span className={`text-[10px] uppercase font-extrabold px-2 py-0.5 rounded-full border shadow-xs tracking-wider shrink-0 ${
+                user.role === 'PRO' 
+                  ? 'bg-amber-100 text-amber-700 dark:bg-amber-955/40 dark:text-amber-300 border-amber-200 dark:border-amber-900/30'
+                  : user.role === 'PLUS'
+                  ? 'bg-violet-100 text-violet-700 dark:bg-violet-955/40 dark:text-violet-300 border-violet-200 dark:border-violet-900/30'
+                  : user.role === 'SPONSORED'
+                  ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300 border-emerald-250 dark:border-emerald-900/30'
+                  : 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300 border-slate-200 dark:border-slate-700'
+              }`}>
+                {user.role === 'PRO' ? 'Pro Plan' : user.role === 'PLUS' ? 'Plus Plan' : user.role === 'SPONSORED' ? 'Sponsored' : 'Basic Plan'}
+              </span>
+            </div>
             <p className="text-gray-500 dark:text-slate-400 text-xs lg:text-sm mt-1 hidden sm:block">
               {user.role === 'SPONSORED' ? 'Company Sponsored • ' + user.companyName : t('individual_learner')}
             </p>
