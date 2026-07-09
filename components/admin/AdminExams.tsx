@@ -173,6 +173,7 @@ const AdminExams: React.FC = () => {
                                                     <option value="multiple_choice">Multiple Choice</option>
                                                     <option value="true_false">True / False</option>
                                                     <option value="short_answer">Short Answer</option>
+                                                    <option value="essay">Essay / Structured</option>
                                                 </select>
                                             </div>
                                             <input value={q.text} onChange={e => {
@@ -181,7 +182,6 @@ const AdminExams: React.FC = () => {
                                                 setQuestions(newQ);
                                             }} className="w-full p-3 bg-gray-50 border border-gray-200 rounded-lg mb-4 outline-none focus:border-violet-500" placeholder="Type the question here..." />
                                             
-                                            {/* (Omitted options rendering code for brevity, you can keep the previous implementation here) */}
                                             {q.type === 'multiple_choice' && (
                                                 <div className="space-y-2">
                                                     {q.options.map((opt: string, optIdx: number) => (
@@ -209,6 +209,21 @@ const AdminExams: React.FC = () => {
                                                     <option value="true">True is Correct</option>
                                                     <option value="false">False is Correct</option>
                                                 </select>
+                                            )}
+                                            {q.type === 'essay' && (
+                                                <div className="space-y-2">
+                                                    <label className="block text-xs font-semibold text-gray-500 mb-1">Grading Guidelines / Sample Answer (Optional)</label>
+                                                    <textarea 
+                                                        value={q.gradingGuide || ''} 
+                                                        onChange={e => {
+                                                            const newQ = [...questions];
+                                                            newQ[idx].gradingGuide = e.target.value;
+                                                            setQuestions(newQ);
+                                                        }} 
+                                                        className="w-full p-2.5 bg-gray-50 border border-gray-250 rounded-xl text-sm outline-none focus:border-violet-500 h-20" 
+                                                        placeholder="Enter grading guidelines or sample essay outline for reference..." 
+                                                    />
+                                                </div>
                                             )}
                                         </div>
                                     ))}

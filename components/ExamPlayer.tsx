@@ -52,10 +52,16 @@ const ExamPlayer: React.FC<ExamPlayerProps> = ({ quiz, courseTitle, onClose, onS
             document.exitFullscreen().catch((err) => console.error("Error exiting fullscreen:", err));
         }
 
-        // Simple scoring for now: just count selected correct answers for multiple choice
+        // Scoring: check correct option for choice items, check non-empty text for essay/short answer
         let correctCount = 0;
         quiz.questions.forEach((q) => {
-            if (answersRef.current[q.id] === q.correctAnswer) correctCount++;
+            if (q.type === 'essay' || q.type === 'short_answer') {
+                if (answersRef.current[q.id] && String(answersRef.current[q.id]).trim().length > 0) {
+                    correctCount++;
+                }
+            } else {
+                if (answersRef.current[q.id] === q.correctAnswer) correctCount++;
+            }
         });
         const score = Math.round((correctCount / Math.max(quiz.questions.length, 1)) * 100);
         onSubmit(score);
@@ -225,13 +231,20 @@ const ExamPlayer: React.FC<ExamPlayerProps> = ({ quiz, courseTitle, onClose, onS
                                         </div>
                                     )}
 
-                                    {q.type === 'short_answer' && (
-                                        <textarea 
-                                            className="w-full p-4 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 resize-none min-h-[120px]"
-                                            placeholder="Type your answer here..."
-                                            value={answers[q.id] || ''}
-                                            onChange={e => setAnswers({...answers, [q.id]: e.target.value})}
-                                        />
+                                    {(q.type === 'short_answer' || q.type === 'essay') && (
+                                        <div className="space-y-1">
+                                            <textarea 
+                                                className="w-full p-4 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 min-h-[140px]"
+                                                placeholder={q.type === 'essay' ? "Write your detailed essay response here..." : "Type your answer here..."}
+                                                value={answers[q.id] || ''}
+                                                onChange={e => setAnswers({...answers, [q.id]: e.target.value})}
+                                            />
+                                            {q.type === 'essay' && (
+                                                <div className="text-right text-xs text-gray-400">
+                                                    Character count: {(answers[q.id] || '').length} characters
+                                                </div>
+                                            )}
+                                        </div>
                                     )}
                                 </div>
                             ))}
