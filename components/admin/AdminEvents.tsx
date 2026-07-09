@@ -15,6 +15,7 @@ interface EventItem {
     location?: string;
     courseId: string;
     attendeeCount: number;
+    tags?: string[];
 }
 
 const defaultAdminEvents = [
@@ -126,7 +127,8 @@ const AdminEvents: React.FC = () => {
             attendeeCount: 0,
             medium,
             meetLink: medium === 'Online' ? meetLink : undefined,
-            location: medium === 'Physical' ? location : undefined
+            location: medium === 'Physical' ? location : undefined,
+            tags: courseId === 'global' ? ['Global'] : [courses.find(c => c.id === courseId)?.title || 'Course']
         };
 
         const updated = [newEvent, ...events];

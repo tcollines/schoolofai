@@ -383,14 +383,16 @@ const EventsPage: React.FC<EventsPageProps> = ({ courses = [] }) => {
                                         </div>
                                     </div>
 
-                                    {/* Tags */}
-                                    <div className="flex flex-wrap gap-1.5">
-                                        {event.tags.map((tag) => (
-                                            <span key={tag} className="text-[10px] font-bold bg-gray-50 dark:bg-slate-800 text-gray-500 dark:text-slate-400 px-2 py-0.5 rounded">
-                                                #{tag}
-                                            </span>
-                                        ))}
-                                    </div>
+                                     {/* Tags */}
+                                     {event.tags && event.tags.length > 0 && (
+                                         <div className="flex flex-wrap gap-1.5">
+                                             {event.tags.map((tag) => (
+                                                 <span key={tag} className="text-[10px] font-bold bg-gray-50 dark:bg-slate-800 text-gray-500 dark:text-slate-400 px-2 py-0.5 rounded">
+                                                     #{tag}
+                                                 </span>
+                                             ))}
+                                         </div>
+                                     )}
 
                                     {/* Action Buttons */}
                                     <div className="flex gap-3">
