@@ -83,8 +83,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLoginClick, onSignupClick, 
                     <div className="relative mx-auto max-w-5xl">
                         <div className="rounded-xl bg-gray-900 p-2 shadow-2xl ring-1 ring-gray-900/10">
                             <div className="rounded-lg bg-white overflow-hidden aspect-[16/10] relative text-center flex items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200">
-                                <p className="text-gray-400 font-medium">Dashboard Preview</p>
-                                {/* In a real app, img tag here: <img src="/dashboard-mockup.png" alt="App Dashboard" className="w-full h-full object-cover" /> */}
+                                <img src="/ict_students_learning.png" alt="App Dashboard - ICT Students Learning" className="w-full h-full object-cover" />
                             </div>
                         </div>
                     </div>
