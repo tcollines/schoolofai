@@ -8,7 +8,7 @@ export const translations = {
         career_growth: "Career Growth",
         my_profile: "My Profile",
         events: "Upcoming Events",
-        discussions: "Class Discussion Groups",
+        discussions: "Class Discussions",
         settings: "Settings",
         mobile_app: "Mobile App",
         download_app: "Download for iOS & Android",

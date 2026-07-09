@@ -19,7 +19,7 @@ const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, isOpen, onCl
     { id: 'dashboard', label: t('dashboard'), icon: LayoutDashboard },
     { id: 'discover', label: t('discover'), icon: Compass },
     { id: 'courses', label: t('my_courses'), icon: BookOpen },
-    { id: 'discussions', label: t('discussions') || 'Class Discussion Groups', icon: MessageSquare },
+    { id: 'discussions', label: t('discussions') || 'Class Discussions', icon: MessageSquare },
     { id: 'events', label: t('events') || 'Upcoming Events', icon: Calendar },
     { id: 'career', label: t('career_growth'), icon: Briefcase },
     { id: 'profile', label: t('my_profile'), icon: User },
@@ -65,7 +65,7 @@ const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, isOpen, onCl
             <button
               key={item.id}
               onClick={() => setActiveTab(item.id)}
-              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 text-sm font-medium ${activeTab === item.id
+              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 text-sm font-medium text-left ${activeTab === item.id
                 ? 'bg-welile-purple text-white shadow-lg shadow-purple-900/20'
                 : 'text-gray-400 hover:bg-gray-800 hover:text-white'
                 }`}
