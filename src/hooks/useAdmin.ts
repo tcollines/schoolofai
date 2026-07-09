@@ -55,7 +55,10 @@ export const useAdmin = (isAdmin: boolean) => {
                 modules: c.modules,
                 quiz: c.quiz,
                 description: c.description,
-                outcomes: c.outcomes
+                outcomes: c.outcomes,
+                imageScale: c.image_scale !== undefined ? Number(c.image_scale) : 1,
+                imagePositionX: c.image_pos_x !== undefined ? Number(c.image_pos_x) : 50,
+                imagePositionY: c.image_pos_y !== undefined ? Number(c.image_pos_y) : 50
             }));
             setCourses(formattedCourses);
 
@@ -104,7 +107,10 @@ export const useAdmin = (isAdmin: boolean) => {
                     modules: courseData.sections, // Save sections to modules JSONB
                     description: courseData.description,
                     outcomes: courseData.outcomes,
-                    lessons_total: totalLessons
+                    lessons_total: totalLessons,
+                    image_scale: courseData.imageScale !== undefined ? courseData.imageScale : 1,
+                    image_pos_x: courseData.imagePositionX !== undefined ? courseData.imagePositionX : 50,
+                    image_pos_y: courseData.imagePositionY !== undefined ? courseData.imagePositionY : 50
                 }
             ]).select().single();
 
@@ -133,7 +139,10 @@ export const useAdmin = (isAdmin: boolean) => {
                     modules: courseData.sections,
                     description: courseData.description,
                     outcomes: courseData.outcomes,
-                    lessons_total: totalLessons
+                    lessons_total: totalLessons,
+                    image_scale: courseData.imageScale !== undefined ? courseData.imageScale : 1,
+                    image_pos_x: courseData.imagePositionX !== undefined ? courseData.imagePositionX : 50,
+                    image_pos_y: courseData.imagePositionY !== undefined ? courseData.imagePositionY : 50
                 })
                 .eq('id', courseId)
                 .select().single();

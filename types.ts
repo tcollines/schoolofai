@@ -71,6 +71,9 @@ export interface Course {
   quiz?: Quiz;
   description?: string;
   outcomes?: string[];
+  imageScale?: number;
+  imagePositionX?: number;
+  imagePositionY?: number;
 }
 
 export interface UserProfile {

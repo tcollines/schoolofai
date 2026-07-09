@@ -57,7 +57,10 @@ export const useCourses = (userId: string | undefined) => {
                         modules: !isNewFormat ? course.modules : undefined,
                         quiz: course.quiz,
                         description: course.description,
-                        outcomes: course.outcomes
+                        outcomes: course.outcomes,
+                        imageScale: course.image_scale !== undefined ? Number(course.image_scale) : 1,
+                        imagePositionX: course.image_pos_x !== undefined ? Number(course.image_pos_x) : 50,
+                        imagePositionY: course.image_pos_y !== undefined ? Number(course.image_pos_y) : 50
                     };
                 });
 

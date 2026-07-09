@@ -61,6 +61,10 @@ const CourseOverview: React.FC<CourseOverviewProps> = ({ courses, onEnroll, isAu
                         src={course.image} 
                         alt={course.title} 
                         className="w-full h-full object-cover"
+                        style={{
+                            objectPosition: `${course.imagePositionX ?? 50}% ${course.imagePositionY ?? 50}%`,
+                            transform: `scale(${course.imageScale ?? 1})`
+                        }}
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent"></div>
                     

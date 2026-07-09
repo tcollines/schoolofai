@@ -99,7 +99,11 @@ const DiscoverCourses: React.FC<DiscoverCoursesProps> = ({ courses, onEnroll, is
                                 <img
                                     src={course.image || 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=800&auto=format&fit=crop&q=60'}
                                     alt={course.title}
-                                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                                    className="w-full h-full object-cover transition-transform duration-500"
+                                    style={{
+                                        objectPosition: `${course.imagePositionX ?? 50}% ${course.imagePositionY ?? 50}%`,
+                                        transform: `scale(${course.imageScale ?? 1})`
+                                    }}
                                 />
                                 <div className="absolute top-4 left-4">
                                     <span className="px-3 py-1 bg-white/90 dark:bg-slate-900/90 backdrop-blur-sm rounded-full text-xs font-bold text-gray-900 dark:text-white shadow-sm">

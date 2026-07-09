@@ -8,6 +8,7 @@ const AdminCourses: React.FC = () => {
     const [isWizardOpen, setIsWizardOpen] = useState(false);
     const [isEditMode, setIsEditMode] = useState(false);
     const [editingCourseId, setEditingCourseId] = useState<string | null>(null);
+    const [isAdjustModalOpen, setIsAdjustModalOpen] = useState(false);
     
     // Wizard State
     const [step, setStep] = useState(1);
@@ -127,7 +128,17 @@ const AdminCourses: React.FC = () => {
                 {courses.map(c => (
                     <div key={c.id} className="bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
                         <div className="h-40 bg-gray-200 relative">
-                            {c.image && <img src={c.image} alt={c.title} className="w-full h-full object-cover" />}
+                            {c.image && (
+                                <img 
+                                    src={c.image} 
+                                    alt={c.title} 
+                                    className="w-full h-full object-cover" 
+                                    style={{
+                                        objectPosition: `${c.imagePositionX ?? 50}% ${c.imagePositionY ?? 50}%`,
+                                        transform: `scale(${c.imageScale ?? 1})`
+                                    }}
+                                />
+                            )}
                             <div className="absolute top-3 right-3">
                                 <span className={`px-3 py-1 rounded-full text-xs font-bold shadow-sm ${c.accessTier === 'PAID' ? 'bg-amber-100 text-amber-700' : 'bg-emerald-100 text-emerald-700'}`}>
                                     {c.accessTier || 'FREE'}
@@ -153,7 +164,10 @@ const AdminCourses: React.FC = () => {
                                                 image: c.image,
                                                 sections: c.sections || c.modules || [],
                                                 description: c.description || '',
-                                                outcomes: c.outcomes || []
+                                                outcomes: c.outcomes || [],
+                                                imageScale: c.imageScale || 1,
+                                                imagePositionX: c.imagePositionX || 50,
+                                                imagePositionY: c.imagePositionY || 50
                                             });
                                             setStep(1);
                                             setIsWizardOpen(true);
@@ -243,10 +257,35 @@ const AdminCourses: React.FC = () => {
                                     </div>
                                     <div>
                                         <label className="block text-sm font-medium text-gray-700 mb-1">Cover Image</label>
-                                        <div className="flex gap-4 items-center">
-                                            {newCourse.image && <img src={newCourse.image} alt="Preview" className="w-20 h-20 object-cover rounded-xl border border-gray-200 shadow-sm flex-shrink-0" />}
+                                        <div className="flex gap-4 items-start">
+                                            <div className="flex flex-col gap-2 items-center">
+                                                <div className="w-20 h-20 rounded-xl border border-gray-200 shadow-sm overflow-hidden bg-gray-50 flex-shrink-0 relative">
+                                                    {newCourse.image ? (
+                                                        <img 
+                                                            src={newCourse.image} 
+                                                            alt="Preview" 
+                                                            className="w-full h-full object-cover" 
+                                                            style={{
+                                                                objectPosition: `${newCourse.imagePositionX ?? 50}% ${newCourse.imagePositionY ?? 50}%`,
+                                                                transform: `scale(${newCourse.imageScale ?? 1})`
+                                                            }}
+                                                        />
+                                                    ) : (
+                                                        <div className="w-full h-full flex items-center justify-center text-gray-400 text-xs">No image</div>
+                                                    )}
+                                                </div>
+                                                {newCourse.image && (
+                                                    <button 
+                                                        type="button"
+                                                        onClick={() => setIsAdjustModalOpen(true)}
+                                                        className="text-[11px] font-semibold text-violet-600 hover:text-violet-850 underline cursor-pointer font-sans"
+                                                    >
+                                                        Adjust Crop
+                                                    </button>
+                                                )}
+                                            </div>
                                             <div className="flex-1">
-                                                <input value={newCourse.image?.startsWith('data:') ? '' : newCourse.image} onChange={e => setNewCourse({...newCourse, image: e.target.value})} className="w-full p-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-violet-500 outline-none transition-all mb-2 text-sm" placeholder="Paste URL or upload image..." />
+                                                <input value={newCourse.image?.startsWith('data:') ? '' : newCourse.image} onChange={e => setNewCourse({...newCourse, image: e.target.value, imageScale: 1, imagePositionX: 50, imagePositionY: 50})} className="w-full p-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-violet-500 outline-none transition-all mb-2 text-sm text-gray-900 dark:text-white" placeholder="Paste URL or upload image..." />
                                                 <label className="cursor-pointer bg-white dark:bg-slate-850 border border-gray-200 dark:border-slate-750 hover:bg-gray-50 dark:hover:bg-slate-800 text-gray-700 dark:text-slate-200 text-sm px-4 py-2 rounded-xl font-medium flex items-center justify-center w-full transition-colors">
                                                     <span>Browse Image File...</span>
                                                     <input 
@@ -258,7 +297,7 @@ const AdminCourses: React.FC = () => {
                                                             if (file) {
                                                                 const reader = new FileReader();
                                                                 reader.onloadend = () => {
-                                                                    setNewCourse({...newCourse, image: reader.result as string});
+                                                                    setNewCourse({...newCourse, image: reader.result as string, imageScale: 1, imagePositionX: 50, imagePositionY: 50});
                                                                 };
                                                                 reader.readAsDataURL(file);
                                                             }
@@ -448,6 +487,105 @@ const AdminCourses: React.FC = () => {
                                     <Save size={18} /> Finish & Publish
                                 </button>
                             )}
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Image Adjustment Modal */}
+            {isAdjustModalOpen && (
+                <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[110] flex items-center justify-center p-4">
+                    <div className="bg-white dark:bg-slate-900 rounded-3xl w-full max-w-md overflow-hidden shadow-2xl p-6 border border-gray-100 dark:border-slate-800 space-y-4">
+                        <div className="flex justify-between items-center pb-2 border-b border-gray-100 dark:border-slate-800">
+                            <h3 className="font-bold text-gray-900 dark:text-white">Adjust Cover Image</h3>
+                            <button onClick={() => setIsAdjustModalOpen(false)} className="text-gray-400 hover:text-gray-655 dark:hover:text-slate-350 p-1 cursor-pointer">
+                                <X size={18} />
+                            </button>
+                        </div>
+                        
+                        {/* Live Crop Card Preview */}
+                        <div className="space-y-1">
+                            <label className="text-xs font-bold text-gray-500">Live Card Preview</label>
+                            <div className="h-40 rounded-2xl overflow-hidden border border-gray-200 dark:border-slate-750 bg-gray-100 relative">
+                                <img 
+                                    src={newCourse.image} 
+                                    alt="Live Preview" 
+                                    className="w-full h-full object-cover"
+                                    style={{
+                                        objectPosition: `${newCourse.imagePositionX ?? 50}% ${newCourse.imagePositionY ?? 50}%`,
+                                        transform: `scale(${newCourse.imageScale ?? 1})`
+                                    }}
+                                />
+                            </div>
+                        </div>
+
+                        {/* Adjustments Sliders */}
+                        <div className="space-y-3 pt-2">
+                            {/* Zoom Slider */}
+                            <div className="space-y-1">
+                                <div className="flex justify-between text-xs font-semibold text-gray-600 dark:text-slate-300">
+                                    <span>Zoom / Scale</span>
+                                    <span>{Math.round((newCourse.imageScale ?? 1) * 100)}%</span>
+                                </div>
+                                <input 
+                                    type="range" 
+                                    min="1" 
+                                    max="3" 
+                                    step="0.05"
+                                    value={newCourse.imageScale ?? 1} 
+                                    onChange={e => setNewCourse({...newCourse, imageScale: parseFloat(e.target.value)})}
+                                    className="w-full accent-violet-600 cursor-pointer"
+                                />
+                            </div>
+
+                            {/* X position Slider */}
+                            <div className="space-y-1">
+                                <div className="flex justify-between text-xs font-semibold text-gray-600 dark:text-slate-300">
+                                    <span>Horizontal Position (X)</span>
+                                    <span>{newCourse.imagePositionX ?? 50}%</span>
+                                </div>
+                                <input 
+                                    type="range" 
+                                    min="0" 
+                                    max="100" 
+                                    value={newCourse.imagePositionX ?? 50} 
+                                    onChange={e => setNewCourse({...newCourse, imagePositionX: parseInt(e.target.value)})}
+                                    className="w-full accent-violet-600 cursor-pointer"
+                                />
+                            </div>
+
+                            {/* Y position Slider */}
+                            <div className="space-y-1">
+                                <div className="flex justify-between text-xs font-semibold text-gray-600 dark:text-slate-300">
+                                    <span>Vertical Position (Y)</span>
+                                    <span>{newCourse.imagePositionY ?? 50}%</span>
+                                </div>
+                                <input 
+                                    type="range" 
+                                    min="0" 
+                                    max="100" 
+                                    value={newCourse.imagePositionY ?? 50} 
+                                    onChange={e => setNewCourse({...newCourse, imagePositionY: parseInt(e.target.value)})}
+                                    className="w-full accent-violet-600 cursor-pointer"
+                                />
+                            </div>
+                        </div>
+
+                        <div className="pt-4 border-t border-gray-100 dark:border-slate-800 flex justify-end gap-2">
+                            <button 
+                                onClick={() => {
+                                    setNewCourse({...newCourse, imageScale: 1, imagePositionX: 50, imagePositionY: 50});
+                                }}
+                                className="px-4 py-2 border border-gray-250 dark:border-slate-700 text-xs font-semibold text-gray-700 dark:text-slate-300 rounded-xl hover:bg-gray-55 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+                            >
+                                Reset Settings
+                            </button>
+                            <button 
+                                onClick={() => setIsAdjustModalOpen(false)}
+                                className="px-5 py-2 bg-violet-600 text-xs font-bold text-white rounded-xl hover:bg-violet-750 transition-colors cursor-pointer"
+                            >
+                                Apply Changes
+                            </button>
                         </div>
                     </div>
                 </div>

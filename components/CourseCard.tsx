@@ -42,7 +42,11 @@ const CourseCard: React.FC<CourseCardProps> = ({ course, onClick }) => {
         <img
           src={course.image}
           alt={course.title}
-          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+          className="w-full h-full object-cover transition-transform duration-500"
+          style={{
+              objectPosition: `${course.imagePositionX ?? 50}% ${course.imagePositionY ?? 50}%`,
+              transform: `scale(${course.imageScale ?? 1})`
+          }}
         />
         <div className="absolute top-4 right-4">
           <span className={`px-3 py-1 rounded-full text-xs font-bold ${getStatusColor(course.status)}`}>
