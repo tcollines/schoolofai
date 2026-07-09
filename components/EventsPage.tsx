@@ -62,53 +62,13 @@ const EventsPage: React.FC<EventsPageProps> = ({ courses = [] }) => {
         const stored = localStorage.getItem('event-rsvps');
         return stored ? JSON.parse(stored) : {};
     });
-    const [timeLeft, setTimeLeft] = useState({ hours: 2, minutes: 42, seconds: 15 });
+    const [secondsLeft, setSecondsLeft] = useState<number | null>(null);
+    const [activeEvent, setActiveEvent] = useState<EventItem | null>(null);
     const [adminEvents, setAdminEvents] = useState<EventItem[]>([]);
     const [selectedEvent, setSelectedEvent] = useState<EventItem | null>(null);
 
     // Filter enrolled courses
     const enrolledCourses = courses.filter(c => c.status === CourseStatus.IN_PROGRESS || c.status === CourseStatus.COMPLETED);
-
-    // Initial seed & fetch admin events, synced with admin console updates
-    useEffect(() => {
-        const updateEvents = () => {
-            const stored = localStorage.getItem('admin-events');
-            let currentAdminList = [];
-            if (!stored) {
-                localStorage.setItem('admin-events', JSON.stringify(defaultAdminEvents));
-                currentAdminList = defaultAdminEvents;
-            } else {
-                currentAdminList = JSON.parse(stored);
-            }
-
-            // Show all admin-published events to students (allows discovery of course events to encourage enrollment)
-            setAdminEvents(currentAdminList);
-        };
-
-        updateEvents();
-        window.addEventListener('admin-events-update', updateEvents);
-        return () => {
-            window.removeEventListener('admin-events-update', updateEvents);
-        };
-    }, [courses]);
-
-    // Simple ticking countdown for the next live workshop
-    useEffect(() => {
-        const timer = setInterval(() => {
-            setTimeLeft(prev => {
-                if (prev.seconds > 0) {
-                    return { ...prev, seconds: prev.seconds - 1 };
-                } else if (prev.minutes > 0) {
-                    return { hours: prev.hours, minutes: prev.minutes - 1, seconds: 59 };
-                } else if (prev.hours > 0) {
-                    return { hours: prev.hours - 1, minutes: 59, seconds: 59 };
-                } else {
-                    return { hours: 2, minutes: 42, seconds: 15 };
-                }
-            });
-        }, 1000);
-        return () => clearInterval(timer);
-    }, []);
 
     // Generate dynamic course meetings for each enrolled course
     const dynamicCourseEvents: EventItem[] = enrolledCourses.flatMap((course, index) => [
@@ -141,6 +101,92 @@ const EventsPage: React.FC<EventsPageProps> = ({ courses = [] }) => {
             meetLink: `https://meet.google.com/wkp-${course.id}ai-edu`
         }
     ]);
+
+    // Initial seed & fetch admin events, synced with admin console updates
+    useEffect(() => {
+        const updateEvents = () => {
+            const stored = localStorage.getItem('admin-events');
+            let currentAdminList = [];
+            if (!stored) {
+                localStorage.setItem('admin-events', JSON.stringify(defaultAdminEvents));
+                currentAdminList = defaultAdminEvents;
+            } else {
+                currentAdminList = JSON.parse(stored);
+            }
+
+            // Show all admin-published events to students (allows discovery of course events to encourage enrollment)
+            setAdminEvents(currentAdminList);
+        };
+
+        updateEvents();
+        window.addEventListener('admin-events-update', updateEvents);
+        return () => {
+            window.removeEventListener('admin-events-update', updateEvents);
+        };
+    }, [courses]);
+
+    // Ticking countdown logic that looks for upcoming events starting within 30 minutes
+    useEffect(() => {
+        const findAndTick = () => {
+            const now = new Date();
+            
+            // Gather all events
+            const allEventsList = [...dynamicCourseEvents, ...adminEvents];
+            
+            // Check if any event is starting in the next 30 minutes
+            let nearest: EventItem | null = null;
+            let minDiffMs = Infinity;
+
+            for (const event of allEventsList) {
+                const timeStr = event.time.split(' - ')[0] || '00:00';
+                // Try parsing standard YYYY-MM-DDTHH:MM
+                const eventDate = new Date(`${event.date}T${timeStr}`);
+                const diffMs = eventDate.getTime() - now.getTime();
+
+                if (diffMs > 0 && diffMs < minDiffMs) {
+                    minDiffMs = diffMs;
+                    nearest = event;
+                }
+            }
+
+            // If there's an event starting within 30 minutes, use it
+            if (nearest && minDiffMs <= 30 * 60 * 1000) {
+                setActiveEvent(nearest);
+                setSecondsLeft(Math.floor(minDiffMs / 1000));
+            } else {
+                // FALLBACK MOCK/DEMO EVENT starting in 12 minutes so the user can see it in action!
+                const demoEvent: EventItem = {
+                    id: 'ev-demo-timer',
+                    title: 'Generative AI Hackathon',
+                    description: 'Build live AI apps using LangChain and Streamlit. Receive developer certificates and connect with top tech recruiters.',
+                    date: now.toISOString().split('T')[0],
+                    time: `${new Date(Date.now() + 12 * 60 * 1000).toTimeString().substring(0, 5)} - 15:00`,
+                    type: 'Workshop' as const,
+                    speaker: 'Dr. Sarah Jenkins, Head of Generative AI Research',
+                    tags: ['LLMs', 'LangChain', 'GenAI'],
+                    courseId: 'global',
+                    attendeeCount: 142,
+                    medium: 'Online' as const,
+                    meetLink: 'https://meet.google.com/zgd-bexr-jfy'
+                };
+                setActiveEvent(demoEvent);
+                setSecondsLeft(12 * 60); // 12 minutes = 720 seconds
+            }
+        };
+
+        findAndTick();
+        const timer = setInterval(() => {
+            setSecondsLeft(prev => {
+                if (prev === null || prev <= 1) {
+                    findAndTick();
+                    return null;
+                }
+                return prev - 1;
+            });
+        }, 1000);
+
+        return () => clearInterval(timer);
+    }, [adminEvents, courses]);
 
     const allEvents = [...dynamicCourseEvents, ...adminEvents];
 
@@ -187,43 +233,47 @@ const EventsPage: React.FC<EventsPageProps> = ({ courses = [] }) => {
                 <div className="absolute bottom-0 left-10 w-48 h-48 bg-welile-purple rounded-full blur-3xl opacity-20"></div>
 
                 <div className="relative z-10 grid md:grid-cols-3 gap-6 items-center">
-                    <div className="md:col-span-2 space-y-3">
+                    <div className={activeEvent && secondsLeft !== null ? "md:col-span-2 space-y-3 text-left" : "md:col-span-3 space-y-3 text-left"}>
                         <span className="text-xs font-bold bg-welile-lime/20 text-welile-lime px-3 py-1 rounded-full uppercase tracking-wider">
-                            Live Masterclass
+                            {activeEvent ? activeEvent.type : 'Next Session'}
                         </span>
                         <h2 className="text-2xl lg:text-3xl font-extrabold tracking-tight">
-                            Generative AI Hackathon
+                            {activeEvent ? activeEvent.title : 'No Session Starting Soon'}
                         </h2>
                         <p className="text-sm text-slate-300 max-w-lg">
-                            Build live AI apps using LangChain and Streamlit. Receive developer certificates and connect with top tech recruiters.
+                            {activeEvent ? activeEvent.description : 'Explore WS&AI classes, workshops, and panels below to upgrade your skills.'}
                         </p>
                     </div>
 
-                    <div className="bg-white/10 backdrop-blur-md rounded-2xl p-4 border border-white/15 text-center space-y-2">
-                        <p className="text-xs uppercase font-semibold text-slate-300 tracking-wider">Starts In</p>
-                        <div className="flex justify-center gap-3 text-lg font-bold font-mono">
-                            <div>
-                                <span className="bg-black/45 px-2 py-1 rounded text-welile-lime">
-                                    {String(timeLeft.hours).padStart(2, '0')}
-                                </span>
-                                <span className="text-[10px] block mt-1 font-sans text-slate-400">Hours</span>
-                            </div>
-                            <span>:</span>
-                            <div>
-                                <span className="bg-black/45 px-2 py-1 rounded text-welile-lime">
-                                    {String(timeLeft.minutes).padStart(2, '0')}
-                                </span>
-                                <span className="text-[10px] block mt-1 font-sans text-slate-400">Min</span>
-                            </div>
-                            <span>:</span>
-                            <div>
-                                <span className="bg-black/45 px-2 py-1 rounded text-welile-lime">
-                                    {String(timeLeft.seconds).padStart(2, '0')}
-                                </span>
-                                <span className="text-[10px] block mt-1 font-sans text-slate-400">Sec</span>
+                    {activeEvent && secondsLeft !== null && (
+                        <div className="bg-white/10 backdrop-blur-md rounded-2xl p-4 border border-white/15 text-center space-y-2">
+                            <p className="text-xs uppercase font-semibold text-slate-300 tracking-wider">
+                                "{activeEvent.title}" starts in now the count down
+                            </p>
+                            <div className="flex justify-center gap-3 text-lg font-bold font-mono">
+                                <div>
+                                    <span className="bg-black/45 px-2 py-1 rounded text-welile-lime">
+                                        {String(Math.floor(secondsLeft / 3600)).padStart(2, '0')}
+                                    </span>
+                                    <span className="text-[10px] block mt-1 font-sans text-slate-400">Hours</span>
+                                </div>
+                                <span>:</span>
+                                <div>
+                                    <span className="bg-black/45 px-2 py-1 rounded text-welile-lime">
+                                        {String(Math.floor((secondsLeft % 3600) / 60)).padStart(2, '0')}
+                                    </span>
+                                    <span className="text-[10px] block mt-1 font-sans text-slate-400">Min</span>
+                                </div>
+                                <span>:</span>
+                                <div>
+                                    <span className="bg-black/45 px-2 py-1 rounded text-welile-lime">
+                                        {String(secondsLeft % 60).padStart(2, '0')}
+                                    </span>
+                                    <span className="text-[10px] block mt-1 font-sans text-slate-400">Sec</span>
+                                </div>
                             </div>
                         </div>
-                    </div>
+                    )}
                 </div>
             </div>
 
