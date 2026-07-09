@@ -277,26 +277,34 @@ const AdminCourses: React.FC = () => {
 
                             {step === 3 && (
                                 <div className="space-y-5 animate-in fade-in slide-in-from-right-4 duration-300 max-w-2xl mx-auto">
-                                    <h3 className="text-lg font-semibold border-b pb-2">Step 3: Access & Pricing</h3>
-                                    <div className="bg-violet-50 border border-violet-100 rounded-xl p-4 mb-4">
-                                        <p className="text-sm text-violet-800">Choose who can access this course. Free courses are available to everyone, while Paid courses require a Premium subscription.</p>
+                                    <h3 className="text-lg font-semibold border-b pb-2 text-gray-900 dark:text-slate-100">Step 3: Access & Pricing</h3>
+                                    <div className="bg-violet-50 dark:bg-violet-950/20 border border-violet-100 dark:border-violet-900/30 rounded-xl p-4 mb-4">
+                                        <p className="text-sm text-violet-800 dark:text-violet-300">Choose who can access this course. Free courses are available to everyone, while Paid courses require a Premium subscription.</p>
                                     </div>
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-3">Access Tier</label>
+                                        <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-3">Access Tier</label>
                                         <div className="grid grid-cols-2 gap-4">
                                             <button 
                                                 onClick={() => setNewCourse({...newCourse, accessTier: 'FREE'})}
-                                                className={`p-4 border-2 rounded-xl text-left transition-all ${newCourse.accessTier === 'FREE' ? 'border-violet-500 bg-violet-50 ring-2 ring-violet-200' : 'border-gray-200 hover:border-violet-300'}`}
+                                                className={`p-4 border-2 rounded-xl text-left transition-all ${
+                                                    newCourse.accessTier === 'FREE' 
+                                                        ? 'border-violet-500 bg-violet-50 dark:bg-violet-950/30 ring-2 ring-violet-200 dark:ring-violet-900/40 text-violet-900 dark:text-violet-200' 
+                                                        : 'border-gray-200 dark:border-slate-800 hover:border-violet-300 dark:hover:border-violet-750 bg-transparent text-gray-900 dark:text-slate-200'
+                                                }`}
                                             >
-                                                <div className="font-bold text-gray-900 mb-1">Free Tier</div>
-                                                <div className="text-xs text-gray-500">Accessible to all registered users</div>
+                                                <div className={`font-bold mb-1 ${newCourse.accessTier === 'FREE' ? 'text-violet-900 dark:text-violet-200' : 'text-gray-900 dark:text-slate-200'}`}>Free Tier</div>
+                                                <div className={`text-xs ${newCourse.accessTier === 'FREE' ? 'text-violet-700 dark:text-violet-300' : 'text-gray-500 dark:text-slate-400'}`}>Accessible to all registered users</div>
                                             </button>
                                             <button 
                                                 onClick={() => setNewCourse({...newCourse, accessTier: 'PAID'})}
-                                                className={`p-4 border-2 rounded-xl text-left transition-all ${newCourse.accessTier === 'PAID' ? 'border-violet-500 bg-violet-50 ring-2 ring-violet-200' : 'border-gray-200 hover:border-violet-300'}`}
+                                                className={`p-4 border-2 rounded-xl text-left transition-all ${
+                                                    newCourse.accessTier === 'PAID' 
+                                                        ? 'border-violet-500 bg-violet-50 dark:bg-violet-950/30 ring-2 ring-violet-200 dark:ring-violet-900/40 text-violet-900 dark:text-violet-200' 
+                                                        : 'border-gray-200 dark:border-slate-800 hover:border-violet-300 dark:hover:border-violet-750 bg-transparent text-gray-900 dark:text-slate-200'
+                                                }`}
                                             >
-                                                <div className="font-bold text-gray-900 mb-1">Premium Tier</div>
-                                                <div className="text-xs text-gray-500">Requires Premium subscription</div>
+                                                <div className={`font-bold mb-1 ${newCourse.accessTier === 'PAID' ? 'text-violet-900 dark:text-violet-200' : 'text-gray-900 dark:text-slate-200'}`}>Premium Tier</div>
+                                                <div className={`text-xs ${newCourse.accessTier === 'PAID' ? 'text-violet-700 dark:text-violet-300' : 'text-gray-500 dark:text-slate-400'}`}>Requires Premium subscription</div>
                                             </button>
                                         </div>
                                     </div>

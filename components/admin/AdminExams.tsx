@@ -124,26 +124,26 @@ const AdminExams: React.FC = () => {
 
                             {step === 2 && (
                                 <div className="space-y-5 animate-in fade-in slide-in-from-right-4 duration-300">
-                                    <h3 className="text-lg font-semibold border-b pb-2">Step 2: Anti-Cheat Rules</h3>
-                                    <div className="bg-orange-50 border border-orange-200 p-4 rounded-xl flex gap-3 text-orange-800">
+                                    <h3 className="text-lg font-semibold border-b pb-2 text-gray-900 dark:text-slate-100">Step 2: Anti-Cheat Rules</h3>
+                                    <div className="bg-orange-50 dark:bg-orange-950/20 border border-orange-200 dark:border-orange-900/30 p-4 rounded-xl flex gap-3 text-orange-800 dark:text-orange-300">
                                         <AlertTriangle size={24} className="shrink-0" />
                                         <div>
                                             <p className="font-bold mb-1">Strict Exam Environment</p>
                                             <p className="text-sm">Enabling strict mode will force the student's browser into full-screen. If they attempt to switch tabs or minimize the window, the exam will automatically submit their current answers immediately.</p>
                                         </div>
                                     </div>
-                                    <div className="flex items-center gap-3 p-4 border border-gray-200 rounded-xl cursor-pointer hover:bg-gray-50" onClick={() => setPreventTabChange(!preventTabChange)}>
-                                        <div className={`w-6 h-6 rounded flex items-center justify-center border ${preventTabChange ? 'bg-violet-600 border-violet-600' : 'border-gray-300'}`}>
+                                    <div className="flex items-center gap-3 p-4 border border-gray-200 dark:border-slate-800 rounded-xl cursor-pointer hover:bg-gray-50 dark:hover:bg-slate-800 text-gray-900 dark:text-slate-200" onClick={() => setPreventTabChange(!preventTabChange)}>
+                                        <div className={`w-6 h-6 rounded flex items-center justify-center border ${preventTabChange ? 'bg-violet-600 border-violet-600' : 'border-gray-300 dark:border-slate-600'}`}>
                                             {preventTabChange && <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>}
                                         </div>
                                         <div>
-                                            <p className="font-medium">Enable Fullscreen & Auto-Submit on Tab Change</p>
-                                            <p className="text-xs text-gray-500">Highly recommended for certification exams.</p>
+                                            <p className="font-medium text-gray-950 dark:text-slate-200">Enable Fullscreen & Auto-Submit on Tab Change</p>
+                                            <p className="text-xs text-gray-500 dark:text-slate-400">Highly recommended for certification exams.</p>
                                         </div>
                                     </div>
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">Time Limit (Minutes)</label>
-                                        <input type="number" value={timeLimit} onChange={e => setTimeLimit(Number(e.target.value))} className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-violet-500 outline-none transition-all" />
+                                        <label className="block text-sm font-medium text-gray-700 dark:text-slate-350 mb-1">Time Limit (Minutes)</label>
+                                        <input type="number" value={timeLimit} onChange={e => setTimeLimit(Number(e.target.value))} className="w-full p-3 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-750 text-gray-900 dark:text-white rounded-xl focus:ring-2 focus:ring-violet-500 outline-none transition-all" />
                                     </div>
                                 </div>
                             )}
