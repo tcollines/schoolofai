@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Calendar, Plus, Trash2, MapPin, Video, Users, Clock, Send, X } from 'lucide-react';
+import { Calendar, Plus, Trash2, MapPin, Video, Users, Clock, Send, X, Edit } from 'lucide-react';
 import { useAdmin } from '../../src/hooks/useAdmin';
 
 interface EventItem {
@@ -53,6 +53,7 @@ const AdminEvents: React.FC = () => {
     const { courses } = useAdmin();
     const [events, setEvents] = useState<EventItem[]>([]);
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [editingEvent, setEditingEvent] = useState<EventItem | null>(null);
 
     // Form states
     const [title, setTitle] = useState('');
@@ -65,6 +66,36 @@ const AdminEvents: React.FC = () => {
     const [medium, setMedium] = useState<'Online' | 'Physical'>('Online');
     const [meetLink, setMeetLink] = useState('');
     const [location, setLocation] = useState('');
+
+    const openCreateModal = () => {
+        setEditingEvent(null);
+        setTitle('');
+        setDescription('');
+        setDate('');
+        setTime('');
+        setType('Workshop');
+        setSpeaker('Admin Team');
+        setCourseId('global');
+        setMedium('Online');
+        setMeetLink('');
+        setLocation('');
+        setIsModalOpen(true);
+    };
+
+    const openEditModal = (event: EventItem) => {
+        setEditingEvent(event);
+        setTitle(event.title);
+        setDescription(event.description);
+        setDate(event.date);
+        setTime(event.time);
+        setType(event.type as any);
+        setSpeaker(event.speaker);
+        setCourseId(event.courseId);
+        setMedium(event.medium || 'Online');
+        setMeetLink(event.meetLink || '');
+        setLocation(event.location || '');
+        setIsModalOpen(true);
+    };
 
     useEffect(() => {
         const loadEvents = () => {
@@ -92,7 +123,7 @@ const AdminEvents: React.FC = () => {
         window.dispatchEvent(new Event('admin-events-update'));
     };
 
-    const handleCreate = (e: React.FormEvent) => {
+    const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         if (!title || !description || !date || !time) {
             alert('Please fill out all fields.');
@@ -115,23 +146,41 @@ const AdminEvents: React.FC = () => {
             }
         }
 
-        const newEvent: EventItem = {
-            id: 'admin-' + Date.now(),
-            title,
-            description,
-            date,
-            time,
-            type,
-            speaker,
-            courseId,
-            attendeeCount: 0,
-            medium,
-            meetLink: medium === 'Online' ? meetLink : undefined,
-            location: medium === 'Physical' ? location : undefined,
-            tags: courseId === 'global' ? ['Global'] : [courses.find(c => c.id === courseId)?.title || 'Course']
-        };
+        let updated: EventItem[];
+        if (editingEvent) {
+            updated = events.map(e => e.id === editingEvent.id ? {
+                ...e,
+                title,
+                description,
+                date,
+                time,
+                type,
+                speaker,
+                courseId,
+                medium,
+                meetLink: medium === 'Online' ? meetLink : undefined,
+                location: medium === 'Physical' ? location : undefined,
+                tags: courseId === 'global' ? ['Global'] : [courses.find(c => c.id === courseId)?.title || 'Course']
+            } : e);
+        } else {
+            const newEvent: EventItem = {
+                id: 'admin-' + Date.now(),
+                title,
+                description,
+                date,
+                time,
+                type,
+                speaker,
+                courseId,
+                attendeeCount: 0,
+                medium,
+                meetLink: medium === 'Online' ? meetLink : undefined,
+                location: medium === 'Physical' ? location : undefined,
+                tags: courseId === 'global' ? ['Global'] : [courses.find(c => c.id === courseId)?.title || 'Course']
+            };
+            updated = [newEvent, ...events];
+        }
 
-        const updated = [newEvent, ...events];
         setEvents(updated);
         localStorage.setItem('admin-events', JSON.stringify(updated));
         window.dispatchEvent(new Event('admin-events-update'));
@@ -141,7 +190,7 @@ const AdminEvents: React.FC = () => {
         const notifList = storedNotifs ? JSON.parse(storedNotifs) : [];
         const newNotif = {
             id: Date.now().toString(),
-            title: `New Event: ${title}`,
+            title: editingEvent ? `Event Updated: ${title}` : `New Event: ${title}`,
             description: description,
             timestamp: new Date().toISOString(),
             read: false,
@@ -152,6 +201,7 @@ const AdminEvents: React.FC = () => {
 
         // Reset
         setIsModalOpen(false);
+        setEditingEvent(null);
         setTitle('');
         setDescription('');
         setDate('');
@@ -171,7 +221,7 @@ const AdminEvents: React.FC = () => {
                     <p className="text-sm text-gray-500 dark:text-slate-400 mt-1">Manage and publish live events or workshops for students</p>
                 </div>
                 <button
-                    onClick={() => setIsModalOpen(true)}
+                    onClick={openCreateModal}
                     className="flex items-center gap-2 bg-violet-600 hover:bg-violet-700 text-white px-4 py-2.5 rounded-xl font-medium text-sm transition-colors cursor-pointer shadow-md shadow-violet-200 dark:shadow-none"
                 >
                     <Plus size={16} /> Add Event
@@ -186,13 +236,22 @@ const AdminEvents: React.FC = () => {
                 ) : (
                     events.map(event => (
                         <div key={event.id} className="bg-white dark:bg-slate-900 p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-slate-800 flex flex-col justify-between transition-colors relative group">
-                            <button
-                                onClick={() => handleDelete(event.id)}
-                                className="absolute top-4 right-4 text-gray-400 hover:text-red-500 p-1.5 hover:bg-red-50 dark:hover:bg-red-950/20 rounded-lg transition-colors cursor-pointer border-0 bg-transparent"
-                                title="Delete Event"
-                            >
-                                <Trash2 size={16} />
-                            </button>
+                            <div className="absolute top-4 right-4 flex gap-1 z-10">
+                                <button
+                                    onClick={() => openEditModal(event)}
+                                    className="text-gray-400 hover:text-violet-600 p-1.5 hover:bg-violet-50 dark:hover:bg-violet-950/20 rounded-lg transition-colors cursor-pointer border-0 bg-transparent"
+                                    title="Edit Event"
+                                >
+                                    <Edit size={16} />
+                                </button>
+                                <button
+                                    onClick={() => handleDelete(event.id)}
+                                    className="text-gray-400 hover:text-red-500 p-1.5 hover:bg-red-50 dark:hover:bg-red-950/20 rounded-lg transition-colors cursor-pointer border-0 bg-transparent"
+                                    title="Delete Event"
+                                >
+                                    <Trash2 size={16} />
+                                </button>
+                            </div>
 
                             <div>
                                 <div className="flex items-center gap-2 mb-3">
@@ -253,20 +312,20 @@ const AdminEvents: React.FC = () => {
                 )}
             </div>
 
-            {/* Create Event Modal */}
+            {/* Create / Edit Event Modal */}
             {isModalOpen && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
                     <div className="bg-white dark:bg-slate-900 rounded-3xl w-full max-w-lg overflow-hidden shadow-2xl flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-200">
                         <div className="p-6 border-b border-gray-100 dark:border-slate-800 flex justify-between items-center">
                             <h3 className="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2">
-                                <Calendar size={20} className="text-violet-600" /> Create New Event
+                                <Calendar size={20} className="text-violet-600" /> {editingEvent ? 'Edit Scheduled Event' : 'Create New Event'}
                             </h3>
                             <button onClick={() => setIsModalOpen(false)} className="text-gray-400 hover:text-gray-600 dark:hover:text-slate-200 cursor-pointer border-0 bg-transparent">
                                 <X size={20} />
                             </button>
                         </div>
 
-                        <form onSubmit={handleCreate} className="p-6 overflow-y-auto space-y-4 text-left">
+                        <form onSubmit={handleSubmit} className="p-6 overflow-y-auto space-y-4 text-left">
                             <div className="grid grid-cols-2 gap-4">
                                 <div className="space-y-1">
                                     <label className="text-xs font-semibold text-gray-600 dark:text-slate-400">Event Type</label>
@@ -402,7 +461,7 @@ const AdminEvents: React.FC = () => {
                                     type="submit"
                                     className="px-5 py-2 bg-violet-600 hover:bg-violet-750 text-white rounded-xl text-sm font-semibold transition-colors flex items-center gap-2 cursor-pointer shadow-md shadow-violet-200 dark:shadow-none"
                                 >
-                                    <Send size={14} /> Schedule Event
+                                    <Send size={14} /> {editingEvent ? 'Save Changes' : 'Schedule Event'}
                                 </button>
                             </div>
                         </form>
