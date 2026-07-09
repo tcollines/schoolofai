@@ -67,6 +67,7 @@ const AdminOverview: React.FC = () => {
         const stored = localStorage.getItem('admin-events');
         const list = stored ? JSON.parse(stored) : [];
         localStorage.setItem('admin-events', JSON.stringify([newEvent, ...list]));
+        window.dispatchEvent(new Event('admin-events-update'));
 
         // Add to portal notifications
         const storedNotifs = localStorage.getItem('portal-notifications');

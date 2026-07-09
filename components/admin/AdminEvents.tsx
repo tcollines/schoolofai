@@ -66,13 +66,21 @@ const AdminEvents: React.FC = () => {
     const [location, setLocation] = useState('');
 
     useEffect(() => {
-        const stored = localStorage.getItem('admin-events');
-        if (!stored) {
-            localStorage.setItem('admin-events', JSON.stringify(defaultAdminEvents));
-            setEvents(defaultAdminEvents as any);
-        } else {
-            setEvents(JSON.parse(stored));
-        }
+        const loadEvents = () => {
+            const stored = localStorage.getItem('admin-events');
+            if (!stored) {
+                localStorage.setItem('admin-events', JSON.stringify(defaultAdminEvents));
+                setEvents(defaultAdminEvents as any);
+            } else {
+                setEvents(JSON.parse(stored));
+            }
+        };
+
+        loadEvents();
+        window.addEventListener('admin-events-update', loadEvents);
+        return () => {
+            window.removeEventListener('admin-events-update', loadEvents);
+        };
     }, []);
 
     const handleDelete = (id: string) => {
@@ -80,6 +88,7 @@ const AdminEvents: React.FC = () => {
         const updated = events.filter(e => e.id !== id);
         setEvents(updated);
         localStorage.setItem('admin-events', JSON.stringify(updated));
+        window.dispatchEvent(new Event('admin-events-update'));
     };
 
     const handleCreate = (e: React.FormEvent) => {
@@ -123,6 +132,7 @@ const AdminEvents: React.FC = () => {
         const updated = [newEvent, ...events];
         setEvents(updated);
         localStorage.setItem('admin-events', JSON.stringify(updated));
+        window.dispatchEvent(new Event('admin-events-update'));
 
         // Trigger notification
         const storedNotifs = localStorage.getItem('portal-notifications');

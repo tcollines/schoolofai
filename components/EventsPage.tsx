@@ -68,23 +68,31 @@ const EventsPage: React.FC<EventsPageProps> = ({ courses = [] }) => {
     // Filter enrolled courses
     const enrolledCourses = courses.filter(c => c.status === CourseStatus.IN_PROGRESS || c.status === CourseStatus.COMPLETED);
 
-    // Initial seed & fetch admin events
+    // Initial seed & fetch admin events, synced with admin console updates
     useEffect(() => {
-        const stored = localStorage.getItem('admin-events');
-        let currentAdminList = [];
-        if (!stored) {
-            localStorage.setItem('admin-events', JSON.stringify(defaultAdminEvents));
-            currentAdminList = defaultAdminEvents;
-        } else {
-            currentAdminList = JSON.parse(stored);
-        }
+        const updateEvents = () => {
+            const stored = localStorage.getItem('admin-events');
+            let currentAdminList = [];
+            if (!stored) {
+                localStorage.setItem('admin-events', JSON.stringify(defaultAdminEvents));
+                currentAdminList = defaultAdminEvents;
+            } else {
+                currentAdminList = JSON.parse(stored);
+            }
 
-        // Filter: only show global admin events OR if student is enrolled in that specific course
-        const enrolledIds = enrolledCourses.map(c => c.id);
-        const filtered = currentAdminList.filter((e: any) => 
-            e.courseId === 'global' || enrolledIds.includes(e.courseId)
-        );
-        setAdminEvents(filtered);
+            // Filter: only show global admin events OR if student is enrolled in that specific course
+            const enrolledIds = enrolledCourses.map(c => c.id);
+            const filtered = currentAdminList.filter((e: any) => 
+                e.courseId === 'global' || enrolledIds.includes(e.courseId)
+            );
+            setAdminEvents(filtered);
+        };
+
+        updateEvents();
+        window.addEventListener('admin-events-update', updateEvents);
+        return () => {
+            window.removeEventListener('admin-events-update', updateEvents);
+        };
     }, [courses]);
 
     // Simple ticking countdown for the next live workshop
