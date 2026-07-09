@@ -70,10 +70,18 @@ export const useCourses = (userId: string | undefined) => {
             }
         };
 
+        const handleStorageChange = (e: StorageEvent) => {
+            if (e.key === 'welile_local_db') {
+                fetchCourses();
+            }
+        };
+
         fetchCourses();
         window.addEventListener('courses-update', fetchCourses);
+        window.addEventListener('storage', handleStorageChange);
         return () => {
             window.removeEventListener('courses-update', fetchCourses);
+            window.removeEventListener('storage', handleStorageChange);
         };
     }, [userId]);
 

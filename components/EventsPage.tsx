@@ -139,10 +139,18 @@ const EventsPage: React.FC<EventsPageProps> = ({ courses = [] }) => {
             setAdminEvents(currentAdminList);
         };
 
+        const handleStorageChange = (e: StorageEvent) => {
+            if (e.key === 'admin-events') {
+                updateEvents();
+            }
+        };
+
         updateEvents();
         window.addEventListener('admin-events-update', updateEvents);
+        window.addEventListener('storage', handleStorageChange);
         return () => {
             window.removeEventListener('admin-events-update', updateEvents);
+            window.removeEventListener('storage', handleStorageChange);
         };
     }, [courses]);
 
