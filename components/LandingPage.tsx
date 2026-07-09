@@ -192,21 +192,21 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLoginClick, onSignupClick, 
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
                         {/* Basic */}
                         <div className="bg-white rounded-2xl p-8 border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
-                            <h3 className="text-lg font-semibold text-gray-900 mb-2">Basic</h3>
-                            <div className="text-4xl font-bold text-gray-900 mb-4">$0 <span className="text-sm font-medium text-gray-500">/mo</span></div>
-                            <p className="text-gray-500 mb-6 text-sm">Perfect for exploring new topics.</p>
+                            <h3 className="text-xl font-bold text-gray-900 mb-2">Basic</h3>
+                            <div className="text-4xl font-bold text-gray-900 mb-4">Free<span className="text-sm font-medium text-gray-500">/forever</span></div>
+                            <p className="text-gray-500 mb-6 text-sm">Perfect for exploring new topics and getting started.</p>
                             <ul className="space-y-4 mb-8">
                                 <li className="flex items-start text-sm text-gray-600">
                                     <CheckCircle2 className="w-5 h-5 text-green-500 mr-2 shrink-0" />
-                                    Unlimited AI Generated Syllabi
-                                </li>
-                                <li className="flex items-start text-sm text-gray-600">
-                                    <CheckCircle2 className="w-5 h-5 text-green-500 mr-2 shrink-0" />
-                                    Access Introduction Modules
+                                    Access to <strong>Introduction</strong> modules
                                 </li>
                                 <li className="flex items-start text-sm text-gray-400">
-                                    <span className="w-5 h-5 mr-2 block"></span>
-                                    Advanced Modules Locked
+                                    <span className="w-5 h-5 mr-2 border border-gray-305 rounded-full block shrink-0"></span>
+                                    Fundamentals modules
+                                </li>
+                                <li className="flex items-start text-sm text-gray-400">
+                                    <span className="w-5 h-5 mr-2 border border-gray-305 rounded-full block shrink-0"></span>
+                                    Advanced Application modules
                                 </li>
                             </ul>
                             <button
@@ -220,56 +220,60 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLoginClick, onSignupClick, 
                         {/* Plus */}
                         <div className="bg-white rounded-2xl p-8 border-2 border-violet-600 shadow-xl relative transform md:-translate-y-4">
                             <div className="absolute top-0 right-0 bg-violet-600 text-white text-xs font-bold px-3 py-1 rounded-bl-xl rounded-tr-lg">POPULAR</div>
-                            <h3 className="text-lg font-semibold text-gray-900 mb-2">Pro</h3>
-                            <div className="text-4xl font-bold text-gray-900 mb-4">$100 <span className="text-sm font-medium text-gray-500">/mo</span></div>
-                            <p className="text-gray-500 mb-6 text-sm">For serious learners.</p>
+                            <h3 className="text-xl font-bold text-gray-900 mb-2">Plus</h3>
+                            <div className="text-4xl font-bold text-gray-900 mb-4">$19 <span className="text-sm font-medium text-gray-500">/mo</span></div>
+                            <p className="text-gray-500 mb-6 text-sm">Deepen your knowledge with core concepts and theory.</p>
                             <ul className="space-y-4 mb-8">
                                 <li className="flex items-start text-sm text-gray-600">
-                                    <CheckCircle2 className="w-5 h-5 text-violet-600 mr-2 shrink-0" />
-                                    Everything in Basic
+                                    <CheckCircle2 className="w-5 h-5 text-green-500 mr-2 shrink-0" />
+                                    Access to <strong>Introduction</strong> modules
                                 </li>
                                 <li className="flex items-start text-sm text-gray-600">
-                                    <CheckCircle2 className="w-5 h-5 text-violet-600 mr-2 shrink-0" />
-                                    Unlimited Course Generation
+                                    <CheckCircle2 className="w-5 h-5 text-green-500 mr-2 shrink-0" />
+                                    Access to <strong>Fundamentals</strong> modules
                                 </li>
-                                <li className="flex items-start text-sm text-gray-600">
-                                    <CheckCircle2 className="w-5 h-5 text-violet-600 mr-2 shrink-0" />
-                                    Access ALL Modules (Intro + Advanced)
-                                </li>
-                                <li className="flex items-start text-sm text-gray-600">
-                                    <CheckCircle2 className="w-5 h-5 text-violet-600 mr-2 shrink-0" />
-                                    AI Chat Tutor (Unlimited)
+                                <li className="flex items-start text-sm text-gray-400">
+                                    <span className="w-5 h-5 mr-2 border border-gray-305 rounded-full block shrink-0"></span>
+                                    Advanced Application modules
                                 </li>
                             </ul>
                             <button
                                 onClick={onSignupClick || onGetStarted}
-                                className="w-full py-3 bg-violet-600 text-white rounded-xl font-medium hover:bg-violet-700 transition-colors shadow-lg shadow-violet-200"
+                                className="w-full py-3 bg-violet-600 text-white rounded-xl font-medium hover:bg-violet-750 transition-colors shadow-lg shadow-violet-200"
                             >
-                                Start Free Trial
+                                Get Started
                             </button>
                         </div>
 
-                        {/* Enterprise */}
-                        <div className="bg-white rounded-2xl p-8 border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
-                            <h3 className="text-lg font-semibold text-gray-900 mb-2">Sponsors</h3>
-                            <div className="text-4xl font-bold text-gray-900 mb-4">Custom</div>
-                            <p className="text-gray-500 mb-6 text-sm">For schools and organizations.</p>
+                        {/* Pro */}
+                        <div className="bg-gray-900 text-white rounded-2xl p-8 border border-gray-800 shadow-xl relative overflow-hidden">
+                            <div className="absolute top-0 right-0 w-32 h-32 bg-purple-500 blur-3xl opacity-20 -mr-16 -mt-16"></div>
+                            <h3 className="text-xl font-bold text-white mb-2">Pro</h3>
+                            <div className="text-4xl font-bold text-white mb-4">$100 <span className="text-sm font-medium text-gray-400">/mo</span></div>
+                            <p className="text-gray-400 mb-6 text-sm">Master every subject with unlimited access to everything.</p>
                             <ul className="space-y-4 mb-8">
-                                <li className="flex items-start text-sm text-gray-600">
-                                    <CheckCircle2 className="w-5 h-5 text-green-500 mr-2 shrink-0" />
-                                    Full Organization Access
+                                <li className="flex items-start text-sm text-gray-300">
+                                    <CheckCircle2 className="w-5 h-5 text-violet-400 mr-2 shrink-0" />
+                                    Access to <strong>Introduction</strong> modules
                                 </li>
-                                <li className="flex items-start text-sm text-gray-600">
-                                    <CheckCircle2 className="w-5 h-5 text-green-500 mr-2 shrink-0" />
-                                    Custom Learning Paths
+                                <li className="flex items-start text-sm text-gray-300">
+                                    <CheckCircle2 className="w-5 h-5 text-violet-400 mr-2 shrink-0" />
+                                    Access to <strong>Fundamentals</strong> modules
                                 </li>
-                                <li className="flex items-start text-sm text-gray-600">
-                                    <CheckCircle2 className="w-5 h-5 text-green-500 mr-2 shrink-0" />
-                                    Reporting & Analytics
+                                <li className="flex items-start text-sm text-gray-300">
+                                    <CheckCircle2 className="w-5 h-5 text-violet-400 mr-2 shrink-0" />
+                                    Access to <strong>All</strong> modules
+                                </li>
+                                <li className="flex items-start text-sm text-amber-400 font-bold">
+                                    <Sparkles className="w-5 h-5 mr-2 shrink-0 text-amber-400" />
+                                    Unlimited AI Tutor Support
                                 </li>
                             </ul>
-                            <button className="w-full py-3 border border-gray-200 rounded-xl font-medium text-gray-700 hover:bg-gray-50 transition-colors">
-                                Contact Sales
+                            <button
+                                onClick={onSignupClick || onGetStarted}
+                                className="w-full py-3 bg-gradient-to-r from-violet-650 to-indigo-600 text-white rounded-xl font-medium hover:from-violet-750 hover:to-indigo-700 transition-colors shadow-lg shadow-indigo-900/30"
+                            >
+                                Get Started
                             </button>
                         </div>
                     </div>
