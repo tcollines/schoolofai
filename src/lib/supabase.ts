@@ -165,7 +165,9 @@ class QueryBuilder {
     }
 
     select(columns?: string) {
-        this.pendingOperation = 'select';
+        if (!this.pendingOperation) {
+            this.pendingOperation = 'select';
+        }
         return this;
     }
 
