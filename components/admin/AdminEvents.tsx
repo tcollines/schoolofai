@@ -247,9 +247,6 @@ const AdminEvents: React.FC = () => {
                                 <span className="text-gray-400 dark:text-slate-500">
                                     Target Group: <strong className="text-gray-600 dark:text-slate-300 capitalize">{event.courseId === 'global' ? 'Global' : 'Course specific'}</strong>
                                 </span>
-                                <span className="font-semibold text-violet-600 dark:text-violet-400 bg-violet-50 dark:bg-violet-950/20 px-2 py-1 rounded-md">
-                                    {event.attendeeCount} RSVPs
-                                </span>
                             </div>
                         </div>
                     ))
