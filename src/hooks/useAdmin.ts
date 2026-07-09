@@ -73,6 +73,7 @@ export const useAdmin = (isAdmin: boolean) => {
 
     const addCourse = async (courseData: Partial<Course>) => {
         try {
+            const totalLessons = courseData.sections?.reduce((sum, section) => sum + (section.lessons?.length || 0), 0) || 0;
             const { data, error } = await supabase.from('courses').insert([
                 {
                     title: courseData.title,
@@ -83,12 +84,14 @@ export const useAdmin = (isAdmin: boolean) => {
                     image_url: courseData.image,
                     modules: courseData.sections, // Save sections to modules JSONB
                     description: courseData.description,
-                    outcomes: courseData.outcomes
+                    outcomes: courseData.outcomes,
+                    lessons_total: totalLessons
                 }
             ]).select().single();
 
             if (error) throw new Error(error.message || JSON.stringify(error));
             await fetchData(true); // Refresh silently
+            window.dispatchEvent(new Event('courses-update'));
             return data;
         } catch (err: any) {
             console.error('Error adding course:', err);
@@ -98,6 +101,7 @@ export const useAdmin = (isAdmin: boolean) => {
 
     const updateCourse = async (courseId: string, courseData: Partial<Course>) => {
         try {
+            const totalLessons = courseData.sections?.reduce((sum, section) => sum + (section.lessons?.length || 0), 0) || 0;
             const { data, error } = await supabase
                 .from('courses')
                 .update({
@@ -109,13 +113,15 @@ export const useAdmin = (isAdmin: boolean) => {
                     image_url: courseData.image,
                     modules: courseData.sections,
                     description: courseData.description,
-                    outcomes: courseData.outcomes
+                    outcomes: courseData.outcomes,
+                    lessons_total: totalLessons
                 })
                 .eq('id', courseId)
                 .select().single();
 
             if (error) throw new Error(error.message || JSON.stringify(error));
             await fetchData(true); // Refresh silently
+            window.dispatchEvent(new Event('courses-update'));
             return data;
         } catch (err: any) {
             console.error('Error updating course:', err);
@@ -139,7 +145,7 @@ export const useAdmin = (isAdmin: boolean) => {
 
             if (error) throw error;
             await fetchData(true); // Refresh silently
-            return data;
+            window.dispatchEvent(new Event('courses-update'));
         } catch (err: any) {
             console.error('Error deleting course:', err);
             throw err;

@@ -71,6 +71,10 @@ export const useCourses = (userId: string | undefined) => {
         };
 
         fetchCourses();
+        window.addEventListener('courses-update', fetchCourses);
+        return () => {
+            window.removeEventListener('courses-update', fetchCourses);
+        };
     }, [userId]);
 
     return { courses, loading, error };
