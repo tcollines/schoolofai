@@ -19,6 +19,7 @@ const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, isOpen, onCl
     { id: 'dashboard', label: t('dashboard'), icon: LayoutDashboard },
     { id: 'discover', label: t('discover'), icon: Compass },
     { id: 'courses', label: t('my_courses'), icon: BookOpen },
+    { id: 'discussions', label: t('discussions') || 'Class Discussion Groups', icon: MessageSquare },
     { id: 'events', label: t('events') || 'Upcoming Events', icon: Calendar },
     { id: 'career', label: t('career_growth'), icon: Briefcase },
     { id: 'profile', label: t('my_profile'), icon: User },
