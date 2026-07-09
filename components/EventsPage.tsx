@@ -62,8 +62,8 @@ const EventsPage: React.FC<EventsPageProps> = ({ courses = [] }) => {
         const stored = localStorage.getItem('event-rsvps');
         return stored ? JSON.parse(stored) : {};
     });
-    const [secondsLeft, setSecondsLeft] = useState<number | null>(null);
-    const [activeEvent, setActiveEvent] = useState<EventItem | null>(null);
+    const [timeLeft, setTimeLeft] = useState({ hours: 0, minutes: 0, seconds: 0 });
+    const [imminentEvent, setImminentEvent] = useState<EventItem | null>(null);
     const [adminEvents, setAdminEvents] = useState<EventItem[]>([]);
     const [selectedEvent, setSelectedEvent] = useState<EventItem | null>(null);
 
@@ -102,6 +102,25 @@ const EventsPage: React.FC<EventsPageProps> = ({ courses = [] }) => {
         }
     ]);
 
+    const adminEventsList = adminEvents;
+    const allEvents = [...dynamicCourseEvents, ...adminEventsList];
+
+    const getMsToEvent = (event: EventItem) => {
+        try {
+            const timePart = event.time.trim().split(' ')[0]; // "14:00"
+            const [hours, minutes] = timePart.split(':').map(Number);
+            if (isNaN(hours) || isNaN(minutes)) return null;
+            
+            const [year, month, day] = event.date.split('-').map(Number);
+            if (isNaN(year) || isNaN(month) || isNaN(day)) return null;
+            
+            const eventDate = new Date(year, month - 1, day, hours, minutes, 0, 0);
+            return eventDate.getTime() - Date.now();
+        } catch (e) {
+            return null;
+        }
+    };
+
     // Initial seed & fetch admin events, synced with admin console updates
     useEffect(() => {
         const updateEvents = () => {
@@ -125,70 +144,39 @@ const EventsPage: React.FC<EventsPageProps> = ({ courses = [] }) => {
         };
     }, [courses]);
 
-    // Ticking countdown logic that looks for upcoming events starting within 30 minutes
+    // Active ticking countdown for the next live workshop if <= 30 mins away
     useEffect(() => {
-        const findAndTick = () => {
-            const now = new Date();
+        const checkTimer = () => {
+            let imminent = null;
+            let minDiff = Infinity;
             
-            // Gather all events
-            const allEventsList = [...dynamicCourseEvents, ...adminEvents];
-            
-            // Check if any event is starting in the next 30 minutes
-            let nearest: EventItem | null = null;
-            let minDiffMs = Infinity;
-
-            for (const event of allEventsList) {
-                const timeStr = event.time.split(' - ')[0] || '00:00';
-                // Try parsing standard YYYY-MM-DDTHH:MM
-                const eventDate = new Date(`${event.date}T${timeStr}`);
-                const diffMs = eventDate.getTime() - now.getTime();
-
-                if (diffMs > 0 && diffMs < minDiffMs) {
-                    minDiffMs = diffMs;
-                    nearest = event;
+            for (const event of allEvents) {
+                const diff = getMsToEvent(event);
+                if (diff !== null && diff > 0 && diff <= 30 * 60 * 1000) {
+                    if (diff < minDiff) {
+                        minDiff = diff;
+                        imminent = event;
+                    }
                 }
             }
 
-            // If there's an event starting within 30 minutes, use it
-            if (nearest && minDiffMs <= 30 * 60 * 1000) {
-                setActiveEvent(nearest);
-                setSecondsLeft(Math.floor(minDiffMs / 1000));
+            if (imminent) {
+                const totalSecs = Math.floor(minDiff / 1000);
+                const hrs = Math.floor(totalSecs / 3600);
+                const mins = Math.floor((totalSecs % 3600) / 60);
+                const secs = totalSecs % 60;
+                
+                setTimeLeft({ hours: hrs, minutes: mins, seconds: secs });
+                setImminentEvent(imminent);
             } else {
-                // FALLBACK MOCK/DEMO EVENT starting in 12 minutes so the user can see it in action!
-                const demoEvent: EventItem = {
-                    id: 'ev-demo-timer',
-                    title: 'Generative AI Hackathon',
-                    description: 'Build live AI apps using LangChain and Streamlit. Receive developer certificates and connect with top tech recruiters.',
-                    date: now.toISOString().split('T')[0],
-                    time: `${new Date(Date.now() + 12 * 60 * 1000).toTimeString().substring(0, 5)} - 15:00`,
-                    type: 'Workshop' as const,
-                    speaker: 'Dr. Sarah Jenkins, Head of Generative AI Research',
-                    tags: ['LLMs', 'LangChain', 'GenAI'],
-                    courseId: 'global',
-                    attendeeCount: 142,
-                    medium: 'Online' as const,
-                    meetLink: 'https://meet.google.com/zgd-bexr-jfy'
-                };
-                setActiveEvent(demoEvent);
-                setSecondsLeft(12 * 60); // 12 minutes = 720 seconds
+                setImminentEvent(null);
             }
         };
 
-        findAndTick();
-        const timer = setInterval(() => {
-            setSecondsLeft(prev => {
-                if (prev === null || prev <= 1) {
-                    findAndTick();
-                    return null;
-                }
-                return prev - 1;
-            });
-        }, 1000);
-
+        checkTimer();
+        const timer = setInterval(checkTimer, 1000);
         return () => clearInterval(timer);
-    }, [adminEvents, courses]);
-
-    const allEvents = [...dynamicCourseEvents, ...adminEvents];
+    }, [allEvents]);
 
     const handleRSVP = (eventId: string) => {
         setRsvps(prev => ({ ...prev, [eventId]: 'loading' }));
@@ -233,45 +221,51 @@ const EventsPage: React.FC<EventsPageProps> = ({ courses = [] }) => {
                 <div className="absolute bottom-0 left-10 w-48 h-48 bg-welile-purple rounded-full blur-3xl opacity-20"></div>
 
                 <div className="relative z-10 grid md:grid-cols-3 gap-6 items-center">
-                    <div className={activeEvent && secondsLeft !== null ? "md:col-span-2 space-y-3 text-left" : "md:col-span-3 space-y-3 text-left"}>
+                    <div className="md:col-span-2 space-y-3 text-left">
                         <span className="text-xs font-bold bg-welile-lime/20 text-welile-lime px-3 py-1 rounded-full uppercase tracking-wider">
-                            {activeEvent ? activeEvent.type : 'Next Session'}
+                            {imminentEvent ? 'Imminent Live Session' : 'Live Masterclass'}
                         </span>
                         <h2 className="text-2xl lg:text-3xl font-extrabold tracking-tight">
-                            {activeEvent ? activeEvent.title : 'No Session Starting Soon'}
+                            {imminentEvent ? imminentEvent.title : 'Generative AI Hackathon'}
                         </h2>
                         <p className="text-sm text-slate-300 max-w-lg">
-                            {activeEvent ? activeEvent.description : 'Explore WS&AI classes, workshops, and panels below to upgrade your skills.'}
+                            {imminentEvent ? imminentEvent.description : 'Build live AI apps using LangChain and Streamlit. Receive developer certificates and connect with top tech recruiters.'}
                         </p>
                     </div>
 
-                    {activeEvent && secondsLeft !== null && (
+                    {imminentEvent ? (
                         <div className="bg-white/10 backdrop-blur-md rounded-2xl p-4 border border-white/15 text-center space-y-2">
-                            <p className="text-xs uppercase font-semibold text-slate-300 tracking-wider">
-                                "{activeEvent.title}" starts in now the count down
+                            <p className="text-[10px] uppercase font-bold text-slate-200 tracking-wider line-clamp-2 max-w-[200px] mx-auto">
+                                "{imminentEvent.title}" starts in
                             </p>
                             <div className="flex justify-center gap-3 text-lg font-bold font-mono">
                                 <div>
                                     <span className="bg-black/45 px-2 py-1 rounded text-welile-lime">
-                                        {String(Math.floor(secondsLeft / 3600)).padStart(2, '0')}
+                                        {String(timeLeft.hours).padStart(2, '0')}
                                     </span>
                                     <span className="text-[10px] block mt-1 font-sans text-slate-400">Hours</span>
                                 </div>
                                 <span>:</span>
                                 <div>
                                     <span className="bg-black/45 px-2 py-1 rounded text-welile-lime">
-                                        {String(Math.floor((secondsLeft % 3600) / 60)).padStart(2, '0')}
+                                        {String(timeLeft.minutes).padStart(2, '0')}
                                     </span>
                                     <span className="text-[10px] block mt-1 font-sans text-slate-400">Min</span>
                                 </div>
                                 <span>:</span>
                                 <div>
                                     <span className="bg-black/45 px-2 py-1 rounded text-welile-lime">
-                                        {String(secondsLeft % 60).padStart(2, '0')}
+                                        {String(timeLeft.seconds).padStart(2, '0')}
                                     </span>
                                     <span className="text-[10px] block mt-1 font-sans text-slate-400">Sec</span>
                                 </div>
                             </div>
+                        </div>
+                    ) : (
+                        <div className="bg-white/10 backdrop-blur-md rounded-2xl p-4 border border-white/15 text-center space-y-2 flex flex-col justify-center items-center h-full min-h-[96px]">
+                            <Calendar size={20} className="text-slate-300 mb-1" />
+                            <p className="text-xs font-semibold text-slate-200">No Imminent Sessions</p>
+                            <p className="text-[9px] text-slate-400 max-w-[170px] leading-tight">Live session countdown activates 30m prior to start</p>
                         </div>
                     )}
                 </div>
