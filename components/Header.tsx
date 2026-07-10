@@ -190,7 +190,18 @@ const Header: React.FC<HeaderProps> = ({
                         setShowSuggestions(false);
                      }}
                    >
-                     <img src={course.image} alt={course.title} className="w-10 h-10 rounded-lg object-cover" />
+                      <div className="w-10 h-10 rounded-lg overflow-hidden shrink-0 bg-gray-50 dark:bg-slate-800">
+                        <img 
+                            src={course.image} 
+                            alt={course.title} 
+                            className="w-full h-full object-cover" 
+                            style={{
+                                objectPosition: `${course.imagePositionX ?? 50}% ${course.imagePositionY ?? 50}%`,
+                                transform: `scale(${course.imageScale ?? 1})`,
+                                transformOrigin: `${course.imagePositionX ?? 50}% ${course.imagePositionY ?? 50}%`
+                            }}
+                        />
+                      </div>
                      <div>
                         <p className="font-semibold text-sm text-gray-900 dark:text-white line-clamp-1">{course.title}</p>
                         <p className="text-xs text-gray-500 dark:text-slate-400">{course.category}</p>

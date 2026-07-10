@@ -152,7 +152,18 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({ courses, userId }) => {
                             </div>
                         </div>
                         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-                            <img src={activeCourse.image} alt={activeCourse.title} className="w-full sm:w-16 h-32 sm:h-16 rounded-xl object-cover" />
+                            <div className="w-full sm:w-16 h-32 sm:h-16 rounded-xl overflow-hidden shrink-0 bg-gray-50 dark:bg-slate-800">
+                                <img 
+                                    src={activeCourse.image} 
+                                    alt={activeCourse.title} 
+                                    className="w-full h-full object-cover" 
+                                    style={{
+                                        objectPosition: `${activeCourse.imagePositionX ?? 50}% ${activeCourse.imagePositionY ?? 50}%`,
+                                        transform: `scale(${activeCourse.imageScale ?? 1})`,
+                                        transformOrigin: `${activeCourse.imagePositionX ?? 50}% ${activeCourse.imagePositionY ?? 50}%`
+                                    }}
+                                />
+                            </div>
                             <div className="flex-1 w-full">
                                 <h4 className="font-bold text-gray-900 dark:text-white">{activeCourse.title}</h4>
                                 <p className="text-xs text-gray-500 dark:text-slate-400 mb-2">{activeCourse.instructor}</p>
@@ -257,8 +268,7 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({ courses, userId }) => {
                 {/* Assignments */}
                 <div className="bg-white dark:bg-slate-900 p-6 rounded-3xl shadow-sm border border-gray-100 dark:border-slate-800">
                     <div className="flex justify-between items-center mb-4">
-                        <h3 className="font-bold text-gray-800 dark:text-slate-200 mb-4">{t('assignments')}</h3>
-                        <button className="w-6 h-6 bg-welile-lime rounded-full flex items-center justify-center text-xs font-bold">+</button>
+                        <h3 className="font-bold text-gray-800 dark:text-slate-200">{t('assignments')}</h3>
                     </div>
                     {assignments.length === 0 ? (
                         <p className="text-xs text-gray-400 dark:text-slate-500 text-center py-4">No active assignments.</p>

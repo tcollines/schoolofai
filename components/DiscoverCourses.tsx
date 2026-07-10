@@ -101,7 +101,9 @@ const DiscoverCourses: React.FC<DiscoverCoursesProps> = ({ courses, onEnroll, is
                                     alt={course.title}
                                     className="w-full h-full object-cover transition-transform duration-500"
                                     style={{
-                                        transform: `scale(${course.imageScale ?? 1}) translate(${(course.imagePositionX ?? 50) - 50}%, ${(course.imagePositionY ?? 50) - 50}%)`
+                                        objectPosition: `${course.imagePositionX ?? 50}% ${course.imagePositionY ?? 50}%`,
+                                        transform: `scale(${course.imageScale ?? 1})`,
+                                        transformOrigin: `${course.imagePositionX ?? 50}% ${course.imagePositionY ?? 50}%`
                                     }}
                                 />
                                 <div className="absolute top-4 left-4">

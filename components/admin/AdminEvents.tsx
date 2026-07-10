@@ -62,6 +62,9 @@ const AdminEvents: React.FC = () => {
     const [description, setDescription] = useState('');
     const [date, setDate] = useState('');
     const [time, setTime] = useState('');
+    const [timeHour, setTimeHour] = useState('12');
+    const [timeMinute, setTimeMinute] = useState('00');
+    const [timePeriod, setTimePeriod] = useState('PM');
     const [type, setType] = useState<'Workshop' | 'Webinar' | 'Panel'>('Workshop');
     const [speaker, setSpeaker] = useState('Admin Team');
     const [courseId, setCourseId] = useState('global');
@@ -70,12 +73,20 @@ const AdminEvents: React.FC = () => {
     const [location, setLocation] = useState('');
     const [premiered, setPremiered] = useState(false);
 
+    // Sync timeHour, timeMinute, and timePeriod back to time string
+    useEffect(() => {
+        setTime(`${timeHour}:${timeMinute} ${timePeriod}`);
+    }, [timeHour, timeMinute, timePeriod]);
+
     const openCreateModal = () => {
         setEditingEvent(null);
         setTitle('');
         setDescription('');
         setDate('');
-        setTime('');
+        setTimeHour('12');
+        setTimeMinute('00');
+        setTimePeriod('PM');
+        setTime('12:00 PM');
         setType('Workshop');
         setSpeaker('Admin Team');
         setCourseId('global');
@@ -91,7 +102,34 @@ const AdminEvents: React.FC = () => {
         setTitle(event.title);
         setDescription(event.description);
         setDate(event.date);
+        
+        let initialHour = '12';
+        let initialMinute = '00';
+        let initialPeriod = 'PM';
+        try {
+            const cleanTime = event.time.trim();
+            const firstPart = cleanTime.split(' ')[0]; // "14:00" or "02:00"
+            let [h, m] = firstPart.split(':').map(Number);
+            if (!isNaN(h) && !isNaN(m)) {
+                const isPM = cleanTime.toLowerCase().includes('pm') || h >= 12;
+                initialPeriod = isPM ? 'PM' : 'AM';
+                if (h > 12) {
+                    h -= 12;
+                } else if (h === 0) {
+                    h = 12;
+                }
+                initialHour = String(h).padStart(2, '0');
+                initialMinute = String(m).padStart(2, '0');
+            }
+        } catch (e) {
+            console.error("Failed to parse time:", e);
+        }
+        
+        setTimeHour(initialHour);
+        setTimeMinute(initialMinute);
+        setTimePeriod(initialPeriod);
         setTime(event.time);
+        
         setType(event.type as any);
         setSpeaker(event.speaker);
         setCourseId(event.courseId);
@@ -137,21 +175,22 @@ const AdminEvents: React.FC = () => {
 
         // Validate that event is scheduled at least 30 minutes in the future
         try {
-            const timePart = time.trim().split(' ')[0]; // "14:00"
-            const [hours, minutes] = timePart.split(':').map(Number);
+            const cleanTime = time.trim();
+            const timePart = cleanTime.split(' ')[0]; // "14:00" or "02:30"
+            let [hours, minutes] = timePart.split(':').map(Number);
             const [year, month, day] = date.split('-').map(Number);
             
             if (isNaN(hours) || isNaN(minutes) || isNaN(year) || isNaN(month) || isNaN(day)) {
-                alert('Please enter a valid date (YYYY-MM-DD) and start time in HH:MM format (e.g. 14:00 or 14:00 - 16:30).');
+                alert('Please enter a valid date (YYYY-MM-DD) and a start time.');
                 return;
             }
             
-            const eventDate = new Date(year, month - 1, day, hours, minutes, 0, 0);
-            const diffMs = eventDate.getTime() - Date.now();
-            
-            if (diffMs < 30 * 60 * 1000) {
-                alert('Events must be scheduled at least 30 minutes in the future, as the live countdown begins at 30 minutes.');
-                return;
+            const isPM = cleanTime.toLowerCase().includes('pm');
+            const isAM = cleanTime.toLowerCase().includes('am');
+            if (isPM && hours < 12) {
+                hours += 12;
+            } else if (isAM && hours === 12) {
+                hours = 0;
             }
         } catch (err) {
             alert('Please check the date and time format.');
@@ -419,14 +458,35 @@ const AdminEvents: React.FC = () => {
                                 </div>
                                 <div className="space-y-1">
                                     <label className="text-xs font-semibold text-gray-600 dark:text-slate-400">Time</label>
-                                    <input 
-                                        type="text" 
-                                        value={time} 
-                                        onChange={(e) => setTime(e.target.value)}
-                                        className="w-full p-2.5 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-750 rounded-xl text-sm"
-                                        placeholder="e.g. 14:00 - 16:30 (SAST)" 
-                                        required
-                                    />
+                                    <div className="flex items-center gap-1 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-750 rounded-xl p-2.5 w-full text-sm">
+                                        <select
+                                            value={timeHour}
+                                            onChange={(e) => setTimeHour(e.target.value)}
+                                            className="bg-transparent text-gray-800 dark:text-slate-200 outline-none cursor-pointer flex-1 text-center"
+                                        >
+                                            {Array.from({ length: 12 }, (_, i) => String(i + 1).padStart(2, '0')).map(h => (
+                                                <option key={h} value={h} className="bg-white dark:bg-slate-900 text-gray-800 dark:text-slate-200">{h}</option>
+                                            ))}
+                                        </select>
+                                        <span className="text-gray-400 dark:text-slate-500 font-bold">:</span>
+                                        <select
+                                            value={timeMinute}
+                                            onChange={(e) => setTimeMinute(e.target.value)}
+                                            className="bg-transparent text-gray-800 dark:text-slate-200 outline-none cursor-pointer flex-1 text-center"
+                                        >
+                                            {Array.from({ length: 60 }, (_, i) => String(i).padStart(2, '0')).map(m => (
+                                                <option key={m} value={m} className="bg-white dark:bg-slate-900 text-gray-800 dark:text-slate-200">{m}</option>
+                                            ))}
+                                        </select>
+                                        <select
+                                            value={timePeriod}
+                                            onChange={(e) => setTimePeriod(e.target.value)}
+                                            className="bg-transparent text-gray-800 dark:text-slate-200 font-semibold outline-none cursor-pointer flex-1 text-center"
+                                        >
+                                            <option value="AM" className="bg-white dark:bg-slate-900 text-gray-800 dark:text-slate-200">AM</option>
+                                            <option value="PM" className="bg-white dark:bg-slate-900 text-gray-800 dark:text-slate-200">PM</option>
+                                        </select>
+                                    </div>
                                 </div>
                             </div>
 

@@ -134,7 +134,9 @@ const AdminCourses: React.FC = () => {
                                     alt={c.title} 
                                     className="w-full h-full object-cover" 
                                     style={{
-                                        transform: `scale(${c.imageScale ?? 1}) translate(${(c.imagePositionX ?? 50) - 50}%, ${(c.imagePositionY ?? 50) - 50}%)`
+                                        objectPosition: `${c.imagePositionX ?? 50}% ${c.imagePositionY ?? 50}%`,
+                                        transform: `scale(${c.imageScale ?? 1})`,
+                                        transformOrigin: `${c.imagePositionX ?? 50}% ${c.imagePositionY ?? 50}%`
                                     }}
                                 />
                             )}
@@ -265,7 +267,9 @@ const AdminCourses: React.FC = () => {
                                                             alt="Preview" 
                                                             className="w-full h-full object-cover" 
                                                             style={{
-                                                                transform: `scale(${newCourse.imageScale ?? 1}) translate(${(newCourse.imagePositionX ?? 50) - 50}%, ${(newCourse.imagePositionY ?? 50) - 50}%)`
+                                                                objectPosition: `${newCourse.imagePositionX ?? 50}% ${newCourse.imagePositionY ?? 50}%`,
+                                                                transform: `scale(${newCourse.imageScale ?? 1})`,
+                                                                transformOrigin: `${newCourse.imagePositionX ?? 50}% ${newCourse.imagePositionY ?? 50}%`
                                                             }}
                                                         />
                                                     ) : (
@@ -278,7 +282,7 @@ const AdminCourses: React.FC = () => {
                                                         onClick={() => setIsAdjustModalOpen(true)}
                                                         className="text-[11px] font-semibold text-violet-600 hover:text-violet-850 underline cursor-pointer font-sans"
                                                     >
-                                                        Adjust Crop
+                                                        Adjust Cover Image
                                                     </button>
                                                 )}
                                             </div>
@@ -510,7 +514,9 @@ const AdminCourses: React.FC = () => {
                                     alt="Live Preview" 
                                     className="w-full h-full object-cover"
                                     style={{
-                                        transform: `scale(${newCourse.imageScale ?? 1}) translate(${(newCourse.imagePositionX ?? 50) - 50}%, ${(newCourse.imagePositionY ?? 50) - 50}%)`
+                                        objectPosition: `${newCourse.imagePositionX ?? 50}% ${newCourse.imagePositionY ?? 50}%`,
+                                        transform: `scale(${newCourse.imageScale ?? 1})`,
+                                        transformOrigin: `${newCourse.imagePositionX ?? 50}% ${newCourse.imagePositionY ?? 50}%`
                                     }}
                                 />
                             </div>

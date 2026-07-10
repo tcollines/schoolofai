@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Calendar, Clock, MapPin, Video, Users, Check, ExternalLink, ArrowRight, Loader, Eye, X } from 'lucide-react';
 import { useTranslation } from './translations';
 import { Course, CourseStatus } from '../types';
@@ -70,48 +70,63 @@ const EventsPage: React.FC<EventsPageProps> = ({ courses = [] }) => {
     const [selectedEvent, setSelectedEvent] = useState<EventItem | null>(null);
 
     // Filter enrolled courses
-    const enrolledCourses = courses.filter(c => c.status === CourseStatus.IN_PROGRESS || c.status === CourseStatus.COMPLETED);
+    const enrolledCourses = useMemo(() => 
+        courses.filter(c => c.status === CourseStatus.IN_PROGRESS || c.status === CourseStatus.COMPLETED),
+        [courses]
+    );
 
     // Generate dynamic course meetings for each enrolled course
-    const dynamicCourseEvents: EventItem[] = enrolledCourses.flatMap((course, index) => [
-        {
-            id: `course-qa-${course.id}`,
-            title: `Live Q&A Session: ${course.title}`,
-            description: `Join your instructor ${course.instructor} for a live interactive question and answer session regarding the latest lessons and modules in ${course.title}.`,
-            date: new Date(Date.now() + (3 + index * 2) * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // 3, 5, 7 days from now
-            time: '15:00 - 16:30 (SAST)',
-            type: 'Webinar' as const,
-            speaker: course.instructor || 'Course Instructor',
-            tags: ['Q&A', course.category || 'General'],
-            courseId: course.id,
-            attendeeCount: 45 + (index * 12),
-            medium: 'Online' as const,
-            meetLink: `https://meet.google.com/qna-${course.id}ai-edu`
-        },
-        {
-            id: `course-workshop-${course.id}`,
-            title: `Hands-on Project Review: ${course.title}`,
-            description: `Collaborate with peer students enrolled in ${course.title} to review intermediate coding challenges, project guidelines, and optimization hacks.`,
-            date: new Date(Date.now() + (6 + index * 2) * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // 6, 8, 10 days from now
-            time: '11:00 - 13:00 (SAST)',
-            type: 'Workshop' as const,
-            speaker: 'WSAI Mentor Panel',
-            tags: ['Hands-on', course.category || 'General'],
-            courseId: course.id,
-            attendeeCount: 62 + (index * 8),
-            medium: 'Online' as const,
-            meetLink: `https://meet.google.com/wkp-${course.id}ai-edu`
-        }
-    ]);
+    const dynamicCourseEvents: EventItem[] = useMemo(() => 
+        enrolledCourses.flatMap((course, index) => [
+            {
+                id: `course-qa-${course.id}`,
+                title: `Live Q&A Session: ${course.title}`,
+                description: `Join your instructor ${course.instructor} for a live interactive question and answer session regarding the latest lessons and modules in ${course.title}.`,
+                date: new Date(Date.now() + (3 + index * 2) * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // 3, 5, 7 days from now
+                time: '15:00 - 16:30 (SAST)',
+                type: 'Webinar' as const,
+                speaker: course.instructor || 'Course Instructor',
+                tags: ['Q&A', course.category || 'General'],
+                courseId: course.id,
+                attendeeCount: 45 + (index * 12),
+                medium: 'Online' as const,
+                meetLink: `https://meet.google.com/qna-${course.id}ai-edu`
+            },
+            {
+                id: `course-workshop-${course.id}`,
+                title: `Hands-on Project Review: ${course.title}`,
+                description: `Collaborate with peer students enrolled in ${course.title} to review intermediate coding challenges, project guidelines, and optimization hacks.`,
+                date: new Date(Date.now() + (6 + index * 2) * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // 6, 8, 10 days from now
+                time: '11:00 - 13:00 (SAST)',
+                type: 'Workshop' as const,
+                speaker: 'WSAI Mentor Panel',
+                tags: ['Hands-on', course.category || 'General'],
+                courseId: course.id,
+                attendeeCount: 62 + (index * 8),
+                medium: 'Online' as const,
+                meetLink: `https://meet.google.com/wkp-${course.id}ai-edu`
+            }
+        ]),
+        [enrolledCourses]
+    );
 
     const adminEventsList = adminEvents;
-    const allEvents = [...dynamicCourseEvents, ...adminEventsList];
+    const allEvents = useMemo(() => [...dynamicCourseEvents, ...adminEventsList], [dynamicCourseEvents, adminEventsList]);
 
     const getMsToEvent = (event: EventItem) => {
         try {
-            const timePart = event.time.trim().split(' ')[0]; // "14:00"
-            const [hours, minutes] = timePart.split(':').map(Number);
+            const cleanTime = event.time.trim();
+            const timePart = cleanTime.split(' ')[0]; // "14:00" or "02:00"
+            let [hours, minutes] = timePart.split(':').map(Number);
             if (isNaN(hours) || isNaN(minutes)) return null;
+            
+            const isPM = cleanTime.toLowerCase().includes('pm');
+            const isAM = cleanTime.toLowerCase().includes('am');
+            if (isPM && hours < 12) {
+                hours += 12;
+            } else if (isAM && hours === 12) {
+                hours = 0;
+            }
             
             const [year, month, day] = event.date.split('-').map(Number);
             if (isNaN(year) || isNaN(month) || isNaN(day)) return null;

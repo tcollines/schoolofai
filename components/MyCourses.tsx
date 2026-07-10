@@ -180,13 +180,17 @@ const MyCourses: React.FC<MyCoursesProps> = ({ courses }) => {
                 >
                     <ArrowLeft size={18} /> {t('back_to_profile')}
                 </button>
-
                 <div className="bg-white dark:bg-slate-900 rounded-3xl overflow-hidden shadow-sm border border-gray-100 dark:border-slate-800 md:flex mb-8">
-                    <div className="md:w-1/3 min-h-[250px] relative bg-gray-900">
+                    <div className="md:w-1/3 min-h-[250px] relative bg-gray-900 overflow-hidden">
                         <img
                             src={selectedCourse.image}
                             alt={selectedCourse.title}
                             className="w-full h-full object-cover opacity-80"
+                            style={{
+                                objectPosition: `${selectedCourse.imagePositionX ?? 50}% ${selectedCourse.imagePositionY ?? 50}%`,
+                                transform: `scale(${selectedCourse.imageScale ?? 1})`,
+                                transformOrigin: `${selectedCourse.imagePositionX ?? 50}% ${selectedCourse.imagePositionY ?? 50}%`
+                            }}
                         />
                         <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent flex items-end p-6">
                             <div className="text-white">
