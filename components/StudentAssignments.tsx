@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ClipboardList, CheckCircle, Clock, Check, Play, BookOpen, ChevronDown, ChevronUp, Send, FileText, CheckCircle2, PlayCircle, Volume2, Download, ExternalLink } from 'lucide-react';
+import { ClipboardList, CheckCircle, Clock, Check, Play, BookOpen, ChevronDown, ChevronUp, Send, FileText, CheckCircle2, PlayCircle, Volume2, Download, ExternalLink, Loader2 } from 'lucide-react';
 import { Course, CourseStatus } from '../types';
 
 interface StudentAssignmentsProps {
@@ -14,6 +14,69 @@ export const StudentAssignments: React.FC<StudentAssignmentsProps> = ({ courses,
     const [submissions, setSubmissions] = useState<{ [key: string]: string }>({});
     const [submissionTexts, setSubmissionTexts] = useState<{ [key: string]: string }>({});
     const [expandedAssignmentId, setExpandedAssignmentId] = useState<string | null>(null);
+    const [downloadProgress, setDownloadProgress] = useState<{ [key: string]: number }>({});
+
+    const handleDownload = (e: React.MouseEvent, asg: any) => {
+        e.preventDefault();
+        const asgId = asg.id;
+        if (downloadProgress[asgId] !== undefined) return; // Already downloading/completed
+        
+        let progress = 0;
+        setDownloadProgress(prev => ({ ...prev, [asgId]: 0 }));
+        
+        const interval = setInterval(() => {
+            progress += Math.floor(Math.random() * 15) + 8;
+            if (progress >= 100) {
+                progress = 100;
+                clearInterval(interval);
+                
+                // Trigger actual download or simulated pop up dialog using real HTML5 Blobs
+                let downloadUrl = asg.resourceUrl;
+                let isMock = false;
+
+                if (!downloadUrl || downloadUrl === 'simulated-local-file') {
+                    isMock = true;
+                    let blob: Blob;
+                    if (asg.resourceType === 'pdf') {
+                        blob = new Blob(["%PDF-1.4\n%-- Mock PDF attachment for School of AI: " + asg.resourceName], { type: "application/pdf" });
+                    } else if (asg.resourceType === 'audio') {
+                        blob = new Blob(["ID3\n%-- Mock MP3 attachment for School of AI: " + asg.resourceName], { type: "audio/mp3" });
+                    } else if (asg.resourceType === 'video') {
+                        blob = new Blob(["ftypmp42\n%-- Mock MP4 attachment for School of AI: " + asg.resourceName], { type: "video/mp4" });
+                    } else {
+                        blob = new Blob(["Mock file contents: " + asg.resourceName], { type: "text/plain" });
+                    }
+                    downloadUrl = URL.createObjectURL(blob);
+                }
+
+                const link = document.createElement('a');
+                link.href = downloadUrl;
+                link.download = asg.resourceName || `assignment_resource.${asg.resourceType}`;
+                if (!isMock && asg.resourceUrl && !asg.resourceUrl.startsWith('data:')) {
+                    link.target = '_blank';
+                }
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+
+                if (isMock) {
+                    setTimeout(() => {
+                        URL.revokeObjectURL(downloadUrl);
+                    }, 5000);
+                }
+                
+                // Clear progress after 3 seconds
+                setTimeout(() => {
+                    setDownloadProgress(prev => {
+                        const updated = { ...prev };
+                        delete updated[asgId];
+                        return updated;
+                    });
+                }, 3000);
+            }
+            setDownloadProgress(prev => ({ ...prev, [asgId]: progress }));
+        }, 120);
+    };
 
     // Get actually enrolled courses
     const enrolledCourses = courses.filter(c => c.status === CourseStatus.IN_PROGRESS || c.status === CourseStatus.COMPLETED);
@@ -394,105 +457,104 @@ export const StudentAssignments: React.FC<StudentAssignmentsProps> = ({ courses,
                                                         Attached {asg.resourceType.toUpperCase()} Resource
                                                     </h4>
 
-                    <div className="flex items-center justify-between gap-3 bg-gray-50 dark:bg-slate-950/40 p-3 rounded-xl">
-                        <div className="min-w-0 flex-1">
-                            <p className="text-xs font-bold text-gray-800 dark:text-slate-200 truncate">{asg.resourceName || `assignment_resource.${asg.resourceType}`}</p>
-                            <p className="text-[10px] text-gray-400 mt-0.5">{asg.resourceSize || '2.0 MB'}</p>
+                    <div className="space-y-3 bg-gray-50 dark:bg-slate-950/40 p-3.5 rounded-xl border border-gray-100 dark:border-slate-800">
+                        <div className="flex items-center justify-between gap-3">
+                            <div className="min-w-0 flex-1">
+                                <p className="text-xs font-bold text-gray-800 dark:text-slate-200 truncate">{asg.resourceName || `assignment_resource.${asg.resourceType}`}</p>
+                                <p className="text-[10px] text-gray-400 mt-0.5">{asg.resourceSize || '2.0 MB'}</p>
+                            </div>
+                            {asg.resourceUrl && asg.resourceUrl.startsWith('http') ? (
+                                 <a
+                                     href={asg.resourceUrl}
+                                     target="_blank"
+                                     rel="noopener noreferrer"
+                                     className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-100 dark:bg-slate-800 hover:bg-gray-200 dark:hover:bg-slate-700 rounded-lg text-xs font-bold text-gray-700 dark:text-slate-300 cursor-pointer shrink-0 transition-colors"
+                                 >
+                                     <ExternalLink size={13} />
+                                     Click on Link
+                                 </a>
+                            ) : downloadProgress[asg.id] !== undefined ? (
+                                <button
+                                    type="button"
+                                    disabled
+                                    className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-100 dark:bg-slate-800 rounded-lg text-xs font-bold text-gray-400 dark:text-slate-500 cursor-not-allowed shrink-0"
+                                >
+                                    {downloadProgress[asg.id] === 100 ? (
+                                        <>
+                                            <Check size={13} className="text-green-500" />
+                                            Done
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Loader2 size={13} className="animate-spin text-violet-500" />
+                                            {downloadProgress[asg.id]}%
+                                        </>
+                                    )}
+                                </button>
+                            ) : (
+                                 <button
+                                     onClick={(e) => handleDownload(e, asg)}
+                                     className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-100 dark:bg-slate-800 hover:bg-gray-200 dark:hover:bg-slate-700 rounded-lg text-xs font-bold text-gray-700 dark:text-slate-300 cursor-pointer shrink-0 transition-colors"
+                                 >
+                                     <Download size={13} />
+                                     Download
+                                 </button>
+                            )}
                         </div>
-                         <a
-                             href={asg.resourceUrl && asg.resourceUrl !== 'simulated-local-file' ? asg.resourceUrl : '#'}
-                             download={asg.resourceUrl && asg.resourceUrl.startsWith('data:') ? asg.resourceName : undefined}
-                             target={asg.resourceUrl && asg.resourceUrl.startsWith('http') ? '_blank' : undefined}
-                             rel={asg.resourceUrl && asg.resourceUrl.startsWith('http') ? 'noopener noreferrer' : undefined}
-                             onClick={(e) => {
-                                 if (!asg.resourceUrl || asg.resourceUrl === 'simulated-local-file') {
-                                     e.preventDefault();
-                                     alert(`Simulated Download of: ${asg.resourceName || `assignment_resource.${asg.resourceType}`}`);
-                                 }
-                             }}
-                             className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-100 dark:bg-slate-800 hover:bg-gray-200 dark:hover:bg-slate-700 rounded-lg text-xs font-bold text-gray-700 dark:text-slate-300 cursor-pointer shrink-0 transition-colors"
-                         >
-                             <Download size={13} />
-                             Download
-                         </a>
+
+                        {/* Download progress bar */}
+                        {downloadProgress[asg.id] !== undefined && (
+                            <div className="w-full pt-1">
+                                <div className="w-full bg-gray-200 dark:bg-slate-800 rounded-full h-1.5 overflow-hidden">
+                                    <div 
+                                        className="bg-violet-600 h-full rounded-full transition-all duration-150" 
+                                        style={{ width: `${downloadProgress[asg.id]}%` }}
+                                    />
+                                </div>
+                            </div>
+                        )}
                      </div>
 
                      {/* Multimedia Previews */}
                      {asg.resourceType === 'video' && (
-                         <div className="space-y-1.5">
-                             <p className="text-[11px] font-semibold text-gray-500 dark:text-slate-400">Attached Video Lesson Lecture Preview:</p>
-                             <div className="rounded-xl overflow-hidden aspect-video bg-black border border-gray-150 dark:border-slate-800 relative">
-                                 <video
-                                     src={
-                                         asg.resourceUrl && asg.resourceUrl !== 'simulated-local-file'
-                                             ? asg.resourceUrl
-                                             : "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4"
-                                     }
-                                     controls
-                                     className="w-full h-full object-contain"
-                                     poster="https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=600&auto=format&fit=crop&q=60"
-                                 />
-                             </div>
-                         </div>
-                     )}
+                          <div className="space-y-1.5">
+                              <p className="text-[11px] font-semibold text-gray-500 dark:text-slate-400">Attached Video Lesson Lecture Preview:</p>
+                              <div className="rounded-xl overflow-hidden aspect-video bg-black border border-gray-150 dark:border-slate-800 relative">
+                                  <video
+                                      src={
+                                          asg.resourceUrl && asg.resourceUrl !== 'simulated-local-file'
+                                              ? asg.resourceUrl
+                                              : "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4"
+                                      }
+                                      controls
+                                      className="w-full h-full object-contain"
+                                      poster="https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=600&auto=format&fit=crop&q=60"
+                                  />
+                              </div>
+                          </div>
+                      )}
 
-                     {asg.resourceType === 'audio' && (
-                         <div className="space-y-1.5">
-                             <p className="text-[11px] font-semibold text-gray-500 dark:text-slate-400">Instructor Audio Briefing Notes:</p>
-                             <div className="bg-gray-50 dark:bg-slate-950/40 border border-gray-100 dark:border-slate-800/85 rounded-xl p-3.5 flex flex-col gap-3">
-                                 <audio
-                                     src={
-                                         asg.resourceUrl && asg.resourceUrl !== 'simulated-local-file'
-                                             ? asg.resourceUrl
-                                             : "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3"
-                                     }
-                                     controls
-                                     className="w-full"
-                                 />
-                                 <div className="flex items-end justify-between h-8 px-4 opacity-40">
-                                     {[40, 20, 60, 80, 50, 70, 30, 90, 45, 65, 85, 35, 75, 55, 95, 25, 45, 65, 80, 40, 20, 60].map((h, i) => (
-                                         <div key={i} className="w-1.5 bg-violet-600 rounded-full" style={{ height: `${h}%` }}></div>
-                                     ))}
-                                 </div>
-                             </div>
-                         </div>
-                     )}
-
-                     {asg.resourceType === 'pdf' && (
-                         <div className="space-y-1.5">
-                             <p className="text-[11px] font-semibold text-gray-500 dark:text-slate-400">Attached PDF Reading Document Preview:</p>
-                             <div className="bg-slate-100/50 dark:bg-slate-950/30 border border-gray-150 dark:border-slate-800/60 rounded-xl p-6 text-center space-y-4">
-                                 <FileText size={48} className="mx-auto text-red-500/70" />
-                                 <div className="space-y-1 max-w-sm mx-auto">
-                                     <p className="text-xs font-bold text-gray-800 dark:text-slate-200">
-                                         {asg.resourceName}
-                                     </p>
-                                     <p className="text-[10px] text-gray-400 dark:text-slate-500">
-                                         {asg.resourceUrl && asg.resourceUrl.startsWith('http')
-                                             ? "Internet PDF document resource link attached"
-                                             : "Simulated PDF viewer loading successfully (1 of 4 pages)"}
-                                     </p>
-                                 </div>
-                                 {asg.resourceUrl && asg.resourceUrl.startsWith('http') ? (
-                                     <a
-                                         href={asg.resourceUrl}
-                                         target="_blank"
-                                         rel="noopener noreferrer"
-                                         className="inline-flex items-center gap-1.5 px-4 py-2 bg-red-650 hover:bg-red-750 text-white rounded-xl text-xs font-bold transition-colors cursor-pointer shadow-sm mx-auto w-fit"
-                                     >
-                                         <ExternalLink size={13} />
-                                         Open PDF in New Tab
-                                     </a>
-                                 ) : (
-                                     <div className="max-w-md mx-auto h-24 bg-white dark:bg-slate-900 border border-gray-100 dark:border-slate-800 rounded-lg p-3 text-[9px] text-gray-450 dark:text-slate-400 text-left overflow-hidden select-none font-mono">
-                                         SECTION 1: COURSE METHODOLOGY OVERVIEW
-                                         --------------------------------------------------
-                                         This handbook details the research framework, metrics parameters, and analytical goals for class project submissions. Students are required to review pages 12-24 carefully before formulating case study responses...
-                                     </div>
-                                 )}
-                             </div>
-                         </div>
-                     )}
+                      {asg.resourceType === 'audio' && (
+                          <div className="space-y-1.5">
+                              <p className="text-[11px] font-semibold text-gray-500 dark:text-slate-400">Instructor Audio Briefing Notes:</p>
+                              <div className="bg-gray-50 dark:bg-slate-950/40 border border-gray-100 dark:border-slate-800/85 rounded-xl p-3.5 flex flex-col gap-3">
+                                  <audio
+                                      src={
+                                          asg.resourceUrl && asg.resourceUrl !== 'simulated-local-file'
+                                              ? asg.resourceUrl
+                                              : "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3"
+                                      }
+                                      controls
+                                      className="w-full"
+                                  />
+                                  <div className="flex items-end justify-between h-8 px-4 opacity-40">
+                                      {[40, 20, 60, 80, 50, 70, 30, 90, 45, 65, 85, 35, 75, 55, 95, 25, 45, 65, 80, 40, 20, 60].map((h, i) => (
+                                          <div key={i} className="w-1.5 bg-violet-600 rounded-full" style={{ height: `${h}%` }}></div>
+                                      ))}
+                                  </div>
+                              </div>
+                          </div>
+                      )}
                  </div>
              )}
 
