@@ -876,10 +876,68 @@ const Profile: React.FC<ProfileProps> = ({ user, onUpgradeClick }) => {
                             <div className="space-y-1">
                                 <label className="text-sm font-medium text-gray-600 dark:text-slate-355">Nationality</label>
                                 <select className="w-full p-3 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500/25 outline-none transition-all">
-                                    <option>South Africa</option>
-                                    <option>Nigeria</option>
+                                    <option>Algeria</option>
+                                    <option>Angola</option>
+                                    <option>Australia</option>
+                                    <option>Benin</option>
+                                    <option>Botswana</option>
+                                    <option>Brazil</option>
+                                    <option>Burkina Faso</option>
+                                    <option>Burundi</option>
+                                    <option>Cabo Verde</option>
+                                    <option>Cameroon</option>
+                                    <option>Canada</option>
+                                    <option>Central African Republic</option>
+                                    <option>Chad</option>
+                                    <option>Comoros</option>
+                                    <option>Congo, Democratic Republic of the</option>
+                                    <option>Congo, Republic of the</option>
+                                    <option>Cote d'Ivoire</option>
+                                    <option>Djibouti</option>
+                                    <option>Egypt</option>
+                                    <option>Equatorial Guinea</option>
+                                    <option>Eritrea</option>
+                                    <option>Eswatini</option>
+                                    <option>Ethiopia</option>
+                                    <option>France</option>
+                                    <option>Gabon</option>
+                                    <option>Gambia</option>
+                                    <option>Germany</option>
+                                    <option>Ghana</option>
+                                    <option>Guinea</option>
+                                    <option>Guinea-Bissau</option>
+                                    <option>India</option>
                                     <option>Kenya</option>
+                                    <option>Lesotho</option>
+                                    <option>Liberia</option>
+                                    <option>Libya</option>
+                                    <option>Madagascar</option>
+                                    <option>Malawi</option>
+                                    <option>Mali</option>
+                                    <option>Mauritania</option>
+                                    <option>Mauritius</option>
+                                    <option>Morocco</option>
+                                    <option>Mozambique</option>
+                                    <option>Namibia</option>
+                                    <option>Niger</option>
+                                    <option>Nigeria</option>
+                                    <option>Rwanda</option>
+                                    <option>Sao Tome and Principe</option>
+                                    <option>Senegal</option>
+                                    <option>Seychelles</option>
+                                    <option>Sierra Leone</option>
+                                    <option>Somalia</option>
+                                    <option>South Africa</option>
+                                    <option>South Sudan</option>
+                                    <option>Sudan</option>
+                                    <option>Tanzania</option>
+                                    <option>Togo</option>
+                                    <option>Tunisia</option>
+                                    <option>Uganda</option>
                                     <option>United Kingdom</option>
+                                    <option>United States</option>
+                                    <option>Zambia</option>
+                                    <option>Zimbabwe</option>
                                 </select>
                             </div>
                         </div>
