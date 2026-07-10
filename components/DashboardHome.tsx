@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { TrendingUp, CheckCircle, PlayCircle, BookOpen, MessageSquare } from 'lucide-react';
 import { Course, CourseStatus } from '../types';
@@ -34,12 +34,56 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({ courses, userId }) => {
         icon: <BookOpen size={16} />
     }));
 
-    const assignments = enrolledCourses.slice(0, 3).map((course, idx) => ({
-        id: course.id,
-        title: `${course.title} - Final Assessment`,
-        dueDate: `Tomorrow, ${10 + idx}:00 AM`,
-        status: idx === 0 ? 'Completed' : 'In Progress'
-    }));
+    const [assignments, setAssignments] = useState<any[]>([]);
+    const enrolledCourseIdsStr = enrolledCourses.map(c => c.id).join(',');
+
+    useEffect(() => {
+        const loadAssignments = () => {
+            const stored = localStorage.getItem('admin-assignments');
+            if (stored) {
+                const parsed = JSON.parse(stored);
+                // Filter assignments for courses the student is enrolled in, or global assignments
+                const filtered = parsed.filter((asg: any) =>
+                    asg.courseId === 'global' || enrolledCourses.some(c => c.id === asg.courseId)
+                );
+
+                const formatted = filtered.map((asg: any) => {
+                    let dispDate = asg.dueDate;
+                    try {
+                        const dateObj = new Date(asg.dueDate);
+                        if (!isNaN(dateObj.getTime())) {
+                            dispDate = dateObj.toLocaleDateString('en-US', { day: 'numeric', month: 'short' });
+                        }
+                    } catch (e) { }
+                    return {
+                        id: asg.id,
+                        title: asg.title,
+                        dueDate: `Due ${dispDate}`,
+                        status: asg.status
+                    };
+                });
+                setAssignments(formatted);
+            } else {
+                // Default fallback to mock assignments
+                const defaultAssignments = enrolledCourses.slice(0, 3).map((course, idx) => ({
+                    id: `default-${course.id}-${idx}`,
+                    title: `${course.title} - Final Assessment`,
+                    dueDate: `Tomorrow, ${10 + idx}:00 AM`,
+                    status: idx === 0 ? 'Completed' : 'In Progress'
+                }));
+                setAssignments(defaultAssignments);
+            }
+        };
+
+        loadAssignments();
+        window.addEventListener('storage', loadAssignments);
+        window.addEventListener('admin-assignments-update', loadAssignments);
+        return () => {
+            window.removeEventListener('storage', loadAssignments);
+            window.removeEventListener('admin-assignments-update', loadAssignments);
+        };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [enrolledCourseIdsStr]);
 
     const frequentGroups = [
         { id: 'general', name: 'General Discussion', desc: 'Global community chat room' },
@@ -153,10 +197,10 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({ courses, userId }) => {
                         </div>
                         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
                             <div className="w-full sm:w-16 h-32 sm:h-16 rounded-xl overflow-hidden shrink-0 bg-gray-50 dark:bg-slate-800">
-                                <img 
-                                    src={activeCourse.image} 
-                                    alt={activeCourse.title} 
-                                    className="w-full h-full object-cover" 
+                                <img
+                                    src={activeCourse.image}
+                                    alt={activeCourse.title}
+                                    className="w-full h-full object-cover"
                                     style={{
                                         objectPosition: `${activeCourse.imagePositionX ?? 50}% ${activeCourse.imagePositionY ?? 50}%`,
                                         transform: `scale(${activeCourse.imageScale ?? 1})`,
@@ -203,7 +247,7 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({ courses, userId }) => {
                 {/* Schedule */}
                 <div className="bg-white dark:bg-slate-900 p-6 rounded-3xl shadow-sm border border-gray-100 dark:border-slate-800">
                     <h3 className="font-bold text-gray-800 dark:text-slate-200 mb-4">{t('daily_schedule')}</h3>
-                    <div 
+                    <div
                         onClick={() => window.location.href = '/events'}
                         className="flex items-center justify-between group cursor-pointer hover:bg-gray-50 dark:hover:bg-slate-800/40 p-2 rounded-2xl transition-colors"
                     >
@@ -240,13 +284,13 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({ courses, userId }) => {
                     <h3 className="font-bold text-gray-800 dark:text-slate-200 mb-4">Frequent Groups</h3>
                     <div className="space-y-3">
                         {frequentGroups.map((group) => (
-                            <div 
+                            <div
                                 key={group.id}
                                 onClick={() => {
                                     localStorage.setItem('selected-discussion-group-id', group.id);
                                     window.location.href = '/discussions';
                                 }}
-                                className="flex items-center justify-between p-3 bg-gray-55 dark:bg-slate-800/40 rounded-2xl cursor-pointer hover:bg-gray-100 dark:hover:bg-slate-800/80 transition-colors"
+                                className="flex items-center justify-between p-3 bg-gray-50 dark:bg-slate-800/40 rounded-2xl cursor-pointer hover:bg-gray-100 dark:hover:bg-slate-800/80 transition-colors"
                             >
                                 <div className="flex items-center gap-3">
                                     <div className="p-2 bg-violet-100 dark:bg-violet-955/40 text-violet-600 dark:text-violet-400 rounded-xl shrink-0">

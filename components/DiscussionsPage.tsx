@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useOutletContext } from 'react-router-dom';
 import { useCourses } from '../src/hooks/useCourses';
-import { Send, Users, ShieldAlert, MessageSquare, Bot, User, CheckCircle2, ChevronRight, Trash2, MoreVertical, Copy, Edit2 } from 'lucide-react';
+import { Send, Users, ShieldAlert, MessageSquare, Bot, User, CheckCircle2, ChevronRight, Trash2, MoreVertical, Copy, Edit2, Plus, X } from 'lucide-react';
 import { Course } from '../types';
 
 interface Message {
@@ -19,9 +19,10 @@ interface ChatGroup {
     name: string;
     description: string;
     isGeneral?: boolean;
+    isEnrolled?: boolean;
     courseId?: string;
-    isEnrolled: boolean;
     messages: Message[];
+    membersCount?: number;
 }
 
 const INITIAL_GENERAL_CHAT: Message[] = [
@@ -62,6 +63,21 @@ const INITIAL_AI_CHAT: Message[] = [
     }
 ];
 
+const CLASSMATES_LIST = [
+    'Sarah Jenkins',
+    'Elena Rostova',
+    'David Kim',
+    'Michael Chang',
+    'Chloe Vance',
+    'John Doe',
+    'Alex Smith',
+    'Sophia Patel',
+    'Daniel Garcia',
+    'Emma Watson',
+    'Liam Neeson',
+    'Oliver Kahn'
+];
+
 const DiscussionsPage: React.FC = () => {
     const { displayUser } = useOutletContext<{ displayUser: any }>();
     const userId = displayUser?.id || 'guest';
@@ -77,6 +93,12 @@ const DiscussionsPage: React.FC = () => {
     const [activeDropdownMessageId, setActiveDropdownMessageId] = useState<string | null>(null);
     const messagesEndRef = useRef<HTMLDivElement>(null);
 
+    // Group creation states
+    const [isCreateGroupModalOpen, setIsCreateGroupModalOpen] = useState(false);
+    const [newGroupName, setNewGroupName] = useState('');
+    const [newGroupDescription, setNewGroupDescription] = useState('');
+    const [selectedMembers, setSelectedMembers] = useState<string[]>([]);
+
     // Click outside listener to close dropdowns
     useEffect(() => {
         const handleClickOutside = () => {
@@ -86,8 +108,51 @@ const DiscussionsPage: React.FC = () => {
         return () => window.removeEventListener('click', handleClickOutside);
     }, []);
 
-    // Initialize groups based on general channels + student's enrolled courses
-    useEffect(() => {
+    const handleCreateGroup = (e: React.FormEvent) => {
+        e.preventDefault();
+        if (selectedMembers.length < 6) {
+            alert('You must select more than 5 members to qualify to create a group!');
+            return;
+        }
+
+        const newGroupObj: ChatGroup = {
+            id: 'student-group-' + Date.now(),
+            name: newGroupName,
+            description: newGroupDescription,
+            isEnrolled: true,
+            membersCount: selectedMembers.length,
+            messages: [
+                {
+                    id: 'init-' + Date.now(),
+                    senderName: displayUser?.name || 'Student',
+                    senderAvatar: displayUser?.avatar || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&auto=format&fit=crop&q=60',
+                    role: 'student',
+                    content: `Created discussion group: ${newGroupName}. Added classmates: ${selectedMembers.join(', ')}.`,
+                    timestamp: 'Just Now'
+                }
+            ]
+        };
+
+        const currentCreated = JSON.parse(localStorage.getItem('student-created-groups') || '[]');
+        currentCreated.push(newGroupObj);
+        localStorage.setItem('student-created-groups', JSON.stringify(currentCreated));
+
+        // Save initial message to message store too for consistency
+        localStorage.setItem(`chat-messages-${newGroupObj.id}`, JSON.stringify(newGroupObj.messages));
+
+        // Reset fields
+        setNewGroupName('');
+        setNewGroupDescription('');
+        setSelectedMembers([]);
+        setIsCreateGroupModalOpen(false);
+
+        // Sync and refresh
+        window.dispatchEvent(new Event('chat-messages-update'));
+        loadChats();
+        setSelectedGroupId(newGroupObj.id);
+    };
+
+    const loadChats = () => {
         const generalGroups: ChatGroup[] = [
             {
                 id: 'general',
@@ -129,7 +194,10 @@ const DiscussionsPage: React.FC = () => {
         });
 
         // Load messages from localStorage if they exist to persist user chats
-        const allInitialized = [...generalGroups, ...courseGroups];
+        const deletedGroupIds: string[] = JSON.parse(localStorage.getItem('deleted-chat-groups') || '[]');
+        const studentCreated: ChatGroup[] = JSON.parse(localStorage.getItem('student-created-groups') || '[]');
+        
+        const allInitialized = [...generalGroups, ...courseGroups, ...studentCreated].filter(g => !deletedGroupIds.includes(g.id));
         const updatedGroups = allInitialized.map(g => {
             const saved = localStorage.getItem(`chat-messages-${g.id}`);
             if (saved) {
@@ -139,12 +207,40 @@ const DiscussionsPage: React.FC = () => {
         });
 
         setGroups(updatedGroups);
+
+        // If currently selected group was deleted, fall back to first active group
+        if (selectedGroupId && deletedGroupIds.includes(selectedGroupId)) {
+            const firstActive = allInitialized[0]?.id || 'general';
+            setSelectedGroupId(firstActive);
+            localStorage.setItem('selected-discussion-group-id', firstActive);
+        }
+    };
+
+    // Initialize groups based on general channels + student's enrolled courses
+    useEffect(() => {
+        loadChats();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [courses]);
 
     // Scroll to bottom on new messages
     useEffect(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     }, [selectedGroupId, groups]);
+
+    // Sync state on chat updates or external deletions
+    useEffect(() => {
+        const handleSync = () => {
+            loadChats();
+        };
+
+        window.addEventListener('storage', handleSync);
+        window.addEventListener('chat-messages-update', handleSync);
+        return () => {
+            window.removeEventListener('storage', handleSync);
+            window.removeEventListener('chat-messages-update', handleSync);
+        };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [courses, selectedGroupId]);
 
     const activeGroup = groups.find(g => g.id === selectedGroupId) || groups[0];
 
@@ -259,10 +355,19 @@ const DiscussionsPage: React.FC = () => {
             {/* Layout Wrapper */}
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 h-[calc(100vh-230px)] min-h-[500px]">
                 {/* Left Sidebar - Channels List */}
-                <div className="lg:col-span-4 bg-white dark:bg-slate-900 rounded-3xl border border-gray-100 dark:border-slate-800 p-4 flex flex-col h-full overflow-hidden">
-                    <div className="flex items-center gap-2 mb-4 pb-3 border-b border-gray-100 dark:border-slate-800">
-                        <Users size={18} className="text-violet-600" />
-                        <span className="font-bold text-gray-950 dark:text-white text-sm">Channels & Groups</span>
+                <div className="lg:col-span-4 bg-white dark:bg-slate-900 rounded-3xl border border-gray-100 dark:border-slate-800 p-4 flex flex-col h-full overflow-hidden shrink-0">
+                    <div className="flex items-center justify-between gap-2 mb-4 pb-3 border-b border-gray-100 dark:border-slate-800 shrink-0">
+                        <div className="flex items-center gap-2">
+                            <Users size={18} className="text-violet-600" />
+                            <span className="font-bold text-gray-950 dark:text-white text-sm">Channels & Groups</span>
+                        </div>
+                        <button
+                            onClick={() => setIsCreateGroupModalOpen(true)}
+                            className="flex items-center gap-1 px-2.5 py-1 bg-violet-650 hover:bg-violet-750 text-white rounded-lg text-xs font-bold transition-colors cursor-pointer"
+                        >
+                            <Plus size={13} />
+                            New Group
+                        </button>
                     </div>
 
                     <div className="flex-1 overflow-y-auto space-y-2 pr-1">
@@ -465,6 +570,126 @@ const DiscussionsPage: React.FC = () => {
                     </div>
                 </div>
             </div>
+            
+            {/* Create Group Modal */}
+            {isCreateGroupModalOpen && (
+                <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[110] flex items-center justify-center p-4">
+                    <div className="bg-white dark:bg-slate-900 rounded-3xl w-full max-w-lg overflow-hidden shadow-2xl p-6 border border-gray-100 dark:border-slate-800 space-y-4 flex flex-col max-h-[90vh]">
+                        <div className="flex justify-between items-center pb-2 border-b border-gray-100 dark:border-slate-800 shrink-0">
+                            <div>
+                                <h3 className="font-bold text-gray-900 dark:text-white text-lg">
+                                    Create Discussion Group
+                                </h3>
+                                <p className="text-xs text-gray-500 dark:text-slate-400 mt-0.5">
+                                    Form a private or public study circle with your classmates.
+                                </p>
+                            </div>
+                            <button onClick={() => setIsCreateGroupModalOpen(false)} className="text-gray-400 hover:text-gray-650 p-1 cursor-pointer">
+                                <X size={18} />
+                            </button>
+                        </div>
+
+                        <form onSubmit={handleCreateGroup} className="flex-1 overflow-y-auto pr-1 space-y-4 py-2 min-h-0">
+                            <div className="space-y-1">
+                                <label className="text-xs font-semibold text-gray-600 dark:text-slate-400">Group Name</label>
+                                <input
+                                    type="text"
+                                    value={newGroupName}
+                                    onChange={(e) => setNewGroupName(e.target.value)}
+                                    placeholder="e.g. Neural Networks Study Circle"
+                                    className="w-full p-2.5 bg-gray-50 dark:bg-slate-800 border border-gray-250 dark:border-slate-755 rounded-xl text-sm"
+                                    required
+                                />
+                            </div>
+
+                            <div className="space-y-1">
+                                <label className="text-xs font-semibold text-gray-600 dark:text-slate-400">Description</label>
+                                <textarea
+                                    value={newGroupDescription}
+                                    onChange={(e) => setNewGroupDescription(e.target.value)}
+                                    placeholder="e.g. Collaboration channel for group homework and papers."
+                                    rows={2}
+                                    className="w-full p-2.5 bg-gray-50 dark:bg-slate-800 border border-gray-250 dark:border-slate-755 rounded-xl text-sm outline-none"
+                                    required
+                                />
+                            </div>
+
+                            {/* Classmates Selector */}
+                            <div className="space-y-2 border-t border-gray-150/40 dark:border-slate-800/80 pt-3">
+                                <div className="flex justify-between items-baseline">
+                                    <label className="text-xs font-semibold text-gray-600 dark:text-slate-400">Select Group Members</label>
+                                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                                        selectedMembers.length >= 6
+                                            ? 'bg-green-55 dark:bg-green-950/20 text-green-600 dark:text-green-405 border border-green-200'
+                                            : 'bg-red-50 dark:bg-red-955/20 text-red-600 dark:text-red-405 border border-red-200'
+                                    }`}>
+                                        {selectedMembers.length} Selected (Minimum: 6)
+                                    </span>
+                                </div>
+
+                                {/* Checklist of classmates */}
+                                <div className="grid grid-cols-2 gap-2 bg-gray-50 dark:bg-slate-950/30 p-3 rounded-2xl border border-gray-250/40 dark:border-slate-800/80 max-h-40 overflow-y-auto">
+                                    {CLASSMATES_LIST.map((name) => {
+                                        const isChecked = selectedMembers.includes(name);
+                                        return (
+                                            <label 
+                                                key={name} 
+                                                className={`flex items-center gap-2 p-2 rounded-xl text-xs font-medium cursor-pointer transition-colors border ${
+                                                    isChecked 
+                                                        ? 'bg-violet-50/40 border-violet-200 dark:bg-violet-955/10 dark:border-violet-900/50 text-gray-900 dark:text-white' 
+                                                        : 'bg-white dark:bg-slate-900 border-transparent hover:bg-gray-100/50 dark:hover:bg-slate-800/50 text-gray-600 dark:text-slate-400'
+                                                }`}
+                                            >
+                                                <input
+                                                    type="checkbox"
+                                                    checked={isChecked}
+                                                    onChange={() => {
+                                                        if (isChecked) {
+                                                            setSelectedMembers(selectedMembers.filter(m => m !== name));
+                                                        } else {
+                                                            setSelectedMembers([...selectedMembers, name]);
+                                                        }
+                                                    }}
+                                                    className="w-3.5 h-3.5 accent-violet-650 cursor-pointer"
+                                                />
+                                                <span className="truncate">{name}</span>
+                                            </label>
+                                        );
+                                    })}
+                                </div>
+
+                                {selectedMembers.length < 6 && (
+                                    <p className="text-[10px] text-red-500 font-semibold animate-none">
+                                        ⚠️ You must select more than 5 members (minimum 6) to qualify to create a group.
+                                    </p>
+                                )}
+                            </div>
+
+                            <div className="pt-4 border-t border-gray-100 dark:border-slate-800 flex justify-end gap-2 shrink-0">
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        setNewGroupName('');
+                                        setNewGroupDescription('');
+                                        setSelectedMembers([]);
+                                        setIsCreateGroupModalOpen(false);
+                                    }}
+                                    className="px-4 py-2 border border-gray-255 dark:border-slate-700 text-xs font-semibold text-gray-700 dark:text-slate-300 rounded-xl hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    type="submit"
+                                    disabled={selectedMembers.length < 6 || !newGroupName.trim() || !newGroupDescription.trim()}
+                                    className="px-5 py-2 bg-violet-600 hover:bg-violet-750 text-white rounded-xl text-xs font-bold transition-colors disabled:opacity-50 disabled:cursor-not-allowed shrink-0 cursor-pointer shadow-sm"
+                                >
+                                    Create Group
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

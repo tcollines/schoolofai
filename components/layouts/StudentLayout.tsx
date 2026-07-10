@@ -31,10 +31,19 @@ const StudentLayout: React.FC<StudentLayoutProps> = ({ session, isAuthenticated,
         skills: []
     };
 
+    React.useEffect(() => {
+        if (displayUser && displayUser.id !== 'guest') {
+            localStorage.setItem(`student-profile-${displayUser.id}`, JSON.stringify({
+                name: displayUser.name,
+                email: displayUser.email
+            }));
+        }
+    }, [displayUser]);
+
     // Derived state for Header visibility based on current route
     const currentPath = location.pathname.split('/')[1] || '';
-    const hideHeaderWidgets = ['courses', 'career', 'profile', 'plans', 'discover', 'settings', 'discussions'].includes(currentPath);
-    const profilePosition = ['courses', 'discover', 'settings', 'discussions'].includes(currentPath) ? 'left' : 'right';
+    const hideHeaderWidgets = ['courses', 'career', 'profile', 'plans', 'discover', 'settings', 'discussions', 'assignments'].includes(currentPath);
+    const profilePosition = ['courses', 'discover', 'settings', 'discussions', 'assignments'].includes(currentPath) ? 'left' : 'right';
 
     return (
         <div className="flex min-h-screen bg-[#f3f4f6] dark:bg-slate-950 dark:text-slate-100 transition-colors duration-200">

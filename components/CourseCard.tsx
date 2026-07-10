@@ -80,7 +80,7 @@ const CourseCard: React.FC<CourseCardProps> = ({ course, onClick }) => {
           {/* Progress Section */}
           <div className="mb-4">
             <div className="flex justify-between text-xs mb-1.5">
-              <span className="font-medium text-gray-600 dark:text-slate-350">
+              <span className="font-medium text-gray-600 dark:text-slate-300">
                 {course.lessonsCompleted} / {course.lessonsTotal} Lessons
               </span>
               <span className="font-bold text-welile-purple">{progress}%</span>
@@ -94,7 +94,7 @@ const CourseCard: React.FC<CourseCardProps> = ({ course, onClick }) => {
           </div>
 
           {/* Footer Action */}
-          <div className="pt-4 border-t border-gray-50 dark:border-slate-850 flex items-center justify-between">
+          <div className="pt-4 border-t border-gray-50 dark:border-slate-800 flex items-center justify-between">
             <div className="flex -space-x-2">
               {/* Mock avatars for enrolled students */}
               {[1, 2, 3].map((i) => (

@@ -548,7 +548,7 @@ const AdminEvents: React.FC = () => {
                                     onChange={(e) => setPremiered(e.target.checked)}
                                     className="w-4 h-4 text-violet-600 border-gray-300 rounded focus:ring-violet-500 cursor-pointer"
                                 />
-                                <label htmlFor="premiered" className="text-xs font-semibold text-gray-700 dark:text-slate-350 cursor-pointer select-none">
+                                <label htmlFor="premiered" className="text-xs font-semibold text-gray-700 dark:text-slate-300 cursor-pointer select-none">
                                     Premiere Event (Always show ticking countdown on student portal)
                                 </label>
                             </div>
@@ -557,7 +557,7 @@ const AdminEvents: React.FC = () => {
                                 <button 
                                     type="button" 
                                     onClick={() => setIsModalOpen(false)}
-                                    className="px-4 py-2 border border-gray-200 dark:border-slate-700 text-gray-700 dark:text-slate-350 bg-transparent rounded-xl text-sm font-medium hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+                                    className="px-4 py-2 border border-gray-200 dark:border-slate-700 text-gray-700 dark:text-slate-300 bg-transparent rounded-xl text-sm font-medium hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors cursor-pointer"
                                 >
                                     Cancel
                                 </button>

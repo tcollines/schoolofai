@@ -500,7 +500,7 @@ const AdminCourses: React.FC = () => {
                     <div className="bg-white dark:bg-slate-900 rounded-3xl w-full max-w-md overflow-hidden shadow-2xl p-6 border border-gray-100 dark:border-slate-800 space-y-4">
                         <div className="flex justify-between items-center pb-2 border-b border-gray-100 dark:border-slate-800">
                             <h3 className="font-bold text-gray-900 dark:text-white">Adjust Cover Image</h3>
-                            <button onClick={() => setIsAdjustModalOpen(false)} className="text-gray-400 hover:text-gray-655 dark:hover:text-slate-350 p-1 cursor-pointer">
+                            <button onClick={() => setIsAdjustModalOpen(false)} className="text-gray-400 hover:text-gray-650 dark:hover:text-slate-300 p-1 cursor-pointer">
                                 <X size={18} />
                             </button>
                         </div>
@@ -579,7 +579,7 @@ const AdminCourses: React.FC = () => {
                                 onClick={() => {
                                     setNewCourse({...newCourse, imageScale: 1, imagePositionX: 50, imagePositionY: 50});
                                 }}
-                                className="px-4 py-2 border border-gray-250 dark:border-slate-700 text-xs font-semibold text-gray-700 dark:text-slate-300 rounded-xl hover:bg-gray-55 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+                                className="px-4 py-2 border border-gray-250 dark:border-slate-700 text-xs font-semibold text-gray-700 dark:text-slate-300 rounded-xl hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors cursor-pointer"
                             >
                                 Reset Settings
                             </button>

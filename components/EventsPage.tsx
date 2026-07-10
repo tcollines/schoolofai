@@ -546,11 +546,11 @@ const EventsPage: React.FC<EventsPageProps> = ({ courses = [] }) => {
                             {selectedEvent.title}
                         </h3>
 
-                        <p className="text-gray-600 dark:text-slate-350 text-sm leading-relaxed mb-6 whitespace-pre-line">
+                        <p className="text-gray-600 dark:text-slate-300 text-sm leading-relaxed mb-6 whitespace-pre-line">
                             {selectedEvent.description}
                         </p>
 
-                        <div className="space-y-3.5 text-xs text-gray-600 dark:text-slate-350 border-t border-gray-100 dark:border-slate-800 pt-6">
+                        <div className="space-y-3.5 text-xs text-gray-600 dark:text-slate-300 border-t border-gray-100 dark:border-slate-800 pt-6">
                             <div className="flex items-center gap-2">
                                 <Clock size={16} className="text-violet-500 shrink-0" />
                                 <span className="font-semibold text-gray-800 dark:text-gray-200">{selectedEvent.date} @ {selectedEvent.time}</span>

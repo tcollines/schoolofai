@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
     Bot,
     Brain,
@@ -6,7 +6,9 @@ import {
     Sparkles,
     CheckCircle2,
     ArrowRight,
-    GraduationCap
+    GraduationCap,
+    Sun,
+    Moon
 } from 'lucide-react';
 
 interface LandingPageProps {
@@ -17,33 +19,65 @@ interface LandingPageProps {
 }
 
 const LandingPage: React.FC<LandingPageProps> = ({ onLoginClick, onSignupClick, onGetStarted, onAdminConsoleClick }) => {
+    const [isDark, setIsDark] = useState(() => {
+        return document.documentElement.classList.contains('dark');
+    });
+
+    useEffect(() => {
+        const handleThemeChange = () => {
+            setIsDark(document.documentElement.classList.contains('dark'));
+        };
+        window.addEventListener('theme-change', handleThemeChange);
+        return () => window.removeEventListener('theme-change', handleThemeChange);
+    }, []);
+
+    const toggleTheme = () => {
+        const nextDark = !isDark;
+        setIsDark(nextDark);
+        if (nextDark) {
+            document.documentElement.classList.add('dark');
+            localStorage.setItem('theme', 'dark');
+        } else {
+            document.documentElement.classList.remove('dark');
+            localStorage.setItem('theme', 'light');
+        }
+        window.dispatchEvent(new Event('theme-change'));
+    };
+
     return (
         <div className="min-h-screen bg-gray-50 text-gray-900 font-sans">
             {/* Navigation */}
-            <nav className="fixed top-0 left-0 right-0 bg-white/80 backdrop-blur-md z-50 border-b border-gray-100">
+            <nav className="fixed top-0 left-0 right-0 bg-white/80 dark:bg-slate-900/85 backdrop-blur-md z-50 border-b border-gray-100 dark:border-slate-800/80 transition-colors">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="flex justify-between items-center h-16">
                         <div className="flex items-center">
-                            <div className="w-8 h-8 bg-black rounded-full flex items-center justify-center mr-2">
-                                <div className="w-3 h-3 bg-white rounded-full"></div>
+                            <div className="w-8 h-8 bg-black dark:bg-white rounded-full flex items-center justify-center mr-2 transition-colors">
+                                <div className="w-3 h-3 bg-white dark:bg-black rounded-full transition-colors"></div>
                             </div>
-                            <span className="text-xl font-bold tracking-tight">Welile<span className="text-violet-600">School</span></span>
+                            <span className="text-xl font-bold tracking-tight text-slate-900 dark:text-white transition-colors">Welile<span className="text-violet-600 dark:text-violet-400">School</span></span>
                         </div>
                         <div className="hidden md:flex items-center space-x-8">
-                            <a href="#features" className="text-gray-600 hover:text-gray-900 font-medium text-sm">Features</a>
-                            <a href="#advantages" className="text-gray-600 hover:text-gray-900 font-medium text-sm">Why AI?</a>
-                            <a href="#pricing" className="text-gray-600 hover:text-gray-900 font-medium text-sm">Pricing</a>
+                            <a href="#features" className="text-gray-600 dark:text-slate-300 hover:text-gray-900 dark:hover:text-white font-medium text-sm transition-colors">Features</a>
+                            <a href="#advantages" className="text-gray-600 dark:text-slate-300 hover:text-gray-900 dark:hover:text-white font-medium text-sm transition-colors">Why AI?</a>
+                            <a href="#pricing" className="text-gray-600 dark:text-slate-300 hover:text-gray-900 dark:hover:text-white font-medium text-sm transition-colors">Pricing</a>
                         </div>
                         <div className="flex items-center space-x-4">
                             <button
+                                onClick={toggleTheme}
+                                className="p-2 text-gray-500 dark:text-slate-400 hover:bg-gray-100 dark:hover:bg-slate-800/60 rounded-full transition-all cursor-pointer flex items-center justify-center"
+                                title={isDark ? "Activate Light Mode" : "Activate Dark Mode"}
+                            >
+                                {isDark ? <Sun size={18} /> : <Moon size={18} />}
+                            </button>
+                            <button
                                 onClick={onLoginClick}
-                                className="text-gray-600 hover:text-gray-900 font-medium text-sm"
+                                className="text-gray-600 dark:text-slate-300 hover:text-gray-900 dark:hover:text-white font-medium text-sm transition-colors"
                             >
                                 Log in
                             </button>
                             <button
                                 onClick={onSignupClick || onGetStarted}
-                                className="bg-black text-white px-4 py-2 rounded-full text-sm font-medium hover:bg-gray-800 transition-colors"
+                                className="bg-black dark:bg-white text-white dark:text-slate-950 px-4 py-2 rounded-full text-sm font-medium hover:bg-gray-800 dark:hover:bg-slate-100 transition-colors shadow-sm"
                             >
                                 Get Started
                             </button>
@@ -71,7 +105,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLoginClick, onSignupClick, 
                         <div className="flex flex-col sm:flex-row justify-center gap-4">
                             <button
                                 onClick={onGetStarted}
-                                className="px-8 py-4 bg-black text-white rounded-full font-semibold text-lg hover:bg-gray-800 transition-all shadow-lg hover:shadow-xl flex items-center justify-center group"
+                                className="px-8 py-4 bg-black dark:bg-white text-white dark:text-slate-950 rounded-full font-semibold text-lg hover:bg-gray-800 dark:hover:bg-slate-100 transition-all shadow-lg hover:shadow-xl flex items-center justify-center group"
                             >
                                 Start Learning Now
                                 <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
