@@ -40,6 +40,17 @@ export const useCourses = (userId: string | undefined) => {
                 // Merge data
                 const formattedCourses: Course[] = (coursesData || []).map((course: any) => {
                     const isNewFormat = Array.isArray(course.modules) && course.modules.length > 0 && 'lessons' in course.modules[0];
+                    const lessonsCompleted = enrollmentsMap[course.id]?.progress || 0;
+                    const examCompleted = !!enrollmentsMap[course.id]?.exam_completed;
+                    const progressPct = Math.round(
+                        (course.lessons_total > 0 ? (lessonsCompleted / course.lessons_total) * 60 : 0) +
+                        (examCompleted ? 40 : 0)
+                    );
+                    let mappedStatus = enrollmentsMap[course.id]?.status as CourseStatus || CourseStatus.NOT_STARTED;
+                    if (mappedStatus === CourseStatus.COMPLETED && progressPct < 100) {
+                        mappedStatus = CourseStatus.IN_PROGRESS;
+                    }
+
                     return {
                         id: course.id,
                         title: course.title,
@@ -50,9 +61,9 @@ export const useCourses = (userId: string | undefined) => {
                         category: course.category || 'General',
                         rating: Number(course.rating) || 0,
                         lessonsTotal: course.lessons_total || 0,
-                        lessonsCompleted: enrollmentsMap[course.id]?.progress || 0,
-                        status: enrollmentsMap[course.id]?.status as CourseStatus || CourseStatus.NOT_STARTED,
-                        examCompleted: !!enrollmentsMap[course.id]?.exam_completed,
+                        lessonsCompleted: lessonsCompleted,
+                        status: mappedStatus,
+                        examCompleted: examCompleted,
                         examScore: enrollmentsMap[course.id]?.exam_score !== undefined ? Number(enrollmentsMap[course.id]?.exam_score) : undefined,
                         certificateUrl: enrollmentsMap[course.id]?.certificate_url || '',
                         isCertificateVerified: !!enrollmentsMap[course.id]?.is_certificate_verified,
