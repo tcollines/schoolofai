@@ -5,6 +5,7 @@ import { UserProfile, Course, UserRole } from '../../types';
 export const useAdmin = (isAdmin: boolean) => {
     const [users, setUsers] = useState<UserProfile[]>([]);
     const [courses, setCourses] = useState<Course[]>([]);
+    const [enrollments, setEnrollments] = useState<any[]>([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
@@ -74,6 +75,14 @@ export const useAdmin = (isAdmin: boolean) => {
                 };
             });
             setCourses(formattedCourses);
+
+            // Fetch Enrollments
+            const { data: enrollmentsData, error: enrollmentsError } = await supabase
+                .from('enrollments')
+                .select('*');
+
+            if (enrollmentsError) throw enrollmentsError;
+            setEnrollments(enrollmentsData || []);
 
         } catch (err: any) {
             console.error('Error in useAdmin:', err);
@@ -257,5 +266,25 @@ export const useAdmin = (isAdmin: boolean) => {
         }
     };
 
-    return { users, courses, loading, error, addCourse, updateCourse, deleteCourse, updateCourseQuiz, updateUserRole, deleteUser, refresh: fetchData };
+    const verifyAndIssueCertificate = async (userId: string, courseId: string, certificateUrl: string) => {
+        try {
+            const { error } = await supabase
+                .from('enrollments')
+                .update({ 
+                    is_certificate_verified: true,
+                    certificate_url: certificateUrl 
+                })
+                .eq('user_id', userId)
+                .eq('course_id', courseId);
+
+            if (error) throw error;
+            await fetchData(true); // Refresh silently
+            window.dispatchEvent(new Event('profile-update'));
+        } catch (err: any) {
+            console.error('Error issuing certificate:', err);
+            throw err;
+        }
+    };
+
+    return { users, courses, enrollments, loading, error, addCourse, updateCourse, deleteCourse, updateCourseQuiz, updateUserRole, deleteUser, verifyAndIssueCertificate, refresh: fetchData };
 };

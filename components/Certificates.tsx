@@ -38,12 +38,37 @@ const Certificates: React.FC<CertificatesProps> = ({ courses }) => {
                                     <Award size={24} />
                                 </div>
                                 <div className="flex gap-2">
-                                    <button className="p-2 text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-50 dark:hover:bg-slate-800 rounded-lg transition-colors" title="Share">
+                                    <button 
+                                        className="p-2 text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-50 dark:hover:bg-slate-800 rounded-lg transition-colors cursor-pointer" 
+                                        title="Share"
+                                        onClick={() => alert("Certificate sharing feature coming soon!")}
+                                    >
                                         <Share2 size={18} />
                                     </button>
-                                    <button className="p-2 text-gray-400 hover:text-purple-600 dark:hover:text-purple-400 hover:bg-purple-50 dark:hover:bg-slate-800 rounded-lg transition-colors" title="Download PDF">
-                                        <Download size={18} />
-                                    </button>
+                                    
+                                    {course.examCompleted && course.isCertificateVerified && course.certificateUrl ? (
+                                        <a 
+                                            href={course.certificateUrl} 
+                                            target="_blank" 
+                                            rel="noreferrer" 
+                                            className="p-2 text-purple-600 hover:text-purple-700 hover:bg-purple-50 dark:hover:bg-slate-800 rounded-lg transition-colors flex items-center justify-center cursor-pointer" 
+                                            title="Download Certificate"
+                                        >
+                                            <Download size={18} />
+                                        </a>
+                                    ) : (
+                                        <button 
+                                            disabled 
+                                            className="p-2 text-gray-300 dark:text-slate-700 cursor-not-allowed" 
+                                            title={
+                                                !course.examCompleted 
+                                                    ? "Exam not completed yet" 
+                                                    : "Pending Admin Upload & Verification"
+                                            }
+                                        >
+                                            <Download size={18} />
+                                        </button>
+                                    )}
                                 </div>
                             </div>
 
@@ -51,13 +76,40 @@ const Certificates: React.FC<CertificatesProps> = ({ courses }) => {
                                 <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-1 line-clamp-2">{course.title}</h3>
                                 <p className="text-sm text-gray-500 dark:text-slate-400 mb-4">Instructed by Welile Academy</p>
 
-                                <div className="flex items-center gap-4 text-xs font-medium text-gray-400 border-t border-gray-50 dark:border-slate-800 pt-4">
-                                    <div className="flex items-center gap-1.5">
-                                        <Calendar size={14} />
-                                        <span>Completed on {new Date().toLocaleDateString()}</span>
+                                <div className="flex flex-col gap-2 border-t border-gray-50 dark:border-slate-800 pt-4">
+                                    <div className="flex items-center justify-between text-xs font-medium text-gray-400">
+                                        <div className="flex items-center gap-1.5">
+                                            <Calendar size={14} />
+                                            <span>Syllabus Completed</span>
+                                        </div>
+                                        <span className="text-green-600 dark:text-green-400 font-semibold">100%</span>
                                     </div>
-                                    <div className="px-2 py-1 bg-green-50 dark:bg-green-950/30 text-green-700 dark:text-green-400 rounded text-[10px] uppercase tracking-wider">
-                                        Verified
+
+                                    <div className="flex items-center justify-between text-xs font-medium text-gray-400">
+                                        <div className="flex items-center gap-1.5">
+                                            <span className="text-sm">📝</span>
+                                            <span>Final Exam</span>
+                                        </div>
+                                        <span className={course.examCompleted ? "text-green-600 dark:text-green-400 font-semibold" : "text-amber-600 dark:text-amber-400 font-semibold"}>
+                                            {course.examCompleted ? `Completed (${course.examScore ?? 100}%)` : "Not Completed"}
+                                        </span>
+                                    </div>
+
+                                    <div className="flex items-center justify-between text-xs font-medium text-gray-400 mt-1 pt-2 border-t border-dashed border-gray-100 dark:border-slate-805">
+                                        <span>Certificate Status:</span>
+                                        {course.examCompleted && course.isCertificateVerified ? (
+                                            <span className="px-2 py-0.5 bg-green-50 dark:bg-green-950/40 text-green-700 dark:text-green-400 rounded text-[10px] uppercase font-bold tracking-wider">
+                                                Verified & Issued
+                                            </span>
+                                        ) : course.examCompleted ? (
+                                            <span className="px-2 py-0.5 bg-yellow-50 dark:bg-yellow-950/20 text-yellow-700 dark:text-yellow-400 rounded text-[10px] uppercase font-bold tracking-wider">
+                                                Pending Admin Upload
+                                            </span>
+                                        ) : (
+                                            <span className="px-2 py-0.5 bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 rounded text-[10px] uppercase font-bold tracking-wider">
+                                                Locked
+                                            </span>
+                                        )}
                                     </div>
                                 </div>
                             </div>

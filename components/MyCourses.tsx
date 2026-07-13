@@ -184,9 +184,34 @@ const MyCourses: React.FC<MyCoursesProps> = ({ courses }) => {
                 quiz={selectedCourse.quiz}
                 courseTitle={selectedCourse.title}
                 onClose={() => setTakingExam(false)}
-                onSubmit={(score) => {
+                onSubmit={async (score) => {
                     alert(`Exam submitted! You scored ${score}%`);
                     setTakingExam(false);
+                    try {
+                        const { data: { session } } = await supabase.auth.getSession();
+                        if (session?.user?.id && selectedCourse) {
+                            const { error } = await supabase
+                                .from('enrollments')
+                                .update({ 
+                                    exam_completed: true,
+                                    exam_score: score 
+                                })
+                                .eq('user_id', session.user.id)
+                                .eq('course_id', selectedCourse.id);
+                            
+                            if (error) throw error;
+                            
+                            addPortalNotification(
+                                "Exam Completed Successfully",
+                                `You have finished the final exam for ${selectedCourse.title} with a score of ${score}%. The admin team will verify and issue your certificate soon.`,
+                                "course"
+                            );
+
+                            window.dispatchEvent(new Event('profile-update'));
+                        }
+                    } catch (err) {
+                        console.error("Error updating exam score:", err);
+                    }
                 }}
             />
         );

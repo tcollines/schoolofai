@@ -5,7 +5,7 @@ import { Trash2 } from 'lucide-react';
 import { supabase } from '../../src/lib/supabase';
 
 const AdminEnrollments: React.FC = () => {
-    const { users, loading, updateUserRole, deleteUser } = useAdmin(true);
+    const { users, courses, enrollments, loading, updateUserRole, deleteUser, verifyAndIssueCertificate } = useAdmin(true);
 
     const handleApproveUpgrade = async (u: any) => {
         try {
@@ -207,6 +207,129 @@ const AdminEnrollments: React.FC = () => {
                         ))}
                     </tbody>
                 </table>
+            </div>
+
+            {/* Certificates Management Section */}
+            <div className="mt-8 bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                <div className="p-6 border-b border-gray-100 flex justify-between items-center">
+                    <h2 className="text-lg font-semibold text-gray-900">Exam Submissions & Certificates</h2>
+                    <div className="text-sm text-gray-500">
+                        Total: {enrollments.filter(e => e.exam_completed).length} completed exams
+                    </div>
+                </div>
+                <div className="overflow-x-auto">
+                    <table className="w-full text-left border-collapse">
+                        <thead className="bg-gray-50">
+                            <tr className="text-gray-500 text-xs uppercase tracking-wider font-semibold">
+                                <th className="py-4 px-6 border-b border-gray-200">Student</th>
+                                <th className="py-4 px-6 border-b border-gray-200">Course</th>
+                                <th className="py-4 px-6 border-b border-gray-200 text-center">Exam Score</th>
+                                <th className="py-4 px-6 border-b border-gray-200">Certificate File / URL</th>
+                                <th className="py-4 px-6 border-b border-gray-200 text-center">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-gray-100">
+                            {enrollments.filter(e => e.exam_completed).length === 0 ? (
+                                <tr>
+                                    <td colSpan={5} className="py-8 px-6 text-center text-gray-500 text-sm">
+                                        No exam completions or issued certificates found.
+                                    </td>
+                                </tr>
+                            ) : (
+                                enrollments.filter(e => e.exam_completed).map(e => {
+                                    const student = users.find(u => u.id === e.user_id);
+                                    const course = courses.find(c => c.id === e.course_id);
+                                    if (!student || !course) return null;
+
+                                    return (
+                                        <tr key={`${e.user_id}-${e.course_id}`} className="hover:bg-gray-55 transition-colors">
+                                            <td className="py-4 px-6 font-medium text-gray-900">
+                                                <div className="flex flex-col">
+                                                    <span>{student.name}</span>
+                                                    <span className="text-xs text-gray-500 font-normal">{student.email}</span>
+                                                </div>
+                                            </td>
+                                            <td className="py-4 px-6 text-gray-700 text-sm font-medium">{course.title}</td>
+                                            <td className="py-4 px-6 text-center">
+                                                <span className="px-2.5 py-1 bg-indigo-50 dark:bg-indigo-950/30 text-indigo-700 dark:text-indigo-400 font-bold rounded-lg text-xs">
+                                                    {e.exam_score !== undefined ? `${e.exam_score}%` : '100%'}
+                                                </span>
+                                            </td>
+                                            <td className="py-4 px-6 text-sm">
+                                                {e.is_certificate_verified && e.certificate_url ? (
+                                                    <a 
+                                                        href={e.certificate_url} 
+                                                        target="_blank" 
+                                                        rel="noreferrer" 
+                                                        className="text-purple-650 hover:underline font-semibold flex items-center gap-1"
+                                                    >
+                                                        📄 View Issued Certificate
+                                                    </a>
+                                                ) : (
+                                                    <div className="flex flex-col gap-1">
+                                                        <input 
+                                                            type="file" 
+                                                            accept="application/pdf,image/*"
+                                                            onChange={async (event) => {
+                                                                const file = event.target.files?.[0];
+                                                                if (file) {
+                                                                    const reader = new FileReader();
+                                                                    reader.onload = () => {
+                                                                        if (typeof reader.result === 'string') {
+                                                                            (e as any).uploaded_cert_data = reader.result;
+                                                                            alert("Certificate file loaded! Click Verify to save.");
+                                                                        }
+                                                                    };
+                                                                    reader.readAsDataURL(file);
+                                                                }
+                                                            }}
+                                                            className="text-xs text-gray-550 file:mr-2 file:py-1 file:px-2 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-purple-50 file:text-purple-700 hover:file:bg-purple-100 cursor-pointer"
+                                                        />
+                                                        <span className="text-[10px] text-gray-400">Or paste Certificate URL:</span>
+                                                        <input 
+                                                            type="text" 
+                                                            placeholder="https://..."
+                                                            onChange={(event) => {
+                                                                (e as any).uploaded_cert_data = event.target.value;
+                                                            }}
+                                                            className="p-1 border rounded text-xs w-full max-w-[200px]"
+                                                        />
+                                                    </div>
+                                                )}
+                                            </td>
+                                            <td className="py-4 px-6 text-center">
+                                                {e.is_certificate_verified ? (
+                                                    <span className="text-xs text-green-600 font-bold flex items-center justify-center gap-1">
+                                                        ✓ Verified & Issued
+                                                    </span>
+                                                ) : (
+                                                    <button
+                                                        onClick={async () => {
+                                                            const certData = (e as any).uploaded_cert_data;
+                                                            if (!certData) {
+                                                                alert("Please upload a file or enter a Certificate URL first.");
+                                                                return;
+                                                            }
+                                                            try {
+                                                                await verifyAndIssueCertificate(e.user_id, e.course_id, certData);
+                                                                alert("Certificate successfully verified and uploaded!");
+                                                            } catch (err: any) {
+                                                                alert("Failed to verify certificate.");
+                                                            }
+                                                        }}
+                                                        className="px-3 py-1 bg-purple-600 hover:bg-purple-750 text-white rounded-lg text-xs font-bold transition-colors cursor-pointer"
+                                                    >
+                                                        Verify & Upload
+                                                    </button>
+                                                )}
+                                            </td>
+                                        </tr>
+                                    );
+                                })
+                            )}
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
     );
