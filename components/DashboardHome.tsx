@@ -261,7 +261,7 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({ courses, userId }) => {
                             onClick={() => window.location.href = '/plans'}
                             className="bg-welile-lime text-black text-xs font-bold px-4 py-2 rounded-full hover:bg-lime-300 transition-colors cursor-pointer"
                         >
-                            {userRole === 'PRO' || userRole === 'ADMIN' ? 'Enjoy Services' : t('go_premium')}
+                            {userRole === 'PRO' || userRole === 'ADMIN' ? 'Review Services' : t('go_premium')}
                         </button>
                     </div>
                     {/* Abstract illustration circles */}
