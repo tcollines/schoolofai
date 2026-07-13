@@ -162,6 +162,10 @@ export const StudentAssignments: React.FC<StudentAssignmentsProps> = ({ courses,
                     2. Visit your security settings page to enable 2FA if desired.
                     3. Submit a short 2-sentence note below introducing yourself and what you hope to learn.`
                 });
+
+                // Save defaults to localStorage so they are available on the Admin Console immediately
+                localStorage.setItem('admin-assignments', JSON.stringify(list));
+                window.dispatchEvent(new Event('admin-assignments-update'));
             }
             setAssignments(list);
         };

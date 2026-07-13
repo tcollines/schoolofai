@@ -17,7 +17,7 @@ interface Assignment {
 }
 
 const AdminAssignments: React.FC = () => {
-    const { courses, loading } = useAdmin();
+    const { courses, loading } = useAdmin(true);
     const [assignments, setAssignments] = useState<Assignment[]>([]);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingAssignment, setEditingAssignment] = useState<Assignment | null>(null);
@@ -120,6 +120,41 @@ const AdminAssignments: React.FC = () => {
         const stored = localStorage.getItem('admin-assignments');
         if (stored) {
             setAssignments(JSON.parse(stored));
+        } else if (courses && courses.length > 0) {
+            // Seed same default assignments if empty and courses are loaded
+            const targetCourses = courses.slice(0, 2);
+            const list: Assignment[] = targetCourses.map((course, idx) => ({
+                id: `mock-asg-${course.id}-${idx}`,
+                title: `${course.title} - Final Case Study Project`,
+                courseId: course.id,
+                dueDate: new Date(Date.now() + (3 + idx) * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+                status: 'In Progress',
+                description: `This comprehensive assignment covers the fundamental concepts taught in ${course.title}. 
+                
+                Instructions:
+                1. Review all course lecture slides, study guides, and module resources.
+                2. Write a 3-page summary report answering the core syllabus prompt.
+                3. Draw practical architecture diagrams or flowcharts explaining your chosen case study.
+                4. Submit your completed PDF report or project GitHub repository link below.`
+            }));
+
+            list.push({
+                id: 'mock-asg-global-welcome',
+                title: 'Welile School Student Onboarding Assignment',
+                courseId: 'global',
+                dueDate: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+                status: 'In Progress',
+                description: `Welcome to Welile School of AI! Please complete this short task to set up your profile and wallet settings.
+                
+                Instructions:
+                1. Navigate to the "My Profile" tab and configure your career goal and name.
+                2. Visit your security settings page to enable 2FA if desired.
+                3. Submit a short 2-sentence note below introducing yourself and what you hope to learn.`
+            });
+
+            localStorage.setItem('admin-assignments', JSON.stringify(list));
+            setAssignments(list);
+            window.dispatchEvent(new Event('admin-assignments-update'));
         } else {
             setAssignments([]);
         }
@@ -127,7 +162,13 @@ const AdminAssignments: React.FC = () => {
 
     useEffect(() => {
         loadAssignments();
-    }, []);
+        window.addEventListener('storage', loadAssignments);
+        window.addEventListener('admin-assignments-update', loadAssignments);
+        return () => {
+            window.removeEventListener('storage', loadAssignments);
+            window.removeEventListener('admin-assignments-update', loadAssignments);
+        };
+    }, [courses]);
 
     const openCreateModal = () => {
         setEditingAssignment(null);
