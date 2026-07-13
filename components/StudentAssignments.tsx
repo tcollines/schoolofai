@@ -107,7 +107,7 @@ export const StudentAssignments: React.FC<StudentAssignmentsProps> = ({ courses,
             let list: any[] = [];
             const enrolledIds = enrolledCourses.map(c => c.id);
             
-            if (stored) {
+            if (stored !== null) {
                 try {
                     const parsed = JSON.parse(stored);
                     // Filter assignments for courses student is enrolled in, or global assignments
@@ -117,10 +117,8 @@ export const StudentAssignments: React.FC<StudentAssignmentsProps> = ({ courses,
                 } catch (e) {
                     console.error('Error parsing assignments', e);
                 }
-            }
-            
-            // If the filtered list is empty, pre-populate fallback detailed assignments matching student's actual enrollments
-            if (list.length === 0) {
+            } else {
+                // If stored is null (never initialized), pre-populate fallback detailed assignments matching student's actual enrollments
                 const targetCourses = enrolledCourses.length > 0 ? enrolledCourses : courses.slice(0, 2);
                 
                 list = targetCourses.map((course, idx) => ({
@@ -166,6 +164,11 @@ export const StudentAssignments: React.FC<StudentAssignmentsProps> = ({ courses,
                 // Save defaults to localStorage so they are available on the Admin Console immediately
                 localStorage.setItem('admin-assignments', JSON.stringify(list));
                 window.dispatchEvent(new Event('admin-assignments-update'));
+
+                // Filter list for view
+                list = list.filter((asg: any) =>
+                    asg.courseId === 'global' || enrolledIds.includes(asg.courseId)
+                );
             }
             setAssignments(list);
         };
