@@ -252,8 +252,8 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({ courses, userId }) => {
                             <div className="w-full sm:w-auto text-right">
                                 <div className="flex items-center gap-2 sm:block">
                                     <span className="text-xs font-bold text-gray-600 dark:text-slate-355 sm:hidden">Progress:</span>
-                                    <div className="radial-progress text-welile-purple text-xs font-bold" style={{ "--value": activeCourse.lessonsCompleted ? (activeCourse.lessonsCompleted / activeCourse.lessonsTotal) * 100 : 0 } as any}>
-                                        {Math.round(activeCourse.lessonsCompleted ? (activeCourse.lessonsCompleted / activeCourse.lessonsTotal) * 100 : 0)}%
+                                    <div className="radial-progress text-welile-purple text-xs font-bold" style={{ "--value": Math.round((activeCourse.lessonsTotal > 0 ? (activeCourse.lessonsCompleted / activeCourse.lessonsTotal) * 60 : 0) + (activeCourse.examCompleted ? 40 : 0)) } as any}>
+                                        {Math.round((activeCourse.lessonsTotal > 0 ? (activeCourse.lessonsCompleted / activeCourse.lessonsTotal) * 60 : 0) + (activeCourse.examCompleted ? 40 : 0))}%
                                     </div>
                                 </div>
                             </div>

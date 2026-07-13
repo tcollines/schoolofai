@@ -8,7 +8,10 @@ interface CourseCardProps {
 }
 
 const CourseCard: React.FC<CourseCardProps> = ({ course, onClick }) => {
-  const progress = Math.round((course.lessonsCompleted / course.lessonsTotal) * 100);
+  const progress = Math.round(
+    (course.lessonsTotal > 0 ? (course.lessonsCompleted / course.lessonsTotal) * 60 : 0) +
+    (course.examCompleted ? 40 : 0)
+  );
 
   const getStatusColor = (status: CourseStatus) => {
     switch (status) {

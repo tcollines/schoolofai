@@ -41,11 +41,57 @@ const MyCourses: React.FC<MyCoursesProps> = ({ courses }) => {
     const [localCourses, setLocalCourses] = useState<Course[]>(courses);
     const [viewMode, setViewMode] = useState<'list' | 'grid'>('list');
     const [lessonsViewMode, setLessonsViewMode] = useState<Record<string, 'list' | 'grid'>>({});
+    const [reviewsVersion, setReviewsVersion] = useState(0);
+
+    const getReviews = (courseId: string) => {
+        const stored = localStorage.getItem(`course-reviews-${courseId}`);
+        if (stored) {
+            return JSON.parse(stored);
+        }
+        
+        const defaults = [
+            {
+                id: 'default-rev-1',
+                userName: 'Sarah Jenkins',
+                userAvatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=150&h=150&q=80',
+                avatarScale: 1,
+                avatarPositionX: 0,
+                avatarPositionY: 0,
+                rating: 5,
+                comment: 'Absolutely brilliant course! The concepts are explained with great clarity, and the module structure is incredibly easy to follow. Highly recommended!',
+                date: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toLocaleDateString()
+            },
+            {
+                id: 'default-rev-2',
+                userName: 'Alex Rivera',
+                userAvatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=150&h=150&q=80',
+                avatarScale: 1.1,
+                avatarPositionX: -5,
+                avatarPositionY: 10,
+                rating: 4,
+                comment: 'Very practical and hands-on. The syllabus covers exactly what is needed for industry application. Loved the final case study project.',
+                date: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toLocaleDateString()
+            }
+        ];
+        
+        localStorage.setItem(`course-reviews-${courseId}`, JSON.stringify(defaults));
+        return defaults;
+    };
 
     // Sync localCourses with props changes
     useEffect(() => {
         setLocalCourses(courses);
     }, [courses]);
+
+    useEffect(() => {
+        const handleReviewsUpdate = () => {
+            setReviewsVersion(prev => prev + 1);
+        };
+        window.addEventListener('course-reviews-update', handleReviewsUpdate);
+        return () => {
+            window.removeEventListener('course-reviews-update', handleReviewsUpdate);
+        };
+    }, []);
 
     // Only show enrolled courses for "My Learning"
     const myCourses = localCourses.filter(c => c.status === CourseStatus.IN_PROGRESS || c.status === CourseStatus.COMPLETED);
@@ -284,13 +330,21 @@ const MyCourses: React.FC<MyCoursesProps> = ({ courses }) => {
                                     {selectedCourse.lessonsCompleted} / {selectedCourse.lessonsTotal} Completed
                                 </span>
                                 <span className="font-bold text-welile-purple">
-                                    {Math.round((selectedCourse.lessonsCompleted / selectedCourse.lessonsTotal) * 100)}%
+                                    {Math.round(
+                                        (selectedCourse.lessonsTotal > 0 ? (selectedCourse.lessonsCompleted / selectedCourse.lessonsTotal) * 60 : 0) +
+                                        (selectedCourse.examCompleted ? 40 : 0)
+                                    )}%
                                 </span>
                             </div>
                             <div className="w-full bg-gray-100 dark:bg-slate-800 rounded-full h-2">
                                 <div
                                     className="h-2 rounded-full bg-welile-purple transition-all duration-1000"
-                                    style={{ width: `${(selectedCourse.lessonsCompleted / selectedCourse.lessonsTotal) * 100}%` }}
+                                    style={{ 
+                                        width: `${Math.round(
+                                            (selectedCourse.lessonsTotal > 0 ? (selectedCourse.lessonsCompleted / selectedCourse.lessonsTotal) * 60 : 0) +
+                                            (selectedCourse.examCompleted ? 40 : 0)
+                                        )}%` 
+                                    }}
                                 ></div>
                             </div>
                         </div>
@@ -680,14 +734,118 @@ const MyCourses: React.FC<MyCoursesProps> = ({ courses }) => {
                     </div>
                 </div>
 
+                {/* Student Reviews Section */}
+                <div className="mt-8 bg-white dark:bg-slate-900 rounded-3xl border border-gray-100 dark:border-slate-800 shadow-sm overflow-hidden p-6 md:p-8">
+                    <div className="flex items-center justify-between border-b border-gray-50 dark:border-slate-800/80 pb-6 mb-6">
+                        <div>
+                            <h3 className="text-xl font-bold text-gray-900 dark:text-white">Student Reviews & Feedback</h3>
+                            <p className="text-xs text-gray-500 dark:text-slate-400 mt-1">Read reviews from other students enrolled in this course.</p>
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <span className="text-2xl font-black text-gray-900 dark:text-white">{(selectedCourse.rating || 4.8).toFixed(1)}</span>
+                            <div className="flex text-yellow-400">
+                                {[1, 2, 3, 4, 5].map((s) => (
+                                    <Star 
+                                        key={s} 
+                                        size={16} 
+                                        fill={s <= Math.round(selectedCourse.rating || 4.8) ? "currentColor" : "none"} 
+                                    />
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="space-y-6">
+                        {getReviews(selectedCourse.id).length === 0 ? (
+                            <p className="text-sm text-gray-500 text-center py-6">No reviews posted yet. Be the first to share your experience!</p>
+                        ) : (
+                            getReviews(selectedCourse.id).map((r: any) => (
+                                <div key={r.id} className="flex gap-4 p-4 rounded-2xl bg-gray-50 dark:bg-slate-850/40 border border-gray-100 dark:border-slate-800/60">
+                                    <div className="w-10 h-10 rounded-full overflow-hidden shrink-0 border border-gray-100 dark:border-slate-800">
+                                        <img 
+                                            src={r.userAvatar} 
+                                            alt={r.userName} 
+                                            className="w-full h-full object-cover" 
+                                            style={{
+                                                transform: `scale(${r.avatarScale || 1}) translate(${r.avatarPositionX || 0}px, ${r.avatarPositionY || 0}px)`,
+                                                transformOrigin: 'center'
+                                            }}
+                                        />
+                                    </div>
+                                    <div className="flex-1">
+                                        <div className="flex items-center justify-between">
+                                            <h4 className="font-bold text-sm text-gray-900 dark:text-white">{r.userName}</h4>
+                                            <span className="text-[10px] text-gray-400">{r.date}</span>
+                                        </div>
+                                        <div className="flex text-yellow-400 my-1">
+                                            {[1, 2, 3, 4, 5].map((s) => (
+                                                <Star 
+                                                    key={s} 
+                                                    size={12} 
+                                                    fill={s <= r.rating ? "currentColor" : "none"} 
+                                                />
+                                            ))}
+                                        </div>
+                                        <p className="text-xs text-gray-600 dark:text-slate-350 leading-relaxed mt-1">{r.comment}</p>
+                                    </div>
+                                </div>
+                            ))
+                        )}
+                    </div>
+                </div>
+
                 {isRatingModalOpen && (
                     <RatingModal
                         courseTitle={selectedCourse.title}
                         onClose={() => setIsRatingModalOpen(false)}
-                        onSubmit={(rating, review) => {
-                            console.log(`Submitted rating ${rating} for ${selectedCourse.title}: ${review}`);
-                            setHasRated(true);
-                            setIsRatingModalOpen(false);
+                        onSubmit={async (rating, review) => {
+                            try {
+                                const { data: { session } } = await supabase.auth.getSession();
+                                const userId = session?.user?.id || 'guest';
+                                
+                                let studentName = 'Student';
+                                let studentAvatar = 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=150&h=150&q=80';
+                                let avatarScale = 1;
+                                let avatarPositionX = 0;
+                                let avatarPositionY = 0;
+
+                                const { data: profileData } = await supabase
+                                    .from('profiles')
+                                    .select('*')
+                                    .eq('id', userId)
+                                    .single();
+                                
+                                if (profileData) {
+                                    studentName = profileData.name || studentName;
+                                    studentAvatar = profileData.avatar_url || studentAvatar;
+                                    avatarScale = profileData.avatar_scale || 1;
+                                    avatarPositionX = profileData.avatar_position_x || 0;
+                                    avatarPositionY = profileData.avatar_position_y || 0;
+                                }
+
+                                const newReview = {
+                                    id: Date.now().toString(),
+                                    userName: studentName,
+                                    userAvatar: studentAvatar,
+                                    avatarScale,
+                                    avatarPositionX,
+                                    avatarPositionY,
+                                    rating,
+                                    comment: review,
+                                    date: new Date().toLocaleDateString()
+                                };
+
+                                const key = `course-reviews-${selectedCourse.id}`;
+                                const existing = localStorage.getItem(key);
+                                const list = existing ? JSON.parse(existing) : [];
+                                
+                                localStorage.setItem(key, JSON.stringify([newReview, ...list]));
+                                setHasRated(true);
+                                setIsRatingModalOpen(false);
+                                window.dispatchEvent(new Event('course-reviews-update'));
+                            } catch (err) {
+                                console.error("Error submitting review:", err);
+                            }
                         }}
                     />
                 )}

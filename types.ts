@@ -82,6 +82,10 @@ export interface Course {
   imageScale?: number;
   imagePositionX?: number;
   imagePositionY?: number;
+  examCompleted?: boolean;
+  examScore?: number;
+  certificateUrl?: string;
+  isCertificateVerified?: boolean;
 }
 
 export interface UserProfile {
