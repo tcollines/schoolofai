@@ -63,71 +63,14 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({ courses, userId }) => {
         icon: <BookOpen size={16} />
     }));
 
-    const [assignments, setAssignments] = useState<any[]>([]);
-    const enrolledCourseIdsStr = enrolledCourses.map(c => c.id).join(',');
 
-    useEffect(() => {
-        const loadAssignments = () => {
-            const stored = localStorage.getItem('admin-assignments');
-            if (stored) {
-                const parsed = JSON.parse(stored);
-                // Filter assignments for courses the student is enrolled in, or global assignments
-                const filtered = parsed.filter((asg: any) =>
-                    asg.courseId === 'global' || enrolledCourses.some(c => c.id === asg.courseId)
-                );
-
-                const formatted = filtered.map((asg: any) => {
-                    let dispDate = asg.dueDate;
-                    try {
-                        const dateObj = new Date(asg.dueDate);
-                        if (!isNaN(dateObj.getTime())) {
-                            dispDate = dateObj.toLocaleDateString('en-US', { day: 'numeric', month: 'short' });
-                        }
-                    } catch (e) { }
-                    return {
-                        id: asg.id,
-                        title: asg.title,
-                        dueDate: `Due ${dispDate}`,
-                        status: asg.status
-                    };
-                });
-                setAssignments(formatted);
-            } else {
-                // Default fallback to mock assignments
-                const defaultAssignments = enrolledCourses.slice(0, 3).map((course, idx) => ({
-                    id: `default-${course.id}-${idx}`,
-                    title: `${course.title} - Final Assessment`,
-                    dueDate: `Tomorrow, ${10 + idx}:00 AM`,
-                    status: idx === 0 ? 'Completed' : 'In Progress'
-                }));
-                setAssignments(defaultAssignments);
-            }
-        };
-
-        loadAssignments();
-        window.addEventListener('storage', loadAssignments);
-        window.addEventListener('admin-assignments-update', loadAssignments);
-        return () => {
-            window.removeEventListener('storage', loadAssignments);
-            window.removeEventListener('admin-assignments-update', loadAssignments);
-        };
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [enrolledCourseIdsStr]);
 
     const targetCourse = recentCourse || (enrolledCourses.length > 0 ? enrolledCourses[0] : null);
     const allLessons = targetCourse?.sections?.flatMap(s => s.lessons) || [];
     const nextLessonIndex = targetCourse ? Math.min(targetCourse.lessonsCompleted || 0, Math.max(0, allLessons.length - 1)) : 0;
     const nextLesson = allLessons[nextLessonIndex];
 
-    const frequentGroups = [
-        { id: 'general', name: 'General Discussion', desc: 'Global community chat room' },
-        { id: 'ai-help', name: 'AI Study Assistant Help Desk', desc: 'Interactive AI tutor guidance' },
-        ...enrolledCourses.slice(0, 1).map(c => ({
-            id: `course-${c.id}`,
-            name: `${c.title} Study Group`,
-            desc: 'Course curriculum study channel'
-        }))
-    ];
+
 
     if (!userId) return <div className="p-8 text-center text-gray-500 dark:text-slate-400">Loading dashboard...</div>;
 
@@ -330,64 +273,6 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({ courses, userId }) => {
                     </div>
                 </div>
 
-                {/* Frequent Discussion Groups */}
-                <div className="bg-white dark:bg-slate-900 p-6 rounded-3xl shadow-sm border border-gray-100 dark:border-slate-800">
-                    <h3 className="font-bold text-gray-800 dark:text-slate-200 mb-4">Frequent Groups</h3>
-                    <div className="space-y-3">
-                        {frequentGroups.map((group) => (
-                            <div
-                                key={group.id}
-                                onClick={() => {
-                                    localStorage.setItem('selected-discussion-group-id', group.id);
-                                    window.location.href = '/discussions';
-                                }}
-                                className="flex items-center justify-between p-3 bg-gray-50 dark:bg-slate-800/40 rounded-2xl cursor-pointer hover:bg-gray-100 dark:hover:bg-slate-800/80 transition-colors"
-                            >
-                                <div className="flex items-center gap-3">
-                                    <div className="p-2 bg-violet-100 dark:bg-violet-955/40 text-violet-600 dark:text-violet-400 rounded-xl shrink-0">
-                                        <MessageSquare size={16} />
-                                    </div>
-                                    <div className="min-w-0">
-                                        <p className="text-sm font-bold text-gray-900 dark:text-white leading-tight truncate">{group.name}</p>
-                                        <p className="text-[10px] text-gray-400 mt-0.5 truncate">{group.desc}</p>
-                                    </div>
-                                </div>
-                                <div className="text-[10px] text-violet-600 dark:text-violet-400 font-bold bg-violet-50 dark:bg-violet-950/20 px-2.5 py-1 rounded-full shrink-0">
-                                    Open
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-                </div>
-
-                {/* Assignments */}
-                <div className="bg-white dark:bg-slate-900 p-6 rounded-3xl shadow-sm border border-gray-100 dark:border-slate-800">
-                    <div className="flex justify-between items-center mb-4">
-                        <h3 className="font-bold text-gray-800 dark:text-slate-200">{t('assignments')}</h3>
-                    </div>
-                    {assignments.length === 0 ? (
-                        <p className="text-xs text-gray-400 dark:text-slate-500 text-center py-4">No active assignments.</p>
-                    ) : (
-                        <div className="space-y-3">
-                            {assignments.map((assignment, idx) => (
-                                <div key={idx} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-slate-800/50 rounded-2xl">
-                                    <div className="flex items-center gap-3">
-                                        <div className="p-2 bg-white dark:bg-slate-900 rounded-lg shadow-sm">
-                                            <CheckCircle size={14} className={assignment.status === 'Completed' ? "text-green-600" : "text-purple-600"} />
-                                        </div>
-                                        <div>
-                                            <p className="text-sm font-bold text-gray-900 dark:text-white">{assignment.title}</p>
-                                            <p className="text-xs text-gray-400 dark:text-slate-500">{assignment.dueDate}</p>
-                                        </div>
-                                    </div>
-                                    <span className={`text-[10px] font-bold px-2 py-1 rounded-full ${assignment.status === 'Completed' ? 'bg-green-100 dark:bg-green-950/30 text-green-600 dark:text-green-400' : 'bg-purple-100 dark:bg-purple-950/30 text-purple-600 dark:text-purple-400'}`}>
-                                        {assignment.status}
-                                    </span>
-                                </div>
-                            ))}
-                        </div>
-                    )}
-                </div>
 
                 {/* Quiz Grades & Marks */}
                 <div className="bg-white dark:bg-slate-900 p-6 rounded-3xl shadow-sm border border-gray-100 dark:border-slate-800">
