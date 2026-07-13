@@ -187,16 +187,48 @@ const AdminEnrollments: React.FC = () => {
                                         </select>
                                         <button
                                             onClick={async () => {
-                                                if (confirm(`Are you sure you want to delete user ${u.name || u.email}? This action is irreversible.`)) {
-                                                    try {
-                                                        await deleteUser(u.id);
-                                                        alert('User deleted successfully!');
-                                                    } catch (err: any) {
-                                                        alert('Failed to delete user.');
+                                                if (u.role === UserRole.ADMIN) {
+                                                    const { data: { session } } = await supabase.auth.getSession();
+                                                    const currentAdminEmail = session?.user?.email;
+                                                    
+                                                    const password = prompt(
+                                                        `Security Authentication Required\n\nYou are attempting to delete an Administrator account (${u.name || u.email}).\nThis action is high risk and requires password verification.\n\nPlease enter YOUR Admin password to authenticate:`
+                                                    );
+                                                    
+                                                    if (!password) {
+                                                        alert("Deletion cancelled.");
+                                                        return;
+                                                    }
+
+                                                    const { error: authError } = await supabase.auth.signInWithPassword({
+                                                        email: currentAdminEmail || '',
+                                                        password: password
+                                                    });
+
+                                                    if (authError) {
+                                                        alert("Authentication failed! Incorrect password. Deletion aborted.");
+                                                        return;
+                                                    }
+                                                } else {
+                                                    if (!confirm(`Are you sure you want to delete student ${u.name || u.email}? This action is irreversible.`)) {
+                                                        return;
                                                     }
                                                 }
+
+                                                try {
+                                                    await deleteUser(u.id);
+                                                    alert('User deleted successfully!');
+                                                    
+                                                    const { data: { session } } = await supabase.auth.getSession();
+                                                    if (session?.user?.id === u.id) {
+                                                        await supabase.auth.signOut();
+                                                        window.location.href = '/';
+                                                    }
+                                                } catch (err: any) {
+                                                    alert('Failed to delete user.');
+                                                }
                                             }}
-                                            className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                                            className="p-1.5 text-red-500 hover:bg-red-55 rounded-lg transition-colors"
                                             title="Delete User"
                                         >
                                             <Trash2 size={16} />
