@@ -16,7 +16,6 @@ import SettingsPage from './components/SettingsPage';
 import NotificationsPage from './components/NotificationsPage';
 import EventsPage from './components/EventsPage';
 import DiscussionsPage from './components/DiscussionsPage';
-import StudentAssignments from './components/StudentAssignments';
 import { supabase } from './src/lib/supabase';
 import { useCourses } from './src/hooks/useCourses';
 import { useProfile } from './src/hooks/useProfile';
@@ -178,7 +177,6 @@ function App() {
             } />
             
             <Route path="/courses" element={<MyCourses courses={isAuthenticated ? courses : []} />} />
-            <Route path="/assignments" element={<StudentAssignments courses={courses} userId={session?.user?.id || 'guest'} />} />
             <Route path="/discussions" element={<DiscussionsPage />} />
             <Route path="/career" element={<Certificates courses={isAuthenticated ? courses : []} />} />
             <Route path="/profile" element={<Profile user={userProfile || ({} as any)} onUpgradeClick={() => window.location.href = '/plans'} />} />
