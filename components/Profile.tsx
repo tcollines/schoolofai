@@ -611,7 +611,7 @@ const AvatarUploadModal: React.FC<AvatarUploadModalProps> = ({ isOpen, onClose, 
                         </button>
 
                         <button 
-                            onClick={() => setSource('google')}
+                            onClick={() => window.open('https://photos.google.com/', '_blank')}
                             className="flex flex-col items-center justify-center p-5 rounded-2xl border border-gray-100 dark:border-slate-800 bg-gray-50 dark:bg-slate-800 hover:bg-violet-50/50 dark:hover:bg-slate-800/40 hover:border-violet-300 dark:hover:border-slate-700 transition-all text-center gap-3"
                         >
                             <span className="p-3 bg-red-50 dark:bg-red-950/40 text-red-600 dark:text-red-400 rounded-xl">
@@ -621,7 +621,7 @@ const AvatarUploadModal: React.FC<AvatarUploadModalProps> = ({ isOpen, onClose, 
                         </button>
 
                         <button 
-                            onClick={() => setSource('icloud')}
+                            onClick={() => window.open('https://www.icloud.com/photos', '_blank')}
                             className="flex flex-col items-center justify-center p-5 rounded-2xl border border-gray-100 dark:border-slate-800 bg-gray-50 dark:bg-slate-800 hover:bg-violet-50/50 dark:hover:bg-slate-800/40 hover:border-violet-300 dark:hover:border-slate-700 transition-all text-center gap-3"
                         >
                             <span className="p-3 bg-sky-50 dark:bg-sky-950/40 text-sky-600 dark:text-sky-400 rounded-xl">
