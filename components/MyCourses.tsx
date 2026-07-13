@@ -169,7 +169,10 @@ const MyCourses: React.FC<MyCoursesProps> = ({ courses }) => {
         if (currentIndex !== -1 && selectedCourse) {
             const completedCount = currentIndex + 1;
             if (completedCount > selectedCourse.lessonsCompleted) {
-                const newStatus = completedCount >= selectedCourse.lessonsTotal ? CourseStatus.COMPLETED : CourseStatus.IN_PROGRESS;
+                const hasExam = !!selectedCourse.quiz;
+                const newStatus = (completedCount >= selectedCourse.lessonsTotal && !hasExam) 
+                    ? CourseStatus.COMPLETED 
+                    : CourseStatus.IN_PROGRESS;
                 
                 // Update local states immediately
                 const updatedCourse = {
@@ -240,12 +243,22 @@ const MyCourses: React.FC<MyCoursesProps> = ({ courses }) => {
                                 .from('enrollments')
                                 .update({ 
                                     exam_completed: true,
-                                    exam_score: score 
+                                    exam_score: score,
+                                    status: CourseStatus.COMPLETED
                                 })
                                 .eq('user_id', session.user.id)
                                 .eq('course_id', selectedCourse.id);
                             
                             if (error) throw error;
+
+                            const updatedCourse = {
+                                ...selectedCourse,
+                                examCompleted: true,
+                                examScore: score,
+                                status: CourseStatus.COMPLETED
+                            };
+                            setSelectedCourse(updatedCourse);
+                            setLocalCourses(prev => prev.map(c => c.id === selectedCourse.id ? updatedCourse : c));
                             
                             addPortalNotification(
                                 "Exam Completed Successfully",

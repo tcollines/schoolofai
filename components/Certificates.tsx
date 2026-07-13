@@ -34,7 +34,7 @@ const Certificates: React.FC<CertificatesProps> = ({ courses }) => {
                             <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-welile-purple/5 to-welile-pink/5 rounded-bl-full -mr-10 -mt-10"></div>
 
                             <div className="flex justify-between items-start mb-6 relative z-10">
-                                <div className="w-12 h-12 bg-welile-lime/20 dark:bg-welile-lime/10 rounded-xl flex items-center justify-center text-welile-purple dark:text-welile-purple">
+                                <div className="w-12 h-12 bg-welile-lime/20 dark:bg-purple-950/40 rounded-xl flex items-center justify-center text-welile-purple dark:text-purple-400">
                                     <Award size={24} />
                                 </div>
                                 <div className="flex gap-2">
@@ -77,7 +77,7 @@ const Certificates: React.FC<CertificatesProps> = ({ courses }) => {
                                 <p className="text-sm text-gray-500 dark:text-slate-400 mb-4">Instructed by Welile Academy</p>
 
                                 <div className="flex flex-col gap-2 border-t border-gray-50 dark:border-slate-800 pt-4">
-                                    <div className="flex items-center justify-between text-xs font-medium text-gray-400">
+                                    <div className="flex items-center justify-between text-xs font-medium text-gray-600 dark:text-slate-400">
                                         <div className="flex items-center gap-1.5">
                                             <Calendar size={14} />
                                             <span>Syllabus Completed</span>
@@ -85,7 +85,7 @@ const Certificates: React.FC<CertificatesProps> = ({ courses }) => {
                                         <span className="text-green-600 dark:text-green-400 font-semibold">100%</span>
                                     </div>
 
-                                    <div className="flex items-center justify-between text-xs font-medium text-gray-400">
+                                    <div className="flex items-center justify-between text-xs font-medium text-gray-600 dark:text-slate-400">
                                         <div className="flex items-center gap-1.5">
                                             <span className="text-sm">📝</span>
                                             <span>Final Exam</span>
@@ -95,18 +95,18 @@ const Certificates: React.FC<CertificatesProps> = ({ courses }) => {
                                         </span>
                                     </div>
 
-                                    <div className="flex items-center justify-between text-xs font-medium text-gray-400 mt-1 pt-2 border-t border-dashed border-gray-100 dark:border-slate-805">
+                                    <div className="flex items-center justify-between text-xs font-medium text-gray-600 dark:text-slate-400 mt-1 pt-2 border-t border-dashed border-gray-100 dark:border-slate-800">
                                         <span>Certificate Status:</span>
                                         {course.examCompleted && course.isCertificateVerified ? (
                                             <span className="px-2 py-0.5 bg-green-50 dark:bg-green-950/40 text-green-700 dark:text-green-400 rounded text-[10px] uppercase font-bold tracking-wider">
                                                 Verified & Issued
                                             </span>
                                         ) : course.examCompleted ? (
-                                            <span className="px-2 py-0.5 bg-yellow-50 dark:bg-yellow-950/20 text-yellow-700 dark:text-yellow-400 rounded text-[10px] uppercase font-bold tracking-wider">
+                                            <span className="px-2 py-0.5 bg-yellow-50 dark:bg-yellow-950/20 text-yellow-750 dark:text-yellow-400 rounded text-[10px] uppercase font-bold tracking-wider">
                                                 Pending Admin Upload
                                             </span>
                                         ) : (
-                                            <span className="px-2 py-0.5 bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 rounded text-[10px] uppercase font-bold tracking-wider">
+                                            <span className="px-2 py-0.5 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 rounded text-[10px] uppercase font-bold tracking-wider">
                                                 Locked
                                             </span>
                                         )}

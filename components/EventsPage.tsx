@@ -205,7 +205,16 @@ const EventsPage: React.FC<EventsPageProps> = ({ courses = [] }) => {
         }, 800);
     };
 
-    const filteredEvents = allEvents.filter(e => filter === 'All' || e.type === filter);
+    const filteredEvents = allEvents.filter(e => {
+        const matchesFilter = filter === 'All' || e.type === filter;
+        if (!matchesFilter) return false;
+
+        const msToEvent = getMsToEvent(e);
+        if (msToEvent !== null && msToEvent < 0) {
+            return false;
+        }
+        return true;
+    });
     const imminentCourse = imminentEvent?.courseId && imminentEvent?.courseId !== 'global'
         ? (courses || []).find(c => c.id === imminentEvent.courseId)?.title
         : null;
