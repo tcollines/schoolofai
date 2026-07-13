@@ -257,12 +257,14 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({ courses, userId }) => {
                                 ? 'You have unlocked unlimited access to all courses, 24/7 AI tutor guidance, and verified certificates.' 
                                 : t('explore_courses')}
                         </p>
-                        <button 
-                            onClick={() => window.location.href = '/plans'}
-                            className="bg-welile-lime text-black text-xs font-bold px-4 py-2 rounded-full hover:bg-lime-300 transition-colors cursor-pointer"
-                        >
-                            {userRole === 'PRO' || userRole === 'ADMIN' ? 'Review Services' : t('go_premium')}
-                        </button>
+                        {userRole !== 'PRO' && userRole !== 'ADMIN' && (
+                            <button 
+                                onClick={() => window.location.href = '/plans'}
+                                className="bg-welile-lime text-black text-xs font-bold px-4 py-2 rounded-full hover:bg-lime-300 transition-colors cursor-pointer"
+                            >
+                                {t('go_premium')}
+                            </button>
+                        )}
                     </div>
                     {/* Abstract illustration circles */}
                     <div className="absolute top-8 right-[-20px] w-24 h-24 rounded-full bg-welile-purple opacity-20"></div>
