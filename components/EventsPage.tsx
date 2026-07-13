@@ -9,10 +9,12 @@ interface EventItem {
     description: string;
     date: string;
     time: string;
-    type: 'Workshop' | 'Webinar' | 'Panel';
+    type: 'Workshop' | 'Webinar' | 'Panel' | 'Lesson';
     speaker: string;
     tags: string[];
     courseId?: string;
+    sectionId?: string;
+    moduleId?: string;
     isAnnouncement?: boolean;
     attendeeCount: number;
     meetLink?: string;
@@ -59,7 +61,7 @@ const defaultAdminEvents = [
 
 const EventsPage: React.FC<EventsPageProps> = ({ courses = [] }) => {
     const { t } = useTranslation();
-    const [filter, setFilter] = useState<'All' | 'Workshop' | 'Webinar' | 'Panel'>('All');
+    const [filter, setFilter] = useState<'All' | 'Workshop' | 'Webinar' | 'Panel' | 'Lesson'>('All');
     const [rsvps, setRsvps] = useState<Record<string, 'yes' | 'loading' | 'no'>>(() => {
         const stored = localStorage.getItem('event-rsvps');
         return stored ? JSON.parse(stored) : {};
@@ -75,43 +77,8 @@ const EventsPage: React.FC<EventsPageProps> = ({ courses = [] }) => {
         [courses]
     );
 
-    // Generate dynamic course meetings for each enrolled course
-    const dynamicCourseEvents: EventItem[] = useMemo(() => 
-        enrolledCourses.flatMap((course, index) => [
-            {
-                id: `course-qa-${course.id}`,
-                title: `Live Q&A Session: ${course.title}`,
-                description: `Join your instructor ${course.instructor} for a live interactive question and answer session regarding the latest lessons and modules in ${course.title}.`,
-                date: new Date(Date.now() + (3 + index * 2) * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // 3, 5, 7 days from now
-                time: '15:00 - 16:30 (SAST)',
-                type: 'Webinar' as const,
-                speaker: course.instructor || 'Course Instructor',
-                tags: ['Q&A', course.category || 'General'],
-                courseId: course.id,
-                attendeeCount: 45 + (index * 12),
-                medium: 'Online' as const,
-                meetLink: `https://meet.google.com/qna-${course.id}ai-edu`
-            },
-            {
-                id: `course-workshop-${course.id}`,
-                title: `Hands-on Project Review: ${course.title}`,
-                description: `Collaborate with peer students enrolled in ${course.title} to review intermediate coding challenges, project guidelines, and optimization hacks.`,
-                date: new Date(Date.now() + (6 + index * 2) * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // 6, 8, 10 days from now
-                time: '11:00 - 13:00 (SAST)',
-                type: 'Workshop' as const,
-                speaker: 'WSAI Mentor Panel',
-                tags: ['Hands-on', course.category || 'General'],
-                courseId: course.id,
-                attendeeCount: 62 + (index * 8),
-                medium: 'Online' as const,
-                meetLink: `https://meet.google.com/wkp-${course.id}ai-edu`
-            }
-        ]),
-        [enrolledCourses]
-    );
-
     const adminEventsList = adminEvents;
-    const allEvents = useMemo(() => [...dynamicCourseEvents, ...adminEventsList], [dynamicCourseEvents, adminEventsList]);
+    const allEvents = useMemo(() => adminEventsList, [adminEventsList]);
 
     const getMsToEvent = (event: EventItem) => {
         try {
@@ -239,6 +206,9 @@ const EventsPage: React.FC<EventsPageProps> = ({ courses = [] }) => {
     };
 
     const filteredEvents = allEvents.filter(e => filter === 'All' || e.type === filter);
+    const imminentCourse = imminentEvent?.courseId && imminentEvent?.courseId !== 'global'
+        ? (courses || []).find(c => c.id === imminentEvent.courseId)?.title
+        : null;
 
     return (
         <div className="max-w-5xl mx-auto space-y-8 animate-in fade-in duration-300">
@@ -263,8 +233,13 @@ const EventsPage: React.FC<EventsPageProps> = ({ courses = [] }) => {
                     {imminentEvent ? (
                         <div className="bg-white/10 backdrop-blur-md rounded-2xl p-4 border border-white/15 text-center space-y-2">
                             <p className="text-[10px] uppercase font-bold text-slate-200 tracking-wider line-clamp-2 max-w-[200px] mx-auto">
-                                "{imminentEvent.title}" starts in
+                                {imminentEvent.title} starts in
                             </p>
+                            {imminentCourse && (
+                                <p className="text-[10px] uppercase font-bold text-slate-300 tracking-wider line-clamp-2 max-w-[200px] mx-auto">
+                                    Course: <span className="font-extrabold text-white">{imminentCourse}</span>
+                                </p>
+                            )}
                             <div className="flex justify-center gap-3 text-lg font-bold font-mono">
                                 <div>
                                     <span className="bg-black/45 px-2 py-1 rounded text-welile-lime">
@@ -309,7 +284,7 @@ const EventsPage: React.FC<EventsPageProps> = ({ courses = [] }) => {
 
                 {/* Filter Tabs */}
                 <div className="flex bg-gray-105 dark:bg-slate-800 p-1 rounded-xl gap-1 shrink-0">
-                    {(['All', 'Workshop', 'Webinar', 'Panel'] as const).map((tab) => (
+                    {(['All', 'Workshop', 'Webinar', 'Panel', 'Lesson'] as const).map((tab) => (
                         <button
                             key={tab}
                             onClick={() => setFilter(tab)}
@@ -360,11 +335,13 @@ const EventsPage: React.FC<EventsPageProps> = ({ courses = [] }) => {
                         const typeStyles = {
                             Workshop: { border: 'border-l-welile-lime', bg: 'bg-lime-50 dark:bg-lime-950/20 text-lime-700 dark:text-lime-400' },
                             Webinar: { border: 'border-l-welile-purple', bg: 'bg-purple-50 dark:bg-purple-950/20 text-purple-700 dark:text-purple-400' },
-                            Panel: { border: 'border-l-pink-500', bg: 'bg-pink-50 dark:bg-pink-950/20 text-pink-700 dark:text-pink-400' }
-                        }[event.type];
+                            Panel: { border: 'border-l-pink-500', bg: 'bg-pink-50 dark:bg-pink-950/20 text-pink-700 dark:text-pink-400' },
+                            Lesson: { border: 'border-l-indigo-500', bg: 'bg-indigo-50 dark:bg-indigo-950/20 text-indigo-700 dark:text-indigo-400' }
+                        }[event.type as 'Workshop' | 'Webinar' | 'Panel' | 'Lesson'] || { border: 'border-l-indigo-500', bg: 'bg-indigo-50 dark:bg-indigo-950/20 text-indigo-700 dark:text-indigo-400' };
 
                         const isCourseSpecific = event.courseId && event.courseId !== 'global';
-                        const courseName = isCourseSpecific ? courses.find(c => c.id === event.courseId)?.title : null;
+                        const courseList = courses || [];
+                        const courseName = isCourseSpecific ? courseList.find(c => c.id === event.courseId)?.title : null;
 
                         return (
                             <div 
@@ -402,10 +379,17 @@ const EventsPage: React.FC<EventsPageProps> = ({ courses = [] }) => {
                                         <h4 className="font-bold text-gray-900 dark:text-white leading-snug text-base hover:text-welile-purple dark:hover:text-purple-400 cursor-pointer transition-colors">
                                             {event.title}
                                         </h4>
-                                        {courseName && (
+                                        {courseName && event.type !== 'Lesson' && (
                                             <p className="text-[10px] font-bold text-welile-purple uppercase tracking-wider">
                                                 Course: {courseName}
                                             </p>
+                                        )}
+                                        {event.type === 'Lesson' && (
+                                            <div className="text-[10px] bg-slate-50 dark:bg-slate-800/60 p-2.5 rounded-xl border border-gray-100 dark:border-slate-800 space-y-1 mt-2 text-left">
+                                                <p>🎓 <strong className="text-gray-700 dark:text-slate-200">Course:</strong> {courseList.find(c => c.id === event.courseId)?.title || 'Unknown Course'}</p>
+                                                <p>📖 <strong className="text-gray-700 dark:text-slate-200">Unit:</strong> {courseList.find(c => c.id === event.courseId)?.sections?.find(s => s.id === event.sectionId)?.title || 'Unknown Unit'}</p>
+                                                <p>📝 <strong className="text-gray-700 dark:text-slate-200">Module:</strong> {courseList.find(c => c.id === event.courseId)?.sections?.find(s => s.id === event.sectionId)?.lessons?.find(l => l.id === event.moduleId)?.title || 'Unknown Module'}</p>
+                                            </div>
                                         )}
                                         <p className="text-xs text-gray-400 dark:text-slate-500 font-medium">
                                             Host: {event.speaker}

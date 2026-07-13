@@ -28,12 +28,17 @@ export const useProfile = (session: any) => {
                     // Fallback to metadata if profile doesn't exist yet (though trigger should handle it)
                     setProfile({
                         id: session.user.id,
-                        name: session.user.user_metadata.full_name || 'Student',
-                        email: session.user.email || '',
+                        name: session?.user?.user_metadata?.full_name || 'Student',
+                        email: session?.user?.email || '',
                         role: UserRole.INDIVIDUAL,
-                        avatar: session.user.user_metadata.avatar_url || 'https://via.placeholder.com/150',
+                        avatar: session?.user?.user_metadata?.avatar_url || 'https://via.placeholder.com/150',
                         walletBalance: 0,
                         skills: [],
+                        nationality: '',
+                        dateOfBirth: '',
+                        avatarScale: 1,
+                        avatarPositionX: 0,
+                        avatarPositionY: 0
                     });
                 } else {
                     setProfile({
@@ -46,7 +51,13 @@ export const useProfile = (session: any) => {
                         skills: [], // We didn't create a skills table yet, so keep empty or add column later
                         bio: data.bio,
                         location: data.location,
-                        companyName: data.company_name
+                        companyName: data.company_name,
+                        careerGoal: data.career_goal,
+                        nationality: data.nationality || '',
+                        dateOfBirth: data.date_of_birth || '',
+                        avatarScale: data.avatar_scale !== undefined ? Number(data.avatar_scale) : 1,
+                        avatarPositionX: data.avatar_pos_x !== undefined ? Number(data.avatar_pos_x) : 0,
+                        avatarPositionY: data.avatar_pos_y !== undefined ? Number(data.avatar_pos_y) : 0
                     });
                 }
             } catch (err) {
@@ -57,6 +68,10 @@ export const useProfile = (session: any) => {
         };
 
         fetchProfile();
+        window.addEventListener('profile-update', fetchProfile);
+        return () => {
+            window.removeEventListener('profile-update', fetchProfile);
+        };
     }, [session]);
 
     return { profile, loading };

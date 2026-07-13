@@ -74,6 +74,12 @@
       .dark textarea::placeholder {
         color: #64748b !important;
       }
+      [contenteditable]:empty:before {
+        content: attr(data-placeholder);
+        color: #94a3b8;
+        cursor: text;
+        display: block;
+      }
     </style>
     <script>
       tailwind.config = {

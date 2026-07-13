@@ -120,6 +120,22 @@ const getDB = (): LocalDB => {
                     role: 'INDIVIDUAL',
                     avatar_url: 'https://i.pravatar.cc/150?u=a042581f4e29026704d',
                     wallet_balance: 100
+                },
+                {
+                    id: 'user-chemayek',
+                    full_name: 'Abraham Chemayek',
+                    email: 'chemayekabraham289@gmail.com',
+                    role: 'INDIVIDUAL',
+                    avatar_url: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&q=80&w=150',
+                    wallet_balance: 100
+                },
+                {
+                    id: 'user-collins',
+                    full_name: 'Mr. Collins',
+                    email: 'mr.collins@schoolofai.edu',
+                    role: 'ADMIN',
+                    avatar_url: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&q=80&w=150',
+                    wallet_balance: 100
                 }
             ],
             enrollments: []
@@ -127,6 +143,68 @@ const getDB = (): LocalDB => {
         localStorage.setItem(DB_KEY, JSON.stringify(db));
         localStorage.setItem('default-courses-seeded', 'true');
         return db;
+    }
+
+    // Migration / update step: ensure Chemayek, Collins, and Test Student profiles have high quality avatars and correct names
+    let dbUpdated = false;
+
+    // Reset legacy roles (e.g. PLUS, SPONSORED) to INDIVIDUAL (Basic) by default
+    db.profiles.forEach((p: any) => {
+        if (p.role !== 'PRO' && p.role !== 'ADMIN' && p.role !== 'INDIVIDUAL') {
+            p.role = 'INDIVIDUAL';
+            dbUpdated = true;
+        }
+    });
+    
+    const chemayekProfile = db.profiles.find(p => p.email === 'chemayekabraham289@gmail.com');
+    if (chemayekProfile) {
+        if (chemayekProfile.full_name !== 'Abraham Chemayek' || !chemayekProfile.avatar_url || chemayekProfile.avatar_url.includes('dicebear')) {
+            chemayekProfile.full_name = 'Abraham Chemayek';
+            chemayekProfile.avatar_url = 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&q=80&w=150';
+            dbUpdated = true;
+        }
+    } else {
+        db.profiles.push({
+            id: 'user-chemayek',
+            full_name: 'Abraham Chemayek',
+            email: 'chemayekabraham289@gmail.com',
+            role: 'INDIVIDUAL',
+            avatar_url: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&q=80&w=150',
+            wallet_balance: 100
+        });
+        dbUpdated = true;
+    }
+
+    const collinsProfile = db.profiles.find(p => p.email === 'mr.collins@schoolofai.edu');
+    if (collinsProfile) {
+        if (collinsProfile.full_name !== 'Mr. Collins' || !collinsProfile.avatar_url || collinsProfile.avatar_url.includes('dicebear')) {
+            collinsProfile.full_name = 'Mr. Collins';
+            collinsProfile.avatar_url = 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&q=80&w=150';
+            dbUpdated = true;
+        }
+    } else {
+        db.profiles.push({
+            id: 'user-collins',
+            full_name: 'Mr. Collins',
+            email: 'mr.collins@schoolofai.edu',
+            role: 'ADMIN',
+            avatar_url: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&q=80&w=150',
+            wallet_balance: 100
+        });
+        dbUpdated = true;
+    }
+
+    const testStudentProfile = db.profiles.find(p => p.email === 'student@test.com');
+    if (testStudentProfile) {
+        if (testStudentProfile.full_name !== 'Test Student' || !testStudentProfile.avatar_url || testStudentProfile.avatar_url.includes('dicebear') || testStudentProfile.avatar_url.includes('placeholder')) {
+            testStudentProfile.full_name = 'Test Student';
+            testStudentProfile.avatar_url = 'https://i.pravatar.cc/150?u=a042581f4e29026704d';
+            dbUpdated = true;
+        }
+    }
+
+    if (dbUpdated) {
+        saveDB(db);
     }
 
     // Ensure all default courses exist in the existing database ONCE
@@ -157,7 +235,7 @@ const saveDB = (db: LocalDB) => {
 class QueryBuilder {
     private table: keyof LocalDB;
     private conditions: Array<(item: any) => boolean> = [];
-    private pendingOperation: 'select' | 'insert' | 'update' | null = null;
+    private pendingOperation: 'select' | 'insert' | 'update' | 'delete' | null = null;
     private payload: any = null;
 
     constructor(table: keyof LocalDB) {
@@ -285,10 +363,49 @@ class QueryBuilder {
 export const supabase = {
     from: (table: string) => new QueryBuilder(table as keyof LocalDB),
     auth: {
+        getUser: async () => {
+            const isLoggedOut = localStorage.getItem('mock_logged_out') === 'true';
+            if (isLoggedOut) return { data: { user: null }, error: null };
+            
+            const email = localStorage.getItem('mock_logged_in_email') || 'student@test.com';
+            const db = getDB();
+            const profile = db.profiles.find(p => p.email === email);
+            if (!profile) return { data: { user: null }, error: null };
+            return { data: { user: { id: profile.id, email: profile.email } }, error: null };
+        },
         getSession: async () => {
             const isLoggedOut = localStorage.getItem('mock_logged_out') === 'true';
             if (isLoggedOut) return { data: { session: null }, error: null };
-            return { data: { session: { user: { id: 'user-1' } } }, error: null };
+            
+            const email = localStorage.getItem('mock_logged_in_email') || 'student@test.com';
+            const db = getDB();
+            let profile = db.profiles.find(p => p.email === email);
+            if (!profile) {
+                const isChemayek = email === 'chemayekabraham289@gmail.com';
+                const isCollins = email === 'mr.collins@schoolofai.edu';
+                const isTestStudent = email === 'student@test.com';
+                
+                const name = isChemayek ? 'Abraham Chemayek' : isCollins ? 'Mr. Collins' : isTestStudent ? 'Test Student' : email.split('@')[0].split('.').map((s: string) => s.charAt(0).toUpperCase() + s.slice(1)).join(' ');
+                const avatar = isChemayek 
+                    ? 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&q=80&w=150' 
+                    : isCollins 
+                        ? 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&q=80&w=150' 
+                        : isTestStudent 
+                            ? 'https://i.pravatar.cc/150?u=a042581f4e29026704d' 
+                            : `https://api.dicebear.com/7.x/initials/svg?seed=${name}`;
+
+                profile = {
+                    id: email === 'student@test.com' ? 'user-1' : 'user-' + Math.random().toString(36).substr(2, 9),
+                    full_name: name,
+                    email: email,
+                    role: isCollins ? 'ADMIN' : 'INDIVIDUAL',
+                    avatar_url: avatar,
+                    wallet_balance: 100
+                };
+                db.profiles.push(profile);
+                saveDB(db);
+            }
+            return { data: { session: { user: { id: profile.id, email: profile.email } } }, error: null };
         },
         onAuthStateChange: (callback: any) => {
             const isLoggedOut = localStorage.getItem('mock_logged_out') === 'true';
@@ -296,18 +413,133 @@ export const supabase = {
                 if (isLoggedOut) {
                     callback('SIGNED_OUT', null);
                 } else {
-                    callback('SIGNED_IN', { user: { id: 'user-1' } });
+                    const email = localStorage.getItem('mock_logged_in_email') || 'student@test.com';
+                    const db = getDB();
+                    let profile = db.profiles.find(p => p.email === email);
+                    if (!profile) {
+                        const isChemayek = email === 'chemayekabraham289@gmail.com';
+                        const isCollins = email === 'mr.collins@schoolofai.edu';
+                        const isTestStudent = email === 'student@test.com';
+                        
+                        const name = isChemayek ? 'Abraham Chemayek' : isCollins ? 'Mr. Collins' : isTestStudent ? 'Test Student' : email.split('@')[0].split('.').map((s: string) => s.charAt(0).toUpperCase() + s.slice(1)).join(' ');
+                        const avatar = isChemayek 
+                            ? 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&q=80&w=150' 
+                            : isCollins 
+                                ? 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&q=80&w=150' 
+                                : isTestStudent 
+                                    ? 'https://i.pravatar.cc/150?u=a042581f4e29026704d' 
+                                    : `https://api.dicebear.com/7.x/initials/svg?seed=${name}`;
+
+                        profile = {
+                            id: email === 'student@test.com' ? 'user-1' : 'user-' + Math.random().toString(36).substr(2, 9),
+                            full_name: name,
+                            email: email,
+                            role: isCollins ? 'ADMIN' : 'INDIVIDUAL',
+                            avatar_url: avatar,
+                            wallet_balance: 100
+                        };
+                        db.profiles.push(profile);
+                        saveDB(db);
+                    }
+                    callback('SIGNED_IN', { user: { id: profile.id, email: profile.email } });
                 }
             }, 100);
             return { data: { subscription: { unsubscribe: () => { } } } };
         },
         signInWithPassword: async ({ email }: any) => {
             localStorage.removeItem('mock_logged_out');
-            return { data: { user: { id: 'user-1', email } }, error: null };
+            localStorage.setItem('mock_logged_in_email', email);
+            
+            const db = getDB();
+            let profile = db.profiles.find(p => p.email === email);
+            if (!profile) {
+                const isChemayek = email === 'chemayekabraham289@gmail.com';
+                const isCollins = email === 'mr.collins@schoolofai.edu';
+                const isTestStudent = email === 'student@test.com';
+                
+                const name = isChemayek ? 'Abraham Chemayek' : isCollins ? 'Mr. Collins' : isTestStudent ? 'Test Student' : email.split('@')[0].split('.').map((s: string) => s.charAt(0).toUpperCase() + s.slice(1)).join(' ');
+                const avatar = isChemayek 
+                    ? 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&q=80&w=150' 
+                    : isCollins 
+                        ? 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&q=80&w=150' 
+                        : isTestStudent 
+                            ? 'https://i.pravatar.cc/150?u=a042581f4e29026704d' 
+                            : `https://api.dicebear.com/7.x/initials/svg?seed=${name}`;
+
+                profile = {
+                    id: email === 'student@test.com' ? 'user-1' : 'user-' + Math.random().toString(36).substr(2, 9),
+                    full_name: name,
+                    email: email,
+                    role: isCollins ? 'ADMIN' : 'INDIVIDUAL',
+                    avatar_url: avatar,
+                    wallet_balance: 100
+                };
+                db.profiles.push(profile);
+                saveDB(db);
+            } else {
+                // Ensure name and avatar are upgraded if they are old formats
+                const isChemayek = email === 'chemayekabraham289@gmail.com';
+                const isCollins = email === 'mr.collins@schoolofai.edu';
+                if (isChemayek && (profile.full_name !== 'Abraham Chemayek' || !profile.avatar_url || profile.avatar_url.includes('dicebear'))) {
+                    profile.full_name = 'Abraham Chemayek';
+                    profile.avatar_url = 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&q=80&w=150';
+                    saveDB(db);
+                } else if (isCollins && (profile.full_name !== 'Mr. Collins' || !profile.avatar_url || profile.avatar_url.includes('dicebear'))) {
+                    profile.full_name = 'Mr. Collins';
+                    profile.avatar_url = 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&q=80&w=150';
+                    saveDB(db);
+                }
+                localStorage.setItem('mock_logged_in_name', profile.full_name);
+            }
+            window.dispatchEvent(new Event('profile-update'));
+            return { data: { user: { id: profile.id, email } }, error: null };
         },
-        signUp: async ({ email }: any) => {
+        signUp: async ({ email, options }: any) => {
             localStorage.removeItem('mock_logged_out');
-            return { data: { session: { user: { id: 'user-1', email } }, user: { id: 'user-1', email } }, error: null };
+            localStorage.setItem('mock_logged_in_email', email);
+            const rawName = options?.data?.full_name || email.split('@')[0].split('.').map((s: string) => s.charAt(0).toUpperCase() + s.slice(1)).join(' ');
+            
+            const isChemayek = email === 'chemayekabraham289@gmail.com';
+            const isCollins = email === 'mr.collins@schoolofai.edu';
+            const isTestStudent = email === 'student@test.com';
+            
+            const fullName = isChemayek ? 'Abraham Chemayek' : isCollins ? 'Mr. Collins' : isTestStudent ? 'Test Student' : rawName;
+            localStorage.setItem('mock_logged_in_name', fullName);
+
+            const db = getDB();
+            let profile = db.profiles.find(p => p.email === email);
+            if (!profile) {
+                const avatar = isChemayek 
+                    ? 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&q=80&w=150' 
+                    : isCollins 
+                        ? 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&q=80&w=150' 
+                        : isTestStudent 
+                            ? 'https://i.pravatar.cc/150?u=a042581f4e29026704d' 
+                            : `https://api.dicebear.com/7.x/initials/svg?seed=${fullName}`;
+
+                profile = {
+                    id: email === 'student@test.com' ? 'user-1' : 'user-' + Math.random().toString(36).substr(2, 9),
+                    full_name: fullName,
+                    email: email,
+                    role: isCollins ? 'ADMIN' : 'INDIVIDUAL',
+                    avatar_url: avatar,
+                    wallet_balance: 100
+                };
+                db.profiles.push(profile);
+                saveDB(db);
+            } else {
+                if (isChemayek && (profile.full_name !== 'Abraham Chemayek' || !profile.avatar_url || profile.avatar_url.includes('dicebear'))) {
+                    profile.full_name = 'Abraham Chemayek';
+                    profile.avatar_url = 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&q=80&w=150';
+                    saveDB(db);
+                } else if (isCollins && (profile.full_name !== 'Mr. Collins' || !profile.avatar_url || profile.avatar_url.includes('dicebear'))) {
+                    profile.full_name = 'Mr. Collins';
+                    profile.avatar_url = 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&q=80&w=150';
+                    saveDB(db);
+                }
+            }
+            window.dispatchEvent(new Event('profile-update'));
+            return { data: { session: { user: { id: profile.id, email } }, user: { id: profile.id, email } }, error: null };
         },
         signInWithOAuth: async ({ provider }: any) => {
             localStorage.removeItem('mock_logged_out');
@@ -315,6 +547,9 @@ export const supabase = {
         },
         signOut: async () => {
             localStorage.setItem('mock_logged_out', 'true');
+            localStorage.removeItem('mock_logged_in_email');
+            localStorage.removeItem('mock_logged_in_name');
+            window.dispatchEvent(new Event('profile-update'));
             return { error: null };
         }
     }

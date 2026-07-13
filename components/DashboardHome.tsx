@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { TrendingUp, CheckCircle, PlayCircle, BookOpen, MessageSquare } from 'lucide-react';
+import { TrendingUp, CheckCircle, PlayCircle, BookOpen, MessageSquare, Award } from 'lucide-react';
 import { Course, CourseStatus } from '../types';
 import { useTranslation } from './translations';
 
@@ -13,6 +13,35 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({ courses, userId }) => {
     const { t } = useTranslation();
     const activeCourse = courses.find(c => c.status === CourseStatus.IN_PROGRESS);
     const enrolledCourses = courses.filter(c => c.status === CourseStatus.IN_PROGRESS || c.status === CourseStatus.COMPLETED);
+
+    const [recentCourse, setRecentCourse] = useState<Course | null>(null);
+    const [quizGrades, setQuizGrades] = useState<any[]>([]);
+
+    useEffect(() => {
+        const loadQuizGrades = () => {
+            const stored = localStorage.getItem('quiz-grades');
+            if (stored) {
+                setQuizGrades(JSON.parse(stored));
+            }
+        };
+        loadQuizGrades();
+        window.addEventListener('storage', loadQuizGrades);
+        window.addEventListener('quiz-grades-update', loadQuizGrades);
+        return () => {
+            window.removeEventListener('storage', loadQuizGrades);
+            window.removeEventListener('quiz-grades-update', loadQuizGrades);
+        };
+    }, []);
+
+    useEffect(() => {
+        const recentId = localStorage.getItem('recent-tapped-course-id');
+        if (recentId) {
+            const course = courses.find(c => c.id === recentId);
+            if (course) {
+                setRecentCourse(course);
+            }
+        }
+    }, [courses]);
 
     // Dynamic stats based on enrolled courses
     const chartData = [
@@ -85,6 +114,11 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({ courses, userId }) => {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [enrolledCourseIdsStr]);
 
+    const targetCourse = recentCourse || (enrolledCourses.length > 0 ? enrolledCourses[0] : null);
+    const allLessons = targetCourse?.sections?.flatMap(s => s.lessons) || [];
+    const nextLessonIndex = targetCourse ? Math.min(targetCourse.lessonsCompleted || 0, Math.max(0, allLessons.length - 1)) : 0;
+    const nextLesson = allLessons[nextLessonIndex];
+
     const frequentGroups = [
         { id: 'general', name: 'General Discussion', desc: 'Global community chat room' },
         { id: 'ai-help', name: 'AI Study Assistant Help Desk', desc: 'Interactive AI tutor guidance' },
@@ -116,14 +150,14 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({ courses, userId }) => {
                         <h3 className="font-bold text-gray-800 dark:text-slate-200">{t('new_courses')}</h3>
                         <button className="text-sm text-welile-purple font-medium hover:underline">{t('view_all')}</button>
                     </div>
-                    {courses.filter(c => c.status === CourseStatus.NOT_STARTED).length === 0 ? (
+                    {courses.filter(c => c.status === CourseStatus.NOT_STARTED && !c.isDraft).length === 0 ? (
                         <div className="bg-white dark:bg-slate-900 p-8 rounded-3xl border border-dashed border-gray-200 dark:border-slate-800 text-center">
                             <p className="text-gray-500 dark:text-slate-400 text-sm mb-2">No new courses available right now.</p>
                             <p className="text-xs text-gray-400 dark:text-slate-500">Head over to the <span className="font-bold text-welile-purple">Discover</span> tab to find your next adventure!</p>
                         </div>
                     ) : (
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                            {courses.filter(c => c.status === CourseStatus.NOT_STARTED).slice(0, 3).map((course) => (
+                            {courses.filter(c => c.status === CourseStatus.NOT_STARTED && !c.isDraft).slice(0, 3).map((course) => (
                                 <div key={course.id} className="bg-white dark:bg-slate-900 p-4 rounded-3xl shadow-sm border border-gray-100 dark:border-slate-800 hover:shadow-md transition-shadow">
                                     <div className="flex gap-3 mb-3">
                                         <div className="w-10 h-10 rounded-full bg-orange-100 dark:bg-orange-950/20 flex items-center justify-center text-orange-600 dark:text-orange-400 font-bold text-xs shrink-0">
@@ -246,9 +280,18 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({ courses, userId }) => {
 
                 {/* Schedule */}
                 <div className="bg-white dark:bg-slate-900 p-6 rounded-3xl shadow-sm border border-gray-100 dark:border-slate-800">
-                    <h3 className="font-bold text-gray-800 dark:text-slate-200 mb-4">{t('daily_schedule')}</h3>
+                    <h3 className="font-bold text-gray-800 dark:text-slate-200 mb-4">
+                        {targetCourse ? 'Your Active Course' : t('daily_schedule')}
+                    </h3>
                     <div
-                        onClick={() => window.location.href = '/events'}
+                        onClick={() => {
+                            if (targetCourse) {
+                                localStorage.setItem('recent-tapped-course-id', targetCourse.id);
+                                window.location.href = `/courses`;
+                            } else {
+                                window.location.href = `/discover`;
+                            }
+                        }}
                         className="flex items-center justify-between group cursor-pointer hover:bg-gray-50 dark:hover:bg-slate-800/40 p-2 rounded-2xl transition-colors"
                     >
                         <div className="flex items-center gap-3">
@@ -258,18 +301,26 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({ courses, userId }) => {
                             <div>
                                 <div className="flex flex-wrap items-center gap-2">
                                     <h4 className="font-bold text-sm text-gray-900 dark:text-white leading-tight">
-                                        {enrolledCourses.length > 0 ? enrolledCourses[0].title : 'Introduction to AI'}
+                                        {targetCourse ? targetCourse.title : 'No Enrolled Courses'}
                                     </h4>
-                                    <span className="flex h-2 w-2 relative shrink-0">
-                                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
-                                        <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
-                                    </span>
-                                    <span className="text-[10px] text-red-500 dark:text-red-400 font-bold bg-red-50 dark:bg-red-950/20 px-1.5 py-0.5 rounded shrink-0">
-                                        Starts in 5m
-                                    </span>
+                                    {targetCourse && (
+                                        <span className="text-[10px] text-purple-600 dark:text-purple-400 font-bold bg-purple-50 dark:bg-purple-950/20 px-1.5 py-0.5 rounded shrink-0">
+                                            {targetCourse.lessonsCompleted} / {targetCourse.lessonsTotal} Completed
+                                        </span>
+                                    )}
                                 </div>
                                 <p className="text-xs text-gray-500 dark:text-slate-400 mt-1">
-                                    Lecture • 9:00 AM
+                                    {targetCourse ? (
+                                        targetCourse.lessonsCompleted >= targetCourse.lessonsTotal && targetCourse.lessonsTotal > 0 ? (
+                                            'Course Completed! 🎉'
+                                        ) : nextLesson ? (
+                                            `Next: ${nextLesson.title} (${nextLesson.duration})`
+                                        ) : (
+                                            'No lessons available'
+                                        )
+                                    ) : (
+                                        'Tap here to discover and enroll in courses'
+                                    )}
                                 </p>
                             </div>
                         </div>
@@ -332,6 +383,43 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({ courses, userId }) => {
                                     <span className={`text-[10px] font-bold px-2 py-1 rounded-full ${assignment.status === 'Completed' ? 'bg-green-100 dark:bg-green-950/30 text-green-600 dark:text-green-400' : 'bg-purple-100 dark:bg-purple-950/30 text-purple-600 dark:text-purple-400'}`}>
                                         {assignment.status}
                                     </span>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </div>
+
+                {/* Quiz Grades & Marks */}
+                <div className="bg-white dark:bg-slate-900 p-6 rounded-3xl shadow-sm border border-gray-100 dark:border-slate-800">
+                    <div className="flex justify-between items-center mb-4">
+                        <h3 className="font-bold text-gray-800 dark:text-slate-200">Quiz Grades & Marks</h3>
+                    </div>
+                    {quizGrades.length === 0 ? (
+                        <p className="text-xs text-gray-400 dark:text-slate-500 text-center py-4">No quizzes submitted yet.</p>
+                    ) : (
+                        <div className="space-y-3">
+                            {quizGrades.map((grade, idx) => (
+                                <div key={idx} className="p-3 bg-gray-50 dark:bg-slate-805/50 rounded-2xl border border-gray-100/30 dark:border-slate-700/30 flex items-center justify-between">
+                                    <div className="flex items-center gap-3">
+                                        <div className="p-2 bg-purple-50 dark:bg-purple-955/20 text-purple-600 dark:text-purple-400 rounded-lg shrink-0">
+                                            <Award size={16} />
+                                        </div>
+                                        <div>
+                                            <p className="text-sm font-bold text-gray-900 dark:text-white leading-tight">{grade.quizTitle}</p>
+                                            <p className="text-[10px] text-gray-400 mt-1">{grade.courseTitle}</p>
+                                        </div>
+                                    </div>
+                                    <div className="text-right">
+                                        <span className={`text-xs font-mono font-bold px-2.5 py-1 rounded-full ${
+                                            grade.percentage >= 80 
+                                                ? 'bg-green-100 text-green-700 dark:bg-green-950/30 dark:text-green-400' 
+                                                : grade.percentage >= 50
+                                                    ? 'bg-amber-100 text-amber-705 dark:bg-amber-950/30 dark:text-amber-400'
+                                                    : 'bg-red-100 text-red-700 dark:bg-red-950/30 dark:text-red-400'
+                                        }`}>
+                                            {grade.score}/{grade.totalQuestions} ({grade.percentage}%)
+                                        </span>
+                                    </div>
                                 </div>
                             ))}
                         </div>

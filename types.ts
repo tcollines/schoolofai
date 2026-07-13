@@ -12,7 +12,7 @@ export enum CourseStatus {
   COMPLETED = 'COMPLETED'
 }
 
-export type ModuleType = 'video' | 'article' | 'quiz';
+export type ModuleType = 'video' | 'article' | 'quiz' | 'audio' | 'document';
 
 export interface CourseModule {
   id: string;
@@ -23,9 +23,14 @@ export interface CourseModule {
   duration: string;
   videoId?: string;
   videoUrl?: string;
+  audioUrl?: string;
+  fileUrl?: string;
+  fileName?: string;
   thumbnail?: string;
   channelTitle?: string;
   content?: string;
+  quizTimer?: number;
+  quizQuestions?: Question[];
 }
 
 export interface CourseSection {
@@ -56,12 +61,15 @@ export interface Course {
   id: string;
   title: string;
   instructor: string;
+  instructorEmail?: string;
+  instructorAvatar?: string;
   duration: string;
   category: string;
   rating: number;
   lessonsTotal: number;
   lessonsCompleted: number;
   status: CourseStatus;
+  isDraft?: boolean;
   image: string; // Placeholder URL
   price: number;
   platform: 'Welile' | 'Coursera' | 'Partner';
@@ -88,6 +96,14 @@ export interface UserProfile {
   walletBalance: number;
   skills: string[];
   careerGoal?: string;
+  nationality?: string;
+  dateOfBirth?: string;
+  pending_role?: string;
+  pending_txid?: string;
+  pending_screenshot?: string;
+  avatarScale?: number;
+  avatarPositionX?: number;
+  avatarPositionY?: number;
 }
 
 export interface WalletTransaction {

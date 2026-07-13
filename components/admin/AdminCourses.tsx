@@ -1,7 +1,99 @@
 import React, { useState } from 'react';
 import { useAdmin } from '../../src/hooks/useAdmin';
 import { Course, CourseSection, CourseModule, ModuleType } from '../../types';
-import { Plus, X, ArrowRight, ArrowLeft, Save, Video, FileText, Trash2, GripVertical } from 'lucide-react';
+import { Plus, X, ArrowRight, ArrowLeft, Save, Video, FileText, Trash2, GripVertical, Headphones, File, HelpCircle } from 'lucide-react';
+
+interface RichTextEditorProps {
+    value: string;
+    onChange: (val: string) => void;
+    placeholder?: string;
+    accentColorClass?: string;
+}
+
+const RichTextEditor: React.FC<RichTextEditorProps> = ({ value, onChange, placeholder, accentColorClass = "border-gray-200 focus-within:border-violet-400" }) => {
+    const editorRef = React.useRef<HTMLDivElement>(null);
+
+    React.useEffect(() => {
+        if (editorRef.current && editorRef.current.innerHTML !== value) {
+            editorRef.current.innerHTML = value;
+        }
+    }, [value]);
+
+    const handleInput = () => {
+        if (editorRef.current) {
+            onChange(editorRef.current.innerHTML);
+        }
+    };
+
+    const executeCommand = (command: string, arg: string = '') => {
+        document.execCommand(command, false, arg);
+        handleInput();
+    };
+
+    return (
+        <div className={`border rounded-xl overflow-hidden bg-white ${accentColorClass}`}>
+            <div className="bg-gray-50 border-b border-gray-150 p-2 flex flex-wrap gap-1 items-center">
+                <button
+                    type="button"
+                    onClick={() => executeCommand('bold')}
+                    className="p-1 hover:bg-gray-200 rounded text-xs font-bold text-gray-700 w-6 h-6 flex items-center justify-center cursor-pointer"
+                    title="Bold"
+                >
+                    B
+                </button>
+                <button
+                    type="button"
+                    onClick={() => executeCommand('italic')}
+                    className="p-1 hover:bg-gray-200 rounded text-xs italic text-gray-755 w-6 h-6 flex items-center justify-center cursor-pointer"
+                    title="Italic"
+                >
+                    I
+                </button>
+                <button
+                    type="button"
+                    onClick={() => executeCommand('underline')}
+                    className="p-1 hover:bg-gray-200 rounded text-xs underline text-gray-755 w-6 h-6 flex items-center justify-center cursor-pointer"
+                    title="Underline"
+                >
+                    U
+                </button>
+                <div className="w-px h-4 bg-gray-300 mx-1" />
+                <button
+                    type="button"
+                    onClick={() => executeCommand('insertUnorderedList')}
+                    className="p-1 hover:bg-gray-200 rounded text-xs text-gray-755 w-6 h-6 flex items-center justify-center cursor-pointer font-bold"
+                    title="Bullet List"
+                >
+                    •
+                </button>
+                <button
+                    type="button"
+                    onClick={() => executeCommand('insertOrderedList')}
+                    className="p-1 hover:bg-gray-200 rounded text-xs text-gray-755 w-6 h-6 flex items-center justify-center cursor-pointer font-bold"
+                    title="Numbered List"
+                >
+                    1.
+                </button>
+                <div className="w-px h-4 bg-gray-300 mx-1" />
+                <button
+                    type="button"
+                    onClick={() => executeCommand('removeFormat')}
+                    className="p-1 hover:bg-gray-200 rounded text-[10px] text-gray-500 cursor-pointer font-semibold"
+                    title="Clear Formatting"
+                >
+                    Clear
+                </button>
+            </div>
+            <div
+                ref={editorRef}
+                contentEditable
+                onInput={handleInput}
+                className="p-3 min-h-[100px] max-h-[250px] overflow-y-auto text-sm text-gray-900 outline-none bg-white whitespace-normal prose prose-sm max-w-none"
+                data-placeholder={placeholder}
+            />
+        </div>
+    );
+};
 
 const AdminCourses: React.FC = () => {
     const { courses, loading, addCourse, updateCourse, deleteCourse } = useAdmin(true);
@@ -13,7 +105,7 @@ const AdminCourses: React.FC = () => {
     // Wizard State
     const [step, setStep] = useState(1);
     const [newCourse, setNewCourse] = useState<Partial<Course>>({
-        title: '', instructor: '', duration: '', category: '', accessTier: 'FREE', image: '', sections: [], description: '', outcomes: []
+        title: '', instructor: '', instructorEmail: '', instructorAvatar: '', duration: '', category: '', accessTier: 'FREE', image: '', sections: [], description: '', outcomes: []
     });
 
     const handleNext = () => setStep(s => Math.min(s + 1, 4));
@@ -42,12 +134,23 @@ const AdminCourses: React.FC = () => {
     const addLesson = (sectionId: string, type: ModuleType) => {
         const newLesson: CourseModule = {
             id: Math.random().toString(36).substring(7),
-            title: `New ${type === 'video' ? 'Video' : 'Reading'}`,
+            title: type === 'quiz' ? 'Module Quiz' : `New ${type === 'video' ? 'Video' : type === 'audio' ? 'Audio' : type === 'document' ? 'Document' : 'Reading'}`,
             description: '',
             type,
-            duration: '10 mins',
+            duration: type === 'quiz' ? '5 mins' : '10 mins',
             videoUrl: '',
-            content: ''
+            audioUrl: '',
+            fileUrl: '',
+            content: '',
+            quizTimer: type === 'quiz' ? 5 : undefined,
+            quizQuestions: type === 'quiz' ? [
+                {
+                    id: Math.random().toString(36).substring(7),
+                    text: 'What is the correct answer to this question?',
+                    options: ['Option A', 'Option B', 'Option C', 'Option D'],
+                    correctAnswer: 0
+                }
+            ] : undefined
         };
         setNewCourse({
             ...newCourse,
@@ -87,20 +190,24 @@ const AdminCourses: React.FC = () => {
         });
     };
 
-    const handleSave = async () => {
+    const handleSave = async (publish: boolean = true) => {
         try {
+            const courseData = {
+                ...newCourse,
+                isDraft: !publish
+            };
             if (isEditMode && editingCourseId) {
-                await updateCourse(editingCourseId, newCourse);
-                alert('Course updated successfully!');
+                await updateCourse(editingCourseId, courseData);
+                alert(publish ? 'Course updated successfully!' : 'Draft changes saved successfully!');
             } else {
-                await addCourse(newCourse);
-                alert('Course created successfully!');
+                await addCourse(courseData);
+                alert(publish ? 'Course created successfully!' : 'Draft course saved successfully!');
             }
             setIsWizardOpen(false);
             setIsEditMode(false);
             setEditingCourseId(null);
             setStep(1);
-            setNewCourse({ title: '', instructor: '', duration: '', category: '', accessTier: 'FREE', image: '', sections: [], description: '', outcomes: [] });
+            setNewCourse({ title: '', instructor: '', instructorEmail: '', instructorAvatar: '', duration: '', category: '', accessTier: 'FREE', image: '', sections: [], description: '', outcomes: [] });
         } catch (e: any) {
             alert(`Error saving course: ${e?.message || e}`);
             console.error('Save error:', e);
@@ -140,7 +247,12 @@ const AdminCourses: React.FC = () => {
                                     }}
                                 />
                             )}
-                            <div className="absolute top-3 right-3">
+                            <div className="absolute top-3 right-3 flex gap-2">
+                                {c.isDraft && (
+                                    <span className="px-3 py-1 rounded-full text-xs font-bold shadow-sm bg-gray-150 text-gray-700">
+                                        DRAFT
+                                    </span>
+                                )}
                                 <span className={`px-3 py-1 rounded-full text-xs font-bold shadow-sm ${c.accessTier === 'PAID' ? 'bg-amber-100 text-amber-700' : 'bg-emerald-100 text-emerald-700'}`}>
                                     {c.accessTier || 'FREE'}
                                 </span>
@@ -163,12 +275,15 @@ const AdminCourses: React.FC = () => {
                                                 category: c.category,
                                                 accessTier: c.accessTier,
                                                 image: c.image,
-                                                sections: c.sections || c.modules || [],
+                                                sections: c.sections || (c.modules ? [{ id: 's1', title: 'Course Content', lessons: c.modules }] : []),
                                                 description: c.description || '',
                                                 outcomes: c.outcomes || [],
                                                 imageScale: c.imageScale || 1,
                                                 imagePositionX: c.imagePositionX || 50,
-                                                imagePositionY: c.imagePositionY || 50
+                                                imagePositionY: c.imagePositionY || 50,
+                                                isDraft: c.isDraft,
+                                                instructorEmail: c.instructorEmail || '',
+                                                instructorAvatar: c.instructorAvatar || ''
                                             });
                                             setStep(1);
                                             setIsWizardOpen(true);
@@ -211,7 +326,7 @@ const AdminCourses: React.FC = () => {
                                     setIsEditMode(false);
                                     setEditingCourseId(null);
                                     setStep(1);
-                                    setNewCourse({ title: '', instructor: '', duration: '', category: '', accessTier: 'FREE', image: '', sections: [], description: '', outcomes: [] });
+                                    setNewCourse({ title: '', instructor: '', instructorEmail: '', instructorAvatar: '', duration: '', category: '', accessTier: 'FREE', image: '', sections: [], description: '', outcomes: [] });
                                 }} 
                                 className="p-2 text-gray-400 hover:text-gray-600 rounded-full hover:bg-gray-100"
                             >
@@ -232,9 +347,57 @@ const AdminCourses: React.FC = () => {
                                         <label className="block text-sm font-medium text-gray-700 mb-1">Course Title</label>
                                         <input value={newCourse.title} onChange={e => setNewCourse({...newCourse, title: e.target.value})} className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-violet-500 outline-none transition-all" placeholder="e.g. Advanced AI Integration" />
                                     </div>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-1">Instructor Name</label>
+                                            <input value={newCourse.instructor} onChange={e => setNewCourse({...newCourse, instructor: e.target.value})} className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-violet-500 outline-none transition-all" placeholder="e.g. John Doe" />
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-1">Instructor Email</label>
+                                            <input value={newCourse.instructorEmail || ''} onChange={e => setNewCourse({...newCourse, instructorEmail: e.target.value})} className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-violet-500 outline-none transition-all" placeholder="e.g. j.doe@schoolofai.edu" />
+                                        </div>
+                                    </div>
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">Instructor Name</label>
-                                        <input value={newCourse.instructor} onChange={e => setNewCourse({...newCourse, instructor: e.target.value})} className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-violet-500 outline-none transition-all" placeholder="e.g. John Doe" />
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">Instructor Avatar</label>
+                                        <div className="flex gap-4 items-center">
+                                            <div className="w-14 h-14 rounded-full bg-gray-100 border border-gray-200 shadow-sm overflow-hidden flex-shrink-0 flex items-center justify-center">
+                                                {newCourse.instructorAvatar ? (
+                                                    (newCourse.instructorAvatar.startsWith('http') || newCourse.instructorAvatar.startsWith('data:image')) ? (
+                                                        <img src={newCourse.instructorAvatar} alt="Preview" className="w-full h-full object-cover" />
+                                                    ) : (
+                                                        <span className="text-2xl">{newCourse.instructorAvatar}</span>
+                                                    )
+                                                ) : (
+                                                    <span className="text-gray-400 text-xs">No Image</span>
+                                                )}
+                                            </div>
+                                            <div className="flex-1 flex gap-2">
+                                                <input 
+                                                    value={newCourse.instructorAvatar || ''} 
+                                                    onChange={e => setNewCourse({...newCourse, instructorAvatar: e.target.value})} 
+                                                    className="flex-1 p-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-violet-500 outline-none transition-all text-sm" 
+                                                    placeholder="Paste Image URL, Emoji (e.g. 👨‍🏫), or upload a file" 
+                                                />
+                                                <label className="cursor-pointer bg-gray-100 hover:bg-gray-200 text-gray-700 border border-gray-200 text-xs px-4 py-2.5 rounded-xl font-bold flex items-center shrink-0 transition-colors">
+                                                    <span>Upload File</span>
+                                                    <input 
+                                                        type="file" 
+                                                        accept="image/*" 
+                                                        className="hidden" 
+                                                        onChange={e => {
+                                                            const file = e.target.files?.[0];
+                                                            if (file) {
+                                                                const reader = new FileReader();
+                                                                reader.onloadend = () => {
+                                                                    setNewCourse({...newCourse, instructorAvatar: reader.result as string});
+                                                                };
+                                                                reader.readAsDataURL(file);
+                                                            }
+                                                        }}
+                                                    />
+                                                </label>
+                                            </div>
+                                        </div>
                                     </div>
                                     <div>
                                         <label className="block text-sm font-medium text-gray-700 mb-1">About the Course</label>
@@ -382,7 +545,10 @@ const AdminCourses: React.FC = () => {
                                                     </div>
                                                     <div className="flex items-center gap-2">
                                                         <button onClick={() => addLesson(section.id, 'video')} className="text-xs font-medium bg-blue-50 text-blue-700 px-2 py-1 rounded hover:bg-blue-100 flex items-center gap-1"><Video size={12} /> Add Video</button>
+                                                        <button onClick={() => addLesson(section.id, 'audio')} className="text-xs font-medium bg-amber-50 text-amber-700 px-2 py-1 rounded hover:bg-amber-100 flex items-center gap-1"><Headphones size={12} /> Add Audio</button>
                                                         <button onClick={() => addLesson(section.id, 'article')} className="text-xs font-medium bg-emerald-50 text-emerald-700 px-2 py-1 rounded hover:bg-emerald-100 flex items-center gap-1"><FileText size={12} /> Add Reading</button>
+                                                        <button onClick={() => addLesson(section.id, 'document')} className="text-xs font-medium bg-indigo-50 text-indigo-700 px-2 py-1 rounded hover:bg-indigo-100 flex items-center gap-1"><File size={12} /> Add Document</button>
+                                                        <button onClick={() => addLesson(section.id, 'quiz')} className="text-xs font-medium bg-purple-50 text-purple-700 px-2 py-1 rounded hover:bg-purple-100 flex items-center gap-1"><HelpCircle size={12} /> Add Quiz</button>
                                                         <button onClick={() => removeSection(section.id)} className="text-gray-400 hover:text-red-600 p-1"><Trash2 size={16} /></button>
                                                     </div>
                                                 </div>
@@ -395,8 +561,17 @@ const AdminCourses: React.FC = () => {
                                                         <div key={lesson.id} className="bg-white border border-gray-100 p-4 rounded-xl shadow-sm flex flex-col gap-3 group">
                                                             <div className="flex items-start justify-between gap-4">
                                                                 <div className="flex items-center gap-3 flex-1">
-                                                                    <div className={`p-2 rounded-lg ${lesson.type === 'video' ? 'bg-blue-50 text-blue-600' : 'bg-emerald-50 text-emerald-600'}`}>
-                                                                        {lesson.type === 'video' ? <Video size={18} /> : <FileText size={18} />}
+                                                                    <div className={`p-2 rounded-lg ${
+                                                                        lesson.type === 'video' ? 'bg-blue-50 text-blue-600' : 
+                                                                        lesson.type === 'audio' ? 'bg-amber-50 text-amber-600' : 
+                                                                        lesson.type === 'document' ? 'bg-indigo-50 text-indigo-600' : 
+                                                                        lesson.type === 'quiz' ? 'bg-purple-50 text-purple-600' :
+                                                                        'bg-emerald-50 text-emerald-600'}`}>
+                                                                        {lesson.type === 'video' ? <Video size={18} /> : 
+                                                                         lesson.type === 'audio' ? <Headphones size={18} /> : 
+                                                                         lesson.type === 'document' ? <File size={18} /> : 
+                                                                         lesson.type === 'quiz' ? <HelpCircle size={18} /> :
+                                                                         <FileText size={18} />}
                                                                     </div>
                                                                     <input 
                                                                         value={lesson.title}
@@ -418,7 +593,7 @@ const AdminCourses: React.FC = () => {
                                                                     placeholder="e.g. 10m"
                                                                 />
                                                                 
-                                                                {lesson.type === 'video' ? (
+                                                                {lesson.type === 'video' && (
                                                                     <div className="flex-1 flex gap-2">
                                                                         {/* Simple file input mock or URL input for MP4 */}
                                                                         <input 
@@ -444,14 +619,185 @@ const AdminCourses: React.FC = () => {
                                                                             />
                                                                         </label>
                                                                     </div>
-                                                                ) : (
-                                                                    <div className="flex-1">
-                                                                        <textarea 
+                                                                )}
+                                                                
+                                                                {lesson.type === 'audio' && (
+                                                                    <div className="flex-1 flex flex-col gap-1">
+                                                                        <div className="flex gap-2">
+                                                                            <input 
+                                                                                type="text"
+                                                                                value={lesson.audioUrl || ''}
+                                                                                onChange={e => updateLesson(section.id, lesson.id, { audioUrl: e.target.value })}
+                                                                                className="flex-1 text-sm border border-gray-200 rounded p-1.5 outline-none focus:border-amber-400"
+                                                                                placeholder="Paste raw Audio URL (e.g. https://example.com/audio.mp3)"
+                                                                            />
+                                                                            <label className="cursor-pointer bg-gray-100 dark:bg-slate-800 border border-transparent dark:border-slate-750 hover:bg-gray-200 dark:hover:bg-slate-700 text-gray-700 dark:text-slate-200 text-xs px-3 py-1.5 rounded font-medium flex items-center">
+                                                                                <span>Browse Audio...</span>
+                                                                                <input 
+                                                                                    type="file" 
+                                                                                    accept="audio/*" 
+                                                                                    className="hidden" 
+                                                                                    onChange={e => {
+                                                                                        const file = e.target.files?.[0];
+                                                                                        if (file) {
+                                                                                            const url = URL.createObjectURL(file);
+                                                                                            updateLesson(section.id, lesson.id, { audioUrl: url, fileName: file.name });
+                                                                                        }
+                                                                                    }}
+                                                                                />
+                                                                            </label>
+                                                                        </div>
+                                                                        {lesson.fileName && (
+                                                                            <span className="text-[10px] text-gray-500 font-medium">Uploaded file: {lesson.fileName}</span>
+                                                                        )}
+                                                                    </div>
+                                                                )}
+
+                                                                {lesson.type === 'document' && (
+                                                                    <div className="flex-1 flex flex-col gap-2">
+                                                                        <div className="flex gap-2">
+                                                                            <input 
+                                                                                type="text"
+                                                                                value={lesson.fileUrl || ''}
+                                                                                onChange={e => updateLesson(section.id, lesson.id, { fileUrl: e.target.value })}
+                                                                                className="flex-1 text-sm border border-gray-200 rounded p-1.5 outline-none focus:border-indigo-400"
+                                                                                placeholder="Paste Document/File URL (e.g. https://example.com/doc.pdf)"
+                                                                            />
+                                                                            <label className="cursor-pointer bg-gray-100 dark:bg-slate-800 border border-transparent dark:border-slate-750 hover:bg-gray-200 dark:hover:bg-slate-700 text-gray-700 dark:text-slate-200 text-xs px-3 py-1.5 rounded font-medium flex items-center">
+                                                                                <span>Browse File...</span>
+                                                                                <input 
+                                                                                    type="file" 
+                                                                                    accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt" 
+                                                                                    className="hidden" 
+                                                                                    onChange={e => {
+                                                                                        const file = e.target.files?.[0];
+                                                                                        if (file) {
+                                                                                            const url = URL.createObjectURL(file);
+                                                                                            updateLesson(section.id, lesson.id, { fileUrl: url, fileName: file.name });
+                                                                                        }
+                                                                                    }}
+                                                                                />
+                                                                            </label>
+                                                                        </div>
+                                                                        {lesson.fileName && (
+                                                                            <span className="text-[10px] text-gray-500 font-medium">Uploaded file: {lesson.fileName}</span>
+                                                                        )}
+                                                                        <RichTextEditor 
                                                                             value={lesson.content || ''}
-                                                                            onChange={e => updateLesson(section.id, lesson.id, { content: e.target.value })}
-                                                                            className="w-full text-sm border border-gray-200 rounded p-2 outline-none focus:border-emerald-400 resize-none h-20"
+                                                                            onChange={val => updateLesson(section.id, lesson.id, { content: val })}
+                                                                            accentColorClass="border-gray-200 focus-within:border-indigo-400"
+                                                                            placeholder="Type document summary, reading notes, or content here..."
+                                                                        />
+                                                                    </div>
+                                                                )}
+
+                                                                {lesson.type === 'article' && (
+                                                                    <div className="flex-1">
+                                                                        <RichTextEditor 
+                                                                            value={lesson.content || ''}
+                                                                            onChange={val => updateLesson(section.id, lesson.id, { content: val })}
+                                                                            accentColorClass="border-gray-200 focus-within:border-emerald-400"
                                                                             placeholder="Type your reading notes or article content here..."
                                                                         />
+                                                                    </div>
+                                                                )}
+
+                                                                {lesson.type === 'quiz' && (
+                                                                    <div className="flex-1 space-y-4 bg-gray-50/50 p-4 rounded-xl border border-gray-150">
+                                                                        <div className="flex items-center gap-4 justify-between">
+                                                                            <span className="text-xs font-bold text-gray-700">Quiz Settings</span>
+                                                                            <div className="flex items-center gap-2">
+                                                                                <label className="text-xs text-gray-500 font-semibold">Timer (minutes):</label>
+                                                                                <input 
+                                                                                    type="number"
+                                                                                    value={lesson.quizTimer || 5}
+                                                                                    onChange={e => updateLesson(section.id, lesson.id, { quizTimer: Math.max(1, parseInt(e.target.value) || 5) })}
+                                                                                    className="text-xs border border-gray-250 rounded p-1.5 w-16 outline-none focus:border-purple-400 bg-white font-bold"
+                                                                                />
+                                                                            </div>
+                                                                        </div>
+
+                                                                        <div className="space-y-3">
+                                                                            {(lesson.quizQuestions || []).map((q: any, qIdx: number) => (
+                                                                                <div key={q.id || qIdx} className="bg-white border border-gray-100 p-3 rounded-lg shadow-sm space-y-3 relative group/q">
+                                                                                    <div className="flex justify-between items-start gap-4">
+                                                                                        <span className="text-xs font-bold text-purple-700 font-mono">Question {qIdx + 1}</span>
+                                                                                        <button 
+                                                                                            onClick={() => {
+                                                                                                const updatedQs = (lesson.quizQuestions || []).filter((_: any, idx: number) => idx !== qIdx);
+                                                                                                updateLesson(section.id, lesson.id, { quizQuestions: updatedQs });
+                                                                                            }}
+                                                                                            className="text-gray-300 hover:text-red-500 opacity-0 group-hover/q:opacity-100 transition-opacity cursor-pointer"
+                                                                                            title="Delete Question"
+                                                                                        >
+                                                                                            <Trash2 size={14} />
+                                                                                        </button>
+                                                                                    </div>
+                                                                                    <input 
+                                                                                        type="text"
+                                                                                        value={q.text}
+                                                                                        onChange={e => {
+                                                                                            const updatedQs = [...(lesson.quizQuestions || [])];
+                                                                                            updatedQs[qIdx] = { ...updatedQs[qIdx], text: e.target.value };
+                                                                                            updateLesson(section.id, lesson.id, { quizQuestions: updatedQs });
+                                                                                        }}
+                                                                                        className="w-full text-xs font-medium border-b border-gray-100 focus:border-purple-400 pb-1 outline-none"
+                                                                                        placeholder="Type your question..."
+                                                                                    />
+                                                                                    <div className="grid grid-cols-2 gap-2 pl-4">
+                                                                                        {['A', 'B', 'C', 'D'].map((optionLetter, oIdx) => {
+                                                                                            const options = q.options || ['', '', '', ''];
+                                                                                            const isCorrect = q.correctAnswer === oIdx;
+                                                                                            return (
+                                                                                                <div key={oIdx} className="flex items-center gap-2">
+                                                                                                    <input 
+                                                                                                        type="radio"
+                                                                                                        name={`q-${section.id}-${lesson.id}-${qIdx}`}
+                                                                                                        checked={isCorrect}
+                                                                                                        onChange={() => {
+                                                                                                            const updatedQs = [...(lesson.quizQuestions || [])];
+                                                                                                            updatedQs[qIdx] = { ...updatedQs[qIdx], correctAnswer: oIdx };
+                                                                                                            updateLesson(section.id, lesson.id, { quizQuestions: updatedQs });
+                                                                                                        }}
+                                                                                                        className="text-purple-600 focus:ring-purple-400 h-3 w-3 cursor-pointer"
+                                                                                                    />
+                                                                                                    <input 
+                                                                                                        type="text"
+                                                                                                        value={options[oIdx] || ''}
+                                                                                                        onChange={e => {
+                                                                                                            const updatedOptions = [...options];
+                                                                                                            updatedOptions[oIdx] = e.target.value;
+                                                                                                            const updatedQs = [...(lesson.quizQuestions || [])];
+                                                                                                            updatedQs[qIdx] = { ...updatedQs[qIdx], options: updatedOptions };
+                                                                                                            updateLesson(section.id, lesson.id, { quizQuestions: updatedQs });
+                                                                                                        }}
+                                                                                                        className={`text-xs border rounded p-1 flex-1 outline-none ${isCorrect ? 'border-purple-305 bg-purple-50/10 font-medium' : 'border-gray-100 focus:border-gray-300'}`}
+                                                                                                        placeholder={`Option ${optionLetter}`}
+                                                                                                    />
+                                                                                                </div>
+                                                                                            );
+                                                                                        })}
+                                                                                    </div>
+                                                                                </div>
+                                                                            ))}
+                                                                        </div>
+
+                                                                        <button 
+                                                                            onClick={() => {
+                                                                                const newQ = {
+                                                                                    id: Date.now().toString(),
+                                                                                    text: '',
+                                                                                    options: ['', '', '', ''],
+                                                                                    correctAnswer: 0
+                                                                                };
+                                                                                updateLesson(section.id, lesson.id, { 
+                                                                                    quizQuestions: [...(lesson.quizQuestions || []), newQ] 
+                                                                                });
+                                                                            }}
+                                                                            className="text-xs font-bold text-purple-700 hover:text-purple-900 flex items-center gap-1 mt-2 cursor-pointer"
+                                                                        >
+                                                                            + Add Objective Question
+                                                                        </button>
                                                                     </div>
                                                                 )}
                                                             </div>
@@ -482,12 +828,20 @@ const AdminCourses: React.FC = () => {
                                     Next Step <ArrowRight size={18} />
                                 </button>
                             ) : (
-                                <button 
-                                    onClick={handleSave}
-                                    className="px-6 py-2.5 bg-green-600 text-white rounded-xl font-medium flex items-center gap-2 hover:bg-green-700 shadow-md shadow-green-200 transition-colors"
-                                >
-                                    <Save size={18} /> Finish & Publish
-                                </button>
+                                <div className="flex gap-3">
+                                    <button 
+                                        onClick={() => handleSave(false)}
+                                        className="px-6 py-2.5 bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 rounded-xl font-medium flex items-center gap-2 transition-colors cursor-pointer"
+                                    >
+                                        <Save size={18} /> Save as Draft
+                                    </button>
+                                    <button 
+                                        onClick={() => handleSave(true)}
+                                        className="px-6 py-2.5 bg-green-600 text-white rounded-xl font-medium flex items-center gap-2 hover:bg-green-700 shadow-md shadow-green-200 transition-colors cursor-pointer"
+                                    >
+                                        <Save size={18} /> Finish & Publish
+                                    </button>
+                                </div>
                             )}
                         </div>
                     </div>

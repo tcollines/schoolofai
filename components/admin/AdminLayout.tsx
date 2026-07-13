@@ -7,7 +7,6 @@ import AdminCourses from './AdminCourses';
 import AdminExams from './AdminExams';
 import AdminEvents from './AdminEvents';
 import AdminLoginPage from './AdminLoginPage';
-import AdminDiscussions from './AdminDiscussions';
 import AdminAssignments from './AdminAssignments';
 
 interface AdminLayoutProps {
@@ -72,7 +71,6 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ onExit }) => {
         { id: 'courses', label: 'Course Setup', icon: BookOpen },
         { id: 'exams', label: 'Exam Setup', icon: FileQuestion },
         { id: 'events', label: 'Ongoing Events', icon: Calendar },
-        { id: 'discussions', label: 'Moderate Chats', icon: MessageSquare },
         { id: 'assignments', label: 'Assignments', icon: ClipboardList },
     ] as const;
 
@@ -84,7 +82,6 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ onExit }) => {
                 <Route path="courses" element={<AdminCourses />} />
                 <Route path="exams" element={<AdminExams />} />
                 <Route path="events" element={<AdminEvents />} />
-                <Route path="discussions" element={<AdminDiscussions />} />
                 <Route path="assignments" element={<AdminAssignments />} />
             </Routes>
         );

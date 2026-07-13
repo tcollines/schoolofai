@@ -8,12 +8,14 @@ interface EventItem {
     description: string;
     date: string;
     time: string;
-    type: 'Workshop' | 'Webinar' | 'Panel' | 'Meeting' | 'Announcement';
+    type: 'Workshop' | 'Webinar' | 'Panel' | 'Meeting' | 'Announcement' | 'Lesson';
     speaker: string;
     medium?: 'Online' | 'Physical';
     meetLink?: string;
     location?: string;
     courseId: string;
+    sectionId?: string;
+    moduleId?: string;
     attendeeCount: number;
     tags?: string[];
     premiered?: boolean;
@@ -52,7 +54,7 @@ const defaultAdminEvents = [
 ];
 
 const AdminEvents: React.FC = () => {
-    const { courses } = useAdmin();
+    const { courses } = useAdmin(true);
     const [events, setEvents] = useState<EventItem[]>([]);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingEvent, setEditingEvent] = useState<EventItem | null>(null);
@@ -65,18 +67,83 @@ const AdminEvents: React.FC = () => {
     const [timeHour, setTimeHour] = useState('12');
     const [timeMinute, setTimeMinute] = useState('00');
     const [timePeriod, setTimePeriod] = useState('PM');
-    const [type, setType] = useState<'Workshop' | 'Webinar' | 'Panel'>('Workshop');
+    const [type, setType] = useState<'Workshop' | 'Webinar' | 'Panel' | 'Lesson'>('Workshop');
     const [speaker, setSpeaker] = useState('Admin Team');
     const [courseId, setCourseId] = useState('global');
+    const [sectionId, setSectionId] = useState('');
+    const [moduleId, setModuleId] = useState('');
     const [medium, setMedium] = useState<'Online' | 'Physical'>('Online');
     const [meetLink, setMeetLink] = useState('');
     const [location, setLocation] = useState('');
     const [premiered, setPremiered] = useState(false);
 
+    const selectedCourseData = courses.find(c => c.id === courseId);
+    const sectionsList = selectedCourseData?.sections || [];
+    const selectedSectionData = sectionsList.find(s => s.id === sectionId);
+    const modulesList = selectedSectionData?.lessons || [];
+
     // Sync timeHour, timeMinute, and timePeriod back to time string
     useEffect(() => {
         setTime(`${timeHour}:${timeMinute} ${timePeriod}`);
     }, [timeHour, timeMinute, timePeriod]);
+
+    // Reactive: default speaker, section, and module based on course selection
+    useEffect(() => {
+        if (type === 'Lesson') {
+            // Force select a specific course if it was global
+            if (courseId === 'global' && courses.length > 0) {
+                setCourseId(courses[0].id);
+                return;
+            }
+
+            const course = courses.find(c => c.id === courseId);
+            if (course) {
+                if (course.instructor) {
+                    setSpeaker(course.instructor);
+                }
+                const firstSection = course.sections?.[0];
+                if (firstSection) {
+                    setSectionId(firstSection.id);
+                    const firstModule = firstSection.lessons?.[0];
+                    if (firstModule) {
+                        setModuleId(firstModule.id);
+                    } else {
+                        setModuleId('');
+                    }
+                } else {
+                    setSectionId('');
+                    setModuleId('');
+                }
+            }
+        }
+    }, [courseId, type, courses]);
+
+    // Reactive: default module when sectionId changes
+    useEffect(() => {
+        if (type === 'Lesson' && courseId !== 'global') {
+            const course = courses.find(c => c.id === courseId);
+            const section = course?.sections?.find(s => s.id === sectionId);
+            const firstModule = section?.lessons?.[0];
+            if (firstModule) {
+                setModuleId(firstModule.id);
+            } else {
+                setModuleId('');
+            }
+        }
+    }, [sectionId, type, courseId, courses]);
+
+    // Reactive: autofill event title and description based on selected module
+    useEffect(() => {
+        if (type === 'Lesson' && moduleId) {
+            const course = courses.find(c => c.id === courseId);
+            const section = course?.sections?.find(s => s.id === sectionId);
+            const module = section?.lessons?.find(m => m.id === moduleId);
+            if (module) {
+                setTitle(`Lesson: ${module.title}`);
+                setDescription(`A scheduled live learning session covering "${module.title}" in the unit "${section?.title || 'Course Unit'}" of ${course?.title || 'Course'}.`);
+            }
+        }
+    }, [moduleId, type, courseId, sectionId, courses]);
 
     const openCreateModal = () => {
         setEditingEvent(null);
@@ -90,6 +157,8 @@ const AdminEvents: React.FC = () => {
         setType('Workshop');
         setSpeaker('Admin Team');
         setCourseId('global');
+        setSectionId('');
+        setModuleId('');
         setMedium('Online');
         setMeetLink('');
         setLocation('');
@@ -133,6 +202,8 @@ const AdminEvents: React.FC = () => {
         setType(event.type as any);
         setSpeaker(event.speaker);
         setCourseId(event.courseId);
+        setSectionId(event.sectionId || '');
+        setModuleId(event.moduleId || '');
         setMedium(event.medium || 'Online');
         setMeetLink(event.meetLink || '');
         setLocation(event.location || '');
@@ -224,6 +295,8 @@ const AdminEvents: React.FC = () => {
                 type,
                 speaker,
                 courseId,
+                sectionId: type === 'Lesson' ? sectionId : undefined,
+                moduleId: type === 'Lesson' ? moduleId : undefined,
                 medium,
                 meetLink: medium === 'Online' ? meetLink : undefined,
                 location: medium === 'Physical' ? location : undefined,
@@ -240,6 +313,8 @@ const AdminEvents: React.FC = () => {
                 type,
                 speaker,
                 courseId,
+                sectionId: type === 'Lesson' ? sectionId : undefined,
+                moduleId: type === 'Lesson' ? moduleId : undefined,
                 attendeeCount: 0,
                 medium,
                 meetLink: medium === 'Online' ? meetLink : undefined,
@@ -277,6 +352,8 @@ const AdminEvents: React.FC = () => {
         setTime('');
         setSpeaker('Admin Team');
         setCourseId('global');
+        setSectionId('');
+        setModuleId('');
         setMeetLink('');
         setMedium('Online');
         setLocation('');
@@ -372,10 +449,19 @@ const AdminEvents: React.FC = () => {
                                 </div>
                             </div>
 
-                            <div className="mt-4 pt-4 border-t border-gray-50 dark:border-slate-800/50 flex justify-between items-center text-xs">
-                                <span className="text-gray-400 dark:text-slate-500">
-                                    Target Group: <strong className="text-gray-600 dark:text-slate-300 capitalize">{event.courseId === 'global' ? 'Global' : 'Course specific'}</strong>
-                                </span>
+                             <div className="mt-4 pt-4 border-t border-gray-50 dark:border-slate-800/50 flex flex-col gap-2 text-xs">
+                                <div className="flex justify-between items-center text-gray-400 dark:text-slate-500">
+                                    <span>
+                                        Target Group: <strong className="text-gray-600 dark:text-slate-300 capitalize">{event.courseId === 'global' ? 'Global' : 'Course specific'}</strong>
+                                    </span>
+                                </div>
+                                {event.type === 'Lesson' && (
+                                    <div className="text-[10px] bg-slate-50 dark:bg-slate-800/60 p-2.5 rounded-xl border border-gray-100 dark:border-slate-800 space-y-1 text-left">
+                                        <p>🎓 <strong className="text-gray-700 dark:text-slate-200">Course:</strong> {courses.find(c => c.id === event.courseId)?.title || 'Unknown Course'}</p>
+                                        <p>📖 <strong className="text-gray-700 dark:text-slate-200">Unit:</strong> {courses.find(c => c.id === event.courseId)?.sections?.find(s => s.id === event.sectionId)?.title || 'Unknown Unit'}</p>
+                                        <p>📝 <strong className="text-gray-700 dark:text-slate-200">Module:</strong> {courses.find(c => c.id === event.courseId)?.sections?.find(s => s.id === event.sectionId)?.lessons?.find(l => l.id === event.moduleId)?.title || 'Unknown Module'}</p>
+                                    </div>
+                                )}
                             </div>
                         </div>
                     ))
@@ -407,6 +493,7 @@ const AdminEvents: React.FC = () => {
                                         <option value="Workshop">Workshop</option>
                                         <option value="Webinar">Webinar</option>
                                         <option value="Panel">Panel Discussion</option>
+                                        <option value="Lesson">Lesson</option>
                                     </select>
                                 </div>
                                 <div className="space-y-1">
@@ -490,19 +577,71 @@ const AdminEvents: React.FC = () => {
                                 </div>
                             </div>
 
-                            <div className="space-y-1">
-                                <label className="text-xs font-semibold text-gray-600 dark:text-slate-400">Target Group (Visibility)</label>
-                                <select 
-                                    value={courseId} 
-                                    onChange={(e) => setCourseId(e.target.value)}
-                                    className="w-full p-2.5 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-750 rounded-xl text-sm"
-                                >
-                                    <option value="global">Global (All Students)</option>
-                                    {courses.map(c => (
-                                        <option key={c.id} value={c.id}>{c.title}</option>
-                                    ))}
-                                </select>
-                            </div>
+                            {type === 'Lesson' ? (
+                                <div className="space-y-3 p-3 bg-gray-50/50 dark:bg-slate-800/40 rounded-2xl border border-gray-150/40 dark:border-slate-850">
+                                    <h4 className="text-xs font-bold uppercase tracking-wider text-purple-600 dark:text-purple-400">Lesson Linkage Details</h4>
+                                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                        <div className="space-y-1">
+                                            <label className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Course Preference</label>
+                                            <select 
+                                                value={courseId === 'global' ? '' : courseId} 
+                                                onChange={(e) => setCourseId(e.target.value)}
+                                                className="w-full p-2 bg-white dark:bg-slate-900 border border-gray-250 dark:border-slate-700 rounded-xl text-xs"
+                                                required
+                                            >
+                                                <option value="" disabled>Select Course...</option>
+                                                {courses.map(c => (
+                                                    <option key={c.id} value={c.id}>{c.title}</option>
+                                                ))}
+                                            </select>
+                                        </div>
+                                        <div className="space-y-1">
+                                            <label className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Course Unit (Section)</label>
+                                            <select 
+                                                value={sectionId} 
+                                                onChange={(e) => setSectionId(e.target.value)}
+                                                className="w-full p-2 bg-white dark:bg-slate-900 border border-gray-250 dark:border-slate-700 rounded-xl text-xs"
+                                                required
+                                                disabled={!courseId || courseId === 'global'}
+                                            >
+                                                <option value="" disabled>Select Unit...</option>
+                                                {sectionsList.map(s => (
+                                                    <option key={s.id} value={s.id}>{s.title}</option>
+                                                ))}
+                                            </select>
+                                        </div>
+                                        <div className="space-y-1">
+                                            <label className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Module (Lesson)</label>
+                                            <select 
+                                                value={moduleId} 
+                                                onChange={(e) => setModuleId(e.target.value)}
+                                                className="w-full p-2 bg-white dark:bg-slate-900 border border-gray-250 dark:border-slate-700 rounded-xl text-xs"
+                                                required
+                                                disabled={!sectionId}
+                                            >
+                                                <option value="" disabled>Select Module...</option>
+                                                {modulesList.map(m => (
+                                                    <option key={m.id} value={m.id}>{m.title}</option>
+                                                ))}
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                            ) : (
+                                <div className="space-y-1">
+                                    <label className="text-xs font-semibold text-gray-600 dark:text-slate-400">Target Group (Visibility)</label>
+                                    <select 
+                                        value={courseId} 
+                                        onChange={(e) => setCourseId(e.target.value)}
+                                        className="w-full p-2.5 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-750 rounded-xl text-sm"
+                                    >
+                                        <option value="global">Global (All Students)</option>
+                                        {courses.map(c => (
+                                            <option key={c.id} value={c.id}>{c.title}</option>
+                                        ))}
+                                    </select>
+                                </div>
+                            )}
 
                             <div className="space-y-1">
                                 <label className="text-xs font-semibold text-gray-600 dark:text-slate-400">Event Medium</label>

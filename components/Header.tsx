@@ -51,23 +51,52 @@ const Header: React.FC<HeaderProps> = ({
   }, []);
 
   const [avatar, setAvatar] = useState(() => {
-    return localStorage.getItem('user-avatar') || user.avatar;
+    return localStorage.getItem(`user-avatar-${user.id}`) || user.avatar;
+  });
+  const [avatarScale, setAvatarScale] = useState(() => {
+    const s = localStorage.getItem(`user-avatar-scale-${user.id}`);
+    return s ? Number(s) : (user.avatarScale || 1);
+  });
+  const [avatarPosX, setAvatarPosX] = useState(() => {
+    const x = localStorage.getItem(`user-avatar-pos-x-${user.id}`);
+    return x ? Number(x) : (user.avatarPositionX || 0);
+  });
+  const [avatarPosY, setAvatarPosY] = useState(() => {
+    const y = localStorage.getItem(`user-avatar-pos-y-${user.id}`);
+    return y ? Number(y) : (user.avatarPositionY || 0);
   });
   const [avatarError, setAvatarError] = useState(false);
 
   useEffect(() => {
+    setAvatar(localStorage.getItem(`user-avatar-${user.id}`) || user.avatar);
+    const s = localStorage.getItem(`user-avatar-scale-${user.id}`);
+    setAvatarScale(s ? Number(s) : (user.avatarScale || 1));
+    const x = localStorage.getItem(`user-avatar-pos-x-${user.id}`);
+    setAvatarPosX(x ? Number(x) : (user.avatarPositionX || 0));
+    const y = localStorage.getItem(`user-avatar-pos-y-${user.id}`);
+    setAvatarPosY(y ? Number(y) : (user.avatarPositionY || 0));
+    setAvatarError(false);
+  }, [user.avatar, user.avatarScale, user.avatarPositionX, user.avatarPositionY, user.id]);
+
+  useEffect(() => {
     const handleProfileUpdate = () => {
-      const storedAvatar = localStorage.getItem('user-avatar');
+      const storedAvatar = localStorage.getItem(`user-avatar-${user.id}`);
       if (storedAvatar) {
         setAvatar(storedAvatar);
-        setAvatarError(false);
       }
+      const s = localStorage.getItem(`user-avatar-scale-${user.id}`);
+      setAvatarScale(s ? Number(s) : 1);
+      const x = localStorage.getItem(`user-avatar-pos-x-${user.id}`);
+      setAvatarPosX(x ? Number(x) : 0);
+      const y = localStorage.getItem(`user-avatar-pos-y-${user.id}`);
+      setAvatarPosY(y ? Number(y) : 0);
+      setAvatarError(false);
     };
     window.addEventListener('profile-update', handleProfileUpdate);
     return () => {
       window.removeEventListener('profile-update', handleProfileUpdate);
     };
-  }, []);
+  }, [user.id]);
 
   const [unreadCount, setUnreadCount] = useState(0);
 
@@ -127,12 +156,18 @@ const Header: React.FC<HeaderProps> = ({
               <DefaultAvatar />
             </div>
           ) : (
-            <img
-              src={avatar}
-              alt="Profile"
-              onError={() => setAvatarError(true)}
-              className="w-8 h-8 rounded-full object-cover border-2 border-white dark:border-slate-800 shadow-sm shrink-0"
-            />
+            <div className="w-8 h-8 rounded-full border-2 border-white dark:border-slate-800 shadow-sm overflow-hidden shrink-0">
+              <img
+                src={avatar}
+                alt="Profile"
+                onError={() => setAvatarError(true)}
+                className="w-full h-full object-cover"
+                style={{
+                  transform: `scale(${avatarScale}) translate(${avatarPosX}px, ${avatarPosY}px)`,
+                  transformOrigin: 'center center'
+                }}
+              />
+            </div>
           )
         )}
         {showWelcome && (
@@ -246,12 +281,18 @@ const Header: React.FC<HeaderProps> = ({
                 <DefaultAvatar />
               </div>
             ) : (
-              <img
-                src={avatar}
-                alt="Profile"
-                onError={() => setAvatarError(true)}
-                className="w-8 h-8 lg:w-10 lg:h-10 rounded-full object-cover border-2 border-white dark:border-slate-800 shadow-md shrink-0"
-              />
+              <div className="w-8 h-8 lg:w-10 lg:h-10 rounded-full border-2 border-white dark:border-slate-800 shadow-md overflow-hidden shrink-0">
+                <img
+                  src={avatar}
+                  alt="Profile"
+                  onError={() => setAvatarError(true)}
+                  className="w-full h-full object-cover"
+                  style={{
+                    transform: `scale(${avatarScale}) translate(${avatarPosX}px, ${avatarPosY}px)`,
+                    transformOrigin: 'center center'
+                  }}
+                />
+              </div>
             )}
           </div>
         )}

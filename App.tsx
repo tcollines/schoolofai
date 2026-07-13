@@ -19,6 +19,7 @@ import DiscussionsPage from './components/DiscussionsPage';
 import StudentAssignments from './components/StudentAssignments';
 import { supabase } from './src/lib/supabase';
 import { useCourses } from './src/hooks/useCourses';
+import { useProfile } from './src/hooks/useProfile';
 import { UserRole } from './types';
 
 function App() {
@@ -27,6 +28,7 @@ function App() {
   const [authLoading, setAuthLoading] = useState(true);
 
   const { courses, loading: coursesLoading } = useCourses(isAuthenticated ? session?.user?.id : undefined);
+  const { profile: userProfile } = useProfile(isAuthenticated ? session : null);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -164,6 +166,14 @@ function App() {
                     });
                     window.location.href = '/courses';
                   }}
+                  onUnenroll={async (courseId) => {
+                    if (!session?.user?.id) return;
+                    await supabase.from('enrollments')
+                      .delete()
+                      .eq('user_id', session.user.id)
+                      .eq('course_id', courseId);
+                    window.location.reload();
+                  }}
                 />
             } />
             
@@ -171,8 +181,8 @@ function App() {
             <Route path="/assignments" element={<StudentAssignments courses={courses} userId={session?.user?.id || 'guest'} />} />
             <Route path="/discussions" element={<DiscussionsPage />} />
             <Route path="/career" element={<Certificates courses={isAuthenticated ? courses : []} />} />
-            <Route path="/profile" element={<Profile user={{} as any} onUpgradeClick={() => window.location.href = '/plans'} />} />
-            <Route path="/plans" element={<PlansPage currentPlan={UserRole.INDIVIDUAL} onUpgrade={() => {}} onBack={() => window.location.href = '/profile'} />} />
+            <Route path="/profile" element={<Profile user={userProfile || ({} as any)} onUpgradeClick={() => window.location.href = '/plans'} />} />
+            <Route path="/plans" element={<PlansPage user={userProfile} currentPlan={(userProfile?.role === UserRole.PRO || userProfile?.role === UserRole.ADMIN) ? userProfile.role : UserRole.INDIVIDUAL} onUpgrade={() => {}} onBack={() => window.location.href = '/profile'} />} />
             <Route path="/settings" element={<SettingsPage />} />
             <Route path="/notifications" element={<NotificationsPage />} />
             <Route path="/events" element={<EventsPage courses={courses} />} />

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import CourseCard from './CourseCard';
 import { Course, CourseStatus, CourseModule, CourseSection } from '../types';
-import { Search, Filter, Clock, ArrowLeft, PlayCircle, Youtube, BookOpen, FileText, ChevronDown } from 'lucide-react';
+import { Search, Filter, Clock, ArrowLeft, PlayCircle, Youtube, BookOpen, FileText, ChevronDown, Headphones, File, LayoutGrid, LayoutList, Lock, HelpCircle } from 'lucide-react';
 import CoursePlayer from './CoursePlayer';
 import ExamPlayer from './ExamPlayer';
 import RatingModal from './RatingModal';
@@ -39,6 +39,8 @@ const MyCourses: React.FC<MyCoursesProps> = ({ courses }) => {
     const [isRatingModalOpen, setIsRatingModalOpen] = useState(false);
     const [hasRated, setHasRated] = useState(false);
     const [localCourses, setLocalCourses] = useState<Course[]>(courses);
+    const [viewMode, setViewMode] = useState<'list' | 'grid'>('list');
+    const [lessonsViewMode, setLessonsViewMode] = useState<Record<string, 'list' | 'grid'>>({});
 
     // Sync localCourses with props changes
     useEffect(() => {
@@ -92,6 +94,25 @@ const MyCourses: React.FC<MyCoursesProps> = ({ courses }) => {
             allModules = selectedCourse.modules;
         }
         return allModules;
+    };
+    const isSectionLocked = (sectionId: string) => {
+        if (!selectedCourse || !selectedCourse.sections) return false;
+        const sectionIndex = selectedCourse.sections.findIndex(s => s.id === sectionId);
+        if (sectionIndex <= 0) return false;
+
+        // Get previous section
+        const prevSection = selectedCourse.sections[sectionIndex - 1];
+        // Find if previous section has a quiz at the end
+        const prevSectionQuiz = prevSection.lessons.find(l => l.type === 'quiz');
+        if (!prevSectionQuiz) return false;
+
+        // Find quiz index in all modules list
+        const allModules = getAllModules();
+        const quizIndex = allModules.findIndex(m => m.id === prevSectionQuiz.id);
+        if (quizIndex === -1) return false;
+
+        // If completedCount is less than or equal to quizIndex, it is locked!
+        return selectedCourse.lessonsCompleted <= quizIndex;
     };
 
     const handleNextModule = async () => {
@@ -196,7 +217,27 @@ const MyCourses: React.FC<MyCoursesProps> = ({ courses }) => {
                             <div className="text-white">
                                 <span className="text-xs font-bold bg-welile-purple px-2 py-1 rounded-md mb-2 inline-block">MY COURSE</span>
                                 <h3 className="text-2xl font-bold mb-1">{selectedCourse.title}</h3>
-                                <p className="text-sm opacity-90">{selectedCourse.instructor}</p>
+                                <div className="flex items-center gap-3 mt-2">
+                                    <div className="w-8 h-8 rounded-full border border-white/20 overflow-hidden flex items-center justify-center bg-white/10 shrink-0">
+                                        {selectedCourse.instructorAvatar ? (
+                                            (selectedCourse.instructorAvatar.startsWith('http') || selectedCourse.instructorAvatar.startsWith('data:image')) ? (
+                                                <img src={selectedCourse.instructorAvatar} alt={selectedCourse.instructor} className="w-full h-full object-cover" />
+                                            ) : (
+                                                <span className="text-sm">{selectedCourse.instructorAvatar}</span>
+                                            )
+                                        ) : (
+                                            <img src={`https://api.dicebear.com/7.x/initials/svg?seed=${selectedCourse.instructor}`} alt={selectedCourse.instructor} className="w-full h-full object-cover" />
+                                        )}
+                                    </div>
+                                    <div className="min-w-0">
+                                        <p className="text-sm font-semibold leading-none">{selectedCourse.instructor}</p>
+                                        <p className="text-[11px] opacity-80 mt-1 truncate">
+                                            <a href={`mailto:${selectedCourse.instructorEmail || `${selectedCourse.instructor.toLowerCase().replace(/[^a-z0-9\s]/g, '').trim().replace(/\s+/g, '.')}@schoolofai.edu`}`} className="hover:underline text-white">
+                                                {selectedCourse.instructorEmail || `${selectedCourse.instructor.toLowerCase().replace(/[^a-z0-9\s]/g, '').trim().replace(/\s+/g, '.')}@schoolofai.edu`}
+                                            </a>
+                                        </p>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -284,102 +325,328 @@ const MyCourses: React.FC<MyCoursesProps> = ({ courses }) => {
                 </div>
 
                 <div className="space-y-4 max-w-3xl">
-                    <h3 className="text-xl font-bold text-gray-900 dark:text-white">Course Content</h3>
-                    <div className="grid gap-4">
+                    <div className="flex justify-between items-center">
+                        <h3 className="text-xl font-bold text-gray-900 dark:text-white">Course Content</h3>
+                        <div className="flex bg-gray-100 dark:bg-slate-800 p-1 rounded-xl border border-gray-200/50 dark:border-slate-700">
+                            <button
+                                onClick={() => setViewMode('list')}
+                                className={`flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                                    viewMode === 'list'
+                                        ? 'bg-white dark:bg-slate-900 text-welile-purple dark:text-white shadow-sm'
+                                        : 'text-gray-500 hover:text-gray-950 dark:text-slate-400 dark:hover:text-slate-200'
+                                }`}
+                                title="List View"
+                            >
+                                <LayoutList size={14} /> List
+                            </button>
+                            <button
+                                onClick={() => setViewMode('grid')}
+                                className={`flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                                    viewMode === 'grid'
+                                        ? 'bg-white dark:bg-slate-900 text-welile-purple dark:text-white shadow-sm'
+                                        : 'text-gray-500 hover:text-gray-950 dark:text-slate-400 dark:hover:text-slate-200'
+                                }`}
+                                title="Grid View"
+                            >
+                                <LayoutGrid size={14} /> Grid
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div>
                         {selectedCourse.sections && selectedCourse.sections.length > 0 ? (
-                            selectedCourse.sections.map((section: CourseSection) => (
-                                <div key={section.id} className="bg-white dark:bg-slate-900 rounded-2xl border border-gray-200 dark:border-slate-800 overflow-hidden shadow-sm">
-                                    <button 
-                                        onClick={() => setExpandedSections(prev => ({...prev, [section.id]: !prev[section.id]}))}
-                                        className="w-full bg-gray-50 dark:bg-slate-800/50 p-4 border-b border-gray-200 dark:border-slate-800 flex justify-between items-center hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors"
-                                    >
-                                        <h4 className="font-bold text-gray-900 dark:text-white">{section.title}</h4>
-                                        <div className="flex items-center gap-3">
-                                            <span className="text-xs text-gray-500 dark:text-slate-400 font-medium bg-white dark:bg-slate-900 px-2 py-1 rounded border border-gray-200 dark:border-slate-800">{section.lessons.length} Lessons</span>
-                                            <ChevronDown size={20} className={`text-gray-500 dark:text-slate-400 transition-transform ${expandedSections[section.id] ? 'rotate-180' : ''}`} />
-                                        </div>
-                                    </button>
-                                    
-                                    {expandedSections[section.id] && (
-                                        <div className="p-4 space-y-3">
-                                            {section.lessons.length === 0 && (
-                                                <div className="text-center py-4 text-sm text-gray-400 dark:text-slate-500">No content available.</div>
-                                            )}
-                                            {section.lessons.map((lesson: CourseModule) => (
-                                                <div key={lesson.id} onClick={() => setActiveModule(lesson)} className="p-4 rounded-xl border border-gray-100 dark:border-slate-800 hover:border-violet-300 dark:hover:border-violet-800 hover:bg-violet-50 dark:hover:bg-violet-955 transition-colors cursor-pointer flex gap-4 items-start group">
-                                                    <div className={`p-3 rounded-xl shrink-0 ${lesson.type === 'video' ? 'bg-blue-100 dark:bg-blue-950/20 text-blue-600 dark:text-blue-400' : 'bg-emerald-100 dark:bg-emerald-950/20 text-emerald-600 dark:text-emerald-400'}`}>
-                                                        {lesson.type === 'video' ? <Youtube size={24} /> : <FileText size={24} />}
-                                                    </div>
-                                                    <div className="flex-1">
-                                                        <h5 className="font-bold text-gray-900 dark:text-white group-hover:text-violet-900 dark:group-hover:text-violet-300 transition-colors">{lesson.title}</h5>
-                                                        <div className="flex flex-wrap items-center gap-4 text-xs text-gray-500 dark:text-slate-400 mt-2">
-                                                            <div className="flex items-center gap-1">
-                                                                <Clock size={12} /> <span>{lesson.duration}</span>
+                            viewMode === 'list' ? (
+                                <div className="grid gap-4">
+                                    {selectedCourse.sections.map((section: CourseSection) => {
+                                        const isLocked = isSectionLocked(section.id);
+                                        return (
+                                            <div key={section.id} className={`bg-white dark:bg-slate-900 rounded-2xl border border-gray-205 dark:border-slate-800 overflow-hidden shadow-sm ${isLocked ? 'opacity-60' : ''}`}>
+                                                <div 
+                                                    onClick={() => {
+                                                        if (isLocked) {
+                                                            alert("Please complete the quiz at the end of the previous module to unlock this section.");
+                                                            return;
+                                                        }
+                                                        setExpandedSections(prev => ({...prev, [section.id]: !prev[section.id]}))
+                                                    }}
+                                                    className="w-full bg-gray-55 dark:bg-slate-800/50 p-4 border-b border-gray-205 dark:border-slate-800 flex justify-between items-center hover:bg-gray-100 dark:hover:bg-slate-805 transition-colors cursor-pointer"
+                                                >
+                                                    <h4 className="font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                                                        {isLocked && <Lock size={15} className="text-gray-400 dark:text-slate-500" />}
+                                                        {section.title}
+                                                    </h4>
+                                                    <div className="flex items-center gap-3">
+                                                        <span className="text-xs text-gray-500 dark:text-slate-400 font-medium bg-white dark:bg-slate-900 px-2 py-1 rounded border border-gray-205 dark:border-slate-800">{section.lessons.length} Lessons</span>
+                                                        
+                                                        {!isLocked && (
+                                                            /* Small List/Grid Toggle inside module */
+                                                            <div className="flex bg-gray-100 dark:bg-slate-800 p-0.5 rounded-lg border border-gray-200/50 dark:border-slate-700 items-center">
+                                                                <button
+                                                                    onClick={(e) => {
+                                                                        e.stopPropagation();
+                                                                        setLessonsViewMode(prev => ({...prev, [section.id]: 'list'}));
+                                                                    }}
+                                                                    className={`p-1 rounded-md text-[10px] transition-all cursor-pointer ${
+                                                                        (lessonsViewMode[section.id] || 'list') === 'list'
+                                                                            ? 'bg-white dark:bg-slate-900 text-welile-purple dark:text-white shadow-sm'
+                                                                            : 'text-gray-400 hover:text-gray-600 dark:hover:text-slate-200'
+                                                                    }`}
+                                                                    title="List Lessons"
+                                                                >
+                                                                    <LayoutList size={11} />
+                                                                </button>
+                                                                <button
+                                                                    onClick={(e) => {
+                                                                        e.stopPropagation();
+                                                                        setLessonsViewMode(prev => ({...prev, [section.id]: 'grid'}));
+                                                                    }}
+                                                                    className={`p-1 rounded-md text-[10px] transition-all cursor-pointer ${
+                                                                        (lessonsViewMode[section.id] || 'list') === 'grid'
+                                                                            ? 'bg-white dark:bg-slate-900 text-welile-purple dark:text-white shadow-sm'
+                                                                            : 'text-gray-400 hover:text-gray-600 dark:hover:text-slate-200'
+                                                                    }`}
+                                                                    title="Grid Lessons"
+                                                                >
+                                                                    <LayoutGrid size={11} />
+                                                                </button>
                                                             </div>
-                                                            {/* PDF Attachment Action */}
-                                                            <button 
-                                                                onClick={(e) => {
-                                                                    e.stopPropagation();
-                                                                    alert(`Downloading PDF Slides & Lecture Notes for: "${lesson.title}"`);
-                                                                    const link = document.createElement('a');
-                                                                    link.href = 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf';
-                                                                    link.download = `${lesson.title.replace(/\s+/g, '_')}_Notes.pdf`;
-                                                                    link.target = '_blank';
-                                                                    document.body.appendChild(link);
-                                                                    link.click();
-                                                                    document.body.removeChild(link);
+                                                        )}
 
-                                                                    addPortalNotification(
-                                                                        "Resource Downloaded",
-                                                                        `Lecture PDF notes for "${lesson.title}" downloaded successfully.`,
-                                                                        "system"
-                                                                    );
-                                                                }}
-                                                                className="flex items-center gap-1 text-welile-purple dark:text-purple-400 hover:underline font-bold cursor-pointer"
-                                                            >
-                                                                <FileText size={12} />
-                                                                <span>PDF Notes</span>
-                                                            </button>
-                                                        </div>
-                                                    </div>
-                                                    <div className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center p-2 text-violet-600 bg-white dark:bg-slate-900 rounded-full shadow-sm">
-                                                        <PlayCircle size={20} />
+                                                        <ChevronDown size={20} className={`text-gray-500 dark:text-slate-400 transition-transform ${expandedSections[section.id] ? 'rotate-180' : ''}`} />
                                                     </div>
                                                 </div>
-                                            ))}
-                                        </div>
-                                    )}
-                                </div>
-                            ))
-                        ) : selectedCourse.modules && selectedCourse.modules.length > 0 ? (
-                            selectedCourse.modules.map((module: any, idx: number) => (
-                                <div key={idx} className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-gray-100 dark:border-slate-800 hover:shadow-md transition-shadow flex flex-col sm:flex-row gap-4 items-start sm:items-center">
-                                    <div className="w-24 h-16 rounded-lg bg-gray-100 dark:bg-slate-800 shrink-0 overflow-hidden relative group cursor-pointer border border-gray-200 dark:border-slate-700" onClick={() => setActiveModule(module)}>
-                                        {module.thumbnail ? (
-                                            <img src={module.thumbnail} alt={module.title} className="w-full h-full object-cover" />
-                                        ) : (
-                                            <div className="w-full h-full flex items-center justify-center bg-gray-200 dark:bg-slate-800 text-gray-400 dark:text-slate-500">
-                                                <Youtube size={20} />
+                                                
+                                                {expandedSections[section.id] && !isLocked && (
+                                                    (lessonsViewMode[section.id] || 'list') === 'list' ? (
+                                                        <div className="p-4 space-y-3">
+                                                            {section.lessons.length === 0 && (
+                                                                <div className="text-center py-4 text-sm text-gray-400 dark:text-slate-500">No content available.</div>
+                                                            )}
+                                                            {section.lessons.map((lesson: CourseModule) => (
+                                                                <div key={lesson.id} onClick={() => setActiveModule(lesson)} className="p-4 rounded-xl border border-gray-100 dark:border-slate-800 hover:border-violet-300 dark:hover:border-violet-800 hover:bg-violet-55 dark:hover:bg-violet-955 transition-colors cursor-pointer flex gap-4 items-start group">
+                                                                     <div className={`p-3 rounded-xl shrink-0 ${
+                                                                         lesson.type === 'video' ? 'bg-blue-105 dark:bg-blue-955/20 text-blue-600 dark:text-blue-450' : 
+                                                                         lesson.type === 'audio' ? 'bg-amber-105 dark:bg-amber-955/20 text-amber-600 dark:text-amber-450' : 
+                                                                         lesson.type === 'document' ? 'bg-indigo-105 dark:bg-indigo-955/20 text-indigo-600 dark:text-indigo-455' : 
+                                                                         lesson.type === 'quiz' ? 'bg-purple-100 dark:bg-purple-950/20 text-purple-600 dark:text-purple-400' :
+                                                                         'bg-emerald-105 dark:bg-emerald-955/20 text-emerald-600 dark:text-emerald-450'
+                                                                     }`}>
+                                                                         {lesson.type === 'video' ? <Youtube size={24} /> : 
+                                                                          lesson.type === 'audio' ? <Headphones size={24} /> : 
+                                                                          lesson.type === 'document' ? <File size={24} /> : 
+                                                                          lesson.type === 'quiz' ? <HelpCircle size={24} /> :
+                                                                          <FileText size={24} />}
+                                                                     </div>
+                                                                    <div className="flex-1">
+                                                                        <h5 className="font-bold text-gray-905 dark:text-white group-hover:text-violet-900 dark:group-hover:text-violet-300 transition-colors flex items-center gap-2">
+                                                                            {lesson.title}
+                                                                            {lesson.type === 'quiz' && <span className="bg-purple-100 dark:bg-purple-950/40 text-purple-700 dark:text-purple-300 text-[9px] px-1.5 py-0.5 rounded font-bold uppercase">Quiz</span>}
+                                                                        </h5>
+                                                                        <div className="flex flex-wrap items-center gap-4 text-xs text-gray-500 dark:text-slate-400 mt-2">
+                                                                            <div className="flex items-center gap-1">
+                                                                                <Clock size={12} /> <span>{lesson.duration}</span>
+                                                                            </div>
+                                                                        </div>
+                                                                    </div>
+                                                                    <div className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center p-2 text-violet-600 bg-white dark:bg-slate-900 rounded-full shadow-sm">
+                                                                        <PlayCircle size={20} />
+                                                                    </div>
+                                                                </div>
+                                                            ))}
+                                                        </div>
+                                                    ) : (
+                                                        <div className="p-4 grid sm:grid-cols-2 md:grid-cols-3 gap-4">
+                                                            {section.lessons.length === 0 && (
+                                                                <div className="text-center py-4 text-sm text-gray-400 dark:text-slate-500 col-span-full">No content available.</div>
+                                                            )}
+                                                            {section.lessons.map((lesson: CourseModule) => (
+                                                                <div key={lesson.id} onClick={() => setActiveModule(lesson)} className="p-4 rounded-xl border border-gray-150 dark:border-slate-800 hover:border-violet-350 dark:hover:border-violet-850 hover:bg-violet-55 dark:hover:bg-violet-955 transition-colors cursor-pointer flex flex-col justify-between group">
+                                                                    <div>
+                                                                        <div className="flex justify-between items-start mb-3">
+                                                                            <div className={`p-2 rounded-lg ${
+                                                                                lesson.type === 'video' ? 'bg-blue-100 dark:bg-blue-950/20 text-blue-600 dark:text-blue-400' : 
+                                                                                lesson.type === 'audio' ? 'bg-amber-100 dark:bg-amber-950/20 text-amber-600 dark:text-amber-400' : 
+                                                                                lesson.type === 'document' ? 'bg-indigo-100 dark:bg-indigo-950/20 text-indigo-600 dark:text-indigo-400' : 
+                                                                                lesson.type === 'quiz' ? 'bg-purple-100 dark:bg-purple-950/20 text-purple-600 dark:text-purple-400' :
+                                                                                'bg-emerald-100 dark:bg-emerald-950/20 text-emerald-600 dark:text-emerald-400'
+                                                                            }`}>
+                                                                                {lesson.type === 'video' ? <Youtube size={16} /> : 
+                                                                                 lesson.type === 'audio' ? <Headphones size={16} /> : 
+                                                                                 lesson.type === 'document' ? <File size={16} /> : 
+                                                                                 lesson.type === 'quiz' ? <HelpCircle size={16} /> :
+                                                                                 <FileText size={16} />}
+                                                                            </div>
+                                                                            <div className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center p-1 text-violet-600 bg-white dark:bg-slate-900 rounded-full shadow-sm">
+                                                                                <PlayCircle size={14} />
+                                                                            </div>
+                                                                        </div>
+                                                                        <h5 className="font-bold text-gray-900 dark:text-white text-sm group-hover:text-violet-900 dark:group-hover:text-violet-300 transition-colors line-clamp-2">{lesson.title}</h5>
+                                                                    </div>
+                                                                    <div className="flex items-center gap-1 text-[11px] text-gray-500 dark:text-slate-400 mt-3 pt-2 border-t border-gray-55 dark:border-slate-800/60">
+                                                                        <Clock size={10} /> <span>{lesson.duration}</span>
+                                                                    </div>
+                                                                </div>
+                                                            ))}
+                                                        </div>
+                                                    )
+                                                )}
                                             </div>
-                                        )}
-                                        <div className="absolute inset-0 bg-black/30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                                            <PlayCircle size={24} className="text-white" />
-                                        </div>
-                                    </div>
-                                    <div className="flex-1 min-w-0">
-                                        <h4 className="font-bold text-gray-900 dark:text-white text-base mb-1 truncate" title={module.title}>{module.title}</h4>
-                                        <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-slate-400 mb-1">
-                                            <span className="flex items-center gap-1"><Clock size={12} /> {module.duration}</span>
-                                        </div>
-                                    </div>
-                                    <button
-                                        onClick={() => setActiveModule(module)}
-                                        className="shrink-0 flex items-center gap-2 bg-welile-purple text-white px-4 py-2 rounded-full text-xs font-bold hover:bg-purple-700 transition-colors shadow-sm"
-                                    >
-                                        <PlayCircle size={16} /> Play
-                                    </button>
+                                        );
+                                    })}
                                 </div>
-                            ))
+                            ) : (
+                                <div className="grid sm:grid-cols-2 gap-6">
+                                    {selectedCourse.sections.map((section: CourseSection) => {
+                                        const isLocked = isSectionLocked(section.id);
+                                        return (
+                                            <div key={section.id} className="bg-white dark:bg-slate-900 rounded-3xl border border-gray-200 dark:border-slate-800 p-5 shadow-sm flex flex-col justify-between hover:shadow-md transition-shadow relative overflow-hidden">
+                                                {isLocked && (
+                                                    <div className="absolute inset-0 bg-white/80 dark:bg-slate-950/80 backdrop-blur-[1.5px] flex flex-col items-center justify-center z-10 p-4 text-center">
+                                                        <div className="bg-gray-105 dark:bg-slate-800 p-3 rounded-full mb-2">
+                                                            <Lock size={20} className="text-gray-500 dark:text-slate-400" />
+                                                        </div>
+                                                        <h5 className="font-bold text-sm text-gray-950 dark:text-white">Module Locked</h5>
+                                                        <p className="text-[10px] text-gray-500 dark:text-slate-400 mt-1 max-w-[200px]">Complete the previous module's quiz to unlock</p>
+                                                    </div>
+                                                )}
+
+                                                <div>
+                                                    <div className="flex justify-between items-center gap-4 mb-4 pb-3 border-b border-gray-50 dark:border-slate-800/80">
+                                                        <h4 className="font-bold text-gray-900 dark:text-white text-base line-clamp-1">{section.title}</h4>
+                                                        
+                                                        {/* Small List/Grid Toggle inside grid module */}
+                                                        {!isLocked && (
+                                                            <div className="flex bg-gray-100 dark:bg-slate-800 p-0.5 rounded-lg border border-gray-205/50 dark:border-slate-700 items-center shrink-0">
+                                                                <button
+                                                                    onClick={() => setLessonsViewMode(prev => ({...prev, [section.id]: 'list'}))}
+                                                                    className={`p-1 rounded-md text-[10px] transition-all cursor-pointer ${
+                                                                        (lessonsViewMode[section.id] || 'list') === 'list'
+                                                                            ? 'bg-white dark:bg-slate-900 text-welile-purple dark:text-white shadow-sm'
+                                                                            : 'text-gray-400 hover:text-gray-600 dark:hover:text-slate-200'
+                                                                    }`}
+                                                                    title="List Lessons"
+                                                                >
+                                                                    <LayoutList size={10} />
+                                                                </button>
+                                                                <button
+                                                                    onClick={() => setLessonsViewMode(prev => ({...prev, [section.id]: 'grid'}))}
+                                                                    className={`p-1 rounded-md text-[10px] transition-all cursor-pointer ${
+                                                                        (lessonsViewMode[section.id] || 'list') === 'grid'
+                                                                            ? 'bg-white dark:bg-slate-900 text-welile-purple dark:text-white shadow-sm'
+                                                                            : 'text-gray-400 hover:text-gray-600 dark:hover:text-slate-200'
+                                                                    }`}
+                                                                    title="Grid Lessons"
+                                                                >
+                                                                    <LayoutGrid size={10} />
+                                                                </button>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                    
+                                                    <div className={((lessonsViewMode[section.id] || 'list') === 'grid') ? "grid grid-cols-2 gap-2 mt-2" : "space-y-1.5 mt-2"}>
+                                                        {section.lessons.length === 0 ? (
+                                                            <p className="text-xs text-gray-400 dark:text-slate-500 italic py-2 col-span-2">No content available.</p>
+                                                        ) : (
+                                                            section.lessons.map((lesson: CourseModule) => (
+                                                                <button
+                                                                    key={lesson.id}
+                                                                    disabled={isLocked}
+                                                                    onClick={() => setActiveModule(lesson)}
+                                                                    className={`w-full flex items-center gap-2.5 p-2 rounded-xl border border-gray-55 dark:border-slate-850 hover:bg-violet-55 dark:hover:bg-violet-955/20 text-left transition-colors cursor-pointer group ${
+                                                                        ((lessonsViewMode[section.id] || 'list') === 'grid') ? "flex-col items-start" : ""
+                                                                    }`}
+                                                                >
+                                                                    <div className={`p-1.5 rounded-lg shrink-0 ${
+                                                                        lesson.type === 'video' ? 'bg-blue-100 dark:bg-blue-950/20 text-blue-600 dark:text-blue-400' : 
+                                                                        lesson.type === 'audio' ? 'bg-amber-100 dark:bg-amber-950/20 text-amber-600 dark:text-amber-400' : 
+                                                                        lesson.type === 'document' ? 'bg-indigo-100 dark:bg-indigo-950/20 text-indigo-600 dark:text-indigo-400' : 
+                                                                        lesson.type === 'quiz' ? 'bg-purple-100 dark:bg-purple-950/20 text-purple-600 dark:text-purple-400' :
+                                                                        'bg-emerald-100 dark:bg-emerald-950/20 text-emerald-600 dark:text-emerald-400'
+                                                                    }`}>
+                                                                        {lesson.type === 'video' ? <Youtube size={14} /> : 
+                                                                         lesson.type === 'audio' ? <Headphones size={14} /> : 
+                                                                         lesson.type === 'document' ? <File size={14} /> : 
+                                                                         lesson.type === 'quiz' ? <HelpCircle size={14} /> :
+                                                                         <FileText size={14} />}
+                                                                    </div>
+                                                                    <div className="min-w-0 flex-1">
+                                                                        <p className="text-xs font-semibold text-gray-700 dark:text-slate-305 truncate group-hover:text-violet-700 dark:group-hover:text-violet-400 leading-tight">{lesson.title}</p>
+                                                                        <p className="text-[10px] text-gray-400 dark:text-slate-500 mt-0.5">{lesson.duration}</p>
+                                                                    </div>
+                                                                </button>
+                                                            ))
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            )
+                        ) : selectedCourse.modules && selectedCourse.modules.length > 0 ? (
+                            viewMode === 'list' ? (
+                                <div className="grid gap-4">
+                                    {selectedCourse.modules.map((module: any, idx: number) => (
+                                        <div key={idx} className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-gray-100 dark:border-slate-800 hover:shadow-md transition-shadow flex flex-col sm:flex-row gap-4 items-start sm:items-center">
+                                            <div className="w-24 h-16 rounded-lg bg-gray-100 dark:bg-slate-800 shrink-0 overflow-hidden relative group cursor-pointer border border-gray-200 dark:border-slate-700" onClick={() => setActiveModule(module)}>
+                                                {module.thumbnail ? (
+                                                    <img src={module.thumbnail} alt={module.title} className="w-full h-full object-cover" />
+                                                ) : (
+                                                    <div className="w-full h-full flex items-center justify-center bg-gray-200 dark:bg-slate-800 text-gray-400 dark:text-slate-500">
+                                                        <Youtube size={20} />
+                                                    </div>
+                                                )}
+                                                <div className="absolute inset-0 bg-black/30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                                    <PlayCircle size={24} className="text-white" />
+                                                </div>
+                                            </div>
+                                            <div className="flex-1 min-w-0">
+                                                <h4 className="font-bold text-gray-900 dark:text-white text-base mb-1 truncate" title={module.title}>{module.title}</h4>
+                                                <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-slate-400 mb-1">
+                                                    <span className="flex items-center gap-1"><Clock size={12} /> {module.duration}</span>
+                                                </div>
+                                            </div>
+                                            <button
+                                                onClick={() => setActiveModule(module)}
+                                                className="shrink-0 flex items-center gap-2 bg-welile-purple text-white px-4 py-2 rounded-full text-xs font-bold hover:bg-purple-700 transition-colors shadow-sm cursor-pointer"
+                                            >
+                                                <PlayCircle size={16} /> Play
+                                            </button>
+                                        </div>
+                                    ))}
+                                </div>
+                            ) : (
+                                <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-6">
+                                    {selectedCourse.modules.map((module: any, idx: number) => (
+                                        <div key={idx} className="bg-white dark:bg-slate-900 rounded-3xl border border-gray-250 dark:border-slate-800 overflow-hidden shadow-sm flex flex-col hover:shadow-md transition-shadow">
+                                            <div className="h-32 bg-gray-100 dark:bg-slate-805 relative group cursor-pointer border-b border-gray-100 dark:border-slate-800/80" onClick={() => setActiveModule(module)}>
+                                                {module.thumbnail ? (
+                                                    <img src={module.thumbnail} alt={module.title} className="w-full h-full object-cover" />
+                                                ) : (
+                                                    <div className="w-full h-full flex items-center justify-center bg-gray-200 dark:bg-slate-800 text-gray-400 dark:text-slate-500">
+                                                        <Youtube size={24} />
+                                                    </div>
+                                                )}
+                                                <div className="absolute inset-0 bg-black/35 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                                    <PlayCircle size={28} className="text-white" />
+                                                </div>
+                                            </div>
+                                            <div className="p-4 flex-1 flex flex-col justify-between bg-white dark:bg-slate-900">
+                                                <div className="mb-4">
+                                                    <h4 className="font-bold text-gray-900 dark:text-white text-sm line-clamp-2" title={module.title}>{module.title}</h4>
+                                                    <span className="text-[10px] text-gray-500 dark:text-slate-400 mt-1 flex items-center gap-1"><Clock size={10} /> {module.duration}</span>
+                                                </div>
+                                                <button
+                                                    onClick={() => setActiveModule(module)}
+                                                    className="w-full flex items-center justify-center gap-2 bg-welile-purple text-white py-2 rounded-xl text-xs font-bold hover:bg-purple-700 transition-colors shadow-sm cursor-pointer"
+                                                >
+                                                    <PlayCircle size={14} /> Play
+                                                </button>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            )
                         ) : (
                             <div className="text-center py-10 text-gray-500">
                                 <p>No detailed modules available for this course.</p>
@@ -429,7 +696,7 @@ const MyCourses: React.FC<MyCoursesProps> = ({ courses }) => {
             </div>
 
             {/* Stats Overview */}
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div className="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-gray-100 dark:border-slate-800 flex items-center gap-4">
                     <div className="w-12 h-12 rounded-full bg-blue-50 dark:bg-blue-950/30 text-blue-600 dark:text-blue-400 flex items-center justify-center font-bold text-lg">
                         {myCourses.length}
@@ -457,15 +724,6 @@ const MyCourses: React.FC<MyCoursesProps> = ({ courses }) => {
                         <p className="font-bold text-gray-900 dark:text-white">Certificates</p>
                     </div>
                 </div>
-                <div className="bg-gradient-to-r from-welile-purple to-purple-600 p-4 rounded-2xl text-white flex items-center justify-between">
-                    <div>
-                        <p className="text-xs opacity-80 font-medium">Total Learning Time</p>
-                        <p className="font-bold text-lg">{formattedDuration}</p>
-                    </div>
-                    <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm">
-                        <Clock size={20} />
-                    </div>
-                </div>
             </div>
 
             {/* Course Grid */}
@@ -475,7 +733,10 @@ const MyCourses: React.FC<MyCoursesProps> = ({ courses }) => {
                         <CourseCard
                             key={course.id}
                             course={course}
-                            onClick={() => setSelectedCourse(course)}
+                            onClick={() => {
+                                localStorage.setItem('recent-tapped-course-id', course.id);
+                                setSelectedCourse(course);
+                            }}
                         />
                     ))}
                 </div>

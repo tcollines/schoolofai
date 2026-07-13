@@ -20,7 +20,6 @@ const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, isOpen, onCl
     { id: 'discover', label: t('discover'), icon: Compass },
     { id: 'courses', label: t('my_courses'), icon: BookOpen },
     { id: 'assignments', label: t('assignments') || 'Assignments', icon: ClipboardList },
-    { id: 'discussions', label: t('discussions') || 'Class Discussion Groups', icon: MessageSquare },
     { id: 'events', label: t('events') || 'Upcoming Events', icon: Calendar },
     { id: 'career', label: t('career_growth'), icon: Briefcase },
     { id: 'profile', label: t('my_profile'), icon: User },
@@ -78,14 +77,14 @@ const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, isOpen, onCl
         </nav>
 
         <div className="p-4 mt-auto">
-          <div className="bg-gray-900 rounded-2xl p-4 relative overflow-hidden group cursor-pointer hidden md:block">
+          {/* <div className="bg-gray-900 rounded-2xl p-4 relative overflow-hidden group cursor-pointer hidden md:block">
             <div className="absolute top-0 right-0 w-16 h-16 bg-welile-lime rounded-full blur-2xl opacity-10 group-hover:opacity-20 transition-opacity"></div>
             <h4 className="font-semibold text-sm mb-1">{t('mobile_app')}</h4>
             <p className="text-xs text-gray-400 mb-3">{t('download_app')}</p>
             <div className="w-8 h-8 bg-welile-lime rounded-full flex items-center justify-center text-black">
               <LayoutDashboard size={14} />
             </div>
-          </div>
+          </div> */}
           <button 
             onClick={async () => {
               await supabase.auth.signOut();

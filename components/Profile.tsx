@@ -1,7 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { User, MapPin, Briefcase, GraduationCap, Save, Camera, FileImage, Cloud, X, Loader, Trash2 } from 'lucide-react';
+import { useOutletContext } from 'react-router-dom';
+import { User, MapPin, Briefcase, GraduationCap, Save, Camera, FileImage, Cloud, X, Loader, Trash2, Edit2 } from 'lucide-react';
 import { UserProfile } from '../types';
 import { useTranslation } from './translations';
+import { supabase } from '../src/lib/supabase';
 
 const DefaultAvatar = () => (
     <svg viewBox="0 0 128 128" className="w-full h-full text-gray-400 dark:text-slate-500 fill-current bg-gray-100 dark:bg-slate-800">
@@ -54,7 +56,7 @@ const cropImage = (
 interface AvatarUploadModalProps {
     isOpen: boolean;
     onClose: () => void;
-    onSelectImage: (imageUrl: string) => void;
+    onSelectImage: (imageUrl: string, scale?: number, posX?: number, posY?: number) => void;
 }
 
 interface EducationItem {
@@ -237,6 +239,189 @@ const AddEducationModal: React.FC<AddEducationModalProps> = ({ isOpen, onClose, 
                                 </>
                             ) : (
                                 'Add Record'
+                            )}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    );
+};
+
+interface EditProfileModalProps {
+    isOpen: boolean;
+    onClose: () => void;
+    currentName: string;
+    currentNationality: string;
+    currentDateOfBirth: string;
+    onSave: (name: string, nationality: string, dateOfBirth: string) => Promise<void>;
+}
+
+const EditProfileModal: React.FC<EditProfileModalProps> = ({ isOpen, onClose, currentName, currentNationality, currentDateOfBirth, onSave }) => {
+    const [name, setName] = useState(currentName);
+    const [nationality, setNationality] = useState(currentNationality);
+    const [dateOfBirth, setDateOfBirth] = useState(currentDateOfBirth);
+    const [isSaving, setIsSaving] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+
+    useEffect(() => {
+        if (isOpen) {
+            setName(currentName);
+            setNationality(currentNationality);
+            setDateOfBirth(currentDateOfBirth);
+            setError(null);
+        }
+    }, [isOpen, currentName, currentNationality, currentDateOfBirth]);
+
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!name.trim()) {
+            setError('Name is required');
+            return;
+        }
+        setIsSaving(true);
+        try {
+            await onSave(name, nationality, dateOfBirth);
+            onClose();
+        } catch (err: any) {
+            setError(err.message || 'Failed to save changes');
+        } finally {
+            setIsSaving(false);
+        }
+    };
+
+    if (!isOpen) return null;
+
+    return (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <div className="fixed inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
+            <div className="bg-white dark:bg-slate-900 border border-gray-150 dark:border-slate-800 w-full max-w-md rounded-3xl p-6 shadow-2xl relative z-10 animate-in zoom-in-95 duration-200 text-gray-900 dark:text-white">
+                <button type="button" onClick={onClose} className="absolute top-4 right-4 text-gray-400 hover:text-gray-900 dark:hover:text-white cursor-pointer">
+                    <X size={20} />
+                </button>
+                
+                <h3 className="text-lg font-bold text-center mb-6">Edit Personal Information</h3>
+
+                <form onSubmit={handleSubmit} className="space-y-4">
+                    {error && (
+                        <div className="bg-red-50 dark:bg-red-950/20 text-red-600 dark:text-red-400 p-3 rounded-xl text-xs font-semibold border border-red-100 dark:border-red-900/50">
+                            {error}
+                        </div>
+                    )}
+
+                    <div className="space-y-1">
+                        <label className="text-xs font-bold text-gray-500 dark:text-slate-400">Full Name *</label>
+                        <input 
+                            type="text" 
+                            value={name}
+                            onChange={(e) => setName(e.target.value)}
+                            className="w-full p-2.5 bg-gray-50 dark:bg-slate-800 border border-gray-250 dark:border-slate-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-purple-500/20 text-gray-900 dark:text-white"
+                        />
+                    </div>
+
+                    <div className="space-y-1">
+                        <label className="text-xs font-bold text-gray-500 dark:text-slate-400">Nationality</label>
+                        <select 
+                            value={nationality}
+                            onChange={(e) => setNationality(e.target.value)}
+                            className="w-full p-2.5 bg-gray-50 dark:bg-slate-800 border border-gray-250 dark:border-slate-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-purple-500/20 text-gray-900 dark:text-white"
+                        >
+                            <option value="">Select Nationality</option>
+                            <option value="Algeria">Algeria</option>
+                            <option value="Angola">Angola</option>
+                            <option value="Australia">Australia</option>
+                            <option value="Benin">Benin</option>
+                            <option value="Botswana">Botswana</option>
+                            <option value="Brazil">Brazil</option>
+                            <option value="Burkina Faso">Burkina Faso</option>
+                            <option value="Burundi">Burundi</option>
+                            <option value="Cabo Verde">Cabo Verde</option>
+                            <option value="Cameroon">Cameroon</option>
+                            <option value="Canada">Canada</option>
+                            <option value="Central African Republic">Central African Republic</option>
+                            <option value="Chad">Chad</option>
+                            <option value="Comoros">Comoros</option>
+                            <option value="Congo, Democratic Republic of the">Congo, Democratic Republic of the</option>
+                            <option value="Congo, Republic of the">Congo, Republic of the</option>
+                            <option value="Cote d'Ivoire">Cote d'Ivoire</option>
+                            <option value="Djibouti">Djibouti</option>
+                            <option value="Egypt">Egypt</option>
+                            <option value="Equatorial Guinea">Equatorial Guinea</option>
+                            <option value="Eritrea">Eritrea</option>
+                            <option value="Eswatini">Eswatini</option>
+                            <option value="Ethiopia">Ethiopia</option>
+                            <option value="France">France</option>
+                            <option value="Gabon">Gabon</option>
+                            <option value="Gambia">Gambia</option>
+                            <option value="Germany">Germany</option>
+                            <option value="Ghana">Ghana</option>
+                            <option value="Guinea">Guinea</option>
+                            <option value="Guinea-Bissau">Guinea-Bissau</option>
+                            <option value="India">India</option>
+                            <option value="Kenya">Kenya</option>
+                            <option value="Lesotho">Lesotho</option>
+                            <option value="Liberia">Liberia</option>
+                            <option value="Libya">Libya</option>
+                            <option value="Madagascar">Madagascar</option>
+                            <option value="Malawi">Malawi</option>
+                            <option value="Mali">Mali</option>
+                            <option value="Mauritania">Mauritania</option>
+                            <option value="Mauritius">Mauritius</option>
+                            <option value="Morocco">Morocco</option>
+                            <option value="Mozambique">Mozambique</option>
+                            <option value="Namibia">Namibia</option>
+                            <option value="Niger">Niger</option>
+                            <option value="Nigeria">Nigeria</option>
+                            <option value="Rwanda">Rwanda</option>
+                            <option value="Sao Tome and Principe">Sao Tome and Principe</option>
+                            <option value="Senegal">Senegal</option>
+                            <option value="Seychelles">Seychelles</option>
+                            <option value="Sierra Leone">Sierra Leone</option>
+                            <option value="Somalia">Somalia</option>
+                            <option value="South Africa">South Africa</option>
+                            <option value="South Sudan">South Sudan</option>
+                            <option value="Sudan">Sudan</option>
+                            <option value="Tanzania">Tanzania</option>
+                            <option value="Togo">Togo</option>
+                            <option value="Tunisia">Tunisia</option>
+                            <option value="Uganda">Uganda</option>
+                            <option value="United Kingdom">United Kingdom</option>
+                            <option value="United States">United States</option>
+                            <option value="Zambia">Zambia</option>
+                            <option value="Zimbabwe">Zimbabwe</option>
+                        </select>
+                    </div>
+
+                    <div className="space-y-1">
+                        <label className="text-xs font-bold text-gray-500 dark:text-slate-400">Date of Birth</label>
+                        <input 
+                            type="date" 
+                            value={dateOfBirth}
+                            onChange={(e) => setDateOfBirth(e.target.value)}
+                            className="w-full p-2.5 bg-gray-50 dark:bg-slate-800 border border-gray-250 dark:border-slate-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-purple-500/20 text-gray-900 dark:text-white"
+                        />
+                    </div>
+
+                    <div className="flex gap-3 pt-4">
+                        <button 
+                            type="button" 
+                            onClick={onClose}
+                            className="flex-1 py-2.5 rounded-xl border border-gray-250 dark:border-slate-800 text-gray-700 dark:text-slate-300 font-bold text-sm hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors"
+                        >
+                            Cancel
+                        </button>
+                        <button 
+                            type="submit" 
+                            disabled={isSaving}
+                            className="flex-1 bg-welile-purple text-white py-2.5 rounded-xl text-sm font-bold hover:bg-purple-700 transition-colors flex items-center justify-center gap-2"
+                        >
+                            {isSaving ? (
+                                <>
+                                    <Loader size={14} className="animate-spin" />
+                                    Saving...
+                                </>
+                            ) : (
+                                'Save'
                             )}
                         </button>
                     </div>
@@ -605,11 +790,9 @@ const AvatarUploadModal: React.FC<AvatarUploadModalProps> = ({ isOpen, onClose, 
                             <button 
                                 onClick={() => {
                                     setLoading(true);
-                                    cropImage(tempImage, zoom, panX, panY, (croppedUrl) => {
-                                        setLoading(false);
-                                        onSelectImage(croppedUrl);
-                                        onClose();
-                                    });
+                                    onSelectImage(tempImage || '', zoom, panX, panY);
+                                    onClose();
+                                    setLoading(false);
                                 }}
                                 disabled={loading}
                                 className="flex-1 bg-welile-purple text-white py-2.5 rounded-xl text-sm font-bold hover:bg-purple-700 transition-colors flex items-center justify-center gap-2"
@@ -638,18 +821,23 @@ interface ProfileProps {
 
 const Profile: React.FC<ProfileProps> = ({ user, onUpgradeClick }) => {
     const { t } = useTranslation();
+    const outletContext = useOutletContext<{ displayUser?: UserProfile }>() || {};
+    const activeUser = (user && user.id) ? user : (outletContext.displayUser || user);
+
     const [formData, setFormData] = useState<UserProfile | undefined>(() => {
-        if (user) {
+        if (activeUser) {
             return {
-                ...user,
-                avatar: localStorage.getItem('user-avatar') || user.avatar
+                ...activeUser,
+                avatar: localStorage.getItem(`user-avatar-${activeUser.id}`) || activeUser.avatar
             };
         }
-        return user;
+        return activeUser;
     });
+    const [isSaving, setIsSaving] = useState(false);
     const [avatarError, setAvatarError] = useState(false);
     const [showUploadModal, setShowUploadModal] = useState(false);
     const [showEduModal, setShowEduModal] = useState(false);
+    const [showEditModal, setShowEditModal] = useState(false);
 
     const [educationList, setEducationList] = useState<EducationItem[]>(() => {
         const stored = localStorage.getItem('profile-education');
@@ -667,14 +855,14 @@ const Profile: React.FC<ProfileProps> = ({ user, onUpgradeClick }) => {
     });
 
     useEffect(() => {
-        if (user) {
+        if (activeUser) {
             setFormData({
-                ...user,
-                avatar: localStorage.getItem('user-avatar') || user.avatar
+                ...activeUser,
+                avatar: localStorage.getItem(`user-avatar-${activeUser.id}`) || activeUser.avatar
             });
             setAvatarError(false);
         }
-    }, [user]);
+    }, [activeUser]);
 
     const handleAddEducation = (institution: string, degree: string, status: 'In Progress' | 'Completed', year: string, fileName: string) => {
         const newItem = {
@@ -711,43 +899,131 @@ const Profile: React.FC<ProfileProps> = ({ user, onUpgradeClick }) => {
         window.dispatchEvent(new Event('notifications-update'));
     };
 
-    const handleSelectImage = (imageUrl: string) => {
+    const handleSelectImage = async (imageUrl: string, scale = 1, posX = 0, posY = 0) => {
         if (formData) {
-            const updated = {
-                ...formData,
-                avatar: imageUrl
-            };
-            setFormData(updated);
-            setAvatarError(false);
-            
-            localStorage.setItem('user-avatar', imageUrl);
-            window.dispatchEvent(new Event('profile-update'));
+            try {
+                const { error } = await supabase
+                    .from('profiles')
+                    .update({ 
+                        avatar_url: imageUrl,
+                        avatar_scale: scale,
+                        avatar_pos_x: posX,
+                        avatar_pos_y: posY
+                    })
+                    .eq('id', formData.id);
+                if (error) throw error;
 
-            addPortalNotification(
-                "Profile Picture Updated",
-                "Your profile avatar was successfully updated across the schoolofai portal.",
-                "profile"
-            );
+                const updated = {
+                    ...formData,
+                    avatar: imageUrl,
+                    avatarScale: scale,
+                    avatarPositionX: posX,
+                    avatarPositionY: posY
+                };
+                setFormData(updated);
+                setAvatarError(false);
+                
+                localStorage.setItem(`user-avatar-${formData.id}`, imageUrl);
+                localStorage.setItem(`user-avatar-scale-${formData.id}`, String(scale));
+                localStorage.setItem(`user-avatar-pos-x-${formData.id}`, String(posX));
+                localStorage.setItem(`user-avatar-pos-y-${formData.id}`, String(posY));
+                window.dispatchEvent(new Event('profile-update'));
+
+                addPortalNotification(
+                    "Profile Picture Updated",
+                    "Your profile avatar was successfully updated across the schoolofai portal.",
+                    "profile"
+                );
+            } catch (err) {
+                console.error('Error saving avatar:', err);
+                alert('Failed to save profile picture.');
+            }
         }
     };
 
-    const handleDeleteAvatar = () => {
+    const handleDeleteAvatar = async () => {
         if (formData) {
+            try {
+                const { error } = await supabase
+                    .from('profiles')
+                    .update({ 
+                        avatar_url: '',
+                        avatar_scale: 1,
+                        avatar_pos_x: 0,
+                        avatar_pos_y: 0
+                    })
+                    .eq('id', formData.id);
+                if (error) throw error;
+
+                const updated = {
+                    ...formData,
+                    avatar: '',
+                    avatarScale: 1,
+                    avatarPositionX: 0,
+                    avatarPositionY: 0
+                };
+                setFormData(updated);
+                setAvatarError(false);
+                
+                localStorage.removeItem(`user-avatar-${formData.id}`);
+                localStorage.removeItem(`user-avatar-scale-${formData.id}`);
+                localStorage.removeItem(`user-avatar-pos-x-${formData.id}`);
+                localStorage.removeItem(`user-avatar-pos-y-${formData.id}`);
+                window.dispatchEvent(new Event('profile-update'));
+
+                addPortalNotification(
+                    "Profile Picture Removed",
+                    "Your profile avatar was successfully removed.",
+                    "profile"
+                );
+            } catch (err) {
+                console.error('Error deleting avatar:', err);
+                alert('Failed to remove profile picture.');
+            }
+        }
+    };
+
+    const handleSaveProfile = async (newName: string, newNationality: string, newDateOfBirth: string) => {
+        if (!formData) return;
+        try {
+            const { error } = await supabase
+                .from('profiles')
+                .update({
+                    full_name: newName,
+                    nationality: newNationality,
+                    date_of_birth: newDateOfBirth
+                })
+                .eq('id', formData.id);
+
+            if (error) throw error;
+
             const updated = {
                 ...formData,
-                avatar: ''
+                name: newName,
+                nationality: newNationality,
+                dateOfBirth: newDateOfBirth
             };
             setFormData(updated);
-            setAvatarError(false);
-            
-            localStorage.removeItem('user-avatar');
+
+            // Also update localStorage so active headers match
+            localStorage.setItem(`student-profile-${formData.id}`, JSON.stringify({
+                name: newName,
+                email: formData.email
+            }));
+
+            // Dispatch update event so layouts recheck
             window.dispatchEvent(new Event('profile-update'));
 
             addPortalNotification(
-                "Profile Picture Removed",
-                "Your profile avatar was successfully removed.",
+                "Profile Details Updated",
+                "Your personal settings have been saved.",
                 "profile"
             );
+            alert("Profile changes saved successfully!");
+        } catch (err: any) {
+            console.error('Error saving profile:', err);
+            alert('Failed to save profile changes. Please try again.');
+            throw err;
         }
     };
 
@@ -757,19 +1033,6 @@ const Profile: React.FC<ProfileProps> = ({ user, onUpgradeClick }) => {
         <div className="max-w-4xl mx-auto">
             <div className="flex justify-between items-center mb-6">
                 <h2 className="text-2xl font-bold text-gray-900 dark:text-white">{t('my_profile')}</h2>
-                <button 
-                    onClick={() => {
-                        addPortalNotification(
-                            "Profile Details Updated",
-                            "Your personal settings and profile descriptions have been saved.",
-                            "system"
-                        );
-                        alert("Profile changes saved successfully!");
-                    }}
-                    className="flex items-center gap-2 bg-welile-purple text-white px-5 py-2 rounded-xl text-sm font-medium hover:bg-purple-700 shadow-md shadow-purple-200 dark:shadow-none cursor-pointer"
-                >
-                    <Save size={16} /> {t('save_changes')}
-                </button>
             </div>
 
             <div className="grid md:grid-cols-3 gap-8">
@@ -783,12 +1046,18 @@ const Profile: React.FC<ProfileProps> = ({ user, onUpgradeClick }) => {
                                     <DefaultAvatar />
                                 </div>
                             ) : (
-                                <img 
-                                    src={formData.avatar} 
-                                    alt="Profile" 
-                                    onError={() => setAvatarError(true)}
-                                    className="w-24 h-24 rounded-full mx-auto object-cover border-4 border-gray-50 dark:border-slate-800" 
-                                />
+                                <div className="w-24 h-24 rounded-full mx-auto overflow-hidden border-4 border-gray-50 dark:border-slate-800">
+                                    <img 
+                                        src={formData.avatar} 
+                                        alt={formData.name} 
+                                        onError={() => setAvatarError(true)}
+                                        className="w-full h-full object-cover"
+                                        style={{
+                                            transform: `scale(${formData.avatarScale || 1}) translate(${formData.avatarPositionX || 0}px, ${formData.avatarPositionY || 0}px)`,
+                                            transformOrigin: 'center center'
+                                        }}
+                                    />
+                                </div>
                             )}
                             <button 
                                 onClick={() => setShowUploadModal(true)}
@@ -811,33 +1080,29 @@ const Profile: React.FC<ProfileProps> = ({ user, onUpgradeClick }) => {
                         <div className="inline-block bg-purple-50 dark:bg-purple-950/30 text-welile-purple dark:text-purple-400 text-xs font-bold px-3 py-1 rounded-full border border-purple-100 dark:border-purple-900/50">
                             {formData.role === 'SPONSORED' ? 'Enterprise Plan' : formData.role === 'INDIVIDUAL' ? 'Basic Plan' : (formData.role || 'Student').replace('_', ' ')}
                         </div>
-
-                        <div className="mt-6 pt-6 border-t border-gray-50 dark:border-slate-800">
-                            <button
-                                onClick={onUpgradeClick}
-                                className="w-full bg-black dark:bg-violet-600 text-white py-2.5 rounded-xl text-sm font-semibold hover:bg-gray-800 dark:hover:bg-violet-700 transition-colors shadow-lg shadow-gray-200 dark:shadow-none"
-                            >
-                                Upgrade Plan
-                            </button>
-                            <p className="text-xs text-gray-400 dark:text-slate-500 mt-2">Unlock premium features & courses</p>
-                        </div>
+                        {formData.role === 'PRO' || formData.role === 'ADMIN' ? (
+                            <div className="mt-6 pt-6 border-t border-gray-50 dark:border-slate-800 text-center space-y-2">
+                                <div className="text-xs font-bold text-green-650 dark:text-green-400 bg-green-50 dark:bg-green-950/20 border border-green-100 dark:border-green-900/30 px-3 py-2 rounded-xl inline-block w-full">
+                                    ★ Premium Account Active
+                                </div>
+                                <p className="text-xs text-gray-500 dark:text-slate-400 leading-relaxed px-2">
+                                    You are currently enjoying our premium services. We recommend you explore courses in the <span className="font-semibold text-welile-purple">Discover</span> tab!
+                                </p>
+                            </div>
+                        ) : (
+                            <div className="mt-6 pt-6 border-t border-gray-50 dark:border-slate-800">
+                                <button
+                                    onClick={onUpgradeClick}
+                                    className="w-full bg-black dark:bg-violet-600 text-white py-2.5 rounded-xl text-sm font-semibold hover:bg-gray-800 dark:hover:bg-violet-700 transition-colors shadow-lg shadow-gray-200 dark:shadow-none cursor-pointer"
+                                >
+                                    Upgrade Plan
+                                </button>
+                                <p className="text-xs text-gray-400 dark:text-slate-500 mt-2">Unlock premium features & courses</p>
+                            </div>
+                        )}
                     </div>
 
-                    <div className="bg-white dark:bg-slate-900 p-6 rounded-3xl border border-gray-100 dark:border-slate-800 shadow-sm">
-                        <h4 className="font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-                            <Briefcase size={16} className="text-gray-400 dark:text-slate-500" /> Employment
-                        </h4>
-                        <div className="space-y-4">
-                            <div>
-                                <label className="text-xs font-bold text-gray-500 dark:text-slate-400 uppercase tracking-wide">Company</label>
-                                <p className="font-medium text-gray-800 dark:text-slate-200">{formData.companyName || 'Not Employed'}</p>
-                            </div>
-                            <div>
-                                <label className="text-xs font-bold text-gray-500 dark:text-slate-400 uppercase tracking-wide">Career Goal</label>
-                                <p className="font-medium text-gray-800 dark:text-slate-200">{formData.careerGoal}</p>
-                            </div>
-                        </div>
-                    </div>
+
                 </div>
 
                 {/* Right Col: Forms */}
@@ -845,134 +1110,33 @@ const Profile: React.FC<ProfileProps> = ({ user, onUpgradeClick }) => {
 
                     {/* Personal Details */}
                     <div className="bg-white dark:bg-slate-900 p-6 rounded-3xl border border-gray-100 dark:border-slate-800 shadow-sm">
-                        <h4 className="font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-2 pb-4 border-b border-gray-50 dark:border-slate-800">
-                            <User size={18} className="text-welile-purple" /> Personal Information
-                        </h4>
-                        <div className="grid md:grid-cols-2 gap-4">
-                            <div className="space-y-1">
-                                <label className="text-sm font-medium text-gray-600 dark:text-slate-350">Full Name</label>
-                                <input 
-                                    type="text" 
-                                    defaultValue={formData.name} 
-                                    placeholder="Enter your full name"
-                                    className="w-full p-3 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-slate-500 focus:ring-2 focus:ring-purple-500/25 outline-none transition-all" 
-                                />
-                            </div>
-                            <div className="space-y-1">
-                                <label className="text-sm font-medium text-gray-600 dark:text-slate-355">Date of Birth</label>
-                                <input 
-                                    type="date" 
-                                    className="w-full p-3 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-slate-500 focus:ring-2 focus:ring-purple-500/25 outline-none transition-all" 
-                                />
-                            </div>
-                            <div className="space-y-1">
-                                <label className="text-sm font-medium text-gray-600 dark:text-slate-355">Phone</label>
-                                <input 
-                                    type="tel" 
-                                    placeholder="+1 234 567 890" 
-                                    className="w-full p-3 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-slate-500 focus:ring-2 focus:ring-purple-500/25 outline-none transition-all" 
-                                />
-                            </div>
-                            <div className="space-y-1">
-                                <label className="text-sm font-medium text-gray-600 dark:text-slate-355">Nationality</label>
-                                <select className="w-full p-3 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500/25 outline-none transition-all">
-                                    <option>Algeria</option>
-                                    <option>Angola</option>
-                                    <option>Australia</option>
-                                    <option>Benin</option>
-                                    <option>Botswana</option>
-                                    <option>Brazil</option>
-                                    <option>Burkina Faso</option>
-                                    <option>Burundi</option>
-                                    <option>Cabo Verde</option>
-                                    <option>Cameroon</option>
-                                    <option>Canada</option>
-                                    <option>Central African Republic</option>
-                                    <option>Chad</option>
-                                    <option>Comoros</option>
-                                    <option>Congo, Democratic Republic of the</option>
-                                    <option>Congo, Republic of the</option>
-                                    <option>Cote d'Ivoire</option>
-                                    <option>Djibouti</option>
-                                    <option>Egypt</option>
-                                    <option>Equatorial Guinea</option>
-                                    <option>Eritrea</option>
-                                    <option>Eswatini</option>
-                                    <option>Ethiopia</option>
-                                    <option>France</option>
-                                    <option>Gabon</option>
-                                    <option>Gambia</option>
-                                    <option>Germany</option>
-                                    <option>Ghana</option>
-                                    <option>Guinea</option>
-                                    <option>Guinea-Bissau</option>
-                                    <option>India</option>
-                                    <option>Kenya</option>
-                                    <option>Lesotho</option>
-                                    <option>Liberia</option>
-                                    <option>Libya</option>
-                                    <option>Madagascar</option>
-                                    <option>Malawi</option>
-                                    <option>Mali</option>
-                                    <option>Mauritania</option>
-                                    <option>Mauritius</option>
-                                    <option>Morocco</option>
-                                    <option>Mozambique</option>
-                                    <option>Namibia</option>
-                                    <option>Niger</option>
-                                    <option>Nigeria</option>
-                                    <option>Rwanda</option>
-                                    <option>Sao Tome and Principe</option>
-                                    <option>Senegal</option>
-                                    <option>Seychelles</option>
-                                    <option>Sierra Leone</option>
-                                    <option>Somalia</option>
-                                    <option>South Africa</option>
-                                    <option>South Sudan</option>
-                                    <option>Sudan</option>
-                                    <option>Tanzania</option>
-                                    <option>Togo</option>
-                                    <option>Tunisia</option>
-                                    <option>Uganda</option>
-                                    <option>United Kingdom</option>
-                                    <option>United States</option>
-                                    <option>Zambia</option>
-                                    <option>Zimbabwe</option>
-                                </select>
-                            </div>
+                        <div className="flex justify-between items-center mb-6 pb-4 border-b border-gray-50 dark:border-slate-800">
+                            <h4 className="font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                                <User size={18} className="text-welile-purple" /> Personal Information
+                            </h4>
+                            <button
+                                type="button"
+                                onClick={() => setShowEditModal(true)}
+                                className="p-2 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-xl transition-all text-gray-400 hover:text-welile-purple cursor-pointer flex items-center justify-center border border-gray-100 dark:border-slate-800"
+                                title="Edit Personal Info"
+                            >
+                                <Edit2 size={16} />
+                            </button>
                         </div>
-                    </div>
-
-                    {/* Residency */}
-                    <div className="bg-white dark:bg-slate-900 p-6 rounded-3xl border border-gray-100 dark:border-slate-800 shadow-sm">
-                        <h4 className="font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-2 pb-4 border-b border-gray-50 dark:border-slate-800">
-                            <MapPin size={18} className="text-welile-purple" /> Residency
-                        </h4>
-                        <div className="grid md:grid-cols-2 gap-4">
-                            <div className="space-y-1 md:col-span-2">
-                                <label className="text-sm font-medium text-gray-600 dark:text-slate-355">Physical Address</label>
-                                <input 
-                                    type="text" 
-                                    defaultValue={formData.location} 
-                                    placeholder="Enter physical address"
-                                    className="w-full p-3 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-slate-500 focus:ring-2 focus:ring-purple-500/25 outline-none transition-all" 
-                                />
+                        <div className="grid md:grid-cols-3 gap-6">
+                            <div>
+                                <p className="text-xs font-bold text-gray-400 dark:text-slate-500 uppercase tracking-wide">Full Name</p>
+                                <p className="font-semibold text-gray-800 dark:text-slate-200 mt-1">{formData.name || 'Not Provided'}</p>
                             </div>
-                            <div className="space-y-1">
-                                <label className="text-sm font-medium text-gray-600 dark:text-slate-355">City</label>
-                                <input 
-                                    type="text" 
-                                    placeholder="e.g. Cape Town"
-                                    className="w-full p-3 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-slate-500 focus:ring-2 focus:ring-purple-500/25 outline-none transition-all" 
-                                />
+                            <div>
+                                <p className="text-xs font-bold text-gray-400 dark:text-slate-500 uppercase tracking-wide">Nationality</p>
+                                <p className="font-semibold text-gray-800 dark:text-slate-200 mt-1">{formData.nationality || 'Not Provided'}</p>
                             </div>
-                            <div className="space-y-1">
-                                <label className="text-sm font-medium text-gray-600 dark:text-slate-355">Zip Code</label>
-                                <input 
-                                    type="text" 
-                                    placeholder="e.g. 7700"
-                                    className="w-full p-3 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-slate-500 focus:ring-2 focus:ring-purple-500/25 outline-none transition-all" 
-                                />
+                            <div>
+                                <p className="text-xs font-bold text-gray-400 dark:text-slate-500 uppercase tracking-wide">Date of Birth</p>
+                                <p className="font-semibold text-gray-800 dark:text-slate-200 mt-1">
+                                    {formData.dateOfBirth ? new Date(formData.dateOfBirth).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' }) : 'Not Provided'}
+                                </p>
                             </div>
                         </div>
                     </div>
@@ -1026,6 +1190,15 @@ const Profile: React.FC<ProfileProps> = ({ user, onUpgradeClick }) => {
                 isOpen={showEduModal}
                 onClose={() => setShowEduModal(false)}
                 onAdd={handleAddEducation}
+            />
+
+            <EditProfileModal
+                isOpen={showEditModal}
+                onClose={() => setShowEditModal(false)}
+                currentName={formData.name}
+                currentNationality={formData.nationality || ''}
+                currentDateOfBirth={formData.dateOfBirth || ''}
+                onSave={handleSaveProfile}
             />
         </div>
     );

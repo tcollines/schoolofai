@@ -74,7 +74,20 @@ const CourseCard: React.FC<CourseCardProps> = ({ course, onClick }) => {
         </div>
 
         <h3 className="font-bold text-lg text-gray-900 dark:text-white mb-1 line-clamp-2">{course.title}</h3>
-        <p className="text-sm text-gray-500 dark:text-slate-400 mb-4">{course.instructor}</p>
+        <div className="flex items-center gap-2 mb-4">
+          <div className="w-6 h-6 rounded-full border border-gray-100 dark:border-slate-800 overflow-hidden flex items-center justify-center bg-gray-50 dark:bg-slate-850 shrink-0">
+            {course.instructorAvatar ? (
+              (course.instructorAvatar.startsWith('http') || course.instructorAvatar.startsWith('data:image')) ? (
+                <img src={course.instructorAvatar} alt={course.instructor} className="w-full h-full object-cover" />
+              ) : (
+                <span className="text-[10px]">{course.instructorAvatar}</span>
+              )
+            ) : (
+              <img src={`https://api.dicebear.com/7.x/initials/svg?seed=${course.instructor}`} alt={course.instructor} className="w-full h-full object-cover" />
+            )}
+          </div>
+          <span className="text-sm text-gray-550 dark:text-slate-350 font-medium">{course.instructor}</span>
+        </div>
 
         <div className="mt-auto">
           {/* Progress Section */}
@@ -94,19 +107,7 @@ const CourseCard: React.FC<CourseCardProps> = ({ course, onClick }) => {
           </div>
 
           {/* Footer Action */}
-          <div className="pt-4 border-t border-gray-50 dark:border-slate-800 flex items-center justify-between">
-            <div className="flex -space-x-2">
-              {/* Mock avatars for enrolled students */}
-              {[1, 2, 3].map((i) => (
-                <div key={i} className="w-6 h-6 rounded-full border-2 border-white dark:border-slate-900 bg-gray-200 dark:bg-slate-800 overflow-hidden">
-                  <img src={`https://i.pravatar.cc/100?img=${i + 10}`} alt="Student" className="w-full h-full object-cover" />
-                </div>
-              ))}
-              <div className="w-6 h-6 rounded-full border-2 border-white dark:border-slate-900 bg-gray-100 dark:bg-slate-800 flex items-center justify-center text-[10px] text-gray-500 dark:text-slate-400 font-bold">
-                +42
-              </div>
-            </div>
-
+          <div className="pt-4 border-t border-gray-50 dark:border-slate-800 flex items-center justify-end">
             <button className={`text-sm font-bold flex items-center gap-2 ${course.status === CourseStatus.COMPLETED ? 'text-green-600' : 'text-welile-purple hover:text-purple-700'}`}>
               {course.status === CourseStatus.COMPLETED ? (
                 <> <Award size={16} /> Certificate </>

@@ -27,7 +27,13 @@ export const useAdmin = (isAdmin: boolean) => {
                 role: (p.role as UserRole) || UserRole.INDIVIDUAL,
                 avatar: p.avatar_url || 'https://via.placeholder.com/150',
                 walletBalance: Number(p.wallet_balance) || 0,
-                skills: []
+                skills: [],
+                pending_role: p.pending_role,
+                pending_txid: p.pending_txid,
+                pending_screenshot: p.pending_screenshot,
+                avatarScale: p.avatar_scale !== undefined ? Number(p.avatar_scale) : 1,
+                avatarPositionX: p.avatar_pos_x !== undefined ? Number(p.avatar_pos_x) : 0,
+                avatarPositionY: p.avatar_pos_y !== undefined ? Number(p.avatar_pos_y) : 0
             }));
             setUsers(formattedUsers);
 
@@ -38,28 +44,35 @@ export const useAdmin = (isAdmin: boolean) => {
 
             if (coursesError) throw coursesError;
 
-            const formattedCourses: Course[] = (coursesData || []).map((c: any) => ({
-                id: c.id,
-                title: c.title,
-                instructor: c.instructor || 'Unknown',
-                duration: c.duration || '0h',
-                category: c.category || 'General',
-                rating: Number(c.rating) || 0,
-                lessonsTotal: c.lessons_total || 0,
-                lessonsCompleted: 0,
-                status: c.status,
-                image: c.image_url || 'https://picsum.photos/400/300',
-                price: Number(c.price) || 0,
-                platform: 'Welile',
-                accessTier: c.accessTier || 'FREE',
-                modules: c.modules,
-                quiz: c.quiz,
-                description: c.description,
-                outcomes: c.outcomes,
-                imageScale: c.image_scale !== undefined ? Number(c.image_scale) : 1,
-                imagePositionX: c.image_pos_x !== undefined ? Number(c.image_pos_x) : 50,
-                imagePositionY: c.image_pos_y !== undefined ? Number(c.image_pos_y) : 50
-            }));
+            const formattedCourses: Course[] = (coursesData || []).map((c: any) => {
+                const isNewFormat = Array.isArray(c.modules) && c.modules.length > 0 && 'lessons' in c.modules[0];
+                return {
+                    id: c.id,
+                    title: c.title,
+                    instructor: c.instructor || 'Unknown',
+                    instructorEmail: c.instructor_email || '',
+                    instructorAvatar: c.instructor_avatar || '',
+                    duration: c.duration || '0h',
+                    category: c.category || 'General',
+                    rating: Number(c.rating) || 0,
+                    lessonsTotal: c.lessons_total || 0,
+                    lessonsCompleted: 0,
+                    status: c.status,
+                    isDraft: c.is_draft || false,
+                    image: c.image_url || 'https://picsum.photos/400/300',
+                    price: Number(c.price) || 0,
+                    platform: 'Welile',
+                    accessTier: c.accessTier || 'FREE',
+                    sections: isNewFormat ? c.modules : undefined,
+                    modules: !isNewFormat ? c.modules : undefined,
+                    quiz: c.quiz,
+                    description: c.description,
+                    outcomes: c.outcomes,
+                    imageScale: c.image_scale !== undefined ? Number(c.image_scale) : 1,
+                    imagePositionX: c.image_pos_x !== undefined ? Number(c.image_pos_x) : 50,
+                    imagePositionY: c.image_pos_y !== undefined ? Number(c.image_pos_y) : 50
+                };
+            });
             setCourses(formattedCourses);
 
         } catch (err: any) {
@@ -85,10 +98,12 @@ export const useAdmin = (isAdmin: boolean) => {
 
         window.addEventListener('courses-update', handleUpdate);
         window.addEventListener('admin-events-update', handleUpdate);
+        window.addEventListener('profile-update', handleUpdate);
         window.addEventListener('storage', handleStorage);
         return () => {
             window.removeEventListener('courses-update', handleUpdate);
             window.removeEventListener('admin-events-update', handleUpdate);
+            window.removeEventListener('profile-update', handleUpdate);
             window.removeEventListener('storage', handleStorage);
         };
     }, [isAdmin]);
@@ -100,6 +115,8 @@ export const useAdmin = (isAdmin: boolean) => {
                 {
                     title: courseData.title,
                     instructor: courseData.instructor,
+                    instructor_email: courseData.instructorEmail,
+                    instructor_avatar: courseData.instructorAvatar,
                     duration: courseData.duration,
                     category: courseData.category,
                     accessTier: courseData.accessTier,
@@ -110,7 +127,8 @@ export const useAdmin = (isAdmin: boolean) => {
                     lessons_total: totalLessons,
                     image_scale: courseData.imageScale !== undefined ? courseData.imageScale : 1,
                     image_pos_x: courseData.imagePositionX !== undefined ? courseData.imagePositionX : 50,
-                    image_pos_y: courseData.imagePositionY !== undefined ? courseData.imagePositionY : 50
+                    image_pos_y: courseData.imagePositionY !== undefined ? courseData.imagePositionY : 50,
+                    is_draft: courseData.isDraft || false
                 }
             ]).select().single();
 
@@ -132,6 +150,8 @@ export const useAdmin = (isAdmin: boolean) => {
                 .update({
                     title: courseData.title,
                     instructor: courseData.instructor,
+                    instructor_email: courseData.instructorEmail,
+                    instructor_avatar: courseData.instructorAvatar,
                     duration: courseData.duration,
                     category: courseData.category,
                     accessTier: courseData.accessTier,
@@ -142,7 +162,8 @@ export const useAdmin = (isAdmin: boolean) => {
                     lessons_total: totalLessons,
                     image_scale: courseData.imageScale !== undefined ? courseData.imageScale : 1,
                     image_pos_x: courseData.imagePositionX !== undefined ? courseData.imagePositionX : 50,
-                    image_pos_y: courseData.imagePositionY !== undefined ? courseData.imagePositionY : 50
+                    image_pos_y: courseData.imagePositionY !== undefined ? courseData.imagePositionY : 50,
+                    is_draft: courseData.isDraft || false
                 })
                 .eq('id', courseId)
                 .select().single();
@@ -197,5 +218,44 @@ export const useAdmin = (isAdmin: boolean) => {
         }
     };
 
-    return { users, courses, loading, error, addCourse, updateCourse, deleteCourse, updateCourseQuiz, refresh: fetchData };
+    const updateUserRole = async (userId: string, role: UserRole) => {
+        try {
+            const { error } = await supabase
+                .from('profiles')
+                .update({ role })
+                .eq('id', userId);
+
+            if (error) throw error;
+            await fetchData(true); // Refresh silently
+            window.dispatchEvent(new Event('profile-update'));
+        } catch (err: any) {
+            console.error('Error updating user role:', err);
+            throw err;
+        }
+    };
+
+    const deleteUser = async (userId: string) => {
+        try {
+            // First delete user's enrollments
+            await supabase
+                .from('enrollments')
+                .delete()
+                .eq('user_id', userId);
+
+            // Delete user's profile
+            const { error } = await supabase
+                .from('profiles')
+                .delete()
+                .eq('id', userId);
+
+            if (error) throw error;
+            await fetchData(true); // Refresh silently
+            window.dispatchEvent(new Event('profile-update'));
+        } catch (err: any) {
+            console.error('Error deleting user:', err);
+            throw err;
+        }
+    };
+
+    return { users, courses, loading, error, addCourse, updateCourse, deleteCourse, updateCourseQuiz, updateUserRole, deleteUser, refresh: fetchData };
 };

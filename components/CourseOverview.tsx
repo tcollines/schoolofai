@@ -1,16 +1,17 @@
 import React, { useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { BookOpen, Clock, Star, PlayCircle, Video, FileText, CheckCircle, Award, Shield } from 'lucide-react';
+import { BookOpen, Clock, Star, PlayCircle, Video, FileText, CheckCircle, Award, Shield, Headphones, File } from 'lucide-react';
 import { Course, CourseStatus } from '../types';
 
 interface CourseOverviewProps {
     courses: Course[];
     onEnroll: (courseId: string) => void;
+    onUnenroll?: (courseId: string) => void;
     isAuthenticated: boolean;
     onLoginClick: () => void;
 }
 
-const CourseOverview: React.FC<CourseOverviewProps> = ({ courses, onEnroll, isAuthenticated, onLoginClick }) => {
+const CourseOverview: React.FC<CourseOverviewProps> = ({ courses, onEnroll, onUnenroll, isAuthenticated, onLoginClick }) => {
     const { courseId } = useParams<{ courseId: string }>();
     const navigate = useNavigate();
 
@@ -130,26 +131,41 @@ const CourseOverview: React.FC<CourseOverviewProps> = ({ courses, onEnroll, isAu
                             <p className="text-xs text-gray-500 dark:text-slate-400 font-medium">Lifetime Access</p>
                         </div>
                         
-                        <button
-                            onClick={() => {
-                                if (!isEnrolled) {
-                                    isAuthenticated ? onEnroll(course.id) : onLoginClick();
-                                } else {
-                                    navigate('/courses');
-                                }
-                            }}
-                            className={`w-full md:w-48 py-3.5 rounded-xl text-base font-bold transition-colors flex items-center justify-center gap-2 shadow-sm ${
-                                isEnrolled 
-                                    ? 'bg-emerald-100 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-200 dark:hover:bg-emerald-900/50'
-                                    : 'bg-gray-900 dark:bg-slate-100 hover:bg-welile-purple text-white dark:text-gray-900 dark:hover:text-white shadow-lg shadow-gray-900/20 dark:shadow-none'
-                            }`}
-                        >
-                            {isEnrolled ? (
-                                <><CheckCircle size={20} /> Continue Learning</>
-                            ) : (
-                                <><PlayCircle size={20} /> Enroll Now</>
+                        <div className="flex flex-col md:flex-row gap-3 w-full md:w-auto">
+                            <button
+                                onClick={() => {
+                                    if (!isEnrolled) {
+                                        isAuthenticated ? onEnroll(course.id) : onLoginClick();
+                                    } else {
+                                        navigate('/courses');
+                                    }
+                                }}
+                                className={`w-full md:w-48 py-3.5 rounded-xl text-base font-bold transition-colors flex items-center justify-center gap-2 shadow-sm ${
+                                    isEnrolled 
+                                        ? 'bg-emerald-100 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-200 dark:hover:bg-emerald-900/50'
+                                        : 'bg-gray-900 dark:bg-slate-100 hover:bg-welile-purple text-white dark:text-gray-900 dark:hover:text-white shadow-lg shadow-gray-900/20 dark:shadow-none'
+                                }`}
+                            >
+                                {isEnrolled ? (
+                                    <><CheckCircle size={20} /> Continue Learning</>
+                                ) : (
+                                    <><PlayCircle size={20} /> Enroll Now</>
+                                )}
+                            </button>
+                            
+                            {isEnrolled && onUnenroll && (
+                                <button
+                                    onClick={() => {
+                                        if (window.confirm(`Are you sure you want to unenroll from "${course.title}"?`)) {
+                                            onUnenroll(course.id);
+                                        }
+                                    }}
+                                    className="w-full md:w-32 py-3.5 bg-white hover:bg-red-50 text-red-500 hover:text-red-650 dark:bg-slate-900 dark:hover:bg-red-950/20 border border-gray-200 dark:border-slate-800 hover:border-red-200 dark:hover:border-transparent rounded-xl text-base font-bold transition-all flex items-center justify-center gap-2 cursor-pointer shadow-sm"
+                                >
+                                    Unenroll
+                                </button>
                             )}
-                        </button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -178,11 +194,13 @@ const CourseOverview: React.FC<CourseOverviewProps> = ({ courses, onEnroll, isAu
                                             {section.lessons.map((lesson: any, lIdx: number) => (
                                                 <div key={lesson.id || lIdx} className="p-4 flex items-center justify-between hover:bg-gray-50 dark:hover:bg-slate-800/40 transition-colors group">
                                                     <div className="flex items-center gap-3">
-                                                        <div className="w-8 h-8 rounded-full bg-purple-50 dark:bg-purple-950/30 text-purple-600 dark:text-purple-400 flex items-center justify-center flex-shrink-0 group-hover:bg-purple-100 dark:group-hover:bg-purple-900/40">
-                                                            {lesson.type === 'video' ? <Video size={14} /> : 
-                                                             lesson.type === 'quiz' ? <Award size={14} /> : 
-                                                             <FileText size={14} />}
-                                                        </div>
+                                                         <div className="w-8 h-8 rounded-full bg-purple-50 dark:bg-purple-950/30 text-purple-600 dark:text-purple-400 flex items-center justify-center flex-shrink-0 group-hover:bg-purple-100 dark:group-hover:bg-purple-900/40">
+                                                             {lesson.type === 'video' ? <Video size={14} /> : 
+                                                              lesson.type === 'audio' ? <Headphones size={14} /> :
+                                                              lesson.type === 'document' ? <File size={14} /> :
+                                                              lesson.type === 'quiz' ? <Award size={14} /> : 
+                                                              <FileText size={14} />}
+                                                         </div>
                                                         <div>
                                                             <p className="font-medium text-gray-900 dark:text-white text-sm group-hover:text-welile-purple dark:group-hover:text-purple-300 transition-colors">
                                                                 {lIdx + 1}. {lesson.title}
@@ -209,14 +227,27 @@ const CourseOverview: React.FC<CourseOverviewProps> = ({ courses, onEnroll, isAu
                     <div className="bg-white dark:bg-slate-900 p-6 rounded-3xl border border-gray-100 dark:border-slate-800 shadow-sm">
                         <h3 className="font-bold text-gray-900 dark:text-white mb-4">About the Course</h3>
                         <div className="flex items-center gap-4 mb-4">
-                            <div className="w-14 h-14 rounded-full bg-gray-200 dark:bg-slate-800 border-2 border-white dark:border-slate-900 shadow-sm overflow-hidden flex-shrink-0">
-                                <img src={`https://api.dicebear.com/7.x/notionists/svg?seed=${course.instructor}`} alt={course.instructor} className="w-full h-full object-cover" />
+                            <div className="w-14 h-14 rounded-full bg-gray-200 dark:bg-slate-800 border-2 border-white dark:border-slate-900 shadow-sm overflow-hidden flex-shrink-0 flex items-center justify-center">
+                                {course.instructorAvatar ? (
+                                    (course.instructorAvatar.startsWith('http') || course.instructorAvatar.startsWith('data:image')) ? (
+                                        <img src={course.instructorAvatar} alt={course.instructor} className="w-full h-full object-cover" />
+                                    ) : (
+                                        <span className="text-2xl">{course.instructorAvatar}</span>
+                                    )
+                                ) : (
+                                    <img src={`https://api.dicebear.com/7.x/initials/svg?seed=${course.instructor}`} alt={course.instructor} className="w-full h-full object-cover" />
+                                )}
                             </div>
                             <div>
                                 <p className="font-bold text-gray-900 dark:text-white">
                                     {course.instructor}
                                 </p>
-                                <p className="text-sm text-gray-500 dark:text-slate-400">Expert Educator</p>
+                                <p className="text-xs text-gray-500 hover:text-welile-purple dark:text-slate-400 dark:hover:text-purple-300">
+                                    <a href={`mailto:${course.instructorEmail || `${course.instructor.toLowerCase().replace(/[^a-z0-9\s]/g, '').trim().replace(/\s+/g, '.')}@schoolofai.edu`}`}>
+                                        {course.instructorEmail || `${course.instructor.toLowerCase().replace(/[^a-z0-9\s]/g, '').trim().replace(/\s+/g, '.')}@schoolofai.edu`}
+                                    </a>
+                                </p>
+                                <p className="text-sm text-gray-500 dark:text-slate-400 mt-0.5">Expert Educator</p>
                             </div>
                         </div>
                         <p className="text-sm text-gray-600 dark:text-slate-300 leading-relaxed whitespace-pre-wrap">

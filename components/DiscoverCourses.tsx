@@ -32,6 +32,7 @@ const DiscoverCourses: React.FC<DiscoverCoursesProps> = ({ courses, onEnroll, is
     const categories = ['All', ...Array.from(new Set(courses.map(c => c.category)))];
 
     const filteredCourses = courses.filter(course => {
+        if (course.isDraft) return false;
         const matchesSearch = course.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
                               course.instructor.toLowerCase().includes(searchQuery.toLowerCase());
         const matchesCategory = selectedCategory === 'All' || course.category === selectedCategory;
@@ -92,7 +93,10 @@ const DiscoverCourses: React.FC<DiscoverCoursesProps> = ({ courses, onEnroll, is
                     {filteredCourses.map((course) => (
                         <div 
                             key={course.id} 
-                            onClick={() => navigate(`/discover/${course.id}`)}
+                            onClick={() => {
+                                localStorage.setItem('recent-tapped-course-id', course.id);
+                                navigate(`/discover/${course.id}`);
+                            }}
                             className="bg-white dark:bg-slate-900 rounded-3xl overflow-hidden border border-gray-100 dark:border-slate-800 shadow-sm hover:shadow-md transition-shadow group flex flex-col h-full cursor-pointer"
                         >
                             <div className="relative h-48 overflow-hidden">
@@ -125,7 +129,20 @@ const DiscoverCourses: React.FC<DiscoverCoursesProps> = ({ courses, onEnroll, is
                                     <span className="text-sm font-bold text-gray-900 dark:text-white">{course.rating || 'New'}</span>
                                 </div>
                                 <h3 className="font-bold text-gray-900 dark:text-white mb-1 line-clamp-2">{course.title}</h3>
-                                <p className="text-sm text-gray-500 dark:text-slate-400 mb-4">{course.instructor}</p>
+                                <div className="flex items-center gap-2 mb-4">
+                                     <div className="w-6 h-6 rounded-full border border-gray-100 dark:border-slate-800 overflow-hidden flex items-center justify-center bg-gray-50 dark:bg-slate-850 shrink-0">
+                                         {course.instructorAvatar ? (
+                                             (course.instructorAvatar.startsWith('http') || course.instructorAvatar.startsWith('data:image')) ? (
+                                                 <img src={course.instructorAvatar} alt={course.instructor} className="w-full h-full object-cover" />
+                                             ) : (
+                                                 <span className="text-[10px]">{course.instructorAvatar}</span>
+                                             )
+                                         ) : (
+                                             <img src={`https://api.dicebear.com/7.x/initials/svg?seed=${course.instructor}`} alt={course.instructor} className="w-full h-full object-cover" />
+                                         )}
+                                     </div>
+                                     <span className="text-sm text-gray-550 dark:text-slate-350 font-medium">{course.instructor}</span>
+                                 </div>
                                 
                                 <div className="flex items-center gap-4 text-xs font-medium text-gray-500 dark:text-slate-450 mb-6 mt-auto">
                                     <div className="flex items-center gap-1.5">
