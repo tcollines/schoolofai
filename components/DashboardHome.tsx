@@ -3,6 +3,7 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 import { TrendingUp, CheckCircle, PlayCircle, BookOpen, MessageSquare, Award } from 'lucide-react';
 import { Course, CourseStatus } from '../types';
 import { useTranslation } from './translations';
+import { supabase } from '../src/lib/supabase';
 
 interface DashboardHomeProps {
     courses: Course[];
@@ -16,6 +17,44 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({ courses, userId }) => {
 
     const [recentCourse, setRecentCourse] = useState<Course | null>(null);
     const [quizGrades, setQuizGrades] = useState<any[]>([]);
+    const [userRole, setUserRole] = useState<string>('INDIVIDUAL');
+
+    useEffect(() => {
+        const fetchRole = async () => {
+            if (!userId || userId === 'guest') return;
+            try {
+                const cached = localStorage.getItem(`student-profile-${userId}`);
+                if (cached) {
+                    const parsed = JSON.parse(cached);
+                    if (parsed.role) {
+                        setUserRole(parsed.role);
+                    }
+                }
+                
+                const { data } = await supabase
+                    .from('profiles')
+                    .select('role')
+                    .eq('id', userId)
+                    .single();
+                if (data?.role) {
+                    setUserRole(data.role);
+                    const storedProfile = localStorage.getItem(`student-profile-${userId}`);
+                    const parsedProfile = storedProfile ? JSON.parse(storedProfile) : {};
+                    localStorage.setItem(`student-profile-${userId}`, JSON.stringify({
+                        ...parsedProfile,
+                        role: data.role
+                    }));
+                }
+            } catch (e) {
+                console.error(e);
+            }
+        };
+        fetchRole();
+        window.addEventListener('profile-update', fetchRole);
+        return () => {
+            window.removeEventListener('profile-update', fetchRole);
+        };
+    }, [userId]);
 
     useEffect(() => {
         const loadQuizGrades = () => {
@@ -210,10 +249,19 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({ courses, userId }) => {
                 {/* Premium Banner */}
                 <div className="bg-[#1a1a2e] p-6 rounded-3xl text-white relative overflow-hidden">
                     <div className="relative z-10">
-                        <h3 className="font-bold text-xl mb-1">{t('go_premium')}</h3>
-                        <p className="text-xs text-gray-400 mb-4 max-w-[150px]">{t('explore_courses')}</p>
-                        <button className="bg-welile-lime text-black text-xs font-bold px-4 py-2 rounded-full hover:bg-lime-300 transition-colors">
-                            {t('go_premium')}
+                        <h3 className="font-bold text-xl mb-1">
+                            {userRole === 'PRO' || userRole === 'ADMIN' ? 'Premium Account' : t('go_premium')}
+                        </h3>
+                        <p className="text-xs text-gray-400 mb-4 max-w-[200px] leading-relaxed">
+                            {userRole === 'PRO' || userRole === 'ADMIN' 
+                                ? 'You have unlocked unlimited access to all courses, 24/7 AI tutor guidance, and verified certificates.' 
+                                : t('explore_courses')}
+                        </p>
+                        <button 
+                            onClick={() => window.location.href = '/plans'}
+                            className="bg-welile-lime text-black text-xs font-bold px-4 py-2 rounded-full hover:bg-lime-300 transition-colors cursor-pointer"
+                        >
+                            {userRole === 'PRO' || userRole === 'ADMIN' ? 'Enjoy Services' : t('go_premium')}
                         </button>
                     </div>
                     {/* Abstract illustration circles */}
