@@ -60,19 +60,34 @@ function App() {
       setSession(session);
       setIsAuthenticated(!!session);
       
+      if (session) {
+          localStorage.setItem('logged_in_email', session.user?.email || 'student@test.com');
+      } else {
+          localStorage.removeItem('logged_in_email');
+          // Clear login fired flag from sessionStorage on logout
+          const keysToRemove: string[] = [];
+          for (let i = 0; i < sessionStorage.length; i++) {
+              const key = sessionStorage.key(i);
+              if (key && key.startsWith('login_notif_fired_')) {
+                  keysToRemove.push(key);
+              }
+          }
+          keysToRemove.forEach(k => sessionStorage.removeItem(k));
+      }
+      
       if (event === 'SIGNED_IN' && session) {
-          // Trigger login notification
           const emailAddress = session.user?.email || 'student@test.com';
-          const storedNotifs = localStorage.getItem('portal-notifications');
-          const notifList = storedNotifs ? JSON.parse(storedNotifs) : [];
+          const notifKey = `portal-notifications-${emailAddress}`;
           
-          // Check if we already registered a login notification for this exact timestamp (within 3 seconds) to avoid duplicate fires on redirects
-          const isDuplicate = notifList.some((n: any) => 
-              n.title === "New Login Detected" && 
-              (Date.now() - new Date(n.timestamp).getTime()) < 3000
-          );
+          // Check if login notification already fired in this tab session to prevent refresh duplicates
+          const hasFiredForSession = sessionStorage.getItem(`login_notif_fired_${emailAddress}`);
           
-          if (!isDuplicate) {
+          if (!hasFiredForSession) {
+              sessionStorage.setItem(`login_notif_fired_${emailAddress}`, 'true');
+              
+              const storedNotifs = localStorage.getItem(notifKey);
+              const notifList = storedNotifs ? JSON.parse(storedNotifs) : [];
+              
               const now = new Date();
               const dateStr = now.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
               const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
@@ -85,7 +100,7 @@ function App() {
                   read: false,
                   type: 'system'
               };
-              localStorage.setItem('portal-notifications', JSON.stringify([newNotif, ...notifList]));
+              localStorage.setItem(notifKey, JSON.stringify([newNotif, ...notifList]));
               window.dispatchEvent(new Event('notifications-update'));
           }
       }
