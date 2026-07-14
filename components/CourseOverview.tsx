@@ -1,17 +1,18 @@
 import React, { useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { BookOpen, Clock, Star, PlayCircle, Video, FileText, CheckCircle, Award, Shield, Headphones, File } from 'lucide-react';
-import { Course, CourseStatus } from '../types';
+import { Course, CourseStatus, UserRole } from '../types';
 
 interface CourseOverviewProps {
     courses: Course[];
     onEnroll: (courseId: string) => void;
     onUnenroll?: (courseId: string) => void;
     isAuthenticated: boolean;
+    userRole?: UserRole;
     onLoginClick: () => void;
 }
 
-const CourseOverview: React.FC<CourseOverviewProps> = ({ courses, onEnroll, onUnenroll, isAuthenticated, onLoginClick }) => {
+const CourseOverview: React.FC<CourseOverviewProps> = ({ courses, onEnroll, onUnenroll, isAuthenticated, userRole, onLoginClick }) => {
     const { courseId } = useParams<{ courseId: string }>();
     const navigate = useNavigate();
 
@@ -135,19 +136,31 @@ const CourseOverview: React.FC<CourseOverviewProps> = ({ courses, onEnroll, onUn
                             <button
                                 onClick={() => {
                                     if (!isEnrolled) {
-                                        isAuthenticated ? onEnroll(course.id) : onLoginClick();
+                                        if (!isAuthenticated) {
+                                            onLoginClick();
+                                            return;
+                                        }
+                                        if (course.accessTier === 'PAID' && userRole !== UserRole.PRO && userRole !== UserRole.SPONSORED && userRole !== UserRole.ADMIN) {
+                                            navigate('/plans');
+                                            return;
+                                        }
+                                        onEnroll(course.id);
                                     } else {
                                         navigate('/courses');
                                     }
                                 }}
-                                className={`w-full md:w-48 py-3.5 rounded-xl text-base font-bold transition-colors flex items-center justify-center gap-2 shadow-sm ${
+                                className={`w-full md:w-auto px-6 py-3.5 rounded-xl text-base font-bold transition-colors flex items-center justify-center gap-2 shadow-sm ${
                                     isEnrolled 
                                         ? 'bg-emerald-100 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-200 dark:hover:bg-emerald-900/50'
-                                        : 'bg-gray-900 dark:bg-slate-100 hover:bg-welile-purple text-white dark:text-gray-900 dark:hover:text-white shadow-lg shadow-gray-900/20 dark:shadow-none'
+                                        : (!isEnrolled && course.accessTier === 'PAID' && userRole !== UserRole.PRO && userRole !== UserRole.SPONSORED && userRole !== UserRole.ADMIN)
+                                            ? 'bg-gradient-to-r from-yellow-400 to-amber-500 hover:from-yellow-500 hover:to-amber-600 text-white'
+                                            : 'bg-gray-900 dark:bg-slate-100 hover:bg-welile-purple text-white dark:text-gray-900 dark:hover:text-white shadow-lg shadow-gray-900/20 dark:shadow-none'
                                 }`}
                             >
                                 {isEnrolled ? (
                                     <><CheckCircle size={20} /> Continue Learning</>
+                                ) : (!isEnrolled && course.accessTier === 'PAID' && userRole !== UserRole.PRO && userRole !== UserRole.SPONSORED && userRole !== UserRole.ADMIN) ? (
+                                    <><Shield size={20} /> Upgrade to Pro to Enroll</>
                                 ) : (
                                     <><PlayCircle size={20} /> Enroll Now</>
                                 )}
