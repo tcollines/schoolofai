@@ -33,8 +33,19 @@ function App() {
   const [session, setSession] = useState<any>(null);
   const [authLoading, setAuthLoading] = useState(true);
 
+  // Global theme initializer — ensures stored theme is always applied on mount
+  useEffect(() => {
+    const storedTheme = localStorage.getItem('theme');
+    if (storedTheme === 'dark') {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  }, []);
+
   const { courses, loading: coursesLoading } = useCourses(isAuthenticated ? session?.user?.id : undefined);
   const { profile: userProfile } = useProfile(isAuthenticated ? session : null);
+
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -143,9 +154,16 @@ function App() {
                 <DiscoverCourses 
                   courses={courses} 
                   isAuthenticated={isAuthenticated} 
+                  userRole={userProfile?.role}
                   onLoginClick={() => window.location.href = '/login'} 
                   onEnroll={async (courseId) => {
                     if (!session?.user?.id) return;
+                    // Block enrollment for basic users on premium courses
+                    const course = courses.find(c => c.id === courseId);
+                    if (course?.accessTier === 'PAID' && userProfile?.role !== UserRole.PRO && userProfile?.role !== UserRole.SPONSORED && userProfile?.role !== UserRole.ADMIN) {
+                      window.location.href = '/plans';
+                      return;
+                    }
                     await supabase.from('enrollments').insert({
                       user_id: session.user.id,
                       course_id: courseId,
@@ -165,6 +183,12 @@ function App() {
                   onLoginClick={() => window.location.href = '/login'} 
                   onEnroll={async (courseId) => {
                     if (!session?.user?.id) return;
+                    // Block enrollment for basic users on premium courses
+                    const course = courses.find(c => c.id === courseId);
+                    if (course?.accessTier === 'PAID' && userProfile?.role !== UserRole.PRO && userProfile?.role !== UserRole.SPONSORED && userProfile?.role !== UserRole.ADMIN) {
+                      window.location.href = '/plans';
+                      return;
+                    }
                     await supabase.from('enrollments').insert({
                       user_id: session.user.id,
                       course_id: courseId,

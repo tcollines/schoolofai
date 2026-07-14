@@ -930,7 +930,8 @@ const MyCourses: React.FC<MyCoursesProps> = ({ courses }) => {
                             key={course.id}
                             course={course}
                             onClick={() => {
-                                localStorage.setItem('recent-tapped-course-id', course.id);
+                                const scopeKey = localStorage.getItem('mock_logged_in_email') || 'guest';
+                                localStorage.setItem(`recent-tapped-course-id-${scopeKey}`, course.id);
                                 setSelectedCourse(course);
                             }}
                         />

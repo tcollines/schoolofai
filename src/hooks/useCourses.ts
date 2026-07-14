@@ -71,6 +71,7 @@ export const useCourses = (userId: string | undefined) => {
                         image: course.image_url || 'https://picsum.photos/400/300',
                         price: Number(course.price) || 0,
                         platform: 'Welile', // Default for now
+                        accessTier: course.accessTier || 'FREE',
                         sections: isNewFormat ? course.modules : undefined,
                         modules: !isNewFormat ? course.modules : undefined,
                         quiz: course.quiz,

@@ -111,9 +111,10 @@ const CoursePlayer: React.FC<CoursePlayerProps> = ({ module, courseTitle, onBack
                 percentage,
                 submittedAt: new Date().toISOString()
             };
-            const existingGrades = JSON.parse(localStorage.getItem('quiz-grades') || '[]');
+            const scopeKey = localStorage.getItem('mock_logged_in_email') || 'guest';
+            const existingGrades = JSON.parse(localStorage.getItem(`quiz-grades-${scopeKey}`) || '[]');
             const updatedGrades = [newGrade, ...existingGrades.filter((g: any) => g.quizId !== module.id)];
-            localStorage.setItem('quiz-grades', JSON.stringify(updatedGrades));
+            localStorage.setItem(`quiz-grades-${scopeKey}`, JSON.stringify(updatedGrades));
             window.dispatchEvent(new Event('quiz-grades-update'));
         } catch (e) {
             console.error("Error saving quiz grade:", e);

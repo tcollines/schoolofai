@@ -1,17 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
-import { Search, Compass, BookOpen, Clock, Star, PlayCircle, Eye } from 'lucide-react';
-import { Course, CourseStatus } from '../types';
+import { Search, Compass, BookOpen, Clock, Star, PlayCircle, Eye, Lock, Shield } from 'lucide-react';
+import { Course, CourseStatus, UserRole } from '../types';
 import { useTranslation } from './translations';
 
 interface DiscoverCoursesProps {
     courses: Course[];
     onEnroll: (courseId: string) => void;
     isAuthenticated: boolean;
+    userRole?: UserRole;
     onLoginClick: () => void;
 }
 
-const DiscoverCourses: React.FC<DiscoverCoursesProps> = ({ courses, onEnroll, isAuthenticated, onLoginClick }) => {
+const DiscoverCourses: React.FC<DiscoverCoursesProps> = ({ courses, onEnroll, isAuthenticated, userRole, onLoginClick }) => {
     const { t } = useTranslation();
     const [searchParams] = useSearchParams();
     const navigate = useNavigate();
@@ -90,11 +91,15 @@ const DiscoverCourses: React.FC<DiscoverCoursesProps> = ({ courses, onEnroll, is
                 </div>
             ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-                    {filteredCourses.map((course) => (
+                    {filteredCourses.map((course) => {
+                        const isPremiumLocked = course.accessTier === 'PAID' && userRole !== UserRole.PRO && userRole !== UserRole.SPONSORED && userRole !== UserRole.ADMIN;
+                        
+                        return (
                         <div 
                             key={course.id} 
                             onClick={() => {
-                                localStorage.setItem('recent-tapped-course-id', course.id);
+                                const scopeKey = localStorage.getItem('mock_logged_in_email') || 'guest';
+                                localStorage.setItem(`recent-tapped-course-id-${scopeKey}`, course.id);
                                 navigate(`/discover/${course.id}`);
                             }}
                             className="bg-white dark:bg-slate-900 rounded-3xl overflow-hidden border border-gray-100 dark:border-slate-800 shadow-sm hover:shadow-md transition-shadow group flex flex-col h-full cursor-pointer"
@@ -103,13 +108,21 @@ const DiscoverCourses: React.FC<DiscoverCoursesProps> = ({ courses, onEnroll, is
                                 <img
                                     src={course.image || 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=800&auto=format&fit=crop&q=60'}
                                     alt={course.title}
-                                    className="w-full h-full object-cover transition-transform duration-500"
+                                    className={`w-full h-full object-cover transition-transform duration-500 ${isPremiumLocked ? 'group-hover:scale-100' : ''}`}
                                     style={{
                                         objectPosition: `${course.imagePositionX ?? 50}% ${course.imagePositionY ?? 50}%`,
                                         transform: `scale(${course.imageScale ?? 1})`,
                                         transformOrigin: `${course.imagePositionX ?? 50}% ${course.imagePositionY ?? 50}%`
                                     }}
                                 />
+                                {isPremiumLocked && (
+                                    <div className="absolute inset-0 bg-black/30 backdrop-blur-[2px] flex items-center justify-center">
+                                        <div className="bg-white/90 dark:bg-slate-900/90 backdrop-blur-sm rounded-2xl px-4 py-2 flex items-center gap-2 shadow-lg">
+                                            <Lock size={14} className="text-amber-600 dark:text-amber-400" />
+                                            <span className="text-xs font-bold text-gray-800 dark:text-slate-200">Premium Only</span>
+                                        </div>
+                                    </div>
+                                )}
                                 <div className="absolute top-4 left-4">
                                     <span className="px-3 py-1 bg-white/90 dark:bg-slate-900/90 backdrop-blur-sm rounded-full text-xs font-bold text-gray-900 dark:text-white shadow-sm">
                                         {course.category}
@@ -117,8 +130,8 @@ const DiscoverCourses: React.FC<DiscoverCoursesProps> = ({ courses, onEnroll, is
                                 </div>
                                 {course.accessTier === 'PAID' && (
                                     <div className="absolute top-4 right-4">
-                                        <span className="px-3 py-1 bg-gradient-to-r from-yellow-400 to-amber-500 text-white rounded-full text-xs font-bold shadow-sm">
-                                            Premium
+                                        <span className="px-3 py-1 bg-gradient-to-r from-yellow-400 to-amber-500 text-white rounded-full text-xs font-bold shadow-sm flex items-center gap-1">
+                                            <Shield size={10} /> Premium
                                         </span>
                                     </div>
                                 )}
@@ -162,16 +175,24 @@ const DiscoverCourses: React.FC<DiscoverCoursesProps> = ({ courses, onEnroll, is
                                     <button
                                         onClick={(e) => {
                                             e.stopPropagation();
-                                            navigate(`/discover/${course.id}`);
+                                            if (isPremiumLocked) {
+                                                navigate('/plans');
+                                            } else {
+                                                navigate(`/discover/${course.id}`);
+                                            }
                                         }}
                                         className={`px-6 py-2 rounded-xl text-sm font-bold transition-colors flex items-center gap-2 ${
                                             course.status !== CourseStatus.NOT_STARTED 
                                                 ? 'bg-emerald-100 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-400 cursor-default'
-                                                : 'bg-gray-100 dark:bg-slate-800 hover:bg-gray-200 dark:hover:bg-slate-700 text-gray-900 dark:text-white'
+                                                : isPremiumLocked
+                                                    ? 'bg-gradient-to-r from-yellow-400 to-amber-500 hover:from-yellow-500 hover:to-amber-600 text-white shadow-sm'
+                                                    : 'bg-gray-100 dark:bg-slate-800 hover:bg-gray-200 dark:hover:bg-slate-700 text-gray-900 dark:text-white'
                                         }`}
                                     >
                                         {course.status !== CourseStatus.NOT_STARTED ? (
                                             <>Enrolled</>
+                                        ) : isPremiumLocked ? (
+                                            <><Lock className="w-3.5 h-3.5" /> Upgrade to Enroll</>
                                         ) : (
                                             <><Eye className="w-4 h-4" /> View Details</>
                                         )}
@@ -179,7 +200,8 @@ const DiscoverCourses: React.FC<DiscoverCoursesProps> = ({ courses, onEnroll, is
                                 </div>
                             </div>
                         </div>
-                    ))}
+                        );
+                    })}
                 </div>
             )}
         </div>
