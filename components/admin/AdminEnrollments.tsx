@@ -113,16 +113,20 @@ const AdminEnrollments: React.FC = () => {
                         {users.map(u => (
                             <tr key={u.id} className="hover:bg-gray-50 transition-colors">
                                 <td className="py-4 px-6 font-medium text-gray-900 flex items-center gap-3">
-                                    <div className="w-8 h-8 rounded-full overflow-hidden bg-gray-200 shrink-0">
-                                        <img 
-                                            src={u.avatar} 
-                                            alt={u.name} 
-                                            className="w-full h-full object-cover" 
-                                            style={{
-                                                transform: `scale(${u.avatarScale || 1}) translate(${u.avatarPositionX || 0}px, ${u.avatarPositionY || 0}px)`,
-                                                transformOrigin: 'center center'
-                                            }}
-                                        />
+                                    <div className="w-8 h-8 rounded-full overflow-hidden bg-violet-100 dark:bg-violet-950 text-violet-700 dark:text-violet-300 shrink-0 flex items-center justify-center text-xs font-bold border border-violet-200 dark:border-violet-850">
+                                        {u.avatar ? (
+                                            <img 
+                                                src={u.avatar} 
+                                                alt={u.name} 
+                                                className="w-full h-full object-cover" 
+                                                style={{
+                                                    transform: `scale(${u.avatarScale || 1}) translate(${u.avatarPositionX || 0}px, ${u.avatarPositionY || 0}px)`,
+                                                    transformOrigin: 'center center'
+                                                }}
+                                            />
+                                        ) : (
+                                            <span>{u.name.split(' ').map((n: string) => n[0]).join('').slice(0, 2).toUpperCase()}</span>
+                                        )}
                                     </div>
                                     {u.name}
                                 </td>

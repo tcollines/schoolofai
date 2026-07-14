@@ -46,7 +46,7 @@ export const useProfile = (session: any) => {
                         name: data.full_name || 'Student',
                         email: data.email || '',
                         role: (['student', 'individual'].includes(data.role?.toLowerCase()) ? UserRole.INDIVIDUAL : data.role as UserRole) || UserRole.INDIVIDUAL,
-                        avatar: data.avatar_url || 'https://via.placeholder.com/150',
+                        avatar: data.avatar_url || '',
                         walletBalance: Number(data.wallet_balance) || 0,
                         skills: [], // We didn't create a skills table yet, so keep empty or add column later
                         bio: data.bio,

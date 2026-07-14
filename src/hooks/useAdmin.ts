@@ -26,7 +26,7 @@ export const useAdmin = (isAdmin: boolean) => {
                 name: p.full_name || 'Student',
                 email: p.email || '',
                 role: (p.role as UserRole) || UserRole.INDIVIDUAL,
-                avatar: p.avatar_url || 'https://via.placeholder.com/150',
+                avatar: p.avatar_url || '',
                 walletBalance: Number(p.wallet_balance) || 0,
                 skills: [],
                 pending_role: p.pending_role,
