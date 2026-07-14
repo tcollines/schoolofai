@@ -67,6 +67,12 @@ export const useCourses = (userId: string | undefined) => {
                         examScore: enrollmentsMap[course.id]?.exam_marks_released && enrollmentsMap[course.id]?.exam_score !== undefined 
                             ? Number(enrollmentsMap[course.id]?.exam_score) 
                             : undefined,
+                        quizScore: enrollmentsMap[course.id]?.exam_marks_released && enrollmentsMap[course.id]?.quiz_score !== undefined 
+                            ? Number(enrollmentsMap[course.id]?.quiz_score) 
+                            : undefined,
+                        finalScore: enrollmentsMap[course.id]?.exam_marks_released && enrollmentsMap[course.id]?.final_score !== undefined 
+                            ? Number(enrollmentsMap[course.id]?.final_score) 
+                            : undefined,
                         certificateUrl: enrollmentsMap[course.id]?.certificate_url || '',
                         isCertificateVerified: !!enrollmentsMap[course.id]?.is_certificate_verified,
                         examMarksReleased: !!enrollmentsMap[course.id]?.exam_marks_released,

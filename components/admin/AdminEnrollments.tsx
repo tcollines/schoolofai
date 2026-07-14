@@ -1,11 +1,44 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useAdmin } from '../../src/hooks/useAdmin';
 import { UserRole } from '../../types';
-import { Trash2, Check } from 'lucide-react';
+import { Trash2, Check, Edit2, X } from 'lucide-react';
 import { supabase } from '../../src/lib/supabase';
 
 const AdminEnrollments: React.FC = () => {
-    const { users, courses, enrollments, loading, updateUserRole, deleteUser, verifyAndIssueCertificate, releaseExamMarks } = useAdmin(true);
+    const { users, courses, enrollments, loading, updateUserRole, deleteUser, verifyAndIssueCertificate, releaseExamMarks, refresh } = useAdmin(true);
+
+    const [editingScores, setEditingScores] = useState<{
+        userId: string;
+        courseId: string;
+        studentName: string;
+        courseTitle: string;
+        quizScore: number;
+        examScore: number;
+    } | null>(null);
+
+    const handleSaveScores = async () => {
+        if (!editingScores) return;
+        try {
+            const finalScore = Math.round((editingScores.quizScore + editingScores.examScore) / 2);
+            const { error } = await supabase
+                .from('enrollments')
+                .update({
+                    quiz_score: editingScores.quizScore,
+                    exam_score: editingScores.examScore,
+                    final_score: finalScore
+                })
+                .eq('user_id', editingScores.userId)
+                .eq('course_id', editingScores.courseId);
+
+            if (error) throw error;
+            alert("Scores successfully updated and graded!");
+            setEditingScores(null);
+            await refresh();
+        } catch (err) {
+            console.error(err);
+            alert("Failed to save scores.");
+        }
+    };
 
     const handleApproveUpgrade = async (u: any) => {
         try {
@@ -23,7 +56,8 @@ const AdminEnrollments: React.FC = () => {
 
             window.dispatchEvent(new Event('profile-update'));
 
-            const stored = localStorage.getItem('portal-notifications');
+            const notifKey = `portal-notifications-${u.email}`;
+            const stored = localStorage.getItem(notifKey);
             const list = stored ? JSON.parse(stored) : [];
             
             const recommendation = u.pending_role === 'PLUS'
@@ -38,7 +72,7 @@ const AdminEnrollments: React.FC = () => {
                 read: false,
                 type: 'payment'
             };
-            localStorage.setItem('portal-notifications', JSON.stringify([newItem, ...list]));
+            localStorage.setItem(notifKey, JSON.stringify([newItem, ...list]));
             window.dispatchEvent(new Event('notifications-update'));
 
             window.dispatchEvent(new CustomEvent('payment-verified-alert', {
@@ -70,7 +104,8 @@ const AdminEnrollments: React.FC = () => {
 
             window.dispatchEvent(new Event('profile-update'));
 
-            const stored = localStorage.getItem('portal-notifications');
+            const notifKey = `portal-notifications-${u.email}`;
+            const stored = localStorage.getItem(notifKey);
             const list = stored ? JSON.parse(stored) : [];
             const newItem = {
                 id: 'notif-' + Date.now(),
@@ -80,7 +115,7 @@ const AdminEnrollments: React.FC = () => {
                 read: false,
                 type: 'payment'
             };
-            localStorage.setItem('portal-notifications', JSON.stringify([newItem, ...list]));
+            localStorage.setItem(notifKey, JSON.stringify([newItem, ...list]));
             window.dispatchEvent(new Event('notifications-update'));
 
             alert('Upgrade request declined.');
@@ -259,7 +294,9 @@ const AdminEnrollments: React.FC = () => {
                             <tr className="text-gray-500 text-xs uppercase tracking-wider font-semibold">
                                 <th className="py-4 px-6 border-b border-gray-200">Student</th>
                                 <th className="py-4 px-6 border-b border-gray-200">Course</th>
+                                <th className="py-4 px-6 border-b border-gray-200 text-center">Quiz Score</th>
                                 <th className="py-4 px-6 border-b border-gray-200 text-center">Exam Score</th>
+                                <th className="py-4 px-6 border-b border-gray-200 text-center">Final Score</th>
                                 <th className="py-4 px-6 border-b border-gray-200 text-center">Marks Status</th>
                                 <th className="py-4 px-6 border-b border-gray-200">Certificate File / URL</th>
                                 <th className="py-4 px-6 border-b border-gray-200 text-center">Actions</th>
@@ -268,7 +305,7 @@ const AdminEnrollments: React.FC = () => {
                         <tbody className="divide-y divide-gray-100">
                             {enrollments.filter(e => e.exam_completed).length === 0 ? (
                                 <tr>
-                                    <td colSpan={6} className="py-8 px-6 text-center text-gray-500 text-sm">
+                                    <td colSpan={8} className="py-8 px-6 text-center text-gray-500 text-sm">
                                         No exam completions or issued certificates found.
                                     </td>
                                 </tr>
@@ -277,6 +314,10 @@ const AdminEnrollments: React.FC = () => {
                                     const student = users.find(u => u.id === e.user_id);
                                     const course = courses.find(c => c.id === e.course_id);
                                     if (!student || !course) return null;
+
+                                    const qScore = e.quiz_score !== undefined ? Number(e.quiz_score) : 0;
+                                    const exScore = e.exam_score !== undefined ? Number(e.exam_score) : 100;
+                                    const fScore = e.final_score !== undefined ? Number(e.final_score) : Math.round((qScore + exScore) / 2);
 
                                     return (
                                         <tr key={`${e.user_id}-${e.course_id}`} className="hover:bg-gray-55 transition-colors">
@@ -287,14 +328,63 @@ const AdminEnrollments: React.FC = () => {
                                                 </div>
                                             </td>
                                             <td className="py-4 px-6 text-gray-700 text-sm font-medium">{course.title}</td>
+                                            
+                                            {/* Quiz Score with inline edit trigger */}
                                             <td className="py-4 px-6 text-center">
-                                                <span className="px-2.5 py-1 bg-indigo-50 dark:bg-indigo-950/30 text-indigo-700 dark:text-indigo-400 font-bold rounded-lg text-xs">
-                                                    {e.exam_score !== undefined ? `${e.exam_score}%` : '100%'}
+                                                <div className="flex items-center justify-center gap-1.5 group/score">
+                                                    <span className="px-2.5 py-1 bg-gray-50 dark:bg-slate-800 text-gray-700 dark:text-slate-350 font-bold rounded-lg text-xs">
+                                                        {qScore}%
+                                                    </span>
+                                                    <button 
+                                                        onClick={() => setEditingScores({
+                                                            userId: e.user_id,
+                                                            courseId: e.course_id,
+                                                            studentName: student.name,
+                                                            courseTitle: course.title,
+                                                            quizScore: qScore,
+                                                            examScore: exScore
+                                                        })}
+                                                        className="p-1 text-gray-400 hover:text-purple-600 rounded hover:bg-gray-100 transition-colors opacity-0 group-hover/score:opacity-100 focus:opacity-100 cursor-pointer"
+                                                        title="Edit Scores"
+                                                    >
+                                                        <Edit2 size={12} />
+                                                    </button>
+                                                </div>
+                                            </td>
+
+                                            {/* Exam Score with inline edit trigger */}
+                                            <td className="py-4 px-6 text-center">
+                                                <div className="flex items-center justify-center gap-1.5 group/score">
+                                                    <span className="px-2.5 py-1 bg-indigo-50 dark:bg-indigo-955/30 text-indigo-700 dark:text-indigo-400 font-bold rounded-lg text-xs">
+                                                        {exScore}%
+                                                    </span>
+                                                    <button 
+                                                        onClick={() => setEditingScores({
+                                                            userId: e.user_id,
+                                                            courseId: e.course_id,
+                                                            studentName: student.name,
+                                                            courseTitle: course.title,
+                                                            quizScore: qScore,
+                                                            examScore: exScore
+                                                        })}
+                                                        className="p-1 text-gray-400 hover:text-purple-600 rounded hover:bg-gray-100 transition-colors opacity-0 group-hover/score:opacity-100 focus:opacity-100 cursor-pointer"
+                                                        title="Edit Scores"
+                                                    >
+                                                        <Edit2 size={12} />
+                                                    </button>
+                                                </div>
+                                            </td>
+
+                                            {/* Calculated Final Score */}
+                                            <td className="py-4 px-6 text-center">
+                                                <span className="px-2.5 py-1 bg-purple-50 dark:bg-purple-955/40 text-purple-700 dark:text-purple-400 font-extrabold rounded-lg text-xs">
+                                                    {fScore}%
                                                 </span>
                                             </td>
+
                                             <td className="py-4 px-6 text-center">
                                                 {e.exam_marks_released ? (
-                                                    <span className="inline-flex items-center gap-1 text-xs text-green-600 dark:text-green-450 font-bold bg-green-50 dark:bg-green-950/30 px-2.5 py-1 rounded-full border border-green-200 dark:border-green-900/50">
+                                                    <span className="inline-flex items-center gap-1 text-xs text-green-600 dark:text-green-455 font-bold bg-green-50 dark:bg-green-950/30 px-2.5 py-1 rounded-full border border-green-200 dark:border-green-900/50">
                                                         <Check size={12} /> Released
                                                     </span>
                                                 ) : (
@@ -307,7 +397,7 @@ const AdminEnrollments: React.FC = () => {
                                                                 alert("Failed to release exam marks.");
                                                             }
                                                         }}
-                                                        className="px-2.5 py-1 bg-amber-50 hover:bg-amber-100 text-amber-700 dark:bg-amber-950/20 dark:hover:bg-amber-900/30 border border-amber-250 dark:border-amber-900/40 rounded-lg text-xs font-bold transition-colors cursor-pointer"
+                                                        className="px-2.5 py-1 bg-amber-50 hover:bg-amber-100 text-amber-700 dark:bg-amber-950/20 dark:hover:bg-amber-900/30 border border-amber-250 dark:border-amber-900/40 rounded-lg text-xs font-bold transition-colors cursor-pointer animate-pulse"
                                                     >
                                                         Release Marks
                                                     </button>
@@ -356,30 +446,45 @@ const AdminEnrollments: React.FC = () => {
                                                 )}
                                             </td>
                                             <td className="py-4 px-6 text-center">
-                                                {e.is_certificate_verified ? (
-                                                    <span className="text-xs text-green-600 font-bold flex items-center justify-center gap-1">
-                                                        ✓ Verified & Issued
-                                                    </span>
-                                                ) : (
+                                                <div className="flex flex-col gap-1.5 items-center justify-center">
+                                                    {e.is_certificate_verified ? (
+                                                        <span className="text-xs text-green-600 font-bold flex items-center justify-center gap-1">
+                                                            ✓ Verified & Issued
+                                                        </span>
+                                                    ) : (
+                                                        <button
+                                                            onClick={async () => {
+                                                                const certData = (e as any).uploaded_cert_data;
+                                                                if (!certData) {
+                                                                    alert("Please upload a file or enter a Certificate URL first.");
+                                                                    return;
+                                                                }
+                                                                try {
+                                                                    await verifyAndIssueCertificate(e.user_id, e.course_id, certData);
+                                                                    alert("Certificate successfully verified and uploaded!");
+                                                                } catch (err: any) {
+                                                                    alert("Failed to verify certificate.");
+                                                                }
+                                                            }}
+                                                            className="px-3 py-1 bg-purple-600 hover:bg-purple-750 text-white rounded-lg text-xs font-bold transition-colors cursor-pointer w-full"
+                                                        >
+                                                            Verify & Upload
+                                                        </button>
+                                                    )}
                                                     <button
-                                                        onClick={async () => {
-                                                            const certData = (e as any).uploaded_cert_data;
-                                                            if (!certData) {
-                                                                alert("Please upload a file or enter a Certificate URL first.");
-                                                                return;
-                                                            }
-                                                            try {
-                                                                await verifyAndIssueCertificate(e.user_id, e.course_id, certData);
-                                                                alert("Certificate successfully verified and uploaded!");
-                                                            } catch (err: any) {
-                                                                alert("Failed to verify certificate.");
-                                                            }
-                                                        }}
-                                                        className="px-3 py-1 bg-purple-600 hover:bg-purple-750 text-white rounded-lg text-xs font-bold transition-colors cursor-pointer"
+                                                        onClick={() => setEditingScores({
+                                                            userId: e.user_id,
+                                                            courseId: e.course_id,
+                                                            studentName: student.name,
+                                                            courseTitle: course.title,
+                                                            quizScore: qScore,
+                                                            examScore: exScore
+                                                        })}
+                                                        className="px-3 py-1 bg-gray-50 hover:bg-gray-100 text-gray-700 border border-gray-250 rounded-lg text-xs font-bold transition-colors cursor-pointer w-full flex items-center justify-center gap-1"
                                                     >
-                                                        Verify & Upload
+                                                        <Edit2 size={10} /> Edit Grades
                                                     </button>
-                                                )}
+                                                </div>
                                             </td>
                                         </tr>
                                     );
@@ -389,6 +494,70 @@ const AdminEnrollments: React.FC = () => {
                     </table>
                 </div>
             </div>
+
+            {/* Edit Scores / Grading Dialog Modal */}
+            {editingScores && (
+                <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+                    <div className="bg-white dark:bg-slate-900 rounded-3xl w-full max-w-md overflow-hidden shadow-2xl border border-gray-150 dark:border-slate-805">
+                        <div className="p-6 border-b border-gray-150 dark:border-slate-800 flex justify-between items-center bg-gray-50/50 dark:bg-slate-900/50">
+                            <h3 className="text-base font-bold text-gray-900 dark:text-white">Grade & Edit Scores</h3>
+                            <button onClick={() => setEditingScores(null)} className="p-1.5 text-gray-400 hover:text-gray-600 dark:hover:text-slate-350 rounded-full hover:bg-gray-100 dark:hover:bg-slate-800 cursor-pointer">
+                                <X size={18} />
+                            </button>
+                        </div>
+                        <div className="p-6 space-y-4">
+                            <div>
+                                <p className="text-xs font-bold text-gray-450 dark:text-slate-450 uppercase tracking-wider">Student</p>
+                                <p className="text-sm font-bold text-gray-900 dark:text-white mt-0.5">{editingScores.studentName}</p>
+                            </div>
+                            <div>
+                                <p className="text-xs font-bold text-gray-450 dark:text-slate-450 uppercase tracking-wider">Course</p>
+                                <p className="text-sm font-semibold text-gray-700 dark:text-slate-300 mt-0.5">{editingScores.courseTitle}</p>
+                            </div>
+                            
+                            <div className="grid grid-cols-2 gap-4 pt-2">
+                                <div>
+                                    <label className="block text-xs font-bold text-gray-750 dark:text-slate-300 uppercase tracking-wider mb-2">Quiz Score (%)</label>
+                                    <input 
+                                        type="number" 
+                                        min={0}
+                                        max={100}
+                                        value={editingScores.quizScore} 
+                                        onChange={e => setEditingScores({ ...editingScores, quizScore: Math.min(100, Math.max(0, Number(e.target.value))) })}
+                                        className="w-full p-2.5 bg-gray-50 dark:bg-slate-800 border border-gray-250 dark:border-slate-750 rounded-xl focus:ring-2 focus:ring-purple-500 text-sm text-gray-900 dark:text-white outline-none"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-bold text-gray-750 dark:text-slate-300 uppercase tracking-wider mb-2">Exam Score (%)</label>
+                                    <input 
+                                        type="number" 
+                                        min={0}
+                                        max={100}
+                                        value={editingScores.examScore} 
+                                        onChange={e => setEditingScores({ ...editingScores, examScore: Math.min(100, Math.max(0, Number(e.target.value))) })}
+                                        className="w-full p-2.5 bg-gray-50 dark:bg-slate-800 border border-gray-250 dark:border-slate-750 rounded-xl focus:ring-2 focus:ring-purple-500 text-sm text-gray-900 dark:text-white outline-none"
+                                    />
+                                </div>
+                            </div>
+                            
+                            <div className="bg-purple-50 dark:bg-purple-950/20 border border-purple-100 dark:border-purple-900/40 p-3.5 rounded-2xl flex items-center justify-between mt-2">
+                                <span className="text-xs font-bold text-purple-900 dark:text-purple-300">Recalculated Final Score:</span>
+                                <span className="text-sm font-extrabold text-purple-700 dark:text-purple-400 font-mono">
+                                    {Math.round((editingScores.quizScore + editingScores.examScore) / 2)}%
+                                </span>
+                            </div>
+                        </div>
+                        <div className="p-4 border-t border-gray-150 dark:border-slate-800 bg-gray-50/50 dark:bg-slate-900/50 flex justify-end gap-2">
+                            <button onClick={() => setEditingScores(null)} className="px-4 py-2 bg-white hover:bg-gray-50 dark:bg-slate-800 dark:hover:bg-slate-750 text-gray-700 dark:text-slate-300 border border-gray-200 dark:border-slate-700 rounded-xl font-bold text-xs cursor-pointer">
+                                Cancel
+                            </button>
+                            <button onClick={handleSaveScores} className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-xl font-bold text-xs cursor-pointer">
+                                Save changes
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                )}
         </div>
     );
 };

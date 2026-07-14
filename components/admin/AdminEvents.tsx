@@ -79,7 +79,7 @@ const AdminEvents: React.FC = () => {
         }
     };
 
-    const { courses } = useAdmin(true);
+    const { users, courses } = useAdmin(true);
     const [events, setEvents] = useState<EventItem[]>([]);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingEvent, setEditingEvent] = useState<EventItem | null>(null);
@@ -399,18 +399,23 @@ const AdminEvents: React.FC = () => {
         localStorage.setItem('admin-events', JSON.stringify(updated));
         window.dispatchEvent(new Event('admin-events-update'));
 
-        // Trigger notification
-        const storedNotifs = localStorage.getItem('portal-notifications');
-        const notifList = storedNotifs ? JSON.parse(storedNotifs) : [];
-        const newNotif = {
-            id: Date.now().toString(),
-            title: editingEvent ? `Event Updated: ${title}` : `New Event: ${title}`,
-            description: description,
-            timestamp: new Date().toISOString(),
-            read: false,
-            type: 'system'
-        };
-        localStorage.setItem('portal-notifications', JSON.stringify([newNotif, ...notifList]));
+        // Trigger notification for all users
+        users.forEach(u => {
+            if (u.email) {
+                const key = `portal-notifications-${u.email}`;
+                const storedNotifs = localStorage.getItem(key);
+                const notifList = storedNotifs ? JSON.parse(storedNotifs) : [];
+                const newNotif = {
+                    id: 'admin-broadcast-' + Date.now() + '-' + Math.random().toString(36).substr(2, 4),
+                    title: editingEvent ? `Event Updated: ${title}` : `New Event: ${title}`,
+                    description: description,
+                    timestamp: new Date().toISOString(),
+                    read: false,
+                    type: 'system'
+                };
+                localStorage.setItem(key, JSON.stringify([newNotif, ...notifList]));
+            }
+        });
         window.dispatchEvent(new Event('notifications-update'));
 
         // Reset

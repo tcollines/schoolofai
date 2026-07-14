@@ -17,7 +17,9 @@ const MyCourses: React.FC<MyCoursesProps> = ({ courses }) => {
     const { t } = useTranslation();
 
     const addPortalNotification = (title: string, description: string, type: 'assignment' | 'profile' | 'course' | 'system') => {
-        const stored = localStorage.getItem('portal-notifications');
+        const userEmail = localStorage.getItem('logged_in_email') || 'student@test.com';
+        const notifKey = `portal-notifications-${userEmail}`;
+        const stored = localStorage.getItem(notifKey);
         const list = stored ? JSON.parse(stored) : [];
         const newItem = {
             id: Date.now().toString(),
@@ -27,7 +29,7 @@ const MyCourses: React.FC<MyCoursesProps> = ({ courses }) => {
             read: false,
             type
         };
-        localStorage.setItem('portal-notifications', JSON.stringify([newItem, ...list]));
+        localStorage.setItem(notifKey, JSON.stringify([newItem, ...list]));
         window.dispatchEvent(new Event('notifications-update'));
     };
 
@@ -239,11 +241,21 @@ const MyCourses: React.FC<MyCoursesProps> = ({ courses }) => {
                     try {
                         const { data: { session } } = await supabase.auth.getSession();
                         if (session?.user?.id && selectedCourse) {
+                            const scopeKey = session.user.email || 'guest';
+                            const existingGrades = JSON.parse(localStorage.getItem(`quiz-grades-${scopeKey}`) || '[]');
+                            const courseGrades = existingGrades.filter((g: any) => g.courseId === selectedCourse.id);
+                            const quizScore = courseGrades.length > 0
+                                ? Math.round(courseGrades.reduce((sum: number, g: any) => sum + (g.percentage || 0), 0) / courseGrades.length)
+                                : 0;
+                            const finalScore = Math.round((quizScore + score) / 2);
+
                             const { error } = await supabase
                                 .from('enrollments')
                                 .update({ 
                                     exam_completed: true,
                                     exam_score: score,
+                                    quiz_score: quizScore,
+                                    final_score: finalScore,
                                     exam_marks_released: false,
                                     status: CourseStatus.COMPLETED
                                 })
@@ -255,15 +267,18 @@ const MyCourses: React.FC<MyCoursesProps> = ({ courses }) => {
                             const updatedCourse = {
                                 ...selectedCourse,
                                 examCompleted: true,
-                                examScore: score,
+                                examMarksReleased: false,
+                                examScore: undefined,
+                                quizScore: undefined,
+                                finalScore: undefined,
                                 status: CourseStatus.COMPLETED
                             };
                             setSelectedCourse(updatedCourse);
                             setLocalCourses(prev => prev.map(c => c.id === selectedCourse.id ? updatedCourse : c));
                             
                             addPortalNotification(
-                                "Exam Completed Successfully",
-                                `You have finished the final exam for ${selectedCourse.title} with a score of ${score}%. The admin team will verify and issue your certificate soon.`,
+                                "Exam Submitted for Grading",
+                                `You have successfully submitted the final exam for ${selectedCourse.title}. The admin team will review and release your grade soon.`,
                                 "course"
                             );
 

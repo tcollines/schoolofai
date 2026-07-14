@@ -95,18 +95,23 @@ const AdminOverview: React.FC = () => {
         localStorage.setItem('admin-events', JSON.stringify([newEvent, ...list]));
         window.dispatchEvent(new Event('admin-events-update'));
 
-        // Add to portal notifications
-        const storedNotifs = localStorage.getItem('portal-notifications');
-        const notifList = storedNotifs ? JSON.parse(storedNotifs) : [];
-        const newNotif = {
-            id: Date.now().toString(),
-            title: `New Admin ${type}: ${title}`,
-            description: description,
-            timestamp: new Date().toISOString(),
-            read: false,
-            type: 'system'
-        };
-        localStorage.setItem('portal-notifications', JSON.stringify([newNotif, ...notifList]));
+        // Add to portal notifications for all users
+        users.forEach(u => {
+            if (u.email) {
+                const key = `portal-notifications-${u.email}`;
+                const storedNotifs = localStorage.getItem(key);
+                const notifList = storedNotifs ? JSON.parse(storedNotifs) : [];
+                const newNotif = {
+                    id: 'admin-broadcast-' + Date.now() + '-' + Math.random().toString(36).substr(2, 4),
+                    title: `New Admin ${type}: ${title}`,
+                    description: description,
+                    timestamp: new Date().toISOString(),
+                    read: false,
+                    type: 'system'
+                };
+                localStorage.setItem(key, JSON.stringify([newNotif, ...notifList]));
+            }
+        });
         window.dispatchEvent(new Event('notifications-update'));
 
         alert(`Successfully published ${type}: "${title}"!`);

@@ -128,15 +128,39 @@ const Certificates: React.FC<CertificatesProps> = ({ courses }) => {
                                             <span className="text-green-600 dark:text-green-400 font-semibold">100%</span>
                                         </div>
 
-                                        <div className="flex items-center justify-between text-xs font-medium text-gray-600 dark:text-slate-400">
-                                            <div className="flex items-center gap-1.5">
-                                                <span className="text-sm">📝</span>
-                                                <span>Final Exam</span>
-                                            </div>
-                                            <span className={course.examCompleted ? "text-green-650 dark:text-green-400 font-semibold" : "text-amber-600 dark:text-amber-400 font-semibold"}>
-                                                {course.examCompleted ? `Completed (${course.examScore ?? 100}%)` : "Not Completed"}
-                                            </span>
-                                        </div>
+                                        {course.examCompleted && (
+                                            <>
+                                                <div className="flex items-center justify-between text-xs font-medium text-gray-600 dark:text-slate-400">
+                                                    <div className="flex items-center gap-1.5">
+                                                        <span className="text-sm">📝</span>
+                                                        <span>Module Quizzes</span>
+                                                    </div>
+                                                    <span className="text-gray-900 dark:text-white font-bold">
+                                                        {course.examMarksReleased && course.quizScore !== undefined ? `${course.quizScore}%` : 'Grading...'}
+                                                    </span>
+                                                </div>
+
+                                                <div className="flex items-center justify-between text-xs font-medium text-gray-600 dark:text-slate-400">
+                                                    <div className="flex items-center gap-1.5">
+                                                        <span className="text-sm">✍️</span>
+                                                        <span>Final Exam</span>
+                                                    </div>
+                                                    <span className="text-gray-900 dark:text-white font-bold">
+                                                        {course.examMarksReleased && course.examScore !== undefined ? `${course.examScore}%` : 'Grading...'}
+                                                    </span>
+                                                </div>
+
+                                                <div className="flex items-center justify-between text-xs font-medium text-gray-650 dark:text-slate-350 bg-gray-50 dark:bg-slate-850 p-2 rounded-lg border border-gray-100 dark:border-slate-800/80 mt-1">
+                                                    <div className="flex items-center gap-1.5 font-bold">
+                                                        <span className="text-sm">🏆</span>
+                                                        <span>Final Score</span>
+                                                    </div>
+                                                    <span className="text-violet-700 dark:text-violet-400 font-extrabold text-sm">
+                                                        {course.examMarksReleased && course.finalScore !== undefined ? `${course.finalScore}%` : 'Pending'}
+                                                    </span>
+                                                </div>
+                                            </>
+                                        )}
 
                                         <div className="flex items-center justify-between text-xs font-medium text-gray-600 dark:text-slate-400 mt-1 pt-2 border-t border-dashed border-gray-100 dark:border-slate-800">
                                             <span>Certificate Status:</span>
