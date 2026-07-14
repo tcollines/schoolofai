@@ -100,7 +100,12 @@
       }
     </script>
     <script>
-      if (localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+      // One-time migration: reset to light mode default
+      if (!localStorage.getItem('theme-v2-migrated')) {
+        localStorage.removeItem('theme');
+        localStorage.setItem('theme-v2-migrated', 'true');
+      }
+      if (localStorage.getItem('theme') === 'dark') {
         document.documentElement.classList.add('dark');
       } else {
         document.documentElement.classList.remove('dark');

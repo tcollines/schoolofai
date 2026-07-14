@@ -18,9 +18,12 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ onExit }) => {
     
     const activeTab = location.pathname.split('/')[2] || 'enrollments';
 
-    const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(() => {
-        return localStorage.getItem('admin-session') === 'true';
-    });
+    // Admin must always authenticate fresh - never auto-login
+    const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(false);
+    
+    useEffect(() => {
+        localStorage.removeItem('admin-session');
+    }, []);
 
     const [isDark, setIsDark] = useState(() => {
         return document.documentElement.classList.contains('dark');

@@ -130,11 +130,9 @@ function App() {
             ) : <Navigate to="/dashboard" replace />
         } />
         
-        {/* Admin Route */}
+        {/* Admin Route - uses its own authentication via AdminLoginPage */}
         <Route path="/admin/*" element={
-             <ProtectedRoute isAuthenticated={isAuthenticated}>
-                 <AdminLayout onExit={() => window.location.href = '/dashboard'} />
-             </ProtectedRoute>
+             <AdminLayout onExit={() => window.location.href = '/dashboard'} />
         } />
 
         {/* Student Routes wrapper */}
