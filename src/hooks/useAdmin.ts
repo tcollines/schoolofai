@@ -286,5 +286,24 @@ export const useAdmin = (isAdmin: boolean) => {
         }
     };
 
-    return { users, courses, enrollments, loading, error, addCourse, updateCourse, deleteCourse, updateCourseQuiz, updateUserRole, deleteUser, verifyAndIssueCertificate, refresh: fetchData };
+    const releaseExamMarks = async (userId: string, courseId: string) => {
+        try {
+            const { error } = await supabase
+                .from('enrollments')
+                .update({ 
+                    exam_marks_released: true
+                })
+                .eq('user_id', userId)
+                .eq('course_id', courseId);
+
+            if (error) throw error;
+            await fetchData(true); // Refresh silently
+            window.dispatchEvent(new Event('profile-update'));
+        } catch (err: any) {
+            console.error('Error releasing exam marks:', err);
+            throw err;
+        }
+    };
+
+    return { users, courses, enrollments, loading, error, addCourse, updateCourse, deleteCourse, updateCourseQuiz, updateUserRole, deleteUser, verifyAndIssueCertificate, releaseExamMarks, refresh: fetchData };
 };

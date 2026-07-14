@@ -1,11 +1,11 @@
 import React from 'react';
 import { useAdmin } from '../../src/hooks/useAdmin';
 import { UserRole } from '../../types';
-import { Trash2 } from 'lucide-react';
+import { Trash2, Check } from 'lucide-react';
 import { supabase } from '../../src/lib/supabase';
 
 const AdminEnrollments: React.FC = () => {
-    const { users, courses, enrollments, loading, updateUserRole, deleteUser, verifyAndIssueCertificate } = useAdmin(true);
+    const { users, courses, enrollments, loading, updateUserRole, deleteUser, verifyAndIssueCertificate, releaseExamMarks } = useAdmin(true);
 
     const handleApproveUpgrade = async (u: any) => {
         try {
@@ -260,6 +260,7 @@ const AdminEnrollments: React.FC = () => {
                                 <th className="py-4 px-6 border-b border-gray-200">Student</th>
                                 <th className="py-4 px-6 border-b border-gray-200">Course</th>
                                 <th className="py-4 px-6 border-b border-gray-200 text-center">Exam Score</th>
+                                <th className="py-4 px-6 border-b border-gray-200 text-center">Marks Status</th>
                                 <th className="py-4 px-6 border-b border-gray-200">Certificate File / URL</th>
                                 <th className="py-4 px-6 border-b border-gray-200 text-center">Actions</th>
                             </tr>
@@ -267,7 +268,7 @@ const AdminEnrollments: React.FC = () => {
                         <tbody className="divide-y divide-gray-100">
                             {enrollments.filter(e => e.exam_completed).length === 0 ? (
                                 <tr>
-                                    <td colSpan={5} className="py-8 px-6 text-center text-gray-500 text-sm">
+                                    <td colSpan={6} className="py-8 px-6 text-center text-gray-500 text-sm">
                                         No exam completions or issued certificates found.
                                     </td>
                                 </tr>
@@ -290,6 +291,27 @@ const AdminEnrollments: React.FC = () => {
                                                 <span className="px-2.5 py-1 bg-indigo-50 dark:bg-indigo-950/30 text-indigo-700 dark:text-indigo-400 font-bold rounded-lg text-xs">
                                                     {e.exam_score !== undefined ? `${e.exam_score}%` : '100%'}
                                                 </span>
+                                            </td>
+                                            <td className="py-4 px-6 text-center">
+                                                {e.exam_marks_released ? (
+                                                    <span className="inline-flex items-center gap-1 text-xs text-green-600 dark:text-green-450 font-bold bg-green-50 dark:bg-green-950/30 px-2.5 py-1 rounded-full border border-green-200 dark:border-green-900/50">
+                                                        <Check size={12} /> Released
+                                                    </span>
+                                                ) : (
+                                                    <button
+                                                        onClick={async () => {
+                                                            try {
+                                                                await releaseExamMarks(e.user_id, e.course_id);
+                                                                alert("Exam marks released to the student successfully!");
+                                                            } catch (err: any) {
+                                                                alert("Failed to release exam marks.");
+                                                            }
+                                                        }}
+                                                        className="px-2.5 py-1 bg-amber-50 hover:bg-amber-100 text-amber-700 dark:bg-amber-950/20 dark:hover:bg-amber-900/30 border border-amber-250 dark:border-amber-900/40 rounded-lg text-xs font-bold transition-colors cursor-pointer"
+                                                    >
+                                                        Release Marks
+                                                    </button>
+                                                )}
                                             </td>
                                             <td className="py-4 px-6 text-sm">
                                                 {e.is_certificate_verified && e.certificate_url ? (

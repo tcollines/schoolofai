@@ -88,6 +88,7 @@ export interface Course {
   examScore?: number;
   certificateUrl?: string;
   isCertificateVerified?: boolean;
+  examMarksReleased?: boolean;
 }
 
 export interface UserProfile {

@@ -234,7 +234,7 @@ const MyCourses: React.FC<MyCoursesProps> = ({ courses }) => {
                 courseTitle={selectedCourse.title}
                 onClose={() => setTakingExam(false)}
                 onSubmit={async (score) => {
-                    alert(`Exam submitted! You scored ${score}%`);
+                    alert("Exam submitted for grading! The admin will review and release your score.");
                     setTakingExam(false);
                     try {
                         const { data: { session } } = await supabase.auth.getSession();
@@ -244,6 +244,7 @@ const MyCourses: React.FC<MyCoursesProps> = ({ courses }) => {
                                 .update({ 
                                     exam_completed: true,
                                     exam_score: score,
+                                    exam_marks_released: false,
                                     status: CourseStatus.COMPLETED
                                 })
                                 .eq('user_id', session.user.id)
@@ -365,22 +366,36 @@ const MyCourses: React.FC<MyCoursesProps> = ({ courses }) => {
                         {selectedCourse.quiz && !selectedCourse.quiz.isDraft && (selectedCourse.status === CourseStatus.COMPLETED || (selectedCourse.lessonsTotal > 0 && selectedCourse.lessonsCompleted >= selectedCourse.lessonsTotal)) && (
                             <div className="mt-4 p-4 bg-indigo-50 dark:bg-indigo-950/20 border border-indigo-100 dark:border-indigo-900/50 rounded-xl flex items-center justify-between">
                                 <div>
-                                    <h4 className="font-bold text-indigo-900 dark:text-indigo-200">Final Exam Available</h4>
-                                    <p className="text-xs text-indigo-700 dark:text-indigo-300">Test your knowledge to earn your certificate.</p>
+                                    <h4 className="font-bold text-indigo-900 dark:text-indigo-200">Final Exam</h4>
+                                    {selectedCourse.examCompleted ? (
+                                        selectedCourse.examMarksReleased ? (
+                                            <p className="text-xs text-green-700 dark:text-green-400">
+                                                Exam Completed! Your Score: <span className="font-bold">{selectedCourse.examScore}%</span>
+                                            </p>
+                                        ) : (
+                                            <p className="text-xs text-amber-700 dark:text-amber-400 font-semibold animate-pulse">
+                                                Exam Submitted! Waiting for Admin to grade and release marks.
+                                            </p>
+                                        )
+                                    ) : (
+                                        <p className="text-xs text-indigo-700 dark:text-indigo-300">Test your knowledge to earn your certificate.</p>
+                                    )}
                                 </div>
-                                <button 
-                                    onClick={() => {
-                                        addPortalNotification(
-                                            `Started Final Exam: ${selectedCourse.title}`,
-                                            "You have successfully initiated the exam room environment. Avoid minimizing the window or switching tabs.",
-                                            "course"
-                                        );
-                                        setTakingExam(true);
-                                    }}
-                                    className="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-indigo-700"
-                                >
-                                    {t('start_exam')}
-                                </button>
+                                {!selectedCourse.examCompleted && (
+                                    <button 
+                                        onClick={() => {
+                                            addPortalNotification(
+                                                `Started Final Exam: ${selectedCourse.title}`,
+                                                "You have successfully initiated the exam room environment. Avoid minimizing the window or switching tabs.",
+                                                "course"
+                                            );
+                                            setTakingExam(true);
+                                        }}
+                                        className="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-indigo-700"
+                                    >
+                                        {t('start_exam')}
+                                    </button>
+                                )}
                             </div>
                         )}
 
