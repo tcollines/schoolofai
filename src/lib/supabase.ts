@@ -158,27 +158,24 @@ const getDB = (): LocalDB => {
     
     const chemayekProfile = db.profiles.find(p => p.email === 'chemayekabraham289@gmail.com');
     if (chemayekProfile) {
-        if (chemayekProfile.full_name !== 'Abraham Chemayek' || !chemayekProfile.avatar_url || chemayekProfile.avatar_url.includes('dicebear')) {
+        if (chemayekProfile.full_name !== 'Abraham Chemayek') {
             chemayekProfile.full_name = 'Abraham Chemayek';
-            chemayekProfile.avatar_url = 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&q=80&w=150';
             dbUpdated = true;
         }
     }
 
     const collinsProfile = db.profiles.find(p => p.email === 'mr.collins@schoolofai.edu');
     if (collinsProfile) {
-        if (collinsProfile.full_name !== 'Mr. Collins' || !collinsProfile.avatar_url || collinsProfile.avatar_url.includes('dicebear')) {
+        if (collinsProfile.full_name !== 'Mr. Collins') {
             collinsProfile.full_name = 'Mr. Collins';
-            collinsProfile.avatar_url = 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&q=80&w=150';
             dbUpdated = true;
         }
     }
 
     const testStudentProfile = db.profiles.find(p => p.email === 'student@test.com');
     if (testStudentProfile) {
-        if (testStudentProfile.full_name !== 'Test Student' || !testStudentProfile.avatar_url || testStudentProfile.avatar_url.includes('dicebear') || testStudentProfile.avatar_url.includes('placeholder')) {
+        if (testStudentProfile.full_name !== 'Test Student') {
             testStudentProfile.full_name = 'Test Student';
-            testStudentProfile.avatar_url = 'https://i.pravatar.cc/150?u=a042581f4e29026704d';
             dbUpdated = true;
         }
     }
@@ -405,18 +402,6 @@ export const supabase = {
             if (!profile) {
                 return { data: { user: null }, error: { message: 'Invalid credentials' } };
             } else {
-                // Ensure name and avatar are upgraded if they are old formats
-                const isChemayek = email === 'chemayekabraham289@gmail.com';
-                const isCollins = email === 'mr.collins@schoolofai.edu';
-                if (isChemayek && (profile.full_name !== 'Abraham Chemayek' || !profile.avatar_url || profile.avatar_url.includes('dicebear'))) {
-                    profile.full_name = 'Abraham Chemayek';
-                    profile.avatar_url = 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&q=80&w=150';
-                    saveDB(db);
-                } else if (isCollins && (profile.full_name !== 'Mr. Collins' || !profile.avatar_url || profile.avatar_url.includes('dicebear'))) {
-                    profile.full_name = 'Mr. Collins';
-                    profile.avatar_url = 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&q=80&w=150';
-                    saveDB(db);
-                }
                 localStorage.setItem('mock_logged_in_name', profile.full_name);
             }
             window.dispatchEvent(new Event('profile-update'));
@@ -456,15 +441,7 @@ export const supabase = {
                 db.profiles.push(profile);
                 saveDB(db);
             } else {
-                if (isChemayek && (profile.full_name !== 'Abraham Chemayek' || !profile.avatar_url || profile.avatar_url.includes('dicebear'))) {
-                    profile.full_name = 'Abraham Chemayek';
-                    profile.avatar_url = 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&q=80&w=150';
-                    saveDB(db);
-                } else if (isCollins && (profile.full_name !== 'Mr. Collins' || !profile.avatar_url || profile.avatar_url.includes('dicebear'))) {
-                    profile.full_name = 'Mr. Collins';
-                    profile.avatar_url = 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&q=80&w=150';
-                    saveDB(db);
-                }
+                localStorage.setItem('mock_logged_in_name', profile.full_name);
             }
             window.dispatchEvent(new Event('profile-update'));
             return { data: { session: { user: { id: profile.id, email } }, user: { id: profile.id, email } }, error: null };

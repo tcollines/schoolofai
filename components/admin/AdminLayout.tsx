@@ -18,12 +18,10 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ onExit }) => {
     
     const activeTab = location.pathname.split('/')[2] || 'enrollments';
 
-    // Admin must always authenticate fresh - never auto-login
-    const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(false);
-    
-    useEffect(() => {
-        localStorage.removeItem('admin-session');
-    }, []);
+    // Persist admin session across page refreshes
+    const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(() => {
+        return localStorage.getItem('admin-session') === 'true';
+    });
 
     const [isDark, setIsDark] = useState(() => {
         return document.documentElement.classList.contains('dark');
@@ -61,6 +59,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ onExit }) => {
         return (
             <AdminLoginPage 
                 onLoginSuccess={() => {
+                    localStorage.setItem('admin-session', 'true');
                     setIsAdminAuthenticated(true);
                 }}
                 onBackToStudentPortal={() => window.location.href = '/'}
