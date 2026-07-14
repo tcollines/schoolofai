@@ -47,6 +47,7 @@ export interface Question {
   type?: QuestionType; // optional for backwards compatibility
   options?: string[]; // for multiple_choice
   correctAnswer: number | string | boolean; // index for mc, boolean for t/f, string for short answer
+  gradingGuide?: string;
 }
 
 export interface Quiz {
@@ -55,6 +56,7 @@ export interface Quiz {
   questions: Question[];
   timeLimit?: number; // in minutes
   preventTabChange?: boolean;
+  isDraft?: boolean;
 }
 
 export interface Course {

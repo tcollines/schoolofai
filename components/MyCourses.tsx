@@ -169,7 +169,7 @@ const MyCourses: React.FC<MyCoursesProps> = ({ courses }) => {
         if (currentIndex !== -1 && selectedCourse) {
             const completedCount = currentIndex + 1;
             if (completedCount > selectedCourse.lessonsCompleted) {
-                const hasExam = !!selectedCourse.quiz;
+                const hasExam = selectedCourse.quiz && !selectedCourse.quiz.isDraft;
                 const newStatus = (completedCount >= selectedCourse.lessonsTotal && !hasExam) 
                     ? CourseStatus.COMPLETED 
                     : CourseStatus.IN_PROGRESS;
@@ -227,7 +227,7 @@ const MyCourses: React.FC<MyCoursesProps> = ({ courses }) => {
         );
     }
 
-    if (takingExam && selectedCourse && selectedCourse.quiz) {
+    if (takingExam && selectedCourse && selectedCourse.quiz && !selectedCourse.quiz.isDraft) {
         return (
             <ExamPlayer 
                 quiz={selectedCourse.quiz}
@@ -362,7 +362,7 @@ const MyCourses: React.FC<MyCoursesProps> = ({ courses }) => {
                             </div>
                         </div>
 
-                        {selectedCourse.quiz && (selectedCourse.status === CourseStatus.COMPLETED || (selectedCourse.lessonsTotal > 0 && selectedCourse.lessonsCompleted >= selectedCourse.lessonsTotal)) && (
+                        {selectedCourse.quiz && !selectedCourse.quiz.isDraft && (selectedCourse.status === CourseStatus.COMPLETED || (selectedCourse.lessonsTotal > 0 && selectedCourse.lessonsCompleted >= selectedCourse.lessonsTotal)) && (
                             <div className="mt-4 p-4 bg-indigo-50 dark:bg-indigo-950/20 border border-indigo-100 dark:border-indigo-900/50 rounded-xl flex items-center justify-between">
                                 <div>
                                     <h4 className="font-bold text-indigo-900 dark:text-indigo-200">Final Exam Available</h4>
