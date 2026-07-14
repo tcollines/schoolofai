@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Calendar, Plus, Trash2, MapPin, Video, Users, Clock, Send, X, Edit } from 'lucide-react';
+import { Calendar, Plus, Trash2, MapPin, Video, Users, Clock, Send, X, Edit, Copy } from 'lucide-react';
 import { useAdmin } from '../../src/hooks/useAdmin';
 
 interface EventItem {
@@ -54,6 +54,31 @@ const defaultAdminEvents = [
 ];
 
 const AdminEvents: React.FC = () => {
+    const isEventExpired = (event: EventItem) => {
+        try {
+            const cleanTime = event.time.trim();
+            const timePart = cleanTime.split('-')[0].trim().split(' ')[0];
+            let [hours, minutes] = timePart.split(':').map(Number);
+            if (isNaN(hours) || isNaN(minutes)) return false;
+            
+            const isPM = cleanTime.toLowerCase().includes('pm');
+            const isAM = cleanTime.toLowerCase().includes('am');
+            if (isPM && hours < 12) {
+                hours += 12;
+            } else if (isAM && hours === 12) {
+                hours = 0;
+            }
+            
+            const [year, month, day] = event.date.split('-').map(Number);
+            if (isNaN(year) || isNaN(month) || isNaN(day)) return false;
+            
+            const eventDate = new Date(year, month - 1, day, hours, minutes, 0, 0);
+            return eventDate.getTime() < Date.now();
+        } catch (e) {
+            return false;
+        }
+    };
+
     const { courses } = useAdmin(true);
     const [events, setEvents] = useState<EventItem[]>([]);
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -168,6 +193,51 @@ const AdminEvents: React.FC = () => {
 
     const openEditModal = (event: EventItem) => {
         setEditingEvent(event);
+        setTitle(event.title);
+        setDescription(event.description);
+        setDate(event.date);
+        
+        let initialHour = '12';
+        let initialMinute = '00';
+        let initialPeriod = 'PM';
+        try {
+            const cleanTime = event.time.trim();
+            const firstPart = cleanTime.split(' ')[0]; // "14:00" or "02:00"
+            let [h, m] = firstPart.split(':').map(Number);
+            if (!isNaN(h) && !isNaN(m)) {
+                const isPM = cleanTime.toLowerCase().includes('pm') || h >= 12;
+                initialPeriod = isPM ? 'PM' : 'AM';
+                if (h > 12) {
+                    h -= 12;
+                } else if (h === 0) {
+                    h = 12;
+                }
+                initialHour = String(h).padStart(2, '0');
+                initialMinute = String(m).padStart(2, '0');
+            }
+        } catch (e) {
+            console.error("Failed to parse time:", e);
+        }
+        
+        setTimeHour(initialHour);
+        setTimeMinute(initialMinute);
+        setTimePeriod(initialPeriod);
+        setTime(event.time);
+        
+        setType(event.type as any);
+        setSpeaker(event.speaker);
+        setCourseId(event.courseId);
+        setSectionId(event.sectionId || '');
+        setModuleId(event.moduleId || '');
+        setMedium(event.medium || 'Online');
+        setMeetLink(event.meetLink || '');
+        setLocation(event.location || '');
+        setPremiered(!!event.premiered);
+        setIsModalOpen(true);
+    };
+
+    const openReuseModal = (event: EventItem) => {
+        setEditingEvent(null);
         setTitle(event.title);
         setDescription(event.description);
         setDate(event.date);
@@ -385,6 +455,13 @@ const AdminEvents: React.FC = () => {
                         <div key={event.id} className="bg-white dark:bg-slate-900 p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-slate-800 flex flex-col justify-between transition-colors relative group">
                             <div className="absolute top-4 right-4 flex gap-1 z-10">
                                 <button
+                                    onClick={() => openReuseModal(event)}
+                                    className="text-gray-400 hover:text-green-600 p-1.5 hover:bg-green-50 dark:hover:bg-green-950/20 rounded-lg transition-colors cursor-pointer border-0 bg-transparent"
+                                    title="Reuse Event (Duplicate)"
+                                >
+                                    <Copy size={16} />
+                                </button>
+                                <button
                                     onClick={() => openEditModal(event)}
                                     className="text-gray-400 hover:text-violet-600 p-1.5 hover:bg-violet-50 dark:hover:bg-violet-950/20 rounded-lg transition-colors cursor-pointer border-0 bg-transparent"
                                     title="Edit Event"
@@ -412,6 +489,11 @@ const AdminEvents: React.FC = () => {
                                     }`}>
                                         {event.medium || 'Online'}
                                     </span>
+                                    {isEventExpired(event) && (
+                                        <span className="px-2.5 py-1 bg-red-55/90 dark:bg-red-950/30 text-red-600 dark:text-red-400 rounded-full text-xs font-bold uppercase tracking-wider">
+                                            Expired
+                                        </span>
+                                    )}
                                 </div>
 
                                 <h3 className="font-bold text-gray-900 dark:text-white text-lg group-hover:text-violet-600 dark:group-hover:text-violet-400 transition-colors mb-2 text-left">

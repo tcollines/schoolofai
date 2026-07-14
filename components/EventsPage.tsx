@@ -377,6 +377,11 @@ const EventsPage: React.FC<EventsPageProps> = ({ courses = [] }) => {
                                                     Announcement
                                                 </span>
                                             )}
+                                            {getMsToEvent(event) !== null && getMsToEvent(event)! < 0 && (
+                                                <span className="text-[10px] font-bold bg-red-100 dark:bg-red-950/20 text-red-650 dark:text-red-400 px-2.5 py-1 rounded-full uppercase tracking-wider">
+                                                    Expired
+                                                </span>
+                                            )}
                                         </div>
                                         <div className="flex items-center gap-1.5 text-xs text-gray-500 dark:text-slate-400 font-medium">
                                             <Users size={13} />

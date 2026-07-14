@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import Orb from './Orb';
 import {
     Bot,
     Brain,
@@ -8,7 +9,13 @@ import {
     ArrowRight,
     GraduationCap,
     Sun,
-    Moon
+    Moon,
+    BookOpen,
+    MessageSquare,
+    Award,
+    Users,
+    Wallet,
+    Video
 } from 'lucide-react';
 
 interface LandingPageProps {
@@ -45,7 +52,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLoginClick, onSignupClick, 
     };
 
     return (
-        <div className="min-h-screen bg-gray-50 text-gray-900 font-sans">
+        <div className="min-h-screen bg-white dark:bg-slate-950 text-gray-900 dark:text-slate-100 font-sans transition-colors duration-200">
             {/* Navigation */}
             <nav className="fixed top-0 left-0 right-0 bg-white/80 dark:bg-slate-900/85 backdrop-blur-md z-50 border-b border-gray-100 dark:border-slate-800/80 transition-colors">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -87,22 +94,36 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLoginClick, onSignupClick, 
             </nav>
 
             {/* Hero Section */}
-            <section className="pt-32 pb-20 overflow-hidden">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
-                    <div className="text-center max-w-3xl mx-auto mb-16">
-                        <div className="inline-flex items-center px-3 py-1 rounded-full bg-violet-100 text-violet-600 text-xs font-semibold uppercase tracking-wide mb-6">
+            <section className="pt-24 pb-12 overflow-hidden relative flex flex-col items-center justify-center">
+                {/* Text and Orb Container */}
+                <div className="relative w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-8 h-[500px] flex items-center justify-center">
+                    {/* Background Orb */}
+                    <div className="absolute inset-0 z-0 flex justify-center items-center overflow-hidden">
+                        <div className="w-full h-full relative">
+                            <Orb
+                                hoverIntensity={0.5}
+                                rotateOnHover={true}
+                                hue={0}
+                                forceHoverState={false}
+                                backgroundColor={isDark ? '#020617' : '#ffffff'}
+                            />
+                        </div>
+                    </div>
+
+                    <div className="relative z-10 text-center max-w-3xl mx-auto pointer-events-none">
+                        <div className="inline-flex items-center px-3 py-1 rounded-full bg-violet-100 dark:bg-violet-900/30 text-violet-600 dark:text-violet-300 text-xs font-semibold uppercase tracking-wide mb-6">
                             <Sparkles className="w-3 h-3 mr-2" />
                             The Future of Learning
                         </div>
-                        <h1 className="text-5xl md:text-6xl font-extrabold tracking-tight text-gray-900 mb-6 leading-tight">
+                        <h1 className="text-5xl md:text-6xl font-extrabold tracking-tight text-gray-900 dark:text-white mb-6 leading-tight">
                             Learn faster using <br />
-                            <span className="text-transparent bg-clip-text bg-gradient-to-r from-violet-600 to-indigo-600">Artificial Intelligence</span>
+                            <span className="text-transparent bg-clip-text bg-gradient-to-r from-violet-600 to-indigo-600 dark:from-violet-400 dark:to-indigo-400">Artificial Intelligence</span>
                         </h1>
-                        <p className="text-xl text-gray-500 mb-10 leading-relaxed">
+                        <p className="text-xl text-gray-500 dark:text-gray-300 mb-10 leading-relaxed">
                             Welile School creates personalized video courses tailored to your specific goals.
                             Skip the fluff and focus on what matters with an AI tutor that adapts to you.
                         </p>
-                        <div className="flex flex-col sm:flex-row justify-center gap-4">
+                        <div className="flex flex-col sm:flex-row justify-center gap-4 pointer-events-auto">
                             <button
                                 onClick={onGetStarted}
                                 className="px-8 py-4 bg-black dark:bg-white text-white dark:text-slate-950 rounded-full font-semibold text-lg hover:bg-gray-800 dark:hover:bg-slate-100 transition-all shadow-lg hover:shadow-xl flex items-center justify-center group"
@@ -112,13 +133,101 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLoginClick, onSignupClick, 
                             </button>
                         </div>
                     </div>
+                </div>
 
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative w-full z-10">
                     {/* Laptop Mockup Placeholder */}
                     <div className="relative mx-auto max-w-5xl">
                         <div className="rounded-xl bg-gray-900 p-2 shadow-2xl ring-1 ring-gray-900/10">
                             <div className="rounded-lg bg-white overflow-hidden aspect-[16/10] relative text-center flex items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200">
                                 <img src="/ict_students_learning.png" alt="App Dashboard - ICT Students Learning" className="w-full h-full object-cover" />
                             </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            {/* Features Section */}
+            <section id="features" className="py-24 bg-gray-50/50 dark:bg-slate-900/50 border-y border-gray-100 dark:border-slate-800/40 transition-colors">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <div className="text-center max-w-3xl mx-auto mb-16">
+                        <div className="inline-flex items-center px-3 py-1 rounded-full bg-violet-100 dark:bg-violet-950/50 text-violet-600 dark:text-violet-400 text-xs font-semibold uppercase tracking-wide mb-6">
+                            <Sparkles className="w-3 h-3 mr-2" />
+                            Core Features
+                        </div>
+                        <h2 className="text-3xl font-extrabold tracking-tight text-gray-900 dark:text-white sm:text-4xl">
+                            Unlock a smarter way to master skills
+                        </h2>
+                        <p className="mt-4 text-lg text-gray-500 dark:text-slate-400 leading-relaxed">
+                            Welile School combines generative AI with structured learning pathways to provide an educational experience tailored to you.
+                        </p>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                        {/* Feature 1 */}
+                        <div className="bg-white dark:bg-slate-950 border border-gray-100 dark:border-slate-800/60 rounded-3xl p-8 hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
+                            <div className="w-12 h-12 bg-violet-100 dark:bg-violet-950/40 rounded-2xl flex items-center justify-center text-violet-600 dark:text-violet-400 mb-6 shadow-sm">
+                                <BookOpen className="w-6 h-6" />
+                            </div>
+                            <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-3">AI ICT Syllabus Generator</h3>
+                            <p className="text-gray-500 dark:text-slate-400 leading-relaxed text-sm">
+                                Input any technology topic, and our AI instantly drafts a structured syllabus covering networking, database design, cybersecurity, or programming.
+                            </p>
+                        </div>
+
+                        {/* Feature 2 */}
+                        <div className="bg-white dark:bg-slate-950 border border-gray-100 dark:border-slate-800/60 rounded-3xl p-8 hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
+                            <div className="w-12 h-12 bg-blue-100 dark:bg-blue-950/40 rounded-2xl flex items-center justify-center text-blue-600 dark:text-blue-400 mb-6 shadow-sm">
+                                <MessageSquare className="w-6 h-6" />
+                            </div>
+                            <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-3">Real-time ICT Code Tutor</h3>
+                            <p className="text-gray-500 dark:text-slate-400 leading-relaxed text-sm">
+                                Get instant explanations of complex code snippets, script bugs, cloud templates, or database schemas directly alongside video lectures.
+                            </p>
+                        </div>
+
+                        {/* Feature 3 */}
+                        <div className="bg-white dark:bg-slate-950 border border-gray-100 dark:border-slate-800/60 rounded-3xl p-8 hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
+                            <div className="w-12 h-12 bg-emerald-100 dark:bg-emerald-950/40 rounded-2xl flex items-center justify-center text-emerald-600 dark:text-emerald-400 mb-6 shadow-sm">
+                                <Video className="w-6 h-6" />
+                            </div>
+                            <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-3">Hands-on ICT Video Labs</h3>
+                            <p className="text-gray-500 dark:text-slate-400 leading-relaxed text-sm">
+                                Learn practical systems setup, virtualization configurations, network switch hardware layouts, and cloud architecture deployments visually.
+                            </p>
+                        </div>
+
+                        {/* Feature 4 */}
+                        <div className="bg-white dark:bg-slate-950 border border-gray-100 dark:border-slate-800/60 rounded-3xl p-8 hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
+                            <div className="w-12 h-12 bg-pink-100 dark:bg-pink-950/40 rounded-2xl flex items-center justify-center text-pink-650 dark:text-pink-400 mb-6 shadow-sm">
+                                <Award className="w-6 h-6" />
+                            </div>
+                            <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-3">Professional ICT Certification</h3>
+                            <p className="text-gray-500 dark:text-slate-400 leading-relaxed text-sm">
+                                Complete comprehensive tech exams to earn verified, shareable certificates in computer networking, software engineering, databases, or cybersecurity.
+                            </p>
+                        </div>
+
+                        {/* Feature 5 */}
+                        <div className="bg-white dark:bg-slate-950 border border-gray-100 dark:border-slate-800/60 rounded-3xl p-8 hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
+                            <div className="w-12 h-12 bg-amber-100 dark:bg-amber-950/40 rounded-2xl flex items-center justify-center text-amber-600 dark:text-amber-400 mb-6 shadow-sm">
+                                <Users className="w-6 h-6" />
+                            </div>
+                            <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-3">ICT Collaborative Forums</h3>
+                            <p className="text-gray-500 dark:text-slate-400 leading-relaxed text-sm">
+                                Join group study channels to discuss software bugs, review system configurations, share cloud infrastructure diagrams, and work on coding labs.
+                            </p>
+                        </div>
+
+                        {/* Feature 6 */}
+                        <div className="bg-white dark:bg-slate-950 border border-gray-100 dark:border-slate-800/60 rounded-3xl p-8 hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
+                            <div className="w-12 h-12 bg-indigo-100 dark:bg-indigo-950/40 rounded-2xl flex items-center justify-center text-indigo-650 dark:text-indigo-400 mb-6 shadow-sm">
+                                <Wallet className="w-6 h-6" />
+                            </div>
+                            <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-3">Smart IT Training Wallet</h3>
+                            <p className="text-gray-500 dark:text-slate-400 leading-relaxed text-sm">
+                                Manage learning credits, fund your wallet, track transactions, and purchase specialty modules covering DevOps, AI, and systems engineering.
+                            </p>
                         </div>
                     </div>
                 </div>
