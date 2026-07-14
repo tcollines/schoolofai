@@ -126,10 +126,12 @@ const CourseOverview: React.FC<CourseOverviewProps> = ({ courses, onEnroll, onUn
 
                     <div className="w-full md:w-auto flex flex-col items-center md:items-end gap-3 border-t md:border-t-0 pt-6 md:pt-0 border-gray-100 dark:border-slate-800">
                         <div className="text-center md:text-right">
-                            <span className="text-3xl font-black text-gray-900 dark:text-white">
-                                {course.price === 0 ? 'Free' : `$${course.price}`}
+                            <span className={`text-3xl font-black ${course.accessTier === 'PAID' ? 'text-amber-600 dark:text-amber-400' : 'text-gray-900 dark:text-white'}`}>
+                                {course.accessTier === 'PAID' ? 'Premium' : course.price === 0 ? 'Free' : `$${course.price}`}
                             </span>
-                            <p className="text-xs text-gray-500 dark:text-slate-400 font-medium">Lifetime Access</p>
+                            <p className="text-xs text-gray-500 dark:text-slate-400 font-medium">
+                                {course.accessTier === 'PAID' ? 'Requires Subscription' : 'Lifetime Access'}
+                            </p>
                         </div>
                         
                         <div className="flex flex-col md:flex-row gap-3 w-full md:w-auto">

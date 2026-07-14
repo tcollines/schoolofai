@@ -169,8 +169,8 @@ const DiscoverCourses: React.FC<DiscoverCoursesProps> = ({ courses, onEnroll, is
                                 </div>
                                 
                                 <div className="pt-4 border-t border-gray-100 dark:border-slate-800 flex items-center justify-between">
-                                    <span className="font-bold text-lg text-gray-900 dark:text-white">
-                                        {course.price === 0 ? 'Free' : `$${course.price}`}
+                                    <span className={`font-bold text-lg ${course.accessTier === 'PAID' ? 'text-amber-600 dark:text-amber-400' : 'text-gray-900 dark:text-white'}`}>
+                                        {course.accessTier === 'PAID' ? 'Premium' : course.price === 0 ? 'Free' : `$${course.price}`}
                                     </span>
                                     <button
                                         onClick={(e) => {
