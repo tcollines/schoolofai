@@ -21,6 +21,13 @@ import { useCourses } from './src/hooks/useCourses';
 import { useProfile } from './src/hooks/useProfile';
 import { UserRole } from './types';
 
+const ProtectedRoute = ({ isAuthenticated, children }: { isAuthenticated: boolean, children: React.ReactNode }) => {
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace />;
+  }
+  return <>{children}</>;
+};
+
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [session, setSession] = useState<any>(null);
@@ -125,12 +132,14 @@ function App() {
         
         {/* Admin Route */}
         <Route path="/admin/*" element={
-             <AdminLayout onExit={() => window.location.href = '/dashboard'} />
+             <ProtectedRoute isAuthenticated={isAuthenticated}>
+                 <AdminLayout onExit={() => window.location.href = '/dashboard'} />
+             </ProtectedRoute>
         } />
 
         {/* Student Routes wrapper */}
         <Route element={<StudentLayout session={session} isAuthenticated={isAuthenticated} isAdminMode={false} courses={courses} />}>
-            <Route path="/dashboard" element={<DashboardHome courses={courses} userId={session?.user?.id || 'guest'} />} />
+            <Route path="/dashboard" element={<ProtectedRoute isAuthenticated={isAuthenticated}><DashboardHome courses={courses} userId={session?.user?.id || 'guest'} /></ProtectedRoute>} />
             
             <Route path="/discover" element={
                 <DiscoverCourses 
@@ -177,14 +186,14 @@ function App() {
                 />
             } />
             
-            <Route path="/courses" element={<MyCourses courses={isAuthenticated ? courses : []} />} />
-            <Route path="/discussions" element={<DiscussionsPage />} />
-            <Route path="/career" element={<Certificates courses={isAuthenticated ? courses : []} />} />
-            <Route path="/profile" element={<Profile user={userProfile || ({} as any)} onUpgradeClick={() => window.location.href = '/plans'} />} />
-            <Route path="/plans" element={<PlansPage user={userProfile} currentPlan={(userProfile?.role === UserRole.PRO || userProfile?.role === UserRole.ADMIN) ? userProfile.role : UserRole.INDIVIDUAL} onUpgrade={() => {}} onBack={() => window.location.href = '/profile'} />} />
-            <Route path="/settings" element={<SettingsPage />} />
-            <Route path="/notifications" element={<NotificationsPage />} />
-            <Route path="/events" element={<EventsPage courses={courses} />} />
+            <Route path="/courses" element={<ProtectedRoute isAuthenticated={isAuthenticated}><MyCourses courses={isAuthenticated ? courses : []} /></ProtectedRoute>} />
+            <Route path="/discussions" element={<ProtectedRoute isAuthenticated={isAuthenticated}><DiscussionsPage /></ProtectedRoute>} />
+            <Route path="/career" element={<ProtectedRoute isAuthenticated={isAuthenticated}><Certificates courses={isAuthenticated ? courses : []} /></ProtectedRoute>} />
+            <Route path="/profile" element={<ProtectedRoute isAuthenticated={isAuthenticated}><Profile user={userProfile || ({} as any)} onUpgradeClick={() => window.location.href = '/plans'} /></ProtectedRoute>} />
+            <Route path="/plans" element={<ProtectedRoute isAuthenticated={isAuthenticated}><PlansPage user={userProfile} currentPlan={(userProfile?.role === UserRole.PRO || userProfile?.role === UserRole.ADMIN) ? userProfile.role : UserRole.INDIVIDUAL} onUpgrade={() => {}} onBack={() => window.location.href = '/profile'} /></ProtectedRoute>} />
+            <Route path="/settings" element={<ProtectedRoute isAuthenticated={isAuthenticated}><SettingsPage /></ProtectedRoute>} />
+            <Route path="/notifications" element={<ProtectedRoute isAuthenticated={isAuthenticated}><NotificationsPage /></ProtectedRoute>} />
+            <Route path="/events" element={<ProtectedRoute isAuthenticated={isAuthenticated}><EventsPage courses={courses} /></ProtectedRoute>} />
             
             {/* Default fallback route inside Layout */}
             <Route path="*" element={<Navigate to={isAuthenticated ? "/dashboard" : "/"} replace />} />

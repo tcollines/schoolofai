@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { supabase } from '../src/lib/supabase';
 import { ArrowLeft, Mail, Lock, Loader2, X } from 'lucide-react';
 
@@ -63,8 +64,21 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onNavigateToSignup, onBa
         }
     };
 
-    const handleGoogleLogin = () => {
-        setShowGoogleChooser(true);
+    const handleGoogleLogin = async () => {
+        try {
+            setLoading(true);
+            const { error } = await supabase.auth.signInWithOAuth({
+                provider: 'google',
+                options: {
+                    redirectTo: window.location.origin + '/dashboard'
+                }
+            });
+            if (error) throw error;
+        } catch (err: any) {
+            setError(err.message);
+        } finally {
+            setLoading(false);
+        }
     };
 
     const handleSelectGoogleAccount = async (selectedEmail: string, name: string) => {
@@ -110,8 +124,8 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onNavigateToSignup, onBa
             <div className="hidden lg:block w-1/2 bg-gray-900 relative overflow-hidden">
                 <div className="absolute inset-0 bg-gradient-to-br from-violet-600/30 to-blue-600/30 mix-blend-overlay"></div>
                 <img
-                    src="https://images.unsplash.com/photo-1522202176988-66273c2fd55f?q=80&w=2071&auto=format&fit=crop"
-                    alt="Students learning"
+                    src="/african_students_auth_bg.png"
+                    alt="African Students collaborating"
                     className="w-full h-full object-cover opacity-50"
                 />
                 <div className="absolute bottom-20 left-12 text-white p-8">
@@ -122,13 +136,13 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onNavigateToSignup, onBa
 
             {/* Right Side - Form */}
             <div className="w-full lg:w-1/2 flex flex-col justify-center px-8 sm:px-16 lg:px-24 relative">
-                <button
-                    onClick={onBack}
+                <Link
+                    to="/"
                     className="absolute top-8 left-8 text-gray-500 hover:text-gray-900 flex items-center"
                 >
                     <ArrowLeft className="w-5 h-5 mr-2" />
                     Back
-                </button>
+                </Link>
 
                 <div className="max-w-md w-full mx-auto">
                     <div className="mb-10">

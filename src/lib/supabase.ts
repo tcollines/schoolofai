@@ -541,8 +541,42 @@ export const supabase = {
             window.dispatchEvent(new Event('profile-update'));
             return { data: { session: { user: { id: profile.id, email } }, user: { id: profile.id, email } }, error: null };
         },
-        signInWithOAuth: async ({ provider }: any) => {
+        signInWithOAuth: async ({ provider, options }: any) => {
             localStorage.removeItem('mock_logged_out');
+            
+            if (provider === 'google') {
+                const mockEmail = 'student@gmail.com';
+                const mockName = 'Google User';
+                
+                let db = getDB();
+                let profile = db.profiles.find((p: any) => p.email === mockEmail);
+                if (!profile) {
+                    profile = {
+                        id: 'google-user-' + Date.now(),
+                        email: mockEmail,
+                        full_name: mockName,
+                        role: 'INDIVIDUAL',
+                        avatar_url: 'https://ui-avatars.com/api/?name=Google+User&background=4285F4&color=fff',
+                        wallet_balance: 0,
+                        skills: []
+                    };
+                    db.profiles.push(profile);
+                    saveDB(db);
+                }
+                
+                localStorage.setItem('mock_logged_in_email', mockEmail);
+                localStorage.setItem('mock_logged_in_name', mockName);
+                window.dispatchEvent(new Event('profile-update'));
+
+                setTimeout(() => {
+                    if (options?.redirectTo) {
+                        window.location.href = options.redirectTo;
+                    } else {
+                        window.location.href = '/dashboard';
+                    }
+                }, 600);
+            }
+
             return { data: { provider, url: '' }, error: null };
         },
         signOut: async () => {
