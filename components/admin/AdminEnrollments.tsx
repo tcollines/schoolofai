@@ -8,6 +8,12 @@ const AdminEnrollments: React.FC = () => {
     const { users, courses, enrollments, loading, updateUserRole, deleteUser, updateUserWallet, refresh } = useAdmin(true);
     const [searchQuery, setSearchQuery] = useState('');
     const [activeDropdownId, setActiveDropdownId] = useState<string | null>(null);
+    
+    // Instructor settings modal states
+    const [selectedUpgradeUser, setSelectedUpgradeUser] = useState<any | null>(null);
+    const [instPassword, setInstPassword] = useState('instructor');
+    const [instBio, setInstBio] = useState('');
+    const [instPasscode, setInstPasscode] = useState('');
 
     const handleApproveUpgrade = async (u: any) => {
         try {
@@ -249,11 +255,18 @@ const AdminEnrollments: React.FC = () => {
                                                                     onClick={async () => {
                                                                         setActiveDropdownId(null);
                                                                         if (u.role === opt.value) return;
-                                                                        try {
-                                                                            await updateUserRole(u.id, opt.value);
-                                                                            alert(`Subscription plan updated to ${opt.label} successfully!`);
-                                                                        } catch (err) {
-                                                                            alert('Failed to update subscription plan.');
+                                                                        if (opt.value === UserRole.ADMIN) {
+                                                                            setInstPassword('instructor');
+                                                                            setInstBio('');
+                                                                            setInstPasscode('');
+                                                                            setSelectedUpgradeUser(u);
+                                                                        } else {
+                                                                            try {
+                                                                                await updateUserRole(u.id, opt.value);
+                                                                                alert(`Subscription plan updated to ${opt.label} successfully!`);
+                                                                            } catch (err) {
+                                                                                alert('Failed to update subscription plan.');
+                                                                            }
                                                                         }
                                                                     }}
                                                                     className={`w-full px-4 py-2 text-xs flex items-center justify-between hover:bg-gray-50 dark:hover:bg-slate-850 transition-colors cursor-pointer ${
@@ -359,6 +372,156 @@ const AdminEnrollments: React.FC = () => {
                     </tbody>
                 </table>
             </div>
+            {selectedUpgradeUser && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+                    <div className="fixed inset-0 bg-black/70 backdrop-blur-sm" onClick={() => setSelectedUpgradeUser(null)} />
+                    <div className="bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 w-full max-w-md rounded-3xl p-6 shadow-2xl relative z-10 animate-in zoom-in-95 duration-200 text-gray-900 dark:text-white max-h-[90vh] overflow-y-auto">
+                        <button
+                            type="button"
+                            onClick={() => setSelectedUpgradeUser(null)}
+                            className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 dark:hover:text-white cursor-pointer"
+                        >
+                            <X size={20} />
+                        </button>
+
+                        <h3 className="text-xl font-bold text-center mb-6 border-b border-gray-100 dark:border-slate-800 pb-3 text-gray-900 dark:text-white">
+                            Configure Instructor Settings
+                        </h3>
+
+                        <div className="space-y-4 text-left">
+                            <div>
+                                <span className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Instructor Name</span>
+                                <p className="font-bold text-sm text-gray-800 dark:text-slate-205">{selectedUpgradeUser.name}</p>
+                            </div>
+
+                            <div>
+                                <span className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Email Address</span>
+                                <p className="font-bold text-sm text-gray-800 dark:text-slate-205">{selectedUpgradeUser.email}</p>
+                            </div>
+
+                            <div className="border-t border-gray-100 dark:border-slate-800/80 my-4"></div>
+
+                            <div>
+                                <label className="block text-[10px] font-bold text-gray-600 dark:text-slate-400 uppercase tracking-wider mb-2">Console Password</label>
+                                <input
+                                    type="text"
+                                    required
+                                    value={instPassword}
+                                    onChange={(e) => setInstPassword(e.target.value)}
+                                    placeholder="Password"
+                                    className="w-full bg-gray-50 dark:bg-slate-950 border border-gray-200 dark:border-slate-800 rounded-xl px-4 py-2.5 text-sm text-gray-900 dark:text-white focus:outline-none focus:border-violet-500 font-mono"
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-[10px] font-bold text-gray-605 dark:text-slate-400 uppercase tracking-wider mb-2">Biography</label>
+                                <textarea
+                                    value={instBio}
+                                    onChange={(e) => setInstBio(e.target.value)}
+                                    placeholder="Brief background or bio (optional)..."
+                                    rows={2}
+                                    className="w-full bg-gray-50 dark:bg-slate-955 border border-gray-200 dark:border-slate-800 rounded-xl px-4 py-2.5 text-sm text-gray-900 dark:text-white focus:outline-none focus:border-violet-500 resize-none"
+                                />
+                            </div>
+
+                            {/* Passcode / Secret Key Allocation */}
+                            <div className="p-3.5 bg-gray-50 dark:bg-slate-955/40 rounded-2xl border border-gray-100 dark:border-slate-850 flex flex-col gap-2 relative">
+                                <div className="flex items-center justify-between">
+                                    <span className="text-[11px] font-extrabold text-gray-600 dark:text-slate-400 uppercase tracking-wider">
+                                        Secret Access Key
+                                    </span>
+                                    <label className="relative inline-flex items-center cursor-pointer select-none">
+                                        <input
+                                            type="checkbox"
+                                            checked={!!instPasscode}
+                                            onChange={(e) => {
+                                                const active = e.target.checked;
+                                                if (active) {
+                                                    // Generate 6 digit key code
+                                                    const key = Math.floor(100000 + Math.random() * 900000).toString();
+                                                    setInstPasscode(key);
+                                                } else {
+                                                    setInstPasscode('');
+                                                }
+                                            }}
+                                            className="sr-only peer"
+                                        />
+                                        <div className="w-8 h-4 bg-gray-200 dark:bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-3 after:w-3 after:transition-all dark:after:bg-slate-400 peer-checked:bg-violet-600"></div>
+                                    </label>
+                                </div>
+                                <div className="flex items-center justify-between text-[11px]">
+                                    <span className="text-gray-400 dark:text-slate-500 font-semibold">Status:</span>
+                                    <span className={`font-bold ${instPasscode ? 'text-green-600 dark:text-green-400' : 'text-gray-450'}`}>
+                                        {instPasscode ? 'ACTIVE' : 'DISABLED'}
+                                    </span>
+                                </div>
+                                {instPasscode && (
+                                    <div className="mt-1 flex items-center justify-between bg-white dark:bg-slate-900 px-3 py-1.5 rounded-xl border border-gray-150 dark:border-slate-800/85 font-mono text-xs font-bold text-violet-600 dark:text-violet-400 tracking-wider">
+                                        <span>Key: {instPasscode}</span>
+                                    </div>
+                                )}
+                            </div>
+
+                            <button
+                                onClick={async () => {
+                                    if (!instPassword) {
+                                        alert("Please enter a password.");
+                                        return;
+                                    }
+                                    try {
+                                        // 1. Check if instructor already exists in database
+                                        const { data: existing } = await supabase
+                                            .from('instructors')
+                                            .select('id')
+                                            .eq('email', selectedUpgradeUser.email.trim().toLowerCase());
+
+                                        if (existing && existing.length > 0) {
+                                            // Update
+                                            const { error: updErr } = await supabase
+                                                .from('instructors')
+                                                .update({
+                                                    name: selectedUpgradeUser.name,
+                                                    bio: instBio,
+                                                    passcode: instPasscode,
+                                                    password: instPassword
+                                                })
+                                                .eq('email', selectedUpgradeUser.email.trim().toLowerCase());
+                                            if (updErr) throw updErr;
+                                        } else {
+                                            // Insert
+                                            const { error: insErr } = await supabase
+                                                .from('instructors')
+                                                .insert({
+                                                    id: 'inst-' + Math.random().toString(36).substr(2, 9),
+                                                    name: selectedUpgradeUser.name,
+                                                    email: selectedUpgradeUser.email.trim().toLowerCase(),
+                                                    bio: instBio,
+                                                    avatar: selectedUpgradeUser.name.split(' ').map((n: string) => n[0]).join('').toUpperCase(),
+                                                    courses_count: 0,
+                                                    passcode: instPasscode,
+                                                    password: instPassword
+                                                });
+                                            if (insErr) throw insErr;
+                                        }
+
+                                        // 2. Update user profile role in profiles table to ADMIN
+                                        await updateUserRole(selectedUpgradeUser.id, UserRole.ADMIN);
+                                        
+                                        alert(`Instructor setup initialized successfully for ${selectedUpgradeUser.name}!`);
+                                        setSelectedUpgradeUser(null);
+                                    } catch (err) {
+                                        console.error('Error saving instructor setup:', err);
+                                        alert('Failed to initialize instructor setup details.');
+                                    }
+                                }}
+                                className="w-full py-3 mt-4 bg-violet-600 hover:bg-violet-700 text-white font-bold rounded-xl transition-all cursor-pointer shadow-lg shadow-violet-900/20"
+                            >
+                                Save & Initialize Instructor
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };
