@@ -241,9 +241,7 @@ const AdminEnrollments: React.FC = () => {
                                                             </div>
                                                             {[
                                                                 { label: 'Basic', value: UserRole.INDIVIDUAL },
-                                                                { label: 'Plus', value: UserRole.PLUS },
                                                                 { label: 'Pro', value: UserRole.PRO },
-                                                                { label: 'Sponsored', value: UserRole.SPONSORED },
                                                                 { label: 'Admin', value: UserRole.ADMIN }
                                                             ].map(opt => (
                                                                 <button
