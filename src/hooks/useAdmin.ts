@@ -244,6 +244,22 @@ export const useAdmin = (isAdmin: boolean) => {
         }
     };
 
+    const updateUserWallet = async (userId: string, balance: number) => {
+        try {
+            const { error } = await supabase
+                .from('profiles')
+                .update({ wallet_balance: balance })
+                .eq('id', userId);
+
+            if (error) throw error;
+            await fetchData(true); // Refresh silently
+            window.dispatchEvent(new Event('profile-update'));
+        } catch (err: any) {
+            console.error('Error updating user wallet balance:', err);
+            throw err;
+        }
+    };
+
     const deleteUser = async (userId: string) => {
         try {
             // First delete user's enrollments
@@ -306,5 +322,5 @@ export const useAdmin = (isAdmin: boolean) => {
         }
     };
 
-    return { users, courses, enrollments, loading, error, addCourse, updateCourse, deleteCourse, updateCourseQuiz, updateUserRole, deleteUser, verifyAndIssueCertificate, releaseExamMarks, refresh: fetchData };
+    return { users, courses, enrollments, loading, error, addCourse, updateCourse, deleteCourse, updateCourseQuiz, updateUserRole, deleteUser, verifyAndIssueCertificate, releaseExamMarks, updateUserWallet, refresh: fetchData };
 };

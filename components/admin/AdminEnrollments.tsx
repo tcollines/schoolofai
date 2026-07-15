@@ -5,7 +5,7 @@ import { Trash2, Check, Edit2, X, ChevronDown, Search } from 'lucide-react';
 import { supabase } from '../../src/lib/supabase';
 
 const AdminEnrollments: React.FC = () => {
-    const { users, courses, enrollments, loading, updateUserRole, deleteUser, refresh } = useAdmin(true);
+    const { users, courses, enrollments, loading, updateUserRole, deleteUser, updateUserWallet, refresh } = useAdmin(true);
     const [searchQuery, setSearchQuery] = useState('');
     const [activeDropdownId, setActiveDropdownId] = useState<string | null>(null);
 
@@ -266,6 +266,37 @@ const AdminEnrollments: React.FC = () => {
                                                                     {u.role === opt.value && <Check size={12} />}
                                                                 </button>
                                                             ))}
+
+                                                            <div className="border-t border-gray-100 dark:border-slate-800 my-1"></div>
+
+                                                            <button
+                                                                onClick={async () => {
+                                                                    setActiveDropdownId(null);
+                                                                    const currentVal = u.walletBalance !== undefined ? u.walletBalance : 100;
+                                                                    const amountStr = prompt(
+                                                                        `Allocate Wallet Balance\n\nEnter the new wallet balance (in shillings/USD) for ${u.name || u.email}:`,
+                                                                        currentVal.toString()
+                                                                    );
+                                                                    
+                                                                    if (amountStr === null) return; // User clicked Cancel
+                                                                    
+                                                                    const parsed = parseFloat(amountStr);
+                                                                    if (isNaN(parsed) || parsed < 0) {
+                                                                        alert("Please enter a valid non-negative number.");
+                                                                        return;
+                                                                    }
+
+                                                                    try {
+                                                                        await updateUserWallet(u.id, parsed);
+                                                                        alert(`Wallet balance successfully updated to $${parsed.toFixed(2)} for ${u.name}!`);
+                                                                    } catch (err) {
+                                                                        alert("Failed to update wallet balance.");
+                                                                    }
+                                                                }}
+                                                                className="w-full px-4 py-2 text-xs text-gray-700 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-slate-850 transition-colors flex items-center gap-2 cursor-pointer font-semibold"
+                                                            >
+                                                                Allocate Balance
+                                                            </button>
 
                                                             <div className="border-t border-gray-100 dark:border-slate-800 my-1"></div>
 
