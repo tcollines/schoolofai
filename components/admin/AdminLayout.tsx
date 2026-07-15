@@ -24,32 +24,29 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ onExit }) => {
         return localStorage.getItem('admin-session') === 'true';
     });
 
-    const [isDark, setIsDark] = useState(() => {
-        return document.documentElement.classList.contains('dark');
-    });
+    const [isDark, setIsDark] = useState(true);
 
     useEffect(() => {
-        const handleThemeChange = () => {
-            setIsDark(document.documentElement.classList.contains('dark'));
-        };
-        window.addEventListener('theme-change', handleThemeChange);
-        return () => {
-            window.removeEventListener('theme-change', handleThemeChange);
-        };
-    }, []);
-
-    const toggleTheme = () => {
-        const nextDark = !isDark;
-        setIsDark(nextDark);
-        if (nextDark) {
+        if (isAdminAuthenticated) {
+            // Save student console's current theme state
+            const originalTheme = document.documentElement.classList.contains('dark') ? 'dark' : 'light';
+            
+            // Force dark mode active
             document.documentElement.classList.add('dark');
-            localStorage.setItem('theme', 'dark');
-        } else {
-            document.documentElement.classList.remove('dark');
-            localStorage.setItem('theme', 'light');
+            setIsDark(true);
+            window.dispatchEvent(new Event('theme-change'));
+
+            return () => {
+                // Restore student console's original theme state on clean up / exit
+                if (originalTheme === 'dark') {
+                    document.documentElement.classList.add('dark');
+                } else {
+                    document.documentElement.classList.remove('dark');
+                }
+                window.dispatchEvent(new Event('theme-change'));
+            };
         }
-        window.dispatchEvent(new Event('theme-change'));
-    };
+    }, [isAdminAuthenticated]);
 
     const handleExitConsole = () => {
         localStorage.removeItem('admin-session');
@@ -136,15 +133,6 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ onExit }) => {
                     <h1 className="text-xl font-semibold text-gray-800 dark:text-white capitalize">
                         {menuItems.find(i => i.id === activeTab)?.label}
                     </h1>
-
-                    {/* Theme Toggle Shortcut */}
-                    <button 
-                        onClick={toggleTheme}
-                        className="p-2 bg-gray-50 dark:bg-slate-800 hover:bg-gray-100 dark:hover:bg-slate-700 border border-gray-200 dark:border-slate-700 rounded-xl flex items-center justify-center text-gray-700 dark:text-slate-300 transition-colors shadow-sm cursor-pointer"
-                        title="Toggle Theme"
-                    >
-                        {isDark ? <Sun size={18} /> : <Moon size={18} />}
-                    </button>
                 </header>
 
                 <div className="p-8 flex-1 overflow-y-auto">
