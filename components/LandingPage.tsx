@@ -374,7 +374,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLoginClick, onSignupClick, 
 
                     <div className="grid grid-cols-1 lg:grid-cols-3 md:grid-cols-2 gap-8 max-w-6xl mx-auto">
                         {/* Basic */}
-                        <div className="bg-white dark:bg-gray-900 text-gray-900 dark:text-white rounded-2xl p-8 border border-gray-205 dark:border-gray-800 shadow-xl relative overflow-hidden hover:transform hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between">
+                        <div className="bg-white dark:bg-gray-900 text-gray-900 dark:text-white rounded-2xl p-8 border border-gray-205 dark:border-gray-800 shadow-xl relative overflow-hidden hover:transform hover:-translate-y-1 hover:border-violet-500 dark:hover:border-violet-400 transition-all duration-300 flex flex-col justify-between">
                             <div className="absolute top-0 right-0 w-32 h-32 bg-purple-500 blur-3xl opacity-20 -mr-16 -mt-16"></div>
                             <div className="absolute top-0 right-0 bg-violet-600 text-white text-xs font-bold px-3 py-1 rounded-bl-xl rounded-tr-lg">FREE</div>
                             <div>
@@ -405,7 +405,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLoginClick, onSignupClick, 
                         </div>
 
                         {/* Pro */}
-                        <div className="bg-white dark:bg-gray-900 text-gray-900 dark:text-white rounded-2xl p-8 border border-violet-200 dark:border-violet-600 shadow-xl relative overflow-hidden flex flex-col justify-between">
+                        <div className="bg-white dark:bg-gray-900 text-gray-900 dark:text-white rounded-2xl p-8 border border-violet-200 dark:border-violet-600 shadow-xl relative overflow-hidden hover:transform hover:-translate-y-1 hover:border-violet-500 dark:hover:border-violet-400 transition-all duration-300 flex flex-col justify-between">
                             <div className="absolute top-0 right-0 w-32 h-32 bg-purple-500 blur-3xl opacity-20 -mr-16 -mt-16"></div>
                             <div className="absolute top-0 right-0 bg-violet-600 text-white text-xs font-bold px-3 py-1 rounded-bl-xl rounded-tr-lg">POPULAR</div>
                             <div>
@@ -440,7 +440,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLoginClick, onSignupClick, 
                         </div>
 
                         {/* Business - Corporate */}
-                        <div className="bg-white dark:bg-slate-900 text-gray-900 dark:text-white rounded-2xl p-8 border border-gray-205 dark:border-slate-800 shadow-xl relative overflow-hidden flex flex-col justify-between">
+                        <div className="bg-white dark:bg-slate-900 text-gray-900 dark:text-white rounded-2xl p-8 border border-gray-205 dark:border-slate-800 shadow-xl relative overflow-hidden hover:transform hover:-translate-y-1 hover:border-violet-500 dark:hover:border-violet-400 transition-all duration-300 flex flex-col justify-between">
                             <div className="absolute top-0 right-0 w-32 h-32 bg-purple-500 blur-3xl opacity-20 -mr-16 -mt-16"></div>
                             <div className="absolute top-0 right-0 bg-violet-600 text-white text-xs font-bold px-3 py-1 rounded-bl-xl rounded-tr-lg">BUSINESS</div>
                             <div>

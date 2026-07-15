@@ -188,7 +188,7 @@ const PlansPage: React.FC<PlansPageProps> = ({ user, currentPlan, onUpgrade, onB
                 </div>
 
                 {/* Pro Plan - Highlighted */}
-                <div className="p-8 rounded-2xl bg-white dark:bg-gray-900 border border-purple-200 dark:border-violet-600 text-gray-900 dark:text-white relative overflow-hidden hover:transform hover:-translate-y-1 transition-all duration-300 shadow-xl flex flex-col justify-between">
+                <div className="p-8 rounded-2xl bg-white dark:bg-gray-900 border border-purple-200 dark:border-violet-600 text-gray-900 dark:text-white relative overflow-hidden hover:transform hover:-translate-y-1 hover:border-welile-purple dark:hover:border-purple-600 transition-all duration-300 shadow-xl flex flex-col justify-between">
                     <div className="absolute top-0 right-0 w-32 h-32 bg-purple-500 blur-3xl opacity-20 -mr-16 -mt-16"></div>
                     <div className="absolute top-0 right-0 bg-welile-purple text-white text-xs font-bold px-3 py-1 rounded-bl-xl rounded-tr-xl">POPULAR</div>
                     <div>
@@ -233,7 +233,7 @@ const PlansPage: React.FC<PlansPageProps> = ({ user, currentPlan, onUpgrade, onB
                 </div>
 
                 {/* Business Plan - Corporate */}
-                <div className="p-8 rounded-2xl bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 text-gray-900 dark:text-white relative overflow-hidden hover:transform hover:-translate-y-1 transition-all duration-300 shadow-xl flex flex-col justify-between">
+                <div className="p-8 rounded-2xl bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 text-gray-900 dark:text-white relative overflow-hidden hover:transform hover:-translate-y-1 hover:border-welile-purple dark:hover:border-purple-600 transition-all duration-300 shadow-xl flex flex-col justify-between">
                     <div className="absolute top-0 right-0 w-32 h-32 bg-purple-500 blur-3xl opacity-20 -mr-16 -mt-16"></div>
                     <div className="absolute top-0 right-0 bg-violet-600 text-white text-xs font-bold px-3 py-1 rounded-bl-xl rounded-tr-xl">BUSINESS</div>
                     <div>
