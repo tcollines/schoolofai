@@ -340,7 +340,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onNavigateToSignup, onBa
                                     Enter 6-digit Verification Code
                                 </label>
                                 <p className="text-xs text-gray-500 mb-3">
-                                    A 2FA code has been sent via verified Gmail to <span className="font-bold text-gray-805">{email}</span>.
+                                    A 2FA code has been sent via verified Gmail to <span className="font-bold text-gray-800 dark:text-slate-200">{email}</span>.
                                 </p>
                                 <div className="relative">
                                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">

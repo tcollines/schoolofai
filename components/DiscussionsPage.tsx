@@ -557,7 +557,7 @@ const DiscussionsPage: React.FC = () => {
                                         : "Enroll in this course to participate in this group discussion."
                                 }
                                 disabled={!activeGroup?.isEnrolled}
-                                className="flex-1 px-4 py-3 bg-gray-50 dark:bg-slate-800 border border-gray-250 dark:border-slate-750 text-gray-900 dark:text-white rounded-xl focus:ring-2 focus:ring-violet-500 outline-none transition-all text-sm disabled:opacity-60 disabled:cursor-not-allowed"
+                                className="flex-1 px-4 py-3 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 text-gray-900 dark:text-white rounded-xl focus:ring-2 focus:ring-violet-500 outline-none transition-all text-sm disabled:opacity-60 disabled:cursor-not-allowed"
                             />
                             <button
                                 type="submit"
@@ -597,7 +597,7 @@ const DiscussionsPage: React.FC = () => {
                                     value={newGroupName}
                                     onChange={(e) => setNewGroupName(e.target.value)}
                                     placeholder="e.g. Neural Networks Study Circle"
-                                    className="w-full p-2.5 bg-gray-50 dark:bg-slate-800 border border-gray-250 dark:border-slate-755 rounded-xl text-sm"
+                                    className="w-full p-2.5 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl text-sm"
                                     required
                                 />
                             </div>
@@ -609,7 +609,7 @@ const DiscussionsPage: React.FC = () => {
                                     onChange={(e) => setNewGroupDescription(e.target.value)}
                                     placeholder="e.g. Collaboration channel for group homework and papers."
                                     rows={2}
-                                    className="w-full p-2.5 bg-gray-50 dark:bg-slate-800 border border-gray-250 dark:border-slate-755 rounded-xl text-sm outline-none"
+                                    className="w-full p-2.5 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl text-sm outline-none"
                                     required
                                 />
                             </div>
@@ -620,8 +620,8 @@ const DiscussionsPage: React.FC = () => {
                                     <label className="text-xs font-semibold text-gray-600 dark:text-slate-400">Select Group Members</label>
                                     <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
                                         selectedMembers.length >= 6
-                                            ? 'bg-green-55 dark:bg-green-950/20 text-green-600 dark:text-green-405 border border-green-200'
-                                            : 'bg-red-50 dark:bg-red-955/20 text-red-600 dark:text-red-405 border border-red-200'
+                                            ? 'bg-green-50 dark:bg-green-950/20 text-green-600 dark:text-green-400 border border-green-200'
+                                            : 'bg-red-50 dark:bg-red-905/20 text-red-600 dark:text-red-400 border border-red-205'
                                     }`}>
                                         {selectedMembers.length} Selected (Minimum: 6)
                                     </span>
@@ -636,7 +636,7 @@ const DiscussionsPage: React.FC = () => {
                                                 key={name} 
                                                 className={`flex items-center gap-2 p-2 rounded-xl text-xs font-medium cursor-pointer transition-colors border ${
                                                     isChecked 
-                                                        ? 'bg-violet-50/40 border-violet-200 dark:bg-violet-955/10 dark:border-violet-900/50 text-gray-900 dark:text-white' 
+                                                        ? 'bg-violet-50/40 border-violet-200 dark:bg-violet-950/10 dark:border-violet-900/50 text-gray-900 dark:text-white' 
                                                         : 'bg-white dark:bg-slate-900 border-transparent hover:bg-gray-100/50 dark:hover:bg-slate-800/50 text-gray-600 dark:text-slate-400'
                                                 }`}
                                             >

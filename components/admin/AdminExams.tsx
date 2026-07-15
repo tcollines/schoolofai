@@ -230,8 +230,8 @@ const AdminExams: React.FC = () => {
                         
                         <div className="flex items-center justify-between border-t border-gray-100 dark:border-slate-800 pt-4 mt-auto">
                             <div className="flex gap-2 text-[11px] text-gray-500 dark:text-slate-400 font-bold">
-                                <span className="bg-gray-100 dark:bg-slate-805 px-2 py-1 rounded-md">{c.quiz?.questions.length} Questions</span>
-                                <span className="bg-gray-100 dark:bg-slate-805 px-2 py-1 rounded-md">{c.quiz?.timeLimit} Mins</span>
+                                <span className="bg-gray-100 dark:bg-slate-800 px-2 py-1 rounded-md">{c.quiz?.questions.length} Questions</span>
+                                <span className="bg-gray-100 dark:bg-slate-800 px-2 py-1 rounded-md">{c.quiz?.timeLimit} Mins</span>
                             </div>
                             
                             <div className="flex gap-1.5">
@@ -245,7 +245,7 @@ const AdminExams: React.FC = () => {
                                 )}
                                 <button
                                     onClick={() => handleEditExam(c)}
-                                    className="bg-gray-50 hover:bg-gray-100 text-gray-700 dark:bg-slate-800 dark:hover:bg-slate-750 dark:text-slate-300 border border-gray-200 dark:border-slate-700 text-[11px] px-2.5 py-1.5 rounded-xl font-extrabold transition-colors cursor-pointer flex items-center gap-1"
+                                    className="bg-gray-50 hover:bg-gray-100 text-gray-700 dark:bg-slate-800 dark:hover:bg-slate-700 dark:text-slate-300 border border-gray-200 dark:border-slate-700 text-[11px] px-2.5 py-1.5 rounded-xl font-extrabold transition-colors cursor-pointer flex items-center gap-1"
                                 >
                                     <Edit2 size={12} /> Edit
                                 </button>
@@ -275,40 +275,40 @@ const AdminExams: React.FC = () => {
                         <div className="p-8 overflow-y-auto flex-1 space-y-6">
                             {step === 1 && (
                                 <div className="space-y-5 animate-in fade-in slide-in-from-right-4 duration-300">
-                                    <h3 className="text-lg font-bold border-b border-gray-100 dark:border-slate-800 pb-2 text-gray-805 dark:text-slate-100">Step 1: Configuration</h3>
+                                    <h3 className="text-lg font-bold border-b border-gray-100 dark:border-slate-800 pb-2 text-gray-800 dark:text-slate-100">Step 1: Configuration</h3>
                                     <div>
                                         <label className="block text-xs font-bold text-gray-700 dark:text-slate-300 uppercase tracking-wider mb-2">Select Course</label>
                                         <select 
                                             value={examCourseId} 
                                             onChange={e => setExamCourseId(e.target.value)} 
                                             disabled={isEditing}
-                                            className="w-full p-3 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-750 rounded-xl focus:ring-2 focus:ring-violet-500 outline-none text-sm text-gray-900 dark:text-white transition-all disabled:opacity-60"
+                                            className="w-full p-3 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-violet-500 outline-none text-sm text-gray-900 dark:text-white transition-all disabled:opacity-60"
                                         >
                                             <option value="">-- Choose Course --</option>
                                             {courses.map(c => <option key={c.id} value={c.id}>{c.title}</option>)}
                                         </select>
                                         {isEditing && (
-                                            <span className="text-[10px] text-gray-500 mt-1 block">Course selection cannot be changed when editing an exam.</span>
+                                            <span className="text-[10px] text-gray-505 dark:text-slate-400 mt-1 block">Course selection cannot be changed when editing an exam.</span>
                                         )}
                                     </div>
                                     <div>
                                         <label className="block text-xs font-bold text-gray-700 dark:text-slate-300 uppercase tracking-wider mb-2">Exam Title</label>
-                                        <input value={quizTitle} onChange={e => setQuizTitle(e.target.value)} className="w-full p-3 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-750 rounded-xl focus:ring-2 focus:ring-violet-500 text-sm text-gray-900 dark:text-white outline-none transition-all" placeholder="e.g. Final Certification Exam" />
+                                        <input value={quizTitle} onChange={e => setQuizTitle(e.target.value)} className="w-full p-3 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-violet-500 text-sm text-gray-900 dark:text-white outline-none transition-all" placeholder="e.g. Final Certification Exam" />
                                     </div>
                                 </div>
                             )}
 
                             {step === 2 && (
                                 <div className="space-y-5 animate-in fade-in slide-in-from-right-4 duration-300">
-                                    <h3 className="text-lg font-bold border-b border-gray-100 dark:border-slate-800 pb-2 text-gray-805 dark:text-slate-100">Step 2: Anti-Cheat Rules</h3>
-                                    <div className="bg-orange-50 dark:bg-orange-950/20 border border-orange-200 dark:border-orange-900/30 p-4 rounded-2xl flex gap-3 text-orange-850 dark:text-orange-400">
+                                    <h3 className="text-lg font-bold border-b border-gray-100 dark:border-slate-800 pb-2 text-gray-800 dark:text-slate-100">Step 2: Anti-Cheat Rules</h3>
+                                    <div className="bg-orange-50 dark:bg-orange-950/20 border border-orange-200 dark:border-orange-900/30 p-4 rounded-2xl flex gap-3 text-orange-800 dark:text-orange-400">
                                         <AlertTriangle size={24} className="shrink-0 mt-0.5" />
                                         <div>
                                             <p className="font-bold mb-1 text-sm">Strict Exam Environment</p>
                                             <p className="text-xs leading-relaxed">Enabling strict mode will force the student's browser into full-screen. If they attempt to switch tabs or minimize the window, the exam will automatically submit their current answers immediately.</p>
                                         </div>
                                     </div>
-                                    <div className="flex items-center gap-3.5 p-4 border border-gray-200 dark:border-slate-800 rounded-2xl cursor-pointer hover:bg-gray-50 dark:hover:bg-slate-800 text-gray-900 dark:text-slate-200" onClick={() => setPreventTabChange(!preventTabChange)}>
+                                    <div className="flex items-center gap-3.5 p-4 border border-gray-200 dark:border-slate-800 rounded-2xl cursor-pointer hover:bg-gray-50 dark:hover:bg-slate-800 text-gray-900 dark:text-slate-205" onClick={() => setPreventTabChange(!preventTabChange)}>
                                         <div className={`w-6 h-6 rounded flex items-center justify-center border shrink-0 transition-colors ${preventTabChange ? 'bg-violet-600 border-violet-600' : 'border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-800'}`}>
                                             {preventTabChange && <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" /></svg>}
                                         </div>
@@ -319,14 +319,14 @@ const AdminExams: React.FC = () => {
                                     </div>
                                     <div>
                                         <label className="block text-xs font-bold text-gray-700 dark:text-slate-300 uppercase tracking-wider mb-2">Time Limit (Minutes)</label>
-                                        <input type="number" value={timeLimit} onChange={e => setTimeLimit(Number(e.target.value))} className="w-full p-3 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-750 text-sm text-gray-900 dark:text-white rounded-xl focus:ring-2 focus:ring-violet-500 outline-none transition-all" min={1} />
+                                        <input type="number" value={timeLimit} onChange={e => setTimeLimit(Number(e.target.value))} className="w-full p-3 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 text-sm text-gray-900 dark:text-white rounded-xl focus:ring-2 focus:ring-violet-500 outline-none transition-all" min={1} />
                                     </div>
                                 </div>
                             )}
 
                             {step === 3 && (
                                 <div className="space-y-5 animate-in fade-in slide-in-from-right-4 duration-300">
-                                    <h3 className="text-lg font-bold border-b border-gray-100 dark:border-slate-800 pb-2 text-gray-805 dark:text-slate-100 flex justify-between items-center">
+                                    <h3 className="text-lg font-bold border-b border-gray-100 dark:border-slate-800 pb-2 text-gray-800 dark:text-slate-100 flex justify-between items-center">
                                         Step 3: Questions
                                         <button onClick={handleAddQuestion} className="text-xs bg-violet-100 dark:bg-violet-950 text-violet-700 dark:text-violet-400 border border-violet-200 dark:border-violet-900/50 px-3 py-1.5 rounded-xl font-bold hover:bg-violet-200/80 cursor-pointer">+ Add Question</button>
                                     </h3>
@@ -358,7 +358,7 @@ const AdminExams: React.FC = () => {
                                                         newQ[idx].correctAnswer = e.target.value === 'true_false' ? true : e.target.value === 'short_answer' ? '' : 0;
                                                         setQuestions(newQ);
                                                     }} 
-                                                    className="p-2 text-xs bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-750 text-gray-900 dark:text-white rounded-lg outline-none focus:border-violet-500"
+                                                    className="p-2 text-xs bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 text-gray-900 dark:text-white rounded-lg outline-none focus:border-violet-500"
                                                 >
                                                     <option value="multiple_choice">Multiple Choice</option>
                                                     <option value="true_false">True / False</option>
@@ -373,7 +373,7 @@ const AdminExams: React.FC = () => {
                                                     newQ[idx].text = e.target.value;
                                                     setQuestions(newQ);
                                                 }} 
-                                                className="w-full p-3 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-750 text-sm text-gray-900 dark:text-white rounded-xl mb-4 outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-500/20" 
+                                                className="w-full p-3 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 text-sm text-gray-900 dark:text-white rounded-xl mb-4 outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-500/20" 
                                                 placeholder="Type the question here..." 
                                             />
                                             
@@ -400,7 +400,7 @@ const AdminExams: React.FC = () => {
                                                                     newQ[idx].options[optIdx] = e.target.value;
                                                                     setQuestions(newQ);
                                                                 }} 
-                                                                className="flex-1 p-2 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-750 text-sm text-gray-900 dark:text-white rounded-lg outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500/25" 
+                                                                className="flex-1 p-2 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 text-sm text-gray-900 dark:text-white rounded-lg outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500/25" 
                                                                 placeholder={`Option ${optIdx + 1}`} 
                                                             />
                                                         </div>
@@ -412,7 +412,7 @@ const AdminExams: React.FC = () => {
                                                 <div className="space-y-1">
                                                     <label className="block text-[11px] font-bold text-gray-500 dark:text-slate-400 uppercase tracking-wider mb-2">Select Correct Answer:</label>
                                                     <select 
-                                                        className="p-2.5 border border-gray-200 dark:border-slate-750 bg-gray-50 dark:bg-slate-800 text-sm text-gray-900 dark:text-white rounded-lg w-full outline-none focus:border-violet-500" 
+                                                        className="p-2.5 border border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-slate-800 text-sm text-gray-900 dark:text-white rounded-lg w-full outline-none focus:border-violet-500" 
                                                         value={q.correctAnswer ? 'true' : 'false'} 
                                                         onChange={e => {
                                                             const newQ = [...questions];
@@ -436,7 +436,7 @@ const AdminExams: React.FC = () => {
                                                             newQ[idx].correctAnswer = e.target.value;
                                                             setQuestions(newQ);
                                                         }} 
-                                                        className="w-full p-2.5 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-750 text-sm text-gray-900 dark:text-white rounded-lg outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500/25" 
+                                                        className="w-full p-2.5 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 text-sm text-gray-900 dark:text-white rounded-lg outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500/25" 
                                                         placeholder="Enter correct phrase or keywords..." 
                                                     />
                                                 </div>
@@ -452,7 +452,7 @@ const AdminExams: React.FC = () => {
                                                             newQ[idx].gradingGuide = e.target.value;
                                                             setQuestions(newQ);
                                                         }} 
-                                                        className="w-full p-2.5 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-750 text-sm text-gray-900 dark:text-white rounded-xl outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500/25 h-20 resize-y" 
+                                                        className="w-full p-2.5 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 text-sm text-gray-900 dark:text-white rounded-xl outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500/25 h-20 resize-y" 
                                                         placeholder="Enter grading guidelines or sample essay outline for reference..." 
                                                     />
                                                 </div>
@@ -467,7 +467,7 @@ const AdminExams: React.FC = () => {
                             <button 
                                 onClick={handlePrev}
                                 disabled={step === 1}
-                                className={`px-6 py-2.5 rounded-xl font-bold flex items-center gap-2 transition-all text-sm ${step === 1 ? 'opacity-0 cursor-default pointer-events-none' : 'bg-white hover:bg-gray-50 dark:bg-slate-800 dark:hover:bg-slate-750 text-gray-700 dark:text-slate-300 border border-gray-200 dark:border-slate-700 cursor-pointer'}`}
+                                className={`px-6 py-2.5 rounded-xl font-bold flex items-center gap-2 transition-all text-sm ${step === 1 ? 'opacity-0 cursor-default pointer-events-none' : 'bg-white hover:bg-gray-50 dark:bg-slate-800 dark:hover:bg-slate-700 text-gray-700 dark:text-slate-300 border border-gray-200 dark:border-slate-700 cursor-pointer'}`}
                             >
                                 <ArrowLeft size={18} /> Back
                             </button>
@@ -475,7 +475,7 @@ const AdminExams: React.FC = () => {
                             <div className="flex gap-2">
                                 <button
                                     onClick={() => handleSave(true)}
-                                    className="px-5 py-2.5 bg-gray-150 hover:bg-gray-200 dark:bg-slate-800 dark:hover:bg-slate-750 text-gray-800 dark:text-slate-200 rounded-xl font-bold text-sm transition-colors cursor-pointer"
+                                    className="px-5 py-2.5 bg-gray-200 hover:bg-gray-300 dark:bg-slate-800 dark:hover:bg-slate-700 text-gray-800 dark:text-slate-200 rounded-xl font-bold text-sm transition-colors cursor-pointer"
                                 >
                                     Save as Draft
                                 </button>
@@ -514,7 +514,7 @@ const AdminExams: React.FC = () => {
                 </div>
                 <div className="overflow-x-auto">
                     <table className="w-full text-left border-collapse">
-                        <thead className="bg-gray-50 dark:bg-slate-805/50">
+                        <thead className="bg-gray-50 dark:bg-slate-800/50">
                             <tr className="text-gray-500 dark:text-slate-400 text-xs uppercase tracking-wider font-semibold border-b border-gray-150 dark:border-slate-800">
                                 <th className="py-4 px-6">Student</th>
                                 <th className="py-4 px-6">Course</th>
@@ -704,7 +704,7 @@ const AdminExams: React.FC = () => {
                                                             quizScore: qScore,
                                                             examScore: exScore
                                                         })}
-                                                        className="px-3 py-1 bg-white hover:bg-gray-50 dark:bg-slate-800 dark:hover:bg-slate-750 text-gray-700 dark:text-slate-300 border border-gray-250 dark:border-slate-700 rounded-lg text-xs font-bold transition-colors cursor-pointer w-full flex items-center justify-center gap-1"
+                                                        className="px-3 py-1 bg-white hover:bg-gray-50 dark:bg-slate-800 dark:hover:bg-slate-700 text-gray-700 dark:text-slate-300 border border-gray-250 dark:border-slate-700 rounded-lg text-xs font-bold transition-colors cursor-pointer w-full flex items-center justify-center gap-1"
                                                     >
                                                         <Edit2 size={10} /> Edit Grades
                                                     </button>
@@ -722,7 +722,7 @@ const AdminExams: React.FC = () => {
             {/* Edit Scores / Grading Dialog Modal */}
             {editingScores && (
                 <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
-                    <div className="bg-white dark:bg-slate-900 rounded-3xl w-full max-w-md overflow-hidden shadow-2xl border border-gray-150 dark:border-slate-805">
+                    <div className="bg-white dark:bg-slate-900 rounded-3xl w-full max-w-md overflow-hidden shadow-2xl border border-gray-150 dark:border-slate-800">
                         <div className="p-6 border-b border-gray-150 dark:border-slate-800 flex justify-between items-center bg-gray-50/50 dark:bg-slate-900/50">
                             <h3 className="text-base font-bold text-gray-900 dark:text-white">Grade & Edit Scores</h3>
                             <button onClick={() => setEditingScores(null)} className="p-1.5 text-gray-400 hover:text-gray-600 dark:hover:text-slate-350 rounded-full hover:bg-gray-100 dark:hover:bg-slate-800 cursor-pointer">
@@ -772,7 +772,7 @@ const AdminExams: React.FC = () => {
                             </div>
                         </div>
                         <div className="p-4 border-t border-gray-150 dark:border-slate-800 bg-gray-50/50 dark:bg-slate-900/50 flex justify-end gap-2">
-                            <button onClick={() => setEditingScores(null)} className="px-4 py-2 bg-white hover:bg-gray-50 dark:bg-slate-800 dark:hover:bg-slate-750 text-gray-700 dark:text-slate-300 border border-gray-200 dark:border-slate-700 rounded-xl font-bold text-xs cursor-pointer">
+                            <button onClick={() => setEditingScores(null)} className="px-4 py-2 bg-white hover:bg-gray-50 dark:bg-slate-800 dark:hover:bg-slate-700 text-gray-700 dark:text-slate-300 border border-gray-200 dark:border-slate-700 rounded-xl font-bold text-xs cursor-pointer">
                                 Cancel
                             </button>
                             <button onClick={handleSaveScores} className="px-4 py-2 bg-purple-650 hover:bg-purple-750 text-white rounded-xl font-bold text-xs cursor-pointer">

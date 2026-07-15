@@ -371,7 +371,7 @@ const AdminAssignments: React.FC = () => {
                                     type="text" 
                                     value={title}
                                     onChange={(e) => setTitle(e.target.value)}
-                                    className="w-full p-2.5 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-750 rounded-xl text-sm"
+                                    className="w-full p-2.5 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl text-sm"
                                     placeholder="e.g. Practical Neural Network Implementation" 
                                     required
                                 />
@@ -382,7 +382,7 @@ const AdminAssignments: React.FC = () => {
                                 <select 
                                     value={courseId} 
                                     onChange={(e) => setCourseId(e.target.value)}
-                                    className="w-full p-2.5 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-750 rounded-xl text-sm"
+                                    className="w-full p-2.5 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl text-sm"
                                 >
                                     <option value="global">Global (All Enrolled Students)</option>
                                     {courses.map(c => (
@@ -398,7 +398,7 @@ const AdminAssignments: React.FC = () => {
                                     onChange={(e) => setDescription(e.target.value)}
                                     placeholder="Enter instructions, questions, reading materials..."
                                     rows={3}
-                                    className="w-full p-2.5 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-750 rounded-xl text-sm outline-none focus:ring-2 focus:ring-violet-500/20"
+                                    className="w-full p-2.5 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-violet-500/20"
                                 />
                             </div>
 
@@ -423,7 +423,7 @@ const AdminAssignments: React.FC = () => {
                                                 setResourceUrl('');
                                             }
                                         }}
-                                        className="text-xs bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-750 rounded-lg px-2 py-1 outline-none"
+                                        className="text-xs bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-lg px-2 py-1 outline-none"
                                     >
                                         <option value="none">No Attachment</option>
                                         <option value="pdf">PDF Document</option>
@@ -526,7 +526,7 @@ const AdminAssignments: React.FC = () => {
                                                         setResourceSize('Remote Web URL');
                                                     }}
                                                     placeholder="e.g. https://example.com/lecture_intro_walkthrough.mp4"
-                                                    className="w-full p-2 bg-gray-55 dark:bg-slate-850 border border-gray-250 dark:border-slate-755 rounded-lg text-xs"
+                                                    className="w-full p-2 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-lg text-xs"
                                                     required={resourceType !== 'none'}
                                                 />
                                             </div>
@@ -542,7 +542,7 @@ const AdminAssignments: React.FC = () => {
                                         type="date" 
                                         value={dueDate}
                                         onChange={(e) => setDueDate(e.target.value)}
-                                        className="w-full p-2.5 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-750 rounded-xl text-sm" 
+                                        className="w-full p-2.5 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl text-sm" 
                                         required
                                     />
                                 </div>
@@ -551,7 +551,7 @@ const AdminAssignments: React.FC = () => {
                                     <select 
                                         value={status} 
                                         onChange={(e) => setStatus(e.target.value as any)}
-                                        className="w-full p-2.5 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-750 rounded-xl text-sm"
+                                        className="w-full p-2.5 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl text-sm"
                                     >
                                         <option value="In Progress">In Progress</option>
                                         <option value="Completed">Completed</option>

@@ -482,7 +482,7 @@ const MyCourses: React.FC<MyCoursesProps> = ({ courses }) => {
                                     {selectedCourse.sections.map((section: CourseSection) => {
                                         const isLocked = isSectionLocked(section.id);
                                         return (
-                                            <div key={section.id} className={`bg-white dark:bg-slate-900 rounded-2xl border border-gray-205 dark:border-slate-800 overflow-hidden shadow-sm ${isLocked ? 'opacity-60' : ''}`}>
+                                            <div key={section.id} className={`bg-white dark:bg-slate-900 rounded-2xl border border-gray-200 dark:border-slate-800 overflow-hidden shadow-sm ${isLocked ? 'opacity-60' : ''}`}>
                                                 <div 
                                                     onClick={() => {
                                                         if (isLocked) {
@@ -491,14 +491,14 @@ const MyCourses: React.FC<MyCoursesProps> = ({ courses }) => {
                                                         }
                                                         setExpandedSections(prev => ({...prev, [section.id]: !prev[section.id]}))
                                                     }}
-                                                    className="w-full bg-gray-55 dark:bg-slate-800/50 p-4 border-b border-gray-205 dark:border-slate-800 flex justify-between items-center hover:bg-gray-100 dark:hover:bg-slate-805 transition-colors cursor-pointer"
+                                                    className="w-full bg-gray-50 dark:bg-slate-800/50 p-4 border-b border-gray-200 dark:border-slate-800 flex justify-between items-center hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
                                                 >
                                                     <h4 className="font-bold text-gray-900 dark:text-white flex items-center gap-2">
                                                         {isLocked && <Lock size={15} className="text-gray-400 dark:text-slate-500" />}
                                                         {section.title}
                                                     </h4>
                                                     <div className="flex items-center gap-3">
-                                                        <span className="text-xs text-gray-500 dark:text-slate-400 font-medium bg-white dark:bg-slate-900 px-2 py-1 rounded border border-gray-205 dark:border-slate-800">{section.lessons.length} Lessons</span>
+                                                        <span className="text-xs text-gray-500 dark:text-slate-400 font-medium bg-white dark:bg-slate-900 px-2 py-1 rounded border border-gray-200 dark:border-slate-800">{section.lessons.length} Lessons</span>
                                                         
                                                         {!isLocked && (
                                                             /* Small List/Grid Toggle inside module */
@@ -740,8 +740,8 @@ const MyCourses: React.FC<MyCoursesProps> = ({ courses }) => {
                             ) : (
                                 <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-6">
                                     {selectedCourse.modules.map((module: any, idx: number) => (
-                                        <div key={idx} className="bg-white dark:bg-slate-900 rounded-3xl border border-gray-250 dark:border-slate-800 overflow-hidden shadow-sm flex flex-col hover:shadow-md transition-shadow">
-                                            <div className="h-32 bg-gray-100 dark:bg-slate-805 relative group cursor-pointer border-b border-gray-100 dark:border-slate-800/80" onClick={() => setActiveModule(module)}>
+                                        <div key={idx} className="bg-white dark:bg-slate-900 rounded-3xl border border-gray-200 dark:border-slate-800 overflow-hidden shadow-sm flex flex-col hover:shadow-md transition-shadow">
+                                            <div className="h-32 bg-gray-100 dark:bg-slate-800 relative group cursor-pointer border-b border-gray-100 dark:border-slate-800/80" onClick={() => setActiveModule(module)}>
                                                 {module.thumbnail ? (
                                                     <img src={module.thumbnail} alt={module.title} className="w-full h-full object-cover" />
                                                 ) : (

@@ -353,9 +353,9 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({ courses, userId }) => {
                     ) : (
                         <div className="space-y-3">
                             {quizGrades.map((grade, idx) => (
-                                <div key={idx} className="p-3 bg-gray-50 dark:bg-slate-805/50 rounded-2xl border border-gray-100/30 dark:border-slate-700/30 flex items-center justify-between">
+                                <div key={idx} className="p-3 bg-gray-50 dark:bg-slate-800/50 rounded-2xl border border-gray-100/30 dark:border-slate-700/30 flex items-center justify-between">
                                     <div className="flex items-center gap-3">
-                                        <div className="p-2 bg-purple-50 dark:bg-purple-955/20 text-purple-600 dark:text-purple-400 rounded-lg shrink-0">
+                                        <div className="p-2 bg-purple-50 dark:bg-purple-950/20 text-purple-600 dark:text-purple-400 rounded-lg shrink-0">
                                             <Award size={16} />
                                         </div>
                                         <div>

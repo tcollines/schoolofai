@@ -575,7 +575,7 @@ const AdminEvents: React.FC = () => {
                                     <select 
                                         value={type} 
                                         onChange={(e) => setType(e.target.value as any)}
-                                        className="w-full p-2.5 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-750 rounded-xl text-sm"
+                                        className="w-full p-2.5 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl text-sm"
                                     >
                                         <option value="Workshop">Workshop</option>
                                         <option value="Webinar">Webinar</option>
@@ -589,7 +589,7 @@ const AdminEvents: React.FC = () => {
                                         type="text" 
                                         value={speaker} 
                                         onChange={(e) => setSpeaker(e.target.value)}
-                                        className="w-full p-2.5 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-750 rounded-xl text-sm"
+                                        className="w-full p-2.5 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl text-sm"
                                         placeholder="e.g. Dr. Sarah Jenkins" 
                                         required
                                     />
@@ -602,7 +602,7 @@ const AdminEvents: React.FC = () => {
                                     type="text" 
                                     value={title} 
                                     onChange={(e) => setTitle(e.target.value)}
-                                    className="w-full p-2.5 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-750 rounded-xl text-sm"
+                                    className="w-full p-2.5 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl text-sm"
                                     placeholder="Enter event title..." 
                                     required
                                 />
@@ -613,7 +613,7 @@ const AdminEvents: React.FC = () => {
                                 <textarea 
                                     value={description} 
                                     onChange={(e) => setDescription(e.target.value)}
-                                    className="w-full p-2.5 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-750 rounded-xl text-sm h-24"
+                                    className="w-full p-2.5 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl text-sm h-24"
                                     placeholder="Enter event details and what students will learn..." 
                                     required
                                 />
@@ -626,13 +626,13 @@ const AdminEvents: React.FC = () => {
                                         type="date" 
                                         value={date} 
                                         onChange={(e) => setDate(e.target.value)}
-                                        className="w-full p-2.5 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-750 rounded-xl text-sm" 
+                                        className="w-full p-2.5 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl text-sm" 
                                         required
                                     />
                                 </div>
                                 <div className="space-y-1">
                                     <label className="text-xs font-semibold text-gray-600 dark:text-slate-400">Time</label>
-                                    <div className="flex items-center gap-1 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-750 rounded-xl p-2.5 w-full text-sm">
+                                    <div className="flex items-center gap-1 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl p-2.5 w-full text-sm">
                                         <select
                                             value={timeHour}
                                             onChange={(e) => setTimeHour(e.target.value)}
@@ -720,7 +720,7 @@ const AdminEvents: React.FC = () => {
                                     <select 
                                         value={courseId} 
                                         onChange={(e) => setCourseId(e.target.value)}
-                                        className="w-full p-2.5 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-750 rounded-xl text-sm"
+                                        className="w-full p-2.5 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl text-sm"
                                     >
                                         <option value="global">Global (All Students)</option>
                                         {courses.map(c => (
@@ -735,7 +735,7 @@ const AdminEvents: React.FC = () => {
                                 <select 
                                     value={medium} 
                                     onChange={(e) => setMedium(e.target.value as any)}
-                                    className="w-full p-2.5 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-750 rounded-xl text-sm"
+                                    className="w-full p-2.5 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl text-sm"
                                 >
                                     <option value="Online">Online / Virtual Meeting</option>
                                     <option value="Physical">Physical / In-Person Campus</option>
@@ -749,7 +749,7 @@ const AdminEvents: React.FC = () => {
                                         type="text" 
                                         value={meetLink} 
                                         onChange={(e) => setMeetLink(e.target.value)}
-                                        className="w-full p-2.5 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-750 rounded-xl text-sm"
+                                        className="w-full p-2.5 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl text-sm"
                                         placeholder="https://meet.google.com/abc-defg-hij" 
                                     />
                                 </div>
@@ -760,7 +760,7 @@ const AdminEvents: React.FC = () => {
                                         type="text" 
                                         value={location} 
                                         onChange={(e) => setLocation(e.target.value)}
-                                        className="w-full p-2.5 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-750 rounded-xl text-sm"
+                                        className="w-full p-2.5 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl text-sm"
                                         placeholder="e.g. Main Auditorium, Cape Town" 
                                     />
                                 </div>
