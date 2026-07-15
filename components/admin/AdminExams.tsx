@@ -195,7 +195,7 @@ const AdminExams: React.FC = () => {
                     </div>
                 )}
                 {coursesWithExams.map(c => (
-                    <div key={c.id} className="bg-white dark:bg-slate-900 rounded-3xl p-6 shadow-sm border border-gray-150 dark:border-slate-800 hover:shadow-md transition-shadow relative overflow-hidden flex flex-col justify-between min-h-[190px]">
+                    <div key={c.id} className="bg-white dark:bg-slate-900 rounded-3xl p-6 border border-gray-150 dark:border-slate-800 shadow-sm hover:shadow-xl hover:transform hover:-translate-y-1 hover:border-welile-purple dark:hover:border-purple-600 transition-all duration-300 relative overflow-hidden flex flex-col justify-between min-h-[190px]">
                         <div>
                             <div className="flex justify-between items-start mb-2.5">
                                 <span className={`text-[10px] uppercase font-extrabold px-2 py-0.5 rounded-full border shadow-xs tracking-wider shrink-0 ${
