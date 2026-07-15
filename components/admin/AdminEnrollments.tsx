@@ -254,19 +254,32 @@ const AdminEnrollments: React.FC = () => {
                                                                     key={opt.value}
                                                                     onClick={async () => {
                                                                         setActiveDropdownId(null);
-                                                                        if (u.role === opt.value) return;
                                                                         if (opt.value === UserRole.ADMIN) {
                                                                             setInstPassword('instructor');
                                                                             setInstBio('');
                                                                             setInstPasscode('');
-                                                                            setSelectedUpgradeUser(u);
-                                                                        } else {
                                                                             try {
-                                                                                await updateUserRole(u.id, opt.value);
-                                                                                alert(`Subscription plan updated to ${opt.label} successfully!`);
-                                                                            } catch (err) {
-                                                                                alert('Failed to update subscription plan.');
+                                                                                const { data: existing } = await supabase
+                                                                                    .from('instructors')
+                                                                                    .select('*')
+                                                                                    .eq('email', u.email.trim().toLowerCase());
+                                                                                if (existing && existing.length > 0) {
+                                                                                    setInstPassword(existing[0].password || 'instructor');
+                                                                                    setInstBio(existing[0].bio || '');
+                                                                                    setInstPasscode(existing[0].passcode || '');
+                                                                                }
+                                                                            } catch (e) {
+                                                                                console.error('Error fetching instructor settings:', e);
                                                                             }
+                                                                            setSelectedUpgradeUser(u);
+                                                                            return;
+                                                                        }
+                                                                        if (u.role === opt.value) return;
+                                                                        try {
+                                                                            await updateUserRole(u.id, opt.value);
+                                                                            alert(`Subscription plan updated to ${opt.label} successfully!`);
+                                                                        } catch (err) {
+                                                                            alert('Failed to update subscription plan.');
                                                                         }
                                                                     }}
                                                                     className={`w-full px-4 py-2 text-xs flex items-center justify-between hover:bg-gray-50 dark:hover:bg-slate-850 transition-colors cursor-pointer ${
