@@ -102,10 +102,12 @@ const AdminEnrollments: React.FC = () => {
         }
     };
 
-    const filteredUsers = users.filter(u => 
-        (u.name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
-        (u.email || '').toLowerCase().includes(searchQuery.toLowerCase())
-    );
+    const filteredUsers = users
+        .filter(u => 
+            (u.name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+            (u.email || '').toLowerCase().includes(searchQuery.toLowerCase())
+        )
+        .sort((a, b) => (a.name || '').localeCompare(b.name || ''));
 
     if (loading) return <div className="p-8 text-center text-gray-500 dark:text-slate-400">Loading directory...</div>;
 
