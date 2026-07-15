@@ -20,6 +20,59 @@ const PlansPage: React.FC<PlansPageProps> = ({ user, currentPlan, onUpgrade, onB
         return stored ? Number(stored) : 0;
     });
 
+    const [isSubmittingBusiness, setIsSubmittingBusiness] = useState(false);
+
+    const handleRequestBusinessPlan = async () => {
+        if (!user?.id) {
+            alert("Please log in to submit a request.");
+            return;
+        }
+        setIsSubmittingBusiness(true);
+        try {
+            const { error } = await supabase
+                .from('profiles')
+                .update({
+                    pending_role: 'SPONSORED',
+                    pending_txid: `Corporate Request`,
+                    company_name: 'Sponsored'
+                })
+                .eq('id', user.id);
+            if (error) throw error;
+
+            await supabase
+                .from('mails')
+                .insert({
+                    name: user.name || 'Student',
+                    email: user.email || 'student@test.com',
+                    message: `Corporate enrollment request submitted by student user ${user.name || 'Student'} (${user.email || 'student@test.com'}).`,
+                    type: 'ENROLLMENT'
+                });
+            
+            const userEmail = user?.email || 'student@test.com';
+            const notifKey = `portal-notifications-${userEmail}`;
+            const stored = localStorage.getItem(notifKey);
+            const list = stored ? JSON.parse(stored) : [];
+            const newItem = {
+                id: 'notif-' + Date.now(),
+                title: "Corporate Enrollment Pending",
+                description: `Your request to enroll under the Corporate Plan is under administrative review.`,
+                timestamp: new Date().toISOString(),
+                read: false,
+                type: 'payment'
+            };
+            localStorage.setItem(notifKey, JSON.stringify([newItem, ...list]));
+            window.dispatchEvent(new Event('notifications-update'));
+            window.dispatchEvent(new Event('profile-update'));
+            
+            alert("Your corporate enrollment request has been submitted! Admin will verify and activate your sponsored account shortly.");
+        } catch (err) {
+            console.error(err);
+            alert("Failed to submit request.");
+        } finally {
+            setIsSubmittingBusiness(false);
+        }
+    };
+
     const handleRate = (stars: number) => {
         setRating(stars);
         localStorage.setItem(`schoolofai-rating-${user?.id || 'guest'}`, String(stars));
@@ -42,16 +95,21 @@ const PlansPage: React.FC<PlansPageProps> = ({ user, currentPlan, onUpgrade, onB
                 )}
             </div>
 
-            {(currentPlan === 'PRO' || currentPlan === 'ADMIN') ? (
+            {(currentPlan === 'PRO' || currentPlan === 'ADMIN' || currentPlan === 'SPONSORED') ? (
                 <div className="max-w-xl mx-auto bg-white dark:bg-slate-900 border border-gray-150 dark:border-slate-800 rounded-3xl p-8 shadow-xl text-center space-y-6 animate-in zoom-in-95 duration-200">
                     <div className="w-16 h-16 bg-purple-50 dark:bg-purple-950/20 text-purple-600 dark:text-purple-400 rounded-full flex items-center justify-center mx-auto">
                         <Sparkles size={32} />
                     </div>
                     
                     <div>
-                        <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Enjoy Our Services</h3>
+                        <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+                            {currentPlan === 'SPONSORED' ? `Sponsored by ${user?.companyName || 'Corporate'}` : 'Enjoy Our Services'}
+                        </h3>
                         <p className="text-sm text-gray-500 dark:text-slate-400 leading-relaxed">
-                            You now have full, unrestricted access to all learning modules, advanced assignments, certificates, and our 24/7 interactive AI Tutor. We're excited to support your education journey!
+                            {currentPlan === 'SPONSORED'
+                                ? `Your learning account is fully sponsored by ${user?.companyName || 'your organization'}. You have complete access to all premium modules and AI tutoring.`
+                                : "You now have full, unrestricted access to all learning modules, advanced assignments, certificates, and our 24/7 interactive AI Tutor. We're excited to support your education journey!"
+                            }
                         </p>
                     </div>
 
@@ -90,82 +148,149 @@ const PlansPage: React.FC<PlansPageProps> = ({ user, currentPlan, onUpgrade, onB
                     </div>
                 </div>
             ) : (
-                <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+                <div className="grid lg:grid-cols-3 md:grid-cols-2 grid-cols-1 gap-8 max-w-6xl mx-auto">
                 {/* Basic Plan */}
-                <div className={`p-8 rounded-2xl bg-white dark:bg-slate-900 border ${currentPlan === 'INDIVIDUAL' ? 'border-gray-200 dark:border-slate-700' : 'border-gray-100 dark:border-slate-805'} shadow-sm relative group hover:border-welile-purple dark:hover:border-purple-600 hover:shadow-lg transition-all`}>
-                    <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Basic</h3>
-                    <div className="text-4xl font-bold text-gray-900 dark:text-white mb-6">Free<span className="text-lg text-gray-500 dark:text-slate-400 font-normal">/forever</span></div>
-                    <p className="text-gray-600 dark:text-slate-350 mb-8">Perfect for exploring new topics and getting started.</p>
+                <div className={`p-8 rounded-2xl bg-white dark:bg-gray-900 border ${currentPlan === 'INDIVIDUAL' ? 'border-gray-200 dark:border-gray-800' : 'border-gray-150 dark:border-gray-800/60'} shadow-xl relative group hover:border-welile-purple dark:hover:border-purple-600 hover:transform hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between`}>
+                    <div className="absolute top-0 right-0 w-32 h-32 bg-purple-500 blur-3xl opacity-20 -mr-16 -mt-16"></div>
+                    <div className="absolute top-0 right-0 bg-violet-600 text-white text-xs font-bold px-3 py-1 rounded-bl-xl rounded-tr-xl">FREE</div>
+                    <div>
+                        <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Basic</h3>
+                        <div className="text-4xl font-bold text-gray-900 dark:text-white mb-6">Free<span className="text-lg text-gray-500 dark:text-slate-400 font-normal">/forever</span></div>
+                        <p className="text-gray-600 dark:text-slate-400 mb-8 text-sm">Perfect for exploring new topics and getting started.</p>
 
-                    <div className="mb-8">
-                        {currentPlan === 'INDIVIDUAL' ? (
-                            <div className="w-full py-3 rounded-xl bg-gray-100 dark:bg-slate-800 text-gray-500 dark:text-slate-400 font-bold text-center">
-                                {t('current_plan')}
-                            </div>
-                        ) : (
-                            <button className="w-full py-3 rounded-xl border-2 border-gray-200 dark:border-slate-800 font-bold text-gray-700 dark:text-slate-300 hover:border-gray-300 dark:hover:border-slate-700">
-                                Downgrade
-                            </button>
-                        )}
+                        <div className="mb-8">
+                            {currentPlan === 'INDIVIDUAL' ? (
+                                <div className="w-full py-3 rounded-xl bg-gray-100 dark:bg-slate-800 text-gray-500 dark:text-slate-400 font-bold text-center">
+                                    {t('current_plan')}
+                                </div>
+                            ) : (
+                                <button className="w-full py-3 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 text-white font-bold hover:shadow-lg transition-all hover:opacity-90 cursor-pointer">
+                                    Downgrade
+                                </button>
+                            )}
+                        </div>
+
+                        <ul className="space-y-4 text-sm text-gray-700 dark:text-slate-300">
+                            <li className="flex items-center gap-3">
+                                <CheckCircle size={18} className="text-purple-500 dark:text-purple-400 flex-shrink-0" />
+                                <span>{"Access to "}<strong>Introduction</strong>{" modules"}</span>
+                            </li>
+                            <li className="flex items-center gap-3 text-gray-700 dark:text-slate-300">
+                                <span className="w-4 h-4 rounded-full border border-gray-450 dark:border-slate-650 flex-shrink-0"></span>
+                                <span>Fundamentals modules</span>
+                            </li>
+                            <li className="flex items-center gap-3 text-gray-700 dark:text-slate-300">
+                                <span className="w-4 h-4 rounded-full border border-gray-450 dark:border-slate-650 flex-shrink-0"></span>
+                                <span>Advanced Application modules</span>
+                            </li>
+                        </ul>
                     </div>
-
-                    <ul className="space-y-4">
-                        <li className="flex items-center gap-3 text-gray-700 dark:text-slate-300">
-                            <CheckCircle size={18} className="text-green-500 flex-shrink-0" />
-                            <span>Access to <strong>Introduction</strong> modules</span>
-                        </li>
-                        <li className="flex items-center gap-3 text-gray-400 dark:text-slate-500">
-                            <span className="w-4 h-4 rounded-full border border-gray-300 dark:border-slate-700 flex-shrink-0"></span>
-                            <span>Fundamentals modules</span>
-                        </li>
-                        <li className="flex items-center gap-3 text-gray-400 dark:text-slate-500">
-                            <span className="w-4 h-4 rounded-full border border-gray-300 dark:border-slate-700 flex-shrink-0"></span>
-                            <span>Advanced Application modules</span>
-                        </li>
-                    </ul>
                 </div>
 
                 {/* Pro Plan - Highlighted */}
-                <div className="p-8 rounded-2xl bg-gray-900 border border-gray-800 text-white relative overflow-hidden hover:transform hover:-translate-y-1 transition-all duration-300 shadow-xl">
+                <div className="p-8 rounded-2xl bg-white dark:bg-gray-900 border border-purple-200 dark:border-violet-600 text-gray-900 dark:text-white relative overflow-hidden hover:transform hover:-translate-y-1 transition-all duration-300 shadow-xl flex flex-col justify-between">
                     <div className="absolute top-0 right-0 w-32 h-32 bg-purple-500 blur-3xl opacity-20 -mr-16 -mt-16"></div>
                     <div className="absolute top-0 right-0 bg-welile-purple text-white text-xs font-bold px-3 py-1 rounded-bl-xl rounded-tr-xl">POPULAR</div>
-                    <h3 className="text-2xl font-bold text-white mb-2">Pro</h3>
-                    <div className="text-4xl font-bold text-white mb-6">$100<span className="text-lg text-gray-400 font-normal">/mo</span></div>
-                    <p className="text-gray-400 mb-8">Master every subject with unlimited access to everything.</p>
+                    <div>
+                        <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Pro</h3>
+                        <div className="text-4xl font-bold text-gray-900 dark:text-white mb-6">$100<span className="text-lg text-gray-500 dark:text-slate-400 font-normal">/mo</span></div>
+                        <p className="text-gray-600 dark:text-slate-400 mb-8 text-sm">Master every subject with unlimited access to everything.</p>
 
-                    <div className="mb-8">
-                        {currentPlan === 'SPONSORED' ? (
-                            <div className="w-full py-3 rounded-xl bg-gray-800 text-gray-400 font-bold text-center border border-gray-700">
-                                Current Plan
-                            </div>
-                        ) : (
-                            <button
-                                onClick={() => setSelectedPlanName('PRO')}
-                                className="w-full py-3 rounded-xl bg-gradient-to-r from-purple-500 to-blue-500 text-white font-bold hover:shadow-lg transition-all hover:opacity-90 cursor-pointer"
-                            >
-                                Upgrade to Pro
-                            </button>
-                        )}
+                        <div className="mb-8">
+                            {((currentPlan as string) === 'SPONSORED') ? (
+                                <div className="w-full py-3 rounded-xl bg-gray-100 dark:bg-slate-800 text-gray-500 dark:text-slate-400 font-bold text-center border border-gray-200 dark:border-slate-700">
+                                    Current Plan
+                                </div>
+                            ) : (
+                                <button
+                                    onClick={() => setSelectedPlanName('PRO')}
+                                    className="w-full py-3 rounded-xl bg-gradient-to-r from-purple-500 to-blue-500 text-white font-bold hover:shadow-lg transition-all hover:opacity-90 cursor-pointer"
+                                >
+                                    Upgrade to Pro
+                                </button>
+                            )}
+                        </div>
+
+                        <ul className="space-y-4 text-sm text-gray-700 dark:text-gray-300">
+                            <li className="flex items-center gap-3">
+                                <CheckCircle size={18} className="text-purple-500 dark:text-purple-400 flex-shrink-0" />
+                                <span>{"Access to "}<strong>Introduction</strong>{" modules"}</span>
+                            </li>
+                            <li className="flex items-center gap-3">
+                                <CheckCircle size={18} className="text-purple-500 dark:text-purple-400 flex-shrink-0" />
+                                <span>{"Access to "}<strong>Fundamentals</strong>{" modules"}</span>
+                            </li>
+                            <li className="flex items-center gap-3">
+                                <CheckCircle size={18} className="text-purple-500 dark:text-purple-400 flex-shrink-0" />
+                                <span>{"Access to "}<strong>All</strong>{" modules"}</span>
+                            </li>
+                            <li className="flex items-center gap-3 text-amber-500 dark:text-amber-400 font-bold">
+                                <Sparkles size={18} className="text-yellow-500 dark:text-yellow-400 flex-shrink-0" />
+                                <span>Unlimited AI Tutor Support</span>
+                            </li>
+                        </ul>
                     </div>
+                </div>
 
-                    <ul className="space-y-4">
-                        <li className="flex items-center gap-3 text-gray-300">
-                            <CheckCircle size={18} className="text-purple-400 flex-shrink-0" />
-                            <span>Access to <strong>Introduction</strong> modules</span>
-                        </li>
-                        <li className="flex items-center gap-3 text-gray-300">
-                            <CheckCircle size={18} className="text-purple-400 flex-shrink-0" />
-                            <span>Access to <strong>Fundamentals</strong> modules</span>
-                        </li>
-                        <li className="flex items-center gap-3 text-gray-300">
-                            <CheckCircle size={18} className="text-purple-400 flex-shrink-0" />
-                            <span>Access to <strong>All</strong> modules</span>
-                        </li>
-                        <li className="flex items-center gap-3 text-gray-300">
-                            <Sparkles size={18} className="text-yellow-400 flex-shrink-0" />
-                            <span>Unlimited <strong>AI Tutor</strong> Support</span>
-                        </li>
-                    </ul>
+                {/* Business Plan - Corporate */}
+                <div className="p-8 rounded-2xl bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 text-gray-900 dark:text-white relative overflow-hidden hover:transform hover:-translate-y-1 transition-all duration-300 shadow-xl flex flex-col justify-between">
+                    <div className="absolute top-0 right-0 w-32 h-32 bg-purple-500 blur-3xl opacity-20 -mr-16 -mt-16"></div>
+                    <div className="absolute top-0 right-0 bg-violet-600 text-white text-xs font-bold px-3 py-1 rounded-bl-xl rounded-tr-xl">BUSINESS</div>
+                    <div>
+                        <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-1">Corporate</h3>
+                        <p className="text-xs text-violet-600 dark:text-violet-400 font-semibold mb-6">
+                            Upskill your team
+                        </p>
+                        
+                        <div className="text-4xl font-bold text-gray-900 dark:text-white mb-6">
+                            Custom Plan
+                        </div>
+                        <p className="text-gray-600 dark:text-gray-400 mb-8 text-sm leading-relaxed">
+                            Tailormade enrollment and reporting packages for your organization.
+                        </p>
+
+                        <div className="mb-6">
+                            {user?.pending_role === 'SPONSORED' ? (
+                                <div className="w-full py-3 rounded-xl bg-slate-800 text-yellow-500 font-bold text-xs text-center border border-slate-700">
+                                    Request Pending Approval
+                                </div>
+                            ) : (
+                                <button
+                                    onClick={handleRequestBusinessPlan}
+                                    disabled={isSubmittingBusiness}
+                                    className="w-full py-3 rounded-xl bg-violet-600 hover:bg-violet-700 text-white font-bold text-sm hover:shadow-lg transition-all cursor-pointer flex items-center justify-center gap-2"
+                                >
+                                    {isSubmittingBusiness ? (
+                                        <>
+                                            <Loader size={14} className="animate-spin" />
+                                            Submitting...
+                                        </>
+                                    ) : (
+                                        'Request Corporate Enrollment'
+                                    )}
+                                </button>
+                            )}
+                        </div>
+
+                        <ul className="space-y-4 text-sm text-gray-700 dark:text-gray-300">
+                            <li className="flex items-center gap-3">
+                                <CheckCircle size={18} className="text-purple-500 dark:text-purple-400 flex-shrink-0" />
+                                <span>{"Access to "}<strong>All</strong>{" modules for employees"}</span>
+                            </li>
+                            <li className="flex items-center gap-3">
+                                <CheckCircle size={18} className="text-purple-500 dark:text-purple-400 flex-shrink-0" />
+                                <span>{"Weekly "}<strong>progress reports</strong>{" for admins"}</span>
+                            </li>
+                            <li className="flex items-center gap-3">
+                                <CheckCircle size={18} className="text-purple-500 dark:text-purple-400 flex-shrink-0" />
+                                <span>Dedicated company billing & dashboard</span>
+                            </li>
+                            <li className="flex items-center gap-3 text-amber-500 dark:text-amber-400 font-bold">
+                                <Sparkles size={18} className="text-yellow-500 dark:text-yellow-400 flex-shrink-0" />
+                                <span>Unlimited AI Tutor Support</span>
+                            </li>
+                        </ul>
+                    </div>
                 </div>
             </div>
             )}
@@ -210,7 +335,9 @@ const PaymentModal: React.FC<PaymentModalProps> = ({ isOpen, onClose, planName, 
     };
 
     const addPortalNotification = (title: string, description: string, type: 'course' | 'achievement' | 'payment' | 'profile' | 'system' = 'system') => {
-        const stored = localStorage.getItem('portal-notifications');
+        const userEmail = localStorage.getItem('logged_in_email') || 'student@test.com';
+        const notifKey = `portal-notifications-${userEmail}`;
+        const stored = localStorage.getItem(notifKey);
         const list = stored ? JSON.parse(stored) : [];
         const newItem = {
             id: 'notif-' + Date.now(),
@@ -220,7 +347,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({ isOpen, onClose, planName, 
             read: false,
             type
         };
-        localStorage.setItem('portal-notifications', JSON.stringify([newItem, ...list]));
+        localStorage.setItem(notifKey, JSON.stringify([newItem, ...list]));
         window.dispatchEvent(new Event('notifications-update'));
     };
 
@@ -284,7 +411,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({ isOpen, onClose, planName, 
                 <div className="space-y-4">
                     {/* Airtel Money */}
                     <div className="p-4 bg-red-50 dark:bg-red-950/20 border border-red-100 dark:border-red-900/50 rounded-2xl">
-                        <h4 className="font-bold text-red-650 dark:text-red-400 flex items-center gap-2 mb-2 text-sm">
+                        <h4 className="font-bold text-red-600 dark:text-red-400 flex items-center gap-2 mb-2 text-sm">
                             <span className="text-lg">📱</span> Airtel Money
                         </h4>
                         <div className="text-xs space-y-1 text-gray-700 dark:text-slate-355">
@@ -295,7 +422,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({ isOpen, onClose, planName, 
 
                     {/* MTN MoMo */}
                     <div className="p-4 bg-yellow-50 dark:bg-yellow-950/20 border border-yellow-105 dark:border-yellow-900/50 rounded-2xl">
-                        <h4 className="font-bold text-yellow-650 dark:text-yellow-400 flex items-center gap-2 mb-2 text-sm">
+                        <h4 className="font-bold text-yellow-600 dark:text-yellow-400 flex items-center gap-2 mb-2 text-sm">
                             <span className="text-lg">📱</span> MTN MoMo
                         </h4>
                         <div className="text-xs space-y-1 text-gray-700 dark:text-slate-355">
@@ -306,7 +433,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({ isOpen, onClose, planName, 
 
                     {/* Bank Transfer */}
                     <div className="p-4 bg-blue-50 dark:bg-blue-950/20 border border-blue-100 dark:border-blue-900/50 rounded-2xl">
-                        <h4 className="font-bold text-blue-650 dark:text-blue-400 flex items-center gap-2 mb-2 text-sm">
+                        <h4 className="font-bold text-blue-600 dark:text-blue-400 flex items-center gap-2 mb-2 text-sm">
                             <span className="text-lg">🏦</span> Bank Transfer (Equity Bank)
                         </h4>
                         <div className="text-xs space-y-1 text-gray-700 dark:text-slate-355">

@@ -840,18 +840,10 @@ const Profile: React.FC<ProfileProps> = ({ user, onUpgradeClick }) => {
     const [showEditModal, setShowEditModal] = useState(false);
 
     const [educationList, setEducationList] = useState<EducationItem[]>(() => {
-        const stored = localStorage.getItem('profile-education');
+        const userEmail = localStorage.getItem('mock_logged_in_email') || 'guest';
+        const stored = localStorage.getItem(`profile-education-${userEmail}`);
         if (stored) return JSON.parse(stored);
-        return [
-            {
-                id: 'edu-default-1',
-                institution: 'University of Cape Town',
-                degree: 'Bachelor of Science in Computer Science',
-                status: 'Completed',
-                year: '2023',
-                fileName: 'uct_degree.pdf'
-            }
-        ];
+        return [];
     });
 
     useEffect(() => {
@@ -875,7 +867,8 @@ const Profile: React.FC<ProfileProps> = ({ user, onUpgradeClick }) => {
         };
         const updated = [...educationList, newItem];
         setEducationList(updated);
-        localStorage.setItem('profile-education', JSON.stringify(updated));
+        const userEmail = localStorage.getItem('mock_logged_in_email') || 'guest';
+        localStorage.setItem(`profile-education-${userEmail}`, JSON.stringify(updated));
 
         addPortalNotification(
             "Education Details Added",
@@ -885,7 +878,9 @@ const Profile: React.FC<ProfileProps> = ({ user, onUpgradeClick }) => {
     };
 
     const addPortalNotification = (title: string, description: string, type: 'assignment' | 'profile' | 'course' | 'system') => {
-        const stored = localStorage.getItem('portal-notifications');
+        const userEmail = localStorage.getItem('logged_in_email') || 'student@test.com';
+        const notifKey = `portal-notifications-${userEmail}`;
+        const stored = localStorage.getItem(notifKey);
         const list = stored ? JSON.parse(stored) : [];
         const newItem = {
             id: Date.now().toString(),
@@ -895,7 +890,7 @@ const Profile: React.FC<ProfileProps> = ({ user, onUpgradeClick }) => {
             read: false,
             type
         };
-        localStorage.setItem('portal-notifications', JSON.stringify([newItem, ...list]));
+        localStorage.setItem(notifKey, JSON.stringify([newItem, ...list]));
         window.dispatchEvent(new Event('notifications-update'));
     };
 

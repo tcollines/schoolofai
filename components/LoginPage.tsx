@@ -239,8 +239,8 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onNavigateToSignup, onBa
             <div className="hidden lg:block w-1/2 bg-gray-900 relative overflow-hidden">
                 <div className="absolute inset-0 bg-gradient-to-br from-violet-600/30 to-blue-600/30 mix-blend-overlay"></div>
                 <img
-                    src="/african_students_auth_bg.png"
-                    alt="African Students collaborating"
+                    src="/classroom_students.png"
+                    alt="Students collaborating in classroom"
                     className="w-full h-full object-cover opacity-50"
                 />
                 <div className="absolute bottom-20 left-12 text-white p-8">

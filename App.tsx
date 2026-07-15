@@ -227,7 +227,7 @@ function App() {
             <Route path="/discussions" element={<ProtectedRoute isAuthenticated={isAuthenticated}><DiscussionsPage /></ProtectedRoute>} />
             <Route path="/career" element={<ProtectedRoute isAuthenticated={isAuthenticated}><Certificates courses={isAuthenticated ? courses : []} /></ProtectedRoute>} />
             <Route path="/profile" element={<ProtectedRoute isAuthenticated={isAuthenticated}><Profile user={userProfile || ({} as any)} onUpgradeClick={() => window.location.href = '/plans'} /></ProtectedRoute>} />
-            <Route path="/plans" element={<ProtectedRoute isAuthenticated={isAuthenticated}><PlansPage user={userProfile} currentPlan={(userProfile?.role === UserRole.PRO || userProfile?.role === UserRole.ADMIN) ? userProfile.role : UserRole.INDIVIDUAL} onUpgrade={() => {}} onBack={() => window.location.href = '/profile'} /></ProtectedRoute>} />
+            <Route path="/plans" element={<ProtectedRoute isAuthenticated={isAuthenticated}><PlansPage user={userProfile} currentPlan={userProfile?.role || UserRole.INDIVIDUAL} onUpgrade={() => {}} onBack={() => window.location.href = '/profile'} /></ProtectedRoute>} />
             <Route path="/settings" element={<ProtectedRoute isAuthenticated={isAuthenticated}><SettingsPage /></ProtectedRoute>} />
             <Route path="/notifications" element={<ProtectedRoute isAuthenticated={isAuthenticated}><NotificationsPage /></ProtectedRoute>} />
             <Route path="/events" element={<ProtectedRoute isAuthenticated={isAuthenticated}><EventsPage courses={courses} /></ProtectedRoute>} />

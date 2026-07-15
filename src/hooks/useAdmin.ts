@@ -29,6 +29,7 @@ export const useAdmin = (isAdmin: boolean) => {
                 avatar: p.avatar_url || '',
                 walletBalance: Number(p.wallet_balance) || 0,
                 skills: [],
+                companyName: p.company_name,
                 pending_role: p.pending_role,
                 pending_txid: p.pending_txid,
                 pending_screenshot: p.pending_screenshot,

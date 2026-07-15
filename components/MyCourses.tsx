@@ -247,7 +247,7 @@ const MyCourses: React.FC<MyCoursesProps> = ({ courses }) => {
                             const quizScore = courseGrades.length > 0
                                 ? Math.round(courseGrades.reduce((sum: number, g: any) => sum + (g.percentage || 0), 0) / courseGrades.length)
                                 : 0;
-                            const finalScore = Math.round((quizScore + score) / 2);
+                            const finalScore = Math.round((quizScore * 0.3) + (score * 0.7));
 
                             const { error } = await supabase
                                 .from('enrollments')

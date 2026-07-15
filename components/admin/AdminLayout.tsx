@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { Routes, Route, useNavigate, useLocation, Navigate } from 'react-router-dom';
-import { LayoutDashboard, Users, BookOpen, FileQuestion, LogOut, Sun, Moon, Calendar, MessageSquare, ClipboardList } from 'lucide-react';
+import { LayoutDashboard, Users, BookOpen, FileQuestion, LogOut, Sun, Moon, Calendar, MessageSquare, ClipboardList, Mail } from 'lucide-react';
 import AdminOverview from './AdminOverview';
 import AdminEnrollments from './AdminEnrollments';
 import AdminCourses from './AdminCourses';
 import AdminExams from './AdminExams';
 import AdminEvents from './AdminEvents';
 import AdminLoginPage from './AdminLoginPage';
+import AdminMails from './AdminMails';
 
 interface AdminLayoutProps {
     onExit: () => void;
@@ -72,6 +73,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ onExit }) => {
         { id: 'courses', label: 'Course Setup', icon: BookOpen },
         { id: 'exams', label: 'Exam Setup', icon: FileQuestion },
         { id: 'events', label: 'Ongoing Events', icon: Calendar },
+        { id: 'mails', label: 'Mails', icon: Mail },
     ] as const;
 
     const renderContent = () => {
@@ -82,6 +84,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ onExit }) => {
                 <Route path="courses" element={<AdminCourses />} />
                 <Route path="exams" element={<AdminExams />} />
                 <Route path="events" element={<AdminEvents />} />
+                <Route path="mails" element={<AdminMails />} />
             </Routes>
         );
     };

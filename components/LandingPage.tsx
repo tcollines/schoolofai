@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { supabase } from '../src/lib/supabase';
 import Orb from './Orb';
 import {
     Bot,
@@ -15,7 +16,9 @@ import {
     Award,
     Users,
     Wallet,
-    Video
+    Video,
+    X,
+    Loader
 } from 'lucide-react';
 
 interface LandingPageProps {
@@ -29,6 +32,44 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLoginClick, onSignupClick, 
     const [isDark, setIsDark] = useState(() => {
         return document.documentElement.classList.contains('dark');
     });
+
+    const [showInquiryModal, setShowInquiryModal] = useState(false);
+    const [inquiryName, setInquiryName] = useState('');
+    const [inquiryEmail, setInquiryEmail] = useState('');
+    const [inquiryMessage, setInquiryMessage] = useState('');
+    const [isInquirySubmitting, setIsInquirySubmitting] = useState(false);
+
+    const handleSendInquiry = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!inquiryName.trim() || !inquiryEmail.trim()) {
+            alert("Please fill in your name and email.");
+            return;
+        }
+        setIsInquirySubmitting(true);
+        try {
+            const { error } = await supabase
+                .from('mails')
+                .insert({
+                    name: inquiryName,
+                    email: inquiryEmail,
+                    message: inquiryMessage || 'Corporate inquiry from landing page.',
+                    type: 'INQUIRY'
+                });
+            if (error) throw error;
+            
+            alert(`Thank you, ${inquiryName}! Your corporate enrollment inquiry has been submitted. Our team will contact you at ${inquiryEmail} within 24 hours.`);
+            setShowInquiryModal(false);
+            setInquiryName('');
+            setInquiryEmail('');
+            setInquiryMessage('');
+            window.dispatchEvent(new Event('new-mail-notification'));
+        } catch (err) {
+            console.error(err);
+            alert("Failed to submit inquiry.");
+        } finally {
+            setIsInquirySubmitting(false);
+        }
+    };
 
     useEffect(() => {
         const handleThemeChange = () => {
@@ -331,96 +372,199 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLoginClick, onSignupClick, 
                         <p className="mt-4 text-lg text-gray-500">Choose the plan that fits your learning journey.</p>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+                    <div className="grid grid-cols-1 lg:grid-cols-3 md:grid-cols-2 gap-8 max-w-6xl mx-auto">
                         {/* Basic */}
-                        <div className="bg-white rounded-2xl p-8 border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
-                            <h3 className="text-xl font-bold text-gray-900 mb-2">Basic</h3>
-                            <div className="text-4xl font-bold text-gray-900 mb-4">Free<span className="text-sm font-medium text-gray-500">/forever</span></div>
-                            <p className="text-gray-500 mb-6 text-sm">Perfect for exploring new topics and getting started.</p>
-                            <ul className="space-y-4 mb-8">
-                                <li className="flex items-start text-sm text-gray-600">
-                                    <CheckCircle2 className="w-5 h-5 text-green-500 mr-2 shrink-0" />
-                                    Access to <strong>Introduction</strong> modules
-                                </li>
-                                <li className="flex items-start text-sm text-gray-400">
-                                    <span className="w-5 h-5 mr-2 border border-gray-305 rounded-full block shrink-0"></span>
-                                    Fundamentals modules
-                                </li>
-                                <li className="flex items-start text-sm text-gray-400">
-                                    <span className="w-5 h-5 mr-2 border border-gray-305 rounded-full block shrink-0"></span>
-                                    Advanced Application modules
-                                </li>
-                            </ul>
+                        <div className="bg-white dark:bg-gray-900 text-gray-900 dark:text-white rounded-2xl p-8 border border-gray-205 dark:border-gray-800 shadow-xl relative overflow-hidden hover:transform hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between">
+                            <div className="absolute top-0 right-0 w-32 h-32 bg-purple-500 blur-3xl opacity-20 -mr-16 -mt-16"></div>
+                            <div className="absolute top-0 right-0 bg-violet-600 text-white text-xs font-bold px-3 py-1 rounded-bl-xl rounded-tr-lg">FREE</div>
+                            <div>
+                                <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Basic</h3>
+                                <div className="text-4xl font-bold text-gray-900 dark:text-white mb-4">Free<span className="text-sm font-medium text-gray-500">/forever</span></div>
+                                <p className="text-gray-550 dark:text-gray-400 mb-6 text-sm">Perfect for exploring new topics and getting started.</p>
+                                <ul className="space-y-4 mb-8 text-sm text-gray-700 dark:text-gray-300">
+                                    <li className="flex items-start text-sm text-gray-700 dark:text-gray-300">
+                                        <CheckCircle2 className="w-5 h-5 text-purple-500 dark:text-purple-400 mr-2 shrink-0" />
+                                        {"Access to "}<strong>Introduction</strong>{" modules"}
+                                    </li>
+                                    <li className="flex items-start text-sm text-gray-700 dark:text-gray-300">
+                                        <span className="w-5 h-5 mr-2 border border-gray-450 dark:border-slate-600 rounded-full block shrink-0"></span>
+                                        Fundamentals modules
+                                    </li>
+                                    <li className="flex items-start text-sm text-gray-700 dark:text-gray-300">
+                                        <span className="w-5 h-5 mr-2 border border-gray-450 dark:border-slate-600 rounded-full block shrink-0"></span>
+                                        Advanced Application modules
+                                    </li>
+                                </ul>
+                            </div>
                             <button
                                 onClick={onSignupClick || onGetStarted}
-                                className="w-full py-3 border border-gray-200 rounded-xl font-medium text-gray-700 hover:bg-gray-50 transition-colors"
-                            >
-                                Get Started
-                            </button>
-                        </div>
-
-                        {/* Plus */}
-                        <div className="bg-white rounded-2xl p-8 border-2 border-violet-600 shadow-xl relative transform md:-translate-y-4">
-                            <div className="absolute top-0 right-0 bg-violet-600 text-white text-xs font-bold px-3 py-1 rounded-bl-xl rounded-tr-lg">POPULAR</div>
-                            <h3 className="text-xl font-bold text-gray-900 mb-2">Plus</h3>
-                            <div className="text-4xl font-bold text-gray-900 mb-4">$19 <span className="text-sm font-medium text-gray-500">/mo</span></div>
-                            <p className="text-gray-500 mb-6 text-sm">Deepen your knowledge with core concepts and theory.</p>
-                            <ul className="space-y-4 mb-8">
-                                <li className="flex items-start text-sm text-gray-600">
-                                    <CheckCircle2 className="w-5 h-5 text-green-500 mr-2 shrink-0" />
-                                    Access to <strong>Introduction</strong> modules
-                                </li>
-                                <li className="flex items-start text-sm text-gray-600">
-                                    <CheckCircle2 className="w-5 h-5 text-green-500 mr-2 shrink-0" />
-                                    Access to <strong>Fundamentals</strong> modules
-                                </li>
-                                <li className="flex items-start text-sm text-gray-400">
-                                    <span className="w-5 h-5 mr-2 border border-gray-305 rounded-full block shrink-0"></span>
-                                    Advanced Application modules
-                                </li>
-                            </ul>
-                            <button
-                                onClick={onSignupClick || onGetStarted}
-                                className="w-full py-3 bg-violet-600 text-white rounded-xl font-medium hover:bg-violet-750 transition-colors shadow-lg shadow-violet-200"
+                                className="w-full py-3 bg-gradient-to-r from-violet-600 to-indigo-600 text-white rounded-xl font-medium hover:from-violet-700 hover:to-indigo-700 transition-colors shadow-lg shadow-indigo-900/30"
                             >
                                 Get Started
                             </button>
                         </div>
 
                         {/* Pro */}
-                        <div className="bg-gray-900 text-white rounded-2xl p-8 border border-gray-800 shadow-xl relative overflow-hidden">
+                        <div className="bg-white dark:bg-gray-900 text-gray-900 dark:text-white rounded-2xl p-8 border border-violet-200 dark:border-violet-600 shadow-xl relative overflow-hidden flex flex-col justify-between">
                             <div className="absolute top-0 right-0 w-32 h-32 bg-purple-500 blur-3xl opacity-20 -mr-16 -mt-16"></div>
-                            <h3 className="text-xl font-bold text-white mb-2">Pro</h3>
-                            <div className="text-4xl font-bold text-white mb-4">$100 <span className="text-sm font-medium text-gray-400">/mo</span></div>
-                            <p className="text-gray-400 mb-6 text-sm">Master every subject with unlimited access to everything.</p>
-                            <ul className="space-y-4 mb-8">
-                                <li className="flex items-start text-sm text-gray-300">
-                                    <CheckCircle2 className="w-5 h-5 text-violet-400 mr-2 shrink-0" />
-                                    Access to <strong>Introduction</strong> modules
-                                </li>
-                                <li className="flex items-start text-sm text-gray-300">
-                                    <CheckCircle2 className="w-5 h-5 text-violet-400 mr-2 shrink-0" />
-                                    Access to <strong>Fundamentals</strong> modules
-                                </li>
-                                <li className="flex items-start text-sm text-gray-300">
-                                    <CheckCircle2 className="w-5 h-5 text-violet-400 mr-2 shrink-0" />
-                                    Access to <strong>All</strong> modules
-                                </li>
-                                <li className="flex items-start text-sm text-amber-400 font-bold">
-                                    <Sparkles className="w-5 h-5 mr-2 shrink-0 text-amber-400" />
-                                    Unlimited AI Tutor Support
-                                </li>
-                            </ul>
+                            <div className="absolute top-0 right-0 bg-violet-600 text-white text-xs font-bold px-3 py-1 rounded-bl-xl rounded-tr-lg">POPULAR</div>
+                            <div>
+                                <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Pro</h3>
+                                <div className="text-4xl font-bold text-gray-900 dark:text-white mb-4">$100 <span className="text-sm font-medium text-gray-500 dark:text-gray-400">/mo</span></div>
+                                <p className="text-gray-600 dark:text-gray-400 mb-6 text-sm">Master every subject with unlimited access to everything.</p>
+                                <ul className="space-y-4 mb-8 text-sm text-gray-700 dark:text-gray-300">
+                                    <li className="flex items-start text-sm text-gray-700 dark:text-gray-300">
+                                        <CheckCircle2 className="w-5 h-5 text-violet-500 dark:text-violet-400 mr-2 shrink-0" />
+                                        {"Access to "}<strong>Introduction</strong>{" modules"}
+                                    </li>
+                                    <li className="flex items-start text-sm text-gray-700 dark:text-gray-300">
+                                        <CheckCircle2 className="w-5 h-5 text-violet-500 dark:text-violet-400 mr-2 shrink-0" />
+                                        {"Access to "}<strong>Fundamentals</strong>{" modules"}
+                                    </li>
+                                    <li className="flex items-start text-sm text-gray-700 dark:text-gray-300">
+                                        <CheckCircle2 className="w-5 h-5 text-violet-500 dark:text-violet-400 mr-2 shrink-0" />
+                                        {"Access to "}<strong>All</strong>{" modules"}
+                                    </li>
+                                    <li className="flex items-start text-sm text-amber-500 dark:text-amber-400 font-bold">
+                                        <Sparkles className="w-5 h-5 mr-2 shrink-0 text-amber-500 dark:text-amber-400" />
+                                        Unlimited AI Tutor Support
+                                    </li>
+                                </ul>
+                            </div>
                             <button
                                 onClick={onSignupClick || onGetStarted}
-                                className="w-full py-3 bg-gradient-to-r from-violet-650 to-indigo-600 text-white rounded-xl font-medium hover:from-violet-750 hover:to-indigo-700 transition-colors shadow-lg shadow-indigo-900/30"
+                                className="w-full py-3 bg-gradient-to-r from-violet-600 to-indigo-600 text-white rounded-xl font-medium hover:from-violet-700 hover:to-indigo-700 transition-colors shadow-lg shadow-indigo-900/30"
                             >
                                 Get Started
+                            </button>
+                        </div>
+
+                        {/* Business - Corporate */}
+                        <div className="bg-white dark:bg-slate-900 text-gray-900 dark:text-white rounded-2xl p-8 border border-gray-205 dark:border-slate-800 shadow-xl relative overflow-hidden flex flex-col justify-between">
+                            <div className="absolute top-0 right-0 w-32 h-32 bg-purple-500 blur-3xl opacity-20 -mr-16 -mt-16"></div>
+                            <div className="absolute top-0 right-0 bg-violet-600 text-white text-xs font-bold px-3 py-1 rounded-bl-xl rounded-tr-lg">BUSINESS</div>
+                            <div>
+                                <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-1">Corporate</h3>
+                                <p className="text-xs text-violet-600 dark:text-violet-400 font-semibold mb-6">
+                                    Upskill your team
+                                </p>
+                                <div className="text-4xl font-bold text-gray-900 dark:text-white mb-4">
+                                    Custom Plan
+                                </div>
+                                <p className="text-gray-600 dark:text-gray-400 mb-6 text-sm leading-relaxed">
+                                    Tailormade enrollment and reporting packages for your organization.
+                                </p>
+
+                                <ul className="space-y-4 mb-8 text-sm text-gray-700 dark:text-gray-300">
+                                    <li className="flex items-start">
+                                        <CheckCircle2 className="w-5 h-5 text-purple-500 dark:text-purple-400 mr-2 shrink-0" />
+                                        {"Access to "}<strong>All</strong>{" modules for employees"}
+                                    </li>
+                                    <li className="flex items-start">
+                                        <CheckCircle2 className="w-5 h-5 text-purple-500 dark:text-purple-400 mr-2 shrink-0" />
+                                        {"Weekly "}<strong>progress reports</strong>{" for admins"}
+                                    </li>
+                                    <li className="flex items-start">
+                                        <CheckCircle2 className="w-5 h-5 text-purple-500 dark:text-purple-400 mr-2 shrink-0" />
+                                        Dedicated company billing & dashboard
+                                    </li>
+                                    <li className="flex items-start text-amber-500 dark:text-amber-400 font-bold">
+                                        <Sparkles className="w-5 h-5 mr-2 shrink-0 text-amber-500 dark:text-amber-400" />
+                                        Unlimited AI Tutor Support
+                                    </li>
+                                </ul>
+                            </div>
+                            <button
+                                onClick={() => setShowInquiryModal(true)}
+                                className="w-full py-3 bg-gradient-to-r from-violet-600 to-indigo-600 text-white rounded-xl font-medium hover:from-violet-700 hover:to-indigo-700 transition-colors shadow-lg shadow-indigo-900/30"
+                            >
+                                Enquire Now
                             </button>
                         </div>
                     </div>
                 </div>
             </section>
+
+            {showInquiryModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+                    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setShowInquiryModal(false)} />
+                    <div className="bg-white dark:bg-slate-900 border border-gray-150 dark:border-slate-800 w-full max-w-md rounded-3xl p-6 shadow-2xl relative z-10 animate-in zoom-in-95 duration-200 text-gray-900 dark:text-white">
+                        <button 
+                            type="button" 
+                            onClick={() => setShowInquiryModal(false)} 
+                            className="absolute top-4 right-4 text-gray-400 hover:text-gray-900 dark:hover:text-white cursor-pointer"
+                        >
+                            <X size={20} />
+                        </button>
+
+                        <h3 className="text-xl font-bold text-center mb-2">Request Business Quote</h3>
+                        <p className="text-center text-xs text-gray-500 dark:text-slate-400 mb-6">
+                            Submit your details to request custom pricing and set up enterprise seats.
+                        </p>
+
+                        <form onSubmit={handleSendInquiry} className="space-y-4">
+
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-xs font-bold text-gray-500 dark:text-slate-400 mb-1">Your Name</label>
+                                    <input 
+                                        type="text" 
+                                        required
+                                        value={inquiryName} 
+                                        onChange={(e) => setInquiryName(e.target.value)} 
+                                        className="w-full p-2.5 bg-gray-50 dark:bg-slate-800 border border-gray-250 dark:border-slate-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-violet-500/20 text-gray-900 dark:text-white"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-bold text-gray-500 dark:text-slate-400 mb-1">Email Address</label>
+                                    <input 
+                                        type="email" 
+                                        required
+                                        value={inquiryEmail} 
+                                        onChange={(e) => setInquiryEmail(e.target.value)} 
+                                        className="w-full p-2.5 bg-gray-50 dark:bg-slate-800 border border-gray-250 dark:border-slate-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-violet-500/20 text-gray-900 dark:text-white"
+                                    />
+                                </div>
+                            </div>
+
+                            <div>
+                                <label className="block text-xs font-bold text-gray-500 dark:text-slate-400 mb-1">Additional Message (Optional)</label>
+                                <textarea 
+                                    value={inquiryMessage} 
+                                    onChange={(e) => setInquiryMessage(e.target.value)} 
+                                    rows={2}
+                                    placeholder="Any specific requests or requirements..."
+                                    className="w-full p-2.5 bg-gray-50 dark:bg-slate-800 border border-gray-250 dark:border-slate-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-violet-500/20 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-slate-500 resize-none"
+                                />
+                            </div>
+
+                             <div className="flex gap-3 pt-4 border-t dark:border-slate-800">
+                                <button 
+                                    type="button" 
+                                    onClick={() => setShowInquiryModal(false)}
+                                    className="flex-1 py-2.5 rounded-xl border border-gray-250 dark:border-slate-800 text-gray-700 dark:text-slate-300 font-bold text-xs hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors"
+                                >
+                                    Cancel
+                                </button>
+                                <button 
+                                    type="submit" 
+                                    disabled={isInquirySubmitting}
+                                    className="flex-1 bg-violet-600 text-white py-2.5 rounded-xl text-xs font-bold hover:bg-violet-700 transition-colors flex items-center justify-center gap-2 shadow-md shadow-violet-200 dark:shadow-none"
+                                >
+                                    {isInquirySubmitting ? (
+                                        <>
+                                            <Loader size={12} className="animate-spin text-white" />
+                                            Submitting...
+                                        </>
+                                    ) : (
+                                        'Submit Inquiry'
+                                    )}
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
 
             {/* Footer */}
             <footer className="bg-white py-12 border-t border-gray-100">

@@ -181,7 +181,9 @@ const EventsPage: React.FC<EventsPageProps> = ({ courses = [] }) => {
                 localStorage.setItem('event-rsvps', JSON.stringify(nextState));
                 
                 // Trigger notification in student portal
-                const storedNotifs = localStorage.getItem('portal-notifications');
+                const userEmail = localStorage.getItem('logged_in_email') || 'student@test.com';
+                const notifKey = `portal-notifications-${userEmail}`;
+                const storedNotifs = localStorage.getItem(notifKey);
                 const list = storedNotifs ? JSON.parse(storedNotifs) : [];
                 const matchedEvent = allEvents.find(e => e.id === eventId);
                 if (matchedEvent) {
@@ -196,7 +198,7 @@ const EventsPage: React.FC<EventsPageProps> = ({ courses = [] }) => {
                         read: false,
                         type: 'system'
                     };
-                    localStorage.setItem('portal-notifications', JSON.stringify([newItem, ...list]));
+                    localStorage.setItem(notifKey, JSON.stringify([newItem, ...list]));
                     window.dispatchEvent(new Event('notifications-update'));
                 }
                 

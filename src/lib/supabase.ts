@@ -6,6 +6,7 @@ interface LocalDB {
     courses: any[];
     profiles: any[];
     enrollments: any[];
+    mails: any[];
 }
 
 const defaultCourses = [
@@ -138,7 +139,8 @@ const getDB = (): LocalDB => {
                     wallet_balance: 100
                 }
             ],
-            enrollments: []
+            enrollments: [],
+            mails: []
         };
         localStorage.setItem(DB_KEY, JSON.stringify(db));
         localStorage.setItem('default-courses-seeded', 'true');
@@ -147,6 +149,17 @@ const getDB = (): LocalDB => {
 
     // Migration / update step: ensure Chemayek, Collins, and Test Student profiles have high quality avatars and correct names
     let dbUpdated = false;
+
+    if (!db.mails) {
+        db.mails = [];
+        dbUpdated = true;
+    } else {
+        const originalLength = db.mails.length;
+        db.mails = db.mails.filter((m: any) => m.id !== 'mail-1' && m.id !== 'mail-2');
+        if (db.mails.length !== originalLength) {
+            dbUpdated = true;
+        }
+    }
 
     // Reset legacy roles (e.g. PLUS, SPONSORED) to INDIVIDUAL (Basic) by default
     db.profiles.forEach((p: any) => {
