@@ -148,9 +148,10 @@ const AdminLoginPage: React.FC<AdminLoginPageProps> = ({ onLoginSuccess, onBackT
             <div className="max-w-7xl w-full mx-auto flex items-center justify-between">
                 <button
                     onClick={onBackToStudentPortal}
-                    className="flex items-center gap-2 text-xs font-bold text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white bg-white/70 dark:bg-slate-900/50 hover:bg-white dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-800 px-4 py-2.5 rounded-xl transition-all cursor-pointer shadow-sm"
+                    className="flex items-center gap-0 sm:gap-2 text-xs font-bold text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white bg-white/70 dark:bg-slate-900/50 hover:bg-white dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-800 px-2.5 sm:px-4 py-2.5 rounded-xl transition-all cursor-pointer shadow-sm"
                 >
-                    <ArrowLeft size={14} /> Back to Portal
+                    <ArrowLeft size={14} className="sm:hidden" />
+                    <span className="hidden sm:inline">Back to Portal</span>
                 </button>
 
                 {/* Light/Dark Mode Toggle */}
