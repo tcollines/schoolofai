@@ -102,7 +102,7 @@ const DiscoverCourses: React.FC<DiscoverCoursesProps> = ({ courses, onEnroll, is
                                 localStorage.setItem(`recent-tapped-course-id-${scopeKey}`, course.id);
                                 navigate(`/discover/${course.id}`);
                             }}
-                            className="bg-white dark:bg-slate-900 rounded-3xl overflow-hidden border border-gray-100 dark:border-slate-800 shadow-sm hover:shadow-md transition-shadow group flex flex-col h-full cursor-pointer"
+                            className="bg-white dark:bg-slate-900 rounded-3xl overflow-hidden border border-gray-100 dark:border-slate-800 shadow-sm hover:shadow-xl hover:transform hover:-translate-y-1 hover:border-welile-purple dark:hover:border-purple-600 transition-all duration-300 group flex flex-col h-full cursor-pointer"
                         >
                             <div className="relative h-48 overflow-hidden">
                                 <img

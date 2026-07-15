@@ -38,7 +38,7 @@ const CourseCard: React.FC<CourseCardProps> = ({ course, onClick }) => {
   return (
     <div
       onClick={onClick}
-      className="bg-white dark:bg-slate-900 rounded-3xl border border-gray-100 dark:border-slate-800 overflow-hidden hover:shadow-lg transition-shadow duration-300 group flex flex-col h-full cursor-pointer"
+      className="bg-white dark:bg-slate-900 rounded-3xl border border-gray-100 dark:border-slate-800 overflow-hidden hover:shadow-xl hover:transform hover:-translate-y-1 hover:border-welile-purple dark:hover:border-purple-600 transition-all duration-300 group flex flex-col h-full cursor-pointer"
     >
       {/* Course Image */}
       <div className="relative h-48 overflow-hidden">
@@ -70,7 +70,7 @@ const CourseCard: React.FC<CourseCardProps> = ({ course, onClick }) => {
       {/* Content */}
       <div className="p-5 flex flex-col flex-grow">
         <div className="flex justify-between items-start mb-2">
-          <span className="text-xs font-bold text-gray-400 dark:text-slate-500 uppercase tracking-wider">{course.category}</span>
+          <span className="text-xs font-bold text-gray-500 dark:text-slate-400 uppercase tracking-wider">{course.category}</span>
           <div className="flex items-center gap-1 text-amber-400 text-xs font-bold">
             <span>★</span> <span>{course.rating}</span>
           </div>
@@ -89,7 +89,7 @@ const CourseCard: React.FC<CourseCardProps> = ({ course, onClick }) => {
               <img src={`https://api.dicebear.com/7.x/initials/svg?seed=${course.instructor}`} alt={course.instructor} className="w-full h-full object-cover" />
             )}
           </div>
-          <span className="text-sm text-gray-550 dark:text-slate-350 font-medium">{course.instructor}</span>
+          <span className="text-sm text-gray-700 dark:text-slate-300 font-medium">{course.instructor}</span>
         </div>
 
         <div className="mt-auto">
