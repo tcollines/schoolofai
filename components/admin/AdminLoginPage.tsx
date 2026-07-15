@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Mail, Lock, KeyRound, ShieldAlert, ArrowLeft, Loader2, Info, Sun, Moon } from 'lucide-react';
 import { supabaseClient } from '../../src/lib/supabaseClient';
+import { supabase } from '../../src/lib/supabase';
 
 interface AdminLoginPageProps {
     onLoginSuccess: () => void;
@@ -44,7 +45,7 @@ const AdminLoginPage: React.FC<AdminLoginPageProps> = ({ onLoginSuccess, onBackT
         setLoading(true);
         setError(null);
 
-        // Security passcode check (from branch)
+        // Security passcode check
         if (isInstructor) {
             const isValidPasscode = passcode === 'instructor123' || passcode === 'WELILE_INSTRUCTOR_2026';
             if (!isValidPasscode) {
@@ -62,41 +63,73 @@ const AdminLoginPage: React.FC<AdminLoginPageProps> = ({ onLoginSuccess, onBackT
         }
 
         try {
-            // First check if it's the demo credentials
-            let isAuthenticated = false;
             if (isInstructor) {
-                const isValidEmail = email.trim().toLowerCase() === 'instructor@welile.com' || email.trim().toLowerCase() === 'instructor@test.com' || email.trim().toLowerCase() === 'sarah.jenkins@schoolofai.edu' || email.trim().toLowerCase() === 'kenji.tanaka@schoolofai.edu' || email.trim().toLowerCase() === 'marcus.vance@schoolofai.edu';
-                const isValidPassword = password === 'instructorpassword' || password === 'instructor';
-                if (isValidEmail && isValidPassword) isAuthenticated = true;
-            } else {
-                const isValidEmail = email.trim().toLowerCase() === 'admin@welile.com' || email.trim().toLowerCase() === 'admin@test.com';
-                const isValidPassword = password === 'adminpassword' || password === 'admin';
-                if (isValidEmail && isValidPassword) isAuthenticated = true;
-            }
+                // Query database to ensure instructor was registered by the admin
+                const { data: instructorData, error: dbError } = await supabase
+                    .from('instructors')
+                    .select('id, email')
+                    .eq('email', email.trim().toLowerCase());
 
-            // Fallback to Supabase if not using valid demo credentials
-            if (!isAuthenticated) {
-                const { error: signInError } = await supabaseClient.auth.signInWithPassword({
-                    email,
-                    password
-                });
+                if (dbError) throw dbError;
 
-                if (signInError) {
-                    setError(signInError.message);
+                if (!instructorData || instructorData.length === 0) {
+                    setError('Access denied. No instructor account found with this email. Please ask the administrator to register you.');
                     setLoading(false);
                     return;
                 }
-            }
 
-            // Success! Store appropriate session token
-            if (isInstructor) {
+                // First check if it's the demo credentials
+                let isAuthenticated = false;
+                const isValidEmail = email.trim().toLowerCase() === 'instructor@welile.com' || email.trim().toLowerCase() === 'instructor@test.com' || email.trim().toLowerCase() === 'sarah.jenkins@schoolofai.edu' || email.trim().toLowerCase() === 'kenji.tanaka@schoolofai.edu' || email.trim().toLowerCase() === 'marcus.vance@schoolofai.edu';
+                const isValidPassword = password === 'instructorpassword' || password === 'instructor';
+                if (isValidEmail && isValidPassword) isAuthenticated = true;
+
+                // Fallback to Supabase if not using valid demo credentials
+                if (!isAuthenticated) {
+                    const { error: signInError } = await supabaseClient.auth.signInWithPassword({
+                        email,
+                        password
+                    });
+
+                    if (signInError) {
+                        setError(signInError.message);
+                        setLoading(false);
+                        return;
+                    }
+                }
+
+                // Success! Store instructor-session token separately
                 localStorage.setItem('instructor-session', 'true');
+                setLoading(false);
+                onLoginSuccess();
             } else {
+                // First check if it's the demo credentials
+                let isAuthenticated = false;
+                const isValidEmail = email.trim().toLowerCase() === 'admin@welile.com' || email.trim().toLowerCase() === 'admin@test.com';
+                const isValidPassword = password === 'adminpassword' || password === 'admin';
+                if (isValidEmail && isValidPassword) isAuthenticated = true;
+
+                // Fallback to Supabase if not using valid demo credentials
+                if (!isAuthenticated) {
+                    const { error: signInError } = await supabaseClient.auth.signInWithPassword({
+                        email,
+                        password
+                    });
+
+                    if (signInError) {
+                        setError(signInError.message);
+                        setLoading(false);
+                        return;
+                    }
+                }
+
+                // Success! Store admin-session token separately
                 localStorage.setItem('admin-session', 'true');
+                setLoading(false);
+                onLoginSuccess();
             }
-            setLoading(false);
-            onLoginSuccess();
         } catch (err: any) {
+            console.error('Authentication error:', err);
             setError(err.message || 'An unexpected error occurred');
             setLoading(false);
         }
@@ -159,22 +192,13 @@ const AdminLoginPage: React.FC<AdminLoginPageProps> = ({ onLoginSuccess, onBackT
                         </p>
                     </div>
 
-                    {/* Hint / Demo Credentials Box */}
-                    <div className="mb-6 bg-slate-100/80 dark:bg-slate-950/60 rounded-2xl border border-slate-200 dark:border-slate-800/50 p-4 space-y-2 transition-colors duration-300">
-                        <div className="flex items-center gap-2 text-violet-500 dark:text-violet-400">
-                            <Info size={14} />
-                            <span className="text-[11px] font-bold uppercase tracking-wider">Demo Credentials</span>
-                        </div>
-                        {isInstructor ? (
-                            <div className="grid grid-cols-2 gap-x-2 gap-y-1 text-xs text-slate-500 dark:text-slate-400">
-                                <span className="font-semibold text-slate-700 dark:text-slate-300">Inst. Email:</span>
-                                <code className="text-violet-600 dark:text-violet-300">instructor@test.com</code>
-                                <span className="font-semibold text-slate-700 dark:text-slate-300">Password:</span>
-                                <code className="text-violet-600 dark:text-violet-300">instructor</code>
-                                <span className="font-semibold text-slate-700 dark:text-slate-300">Passcode:</span>
-                                <code className="text-violet-600 dark:text-violet-300">instructor123</code>
+                    {/* Hint / Demo Credentials Box (Admin Console only) */}
+                    {!isInstructor && (
+                        <div className="mb-6 bg-slate-100/80 dark:bg-slate-950/60 rounded-2xl border border-slate-200 dark:border-slate-800/50 p-4 space-y-2 transition-colors duration-300">
+                            <div className="flex items-center gap-2 text-violet-500 dark:text-violet-400">
+                                <Info size={14} />
+                                <span className="text-[11px] font-bold uppercase tracking-wider">Demo Credentials</span>
                             </div>
-                        ) : (
                             <div className="grid grid-cols-2 gap-x-2 gap-y-1 text-xs text-slate-500 dark:text-slate-400">
                                 <span className="font-semibold text-slate-700 dark:text-slate-300">Admin Email:</span>
                                 <code className="text-violet-600 dark:text-violet-300">admin@welile.com</code>
@@ -183,8 +207,8 @@ const AdminLoginPage: React.FC<AdminLoginPageProps> = ({ onLoginSuccess, onBackT
                                 <span className="font-semibold text-slate-700 dark:text-slate-300">Passcode:</span>
                                 <code className="text-violet-600 dark:text-violet-300">admin123</code>
                             </div>
-                        )}
-                    </div>
+                        </div>
+                    )}
 
                     {error && (
                         <div className="mb-6 bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-800/40 text-red-600 dark:text-red-300 p-3.5 rounded-2xl text-xs flex gap-2.5 items-start transition-colors duration-300">
