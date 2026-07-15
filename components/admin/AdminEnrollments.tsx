@@ -132,7 +132,7 @@ const AdminEnrollments: React.FC = () => {
                 </div>
             </div>
             
-            <div className="overflow-x-auto">
+            <div className={`overflow-x-auto transition-all duration-150 ${activeDropdownId ? 'pb-44' : 'pb-4'}`}>
                 <table className="w-full text-left border-collapse">
                     <thead className="bg-gray-50 dark:bg-slate-950/60 transition-colors">
                         <tr className="text-gray-500 dark:text-slate-400 text-xs uppercase tracking-wider font-semibold">
