@@ -48,36 +48,16 @@ const MyCourses: React.FC<MyCoursesProps> = ({ courses }) => {
     const getReviews = (courseId: string) => {
         const stored = localStorage.getItem(`course-reviews-${courseId}`);
         if (stored) {
-            return JSON.parse(stored);
-        }
-        
-        const defaults = [
-            {
-                id: 'default-rev-1',
-                userName: 'Sarah Jenkins',
-                userAvatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=150&h=150&q=80',
-                avatarScale: 1,
-                avatarPositionX: 0,
-                avatarPositionY: 0,
-                rating: 5,
-                comment: 'Absolutely brilliant course! The concepts are explained with great clarity, and the module structure is incredibly easy to follow. Highly recommended!',
-                date: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toLocaleDateString()
-            },
-            {
-                id: 'default-rev-2',
-                userName: 'Alex Rivera',
-                userAvatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=150&h=150&q=80',
-                avatarScale: 1.1,
-                avatarPositionX: -5,
-                avatarPositionY: 10,
-                rating: 4,
-                comment: 'Very practical and hands-on. The syllabus covers exactly what is needed for industry application. Loved the final case study project.',
-                date: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toLocaleDateString()
+            try {
+                const parsed = JSON.parse(stored);
+                if (Array.isArray(parsed)) {
+                    return parsed.filter((r: any) => r.id !== 'default-rev-1' && r.id !== 'default-rev-2');
+                }
+            } catch (e) {
+                console.error(e);
             }
-        ];
-        
-        localStorage.setItem(`course-reviews-${courseId}`, JSON.stringify(defaults));
-        return defaults;
+        }
+        return [];
     };
 
     // Sync localCourses with props changes
