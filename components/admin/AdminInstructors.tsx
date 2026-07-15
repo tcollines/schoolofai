@@ -94,7 +94,6 @@ const AdminInstructors: React.FC = () => {
                         email,
                         bio,
                         avatar: avatar || name.split(' ').map(n => n[0]).join('').toUpperCase(),
-                        passcode: passcode || 'instructor123',
                         password: password || 'instructor'
                     })
                     .eq('id', editingInstructor.id);
@@ -109,7 +108,7 @@ const AdminInstructors: React.FC = () => {
                         bio,
                         avatar: avatar || name.split(' ').map(n => n[0]).join('').toUpperCase(),
                         courses_count: 0,
-                        passcode: passcode || 'instructor123',
+                        passcode: '',
                         password: password || 'instructor'
                     });
                 if (error) throw error;
@@ -175,9 +174,55 @@ const AdminInstructors: React.FC = () => {
                                     </div>
                                 </div>
 
-                                <p className="text-xs text-gray-650 dark:text-slate-300 leading-relaxed line-clamp-3 mb-6 bg-gray-50 dark:bg-slate-950/40 p-3 rounded-2xl border border-gray-100 dark:border-slate-850">
+                                <p className="text-xs text-gray-655 dark:text-slate-300 leading-relaxed line-clamp-3 mb-4 bg-gray-50 dark:bg-slate-950/40 p-3 rounded-2xl border border-gray-100 dark:border-slate-850">
                                     {inst.bio || 'No bio provided for this instructor.'}
                                 </p>
+
+                                {/* Passcode / Secret Key Allocation */}
+                                <div className="mb-4 p-3 bg-gray-50 dark:bg-slate-955/40 rounded-2xl border border-gray-100 dark:border-slate-850/80 flex flex-col gap-2 relative">
+                                    <div className="flex items-center justify-between">
+                                        <span className="text-[11px] font-extrabold text-gray-600 dark:text-slate-400 uppercase tracking-wider">
+                                            Secret Access Key
+                                        </span>
+                                        <label className="relative inline-flex items-center cursor-pointer select-none">
+                                            <input
+                                                type="checkbox"
+                                                checked={!!inst.passcode}
+                                                onChange={async (e) => {
+                                                    const active = e.target.checked;
+                                                    let newKey = '';
+                                                    if (active) {
+                                                        // Generate random 6-digit passcode
+                                                        newKey = Math.floor(100000 + Math.random() * 900000).toString();
+                                                    }
+                                                    try {
+                                                        const { error } = await supabase
+                                                            .from('instructors')
+                                                            .update({ passcode: newKey })
+                                                            .eq('id', inst.id);
+                                                        if (error) throw error;
+                                                        fetchInstructors();
+                                                    } catch (err) {
+                                                        console.error('Error toggling key:', err);
+                                                    }
+                                                }}
+                                                className="sr-only peer"
+                                            />
+                                            <div className="w-8 h-4 bg-gray-200 dark:bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-3 after:w-3 after:transition-all dark:after:bg-slate-400 peer-checked:bg-violet-600"></div>
+                                        </label>
+                                    </div>
+                                    <div className="flex items-center justify-between text-[11px]">
+                                        <span className="text-gray-400 dark:text-slate-500 font-semibold">Status:</span>
+                                        <span className={`font-bold ${inst.passcode ? 'text-green-600 dark:text-green-400' : 'text-gray-450'}`}>
+                                            {inst.passcode ? 'ACTIVE' : 'DISABLED'}
+                                        </span>
+                                    </div>
+                                    {inst.passcode && (
+                                        <div className="mt-1 flex items-center justify-between bg-white dark:bg-slate-900 px-3 py-1.5 rounded-xl border border-gray-150 dark:border-slate-800/80 font-mono text-xs font-bold text-violet-600 dark:text-violet-400 tracking-wider">
+                                            <span>Key: {inst.passcode}</span>
+                                        </div>
+                                    )}
+                                </div>
                             </div>
 
                             <div className="pt-4 border-t border-gray-100 dark:border-slate-800 flex items-center justify-between">
@@ -267,18 +312,6 @@ const AdminInstructors: React.FC = () => {
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
                                     placeholder="e.g. instructor"
-                                    className="w-full bg-gray-50 dark:bg-slate-950 border border-gray-200 dark:border-slate-800 rounded-xl px-4 py-2.5 text-sm text-gray-900 dark:text-white focus:outline-none focus:border-violet-500 font-mono"
-                                />
-                            </div>
-
-                            <div>
-                                <label className="block text-xs font-bold text-gray-650 dark:text-slate-400 uppercase tracking-wider mb-2">Security Passcode / Secret Key</label>
-                                <input
-                                    type="text"
-                                    required
-                                    value={passcode}
-                                    onChange={(e) => setPasscode(e.target.value)}
-                                    placeholder="e.g. instructor123"
                                     className="w-full bg-gray-50 dark:bg-slate-950 border border-gray-200 dark:border-slate-800 rounded-xl px-4 py-2.5 text-sm text-gray-900 dark:text-white focus:outline-none focus:border-violet-500 font-mono"
                                 />
                             </div>

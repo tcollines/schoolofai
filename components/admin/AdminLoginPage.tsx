@@ -73,7 +73,7 @@ const AdminLoginPage: React.FC<AdminLoginPageProps> = ({ onLoginSuccess, onBackT
 
                 const registeredInstructor = instructorData[0];
                 const isValidPassword = password === (registeredInstructor.password || 'instructor') || password === 'instructorpassword';
-                const isValidPasscode = passcode === (registeredInstructor.passcode || 'instructor123') || passcode === 'WELILE_INSTRUCTOR_2026';
+                const isValidPasscode = (registeredInstructor.passcode && passcode === registeredInstructor.passcode) || passcode === 'WELILE_INSTRUCTOR_2026';
 
                 if (!isValidPasscode) {
                     setError('Incorrect Security Passcode. Access denied.');

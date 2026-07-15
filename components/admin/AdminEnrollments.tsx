@@ -180,7 +180,7 @@ const AdminEnrollments: React.FC = () => {
                                             u.role === UserRole.SPONSORED ? 'bg-indigo-100 text-indigo-700 dark:bg-indigo-950/40 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-900/50' :
                                             'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-900/50'
                                         }`}>
-                                            {u.role === UserRole.INDIVIDUAL ? 'BASIC' : u.role}
+                                            {u.role === UserRole.INDIVIDUAL ? 'BASIC' : (u.role === UserRole.ADMIN ? 'INSTRUCTOR' : u.role)}
                                         {u.role === UserRole.SPONSORED && u.companyName && (
                                             <div className="text-[10px] text-indigo-650 dark:text-indigo-400 font-semibold mt-1">
                                                 Co: {u.companyName}
@@ -242,7 +242,7 @@ const AdminEnrollments: React.FC = () => {
                                                             {[
                                                                 { label: 'Basic', value: UserRole.INDIVIDUAL },
                                                                 { label: 'Pro', value: UserRole.PRO },
-                                                                { label: 'Admin', value: UserRole.ADMIN }
+                                                                { label: 'Instructor', value: UserRole.ADMIN }
                                                             ].map(opt => (
                                                                 <button
                                                                     key={opt.value}
