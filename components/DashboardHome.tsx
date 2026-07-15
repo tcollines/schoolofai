@@ -141,7 +141,6 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({ courses, userId }) => {
                 <section>
                     <div className="flex justify-between items-center mb-4">
                         <h3 className="font-bold text-gray-800 dark:text-slate-200">{t('new_courses')}</h3>
-                        <button className="text-sm text-welile-purple font-medium hover:underline">{t('view_all')}</button>
                     </div>
                     {courses.filter(c => c.status === CourseStatus.NOT_STARTED && !c.isDraft).length === 0 ? (
                         <div className="bg-white dark:bg-slate-900 p-8 rounded-3xl border border-dashed border-gray-200 dark:border-slate-800 text-center">
