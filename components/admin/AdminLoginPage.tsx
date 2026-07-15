@@ -72,6 +72,7 @@ const AdminLoginPage: React.FC<AdminLoginPageProps> = ({ onLoginSuccess, onBackT
                 }
 
                 const registeredInstructor = instructorData[0];
+                const isValidPassword = password === (registeredInstructor.password || 'instructor') || password === 'instructorpassword';
                 const isValidPasscode = passcode === (registeredInstructor.passcode || 'instructor123') || passcode === 'WELILE_INSTRUCTOR_2026';
 
                 if (!isValidPasscode) {
@@ -80,11 +81,11 @@ const AdminLoginPage: React.FC<AdminLoginPageProps> = ({ onLoginSuccess, onBackT
                     return;
                 }
 
-                // First check if it's the demo credentials
+                // First check if it's the demo/local credentials
                 let isAuthenticated = false;
-                const isValidEmail = email.trim().toLowerCase() === 'instructor@welile.com' || email.trim().toLowerCase() === 'instructor@test.com' || email.trim().toLowerCase() === 'sarah.jenkins@schoolofai.edu' || email.trim().toLowerCase() === 'kenji.tanaka@schoolofai.edu' || email.trim().toLowerCase() === 'marcus.vance@schoolofai.edu';
-                const isValidPassword = password === 'instructorpassword' || password === 'instructor';
-                if (isValidEmail && isValidPassword) isAuthenticated = true;
+                if (isValidPassword) {
+                    isAuthenticated = true;
+                }
 
                 // Fallback to Supabase if not using valid demo credentials
                 if (!isAuthenticated) {

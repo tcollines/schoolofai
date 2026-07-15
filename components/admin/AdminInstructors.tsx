@@ -10,6 +10,7 @@ interface Instructor {
     avatar: string;
     courses_count: number;
     passcode?: string;
+    password?: string;
 }
 
 const AdminInstructors: React.FC = () => {
@@ -27,6 +28,7 @@ const AdminInstructors: React.FC = () => {
     const [bio, setBio] = useState('');
     const [avatar, setAvatar] = useState('');
     const [passcode, setPasscode] = useState('');
+    const [password, setPassword] = useState('');
 
     const fetchInstructors = async () => {
         setLoading(true);
@@ -52,6 +54,7 @@ const AdminInstructors: React.FC = () => {
         setBio('');
         setAvatar('');
         setPasscode('');
+        setPassword('');
         setIsOpen(true);
     };
 
@@ -62,6 +65,7 @@ const AdminInstructors: React.FC = () => {
         setBio(inst.bio);
         setAvatar(inst.avatar);
         setPasscode(inst.passcode || '');
+        setPassword(inst.password || '');
         setIsOpen(true);
     };
 
@@ -90,7 +94,8 @@ const AdminInstructors: React.FC = () => {
                         email,
                         bio,
                         avatar: avatar || name.split(' ').map(n => n[0]).join('').toUpperCase(),
-                        passcode: passcode || 'instructor123'
+                        passcode: passcode || 'instructor123',
+                        password: password || 'instructor'
                     })
                     .eq('id', editingInstructor.id);
                 if (error) throw error;
@@ -104,7 +109,8 @@ const AdminInstructors: React.FC = () => {
                         bio,
                         avatar: avatar || name.split(' ').map(n => n[0]).join('').toUpperCase(),
                         courses_count: 0,
-                        passcode: passcode || 'instructor123'
+                        passcode: passcode || 'instructor123',
+                        password: password || 'instructor'
                     });
                 if (error) throw error;
             }
@@ -250,6 +256,18 @@ const AdminInstructors: React.FC = () => {
                                     onChange={(e) => setAvatar(e.target.value)}
                                     placeholder="e.g. SJ or https://..."
                                     className="w-full bg-gray-50 dark:bg-slate-950 border border-gray-200 dark:border-slate-800 rounded-xl px-4 py-2.5 text-sm text-gray-900 dark:text-white focus:outline-none focus:border-violet-500"
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-xs font-bold text-gray-650 dark:text-slate-400 uppercase tracking-wider mb-2">Console Password</label>
+                                <input
+                                    type="text"
+                                    required
+                                    value={password}
+                                    onChange={(e) => setPassword(e.target.value)}
+                                    placeholder="e.g. instructor"
+                                    className="w-full bg-gray-50 dark:bg-slate-950 border border-gray-200 dark:border-slate-800 rounded-xl px-4 py-2.5 text-sm text-gray-900 dark:text-white focus:outline-none focus:border-violet-500 font-mono"
                                 />
                             </div>
 

@@ -150,7 +150,8 @@ const getDB = (): LocalDB => {
                     bio: 'Sarah is an AI Researcher specializing in Natural Language Processing and Cognitive Computing.',
                     avatar: 'SJ',
                     courses_count: 2,
-                    passcode: 'instructor123'
+                    passcode: 'instructor123',
+                    password: 'instructor'
                 },
                 {
                     id: 'inst-2',
@@ -159,7 +160,8 @@ const getDB = (): LocalDB => {
                     bio: 'Dr. Tanaka has 15+ years of academic research experience in Deep Learning and Neural Network architectures.',
                     avatar: 'KT',
                     courses_count: 1,
-                    passcode: 'instructor123'
+                    passcode: 'instructor123',
+                    password: 'instructor'
                 },
                 {
                     id: 'inst-3',
@@ -168,7 +170,8 @@ const getDB = (): LocalDB => {
                     bio: 'Marcus is a Data Scientist who loves mentoring students in Python and Data Engineering.',
                     avatar: 'MV',
                     courses_count: 1,
-                    passcode: 'instructor123'
+                    passcode: 'instructor123',
+                    password: 'instructor'
                 }
             ]
         };
@@ -189,7 +192,8 @@ const getDB = (): LocalDB => {
                 bio: 'Sarah is an AI Researcher specializing in Natural Language Processing and Cognitive Computing.',
                 avatar: 'SJ',
                 courses_count: 2,
-                passcode: 'instructor123'
+                passcode: 'instructor123',
+                password: 'instructor'
             },
             {
                 id: 'inst-2',
@@ -198,7 +202,8 @@ const getDB = (): LocalDB => {
                 bio: 'Dr. Tanaka has 15+ years of academic research experience in Deep Learning and Neural Network architectures.',
                 avatar: 'KT',
                 courses_count: 1,
-                passcode: 'instructor123'
+                passcode: 'instructor123',
+                password: 'instructor'
             },
             {
                 id: 'inst-3',
@@ -207,7 +212,8 @@ const getDB = (): LocalDB => {
                 bio: 'Marcus is a Data Scientist who loves mentoring students in Python and Data Engineering.',
                 avatar: 'MV',
                 courses_count: 1,
-                passcode: 'instructor123'
+                passcode: 'instructor123',
+                password: 'instructor'
             }
         ];
         dbUpdated = true;
