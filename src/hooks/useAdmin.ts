@@ -230,12 +230,28 @@ export const useAdmin = (isAdmin: boolean) => {
 
     const updateUserRole = async (userId: string, role: UserRole) => {
         try {
+            // Get user's email before updating to handle instructors cleanup
+            const { data: profile } = await supabase
+                .from('profiles')
+                .select('email')
+                .eq('id', userId)
+                .single();
+
             const { error } = await supabase
                 .from('profiles')
                 .update({ role })
                 .eq('id', userId);
 
             if (error) throw error;
+
+            if (role !== UserRole.ADMIN && profile?.email) {
+                // Delete from instructors table so they disappear from instructors page
+                await supabase
+                    .from('instructors')
+                    .delete()
+                    .eq('email', profile.email.trim().toLowerCase());
+            }
+
             await fetchData(true); // Refresh silently
             window.dispatchEvent(new Event('profile-update'));
         } catch (err: any) {
@@ -267,6 +283,20 @@ export const useAdmin = (isAdmin: boolean) => {
                 .from('enrollments')
                 .delete()
                 .eq('user_id', userId);
+
+            // Get user's email to delete instructor if exists
+            const { data: profile } = await supabase
+                .from('profiles')
+                .select('email')
+                .eq('id', userId)
+                .single();
+
+            if (profile?.email) {
+                await supabase
+                    .from('instructors')
+                    .delete()
+                    .eq('email', profile.email.trim().toLowerCase());
+            }
 
             // Delete user's profile
             const { error } = await supabase
