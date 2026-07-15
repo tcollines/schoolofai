@@ -7,6 +7,7 @@ interface LocalDB {
     profiles: any[];
     enrollments: any[];
     mails: any[];
+    instructors?: any[];
 }
 
 const defaultCourses = [
@@ -140,7 +141,33 @@ const getDB = (): LocalDB => {
                 }
             ],
             enrollments: [],
-            mails: []
+            mails: [],
+            instructors: [
+                {
+                    id: 'inst-1',
+                    name: 'Sarah Jenkins',
+                    email: 'sarah.jenkins@schoolofai.edu',
+                    bio: 'Sarah is an AI Researcher specializing in Natural Language Processing and Cognitive Computing.',
+                    avatar: 'SJ',
+                    courses_count: 2
+                },
+                {
+                    id: 'inst-2',
+                    name: 'Dr. Kenji Tanaka',
+                    email: 'kenji.tanaka@schoolofai.edu',
+                    bio: 'Dr. Tanaka has 15+ years of academic research experience in Deep Learning and Neural Network architectures.',
+                    avatar: 'KT',
+                    courses_count: 1
+                },
+                {
+                    id: 'inst-3',
+                    name: 'Marcus Vance',
+                    email: 'marcus.vance@schoolofai.edu',
+                    bio: 'Marcus is a Data Scientist who loves mentoring students in Python and Data Engineering.',
+                    avatar: 'MV',
+                    courses_count: 1
+                }
+            ]
         };
         localStorage.setItem(DB_KEY, JSON.stringify(db));
         localStorage.setItem('default-courses-seeded', 'true');
@@ -149,6 +176,36 @@ const getDB = (): LocalDB => {
 
     // Migration / update step: ensure Chemayek, Collins, and Test Student profiles have high quality avatars and correct names
     let dbUpdated = false;
+
+    if (!db.instructors) {
+        db.instructors = [
+            {
+                id: 'inst-1',
+                name: 'Sarah Jenkins',
+                email: 'sarah.jenkins@schoolofai.edu',
+                bio: 'Sarah is an AI Researcher specializing in Natural Language Processing and Cognitive Computing.',
+                avatar: 'SJ',
+                courses_count: 2
+            },
+            {
+                id: 'inst-2',
+                name: 'Dr. Kenji Tanaka',
+                email: 'kenji.tanaka@schoolofai.edu',
+                bio: 'Dr. Tanaka has 15+ years of academic research experience in Deep Learning and Neural Network architectures.',
+                avatar: 'KT',
+                courses_count: 1
+            },
+            {
+                id: 'inst-3',
+                name: 'Marcus Vance',
+                email: 'marcus.vance@schoolofai.edu',
+                bio: 'Marcus is a Data Scientist who loves mentoring students in Python and Data Engineering.',
+                avatar: 'MV',
+                courses_count: 1
+            }
+        ];
+        dbUpdated = true;
+    }
 
     if (!db.mails) {
         db.mails = [];
