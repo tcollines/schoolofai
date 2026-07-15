@@ -193,7 +193,7 @@ const PlansPage: React.FC<PlansPageProps> = ({ user, currentPlan, onUpgrade, onB
                     <div className="absolute top-0 right-0 bg-welile-purple text-white text-xs font-bold px-3 py-1 rounded-bl-xl rounded-tr-xl">POPULAR</div>
                     <div>
                         <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Pro</h3>
-                        <div className="text-4xl font-bold text-gray-900 dark:text-white mb-6">$100<span className="text-lg text-gray-500 dark:text-slate-400 font-normal">/mo</span></div>
+                        <div className="text-4xl font-bold text-gray-900 dark:text-white mb-6">$100<span className="text-lg text-gray-500 dark:text-slate-400 font-normal"> one-time</span></div>
                         <p className="text-gray-600 dark:text-slate-400 mb-8 text-sm">Master every subject with unlimited access to everything.</p>
 
                         <div className="mb-8">
@@ -405,7 +405,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({ isOpen, onClose, planName, 
 
                 <h3 className="text-xl font-bold text-center mb-2">Complete Your Upgrade</h3>
                 <p className="text-center text-sm text-gray-500 dark:text-slate-400 mb-6">
-                    You are upgrading to <span className="font-bold text-welile-purple">{planName}</span> for <span className="font-bold text-gray-800 dark:text-slate-200">{amount}/mo</span>.
+                    You are upgrading to <span className="font-bold text-welile-purple">{planName}</span> with a <span className="font-bold text-gray-800 dark:text-slate-200">one-time payment of {amount}</span>.
                 </p>
 
                 <div className="space-y-4">
