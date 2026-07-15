@@ -26,9 +26,10 @@ interface LandingPageProps {
     onSignupClick?: () => void;
     onGetStarted?: () => void;
     onAdminConsoleClick?: () => void;
+    onInstructorConsoleClick?: () => void;
 }
 
-const LandingPage: React.FC<LandingPageProps> = ({ onLoginClick, onSignupClick, onGetStarted, onAdminConsoleClick }) => {
+const LandingPage: React.FC<LandingPageProps> = ({ onLoginClick, onSignupClick, onGetStarted, onAdminConsoleClick, onInstructorConsoleClick }) => {
     const [isDark, setIsDark] = useState(() => {
         return document.documentElement.classList.contains('dark');
     });
@@ -577,6 +578,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLoginClick, onSignupClick, 
                     </div>
                     <div className="flex gap-6 items-center">
                         <button onClick={onAdminConsoleClick} className="text-sm font-medium text-gray-500 hover:text-violet-600">Admin Console</button>
+                        <button onClick={onInstructorConsoleClick} className="text-sm font-medium text-gray-500 hover:text-violet-600">Instructor Console</button>
                         <div className="text-sm text-gray-500">
                             © 2024 Welile School. All rights reserved.
                         </div>

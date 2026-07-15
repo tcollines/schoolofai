@@ -406,7 +406,49 @@ const AdminCourses: React.FC = () => {
         title: '', instructor: '', instructorEmail: '', instructorAvatar: '', duration: '', category: '', accessTier: 'FREE', image: '', sections: [], description: '', outcomes: []
     });
 
-    const handleNext = () => setStep(s => Math.min(s + 1, 4));
+    const handleNext = () => {
+        if (step === 1) {
+            if (!newCourse.title?.trim()) {
+                alert('Please enter a course title.');
+                return;
+            }
+            if (!newCourse.instructor?.trim()) {
+                alert('Please enter the instructor name.');
+                return;
+            }
+            if (!newCourse.instructorEmail?.trim()) {
+                alert('Please enter the instructor email.');
+                return;
+            }
+            if (!newCourse.instructorAvatar?.trim()) {
+                alert('Please provide an instructor avatar.');
+                return;
+            }
+            if (!newCourse.description?.trim()) {
+                alert('Please enter a course description.');
+                return;
+            }
+        } else if (step === 2) {
+            if (!newCourse.category?.trim()) {
+                alert('Please enter a course category.');
+                return;
+            }
+            if (!newCourse.duration?.trim()) {
+                alert('Please enter the estimated duration (e.g. 4h 30m).');
+                return;
+            }
+            if (!newCourse.image?.trim()) {
+                alert('Please provide a cover image.');
+                return;
+            }
+            const filteredOutcomes = newCourse.outcomes?.filter(o => o.trim() !== '') || [];
+            if (filteredOutcomes.length === 0) {
+                alert('Please enter at least one learning outcome.');
+                return;
+            }
+        }
+        setStep(s => Math.min(s + 1, 4));
+    };
     const handlePrev = () => setStep(s => Math.max(s - 1, 1));
     
     const addSection = () => {
@@ -489,6 +531,84 @@ const AdminCourses: React.FC = () => {
     };
 
     const handleSave = async (publish: boolean = true) => {
+        // Validate Step 1 & Step 2 fields
+        if (!newCourse.title?.trim() || !newCourse.instructor?.trim() || !newCourse.instructorEmail?.trim() || !newCourse.instructorAvatar?.trim() || !newCourse.description?.trim()) {
+            alert('Please complete all fields in Step 1 (Basic Information).');
+            setStep(1);
+            return;
+        }
+        if (!newCourse.category?.trim() || !newCourse.duration?.trim() || !newCourse.image?.trim()) {
+            alert('Please complete all fields in Step 2 (Details & Categorization).');
+            setStep(2);
+            return;
+        }
+        const filteredOutcomes = newCourse.outcomes?.filter(o => o.trim() !== '') || [];
+        if (filteredOutcomes.length === 0) {
+            alert('Please complete learning outcomes in Step 2.');
+            setStep(2);
+            return;
+        }
+
+        // Validate Step 4 curriculum
+        if (publish) {
+            if (!newCourse.sections || newCourse.sections.length === 0) {
+                alert('Please add at least one module/section to publish the course.');
+                return;
+            }
+            for (const section of newCourse.sections) {
+                if (!section.title.trim()) {
+                    alert('Please enter a title for all modules.');
+                    return;
+                }
+                if (!section.lessons || section.lessons.length === 0) {
+                    alert(`Please add at least one lesson or quiz to the module: "${section.title}"`);
+                    return;
+                }
+                for (const lesson of section.lessons) {
+                    if (!lesson.title.trim()) {
+                        alert(`Please enter a title for all lessons in "${section.title}".`);
+                        return;
+                    }
+                    if (!lesson.duration.trim()) {
+                        alert(`Please specify a duration for the lesson "${lesson.title}".`);
+                        return;
+                    }
+                    if (lesson.type === 'video' && !lesson.videoUrl?.trim()) {
+                        alert(`Please specify a video URL for the lesson "${lesson.title}".`);
+                        return;
+                    }
+                    if (lesson.type === 'audio' && !lesson.audioUrl?.trim()) {
+                        alert(`Please specify an audio URL for the lesson "${lesson.title}".`);
+                        return;
+                    }
+                    if (lesson.type === 'document' && !lesson.content?.trim() && !lesson.fileUrl?.trim()) {
+                        alert(`Please enter document content or upload a document file for "${lesson.title}".`);
+                        return;
+                    }
+                    if (lesson.type === 'article' && !lesson.content?.trim()) {
+                        alert(`Please type the article content for the lesson "${lesson.title}".`);
+                        return;
+                    }
+                    if (lesson.type === 'quiz') {
+                        if (!lesson.quizQuestions || lesson.quizQuestions.length === 0) {
+                            alert(`Please add at least one question to the quiz "${lesson.title}".`);
+                            return;
+                        }
+                        for (const q of lesson.quizQuestions) {
+                            if (!q.text.trim()) {
+                                alert(`Please enter the question text for all questions in the quiz "${lesson.title}".`);
+                                return;
+                            }
+                            if (!q.options || q.options.some((o: string) => !o.trim())) {
+                                alert(`Please fill in all options for the question: "${q.text || 'Untitled'}"`);
+                                return;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
         try {
             const courseData = {
                 ...newCourse,

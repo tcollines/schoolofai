@@ -4,9 +4,10 @@ import { Mail, Lock, KeyRound, ShieldAlert, ArrowLeft, Loader2, Info, Sun, Moon 
 interface AdminLoginPageProps {
     onLoginSuccess: () => void;
     onBackToStudentPortal: () => void;
+    isInstructor?: boolean;
 }
 
-const AdminLoginPage: React.FC<AdminLoginPageProps> = ({ onLoginSuccess, onBackToStudentPortal }) => {
+const AdminLoginPage: React.FC<AdminLoginPageProps> = ({ onLoginSuccess, onBackToStudentPortal, isInstructor }) => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [passcode, setPasscode] = useState('');
@@ -44,33 +45,63 @@ const AdminLoginPage: React.FC<AdminLoginPageProps> = ({ onLoginSuccess, onBackT
 
         // Simulate admin verification delay
         setTimeout(() => {
-            // Distinct administrative rules: Email + Password + Security Passcode
-            const isValidEmail = email.trim().toLowerCase() === 'admin@welile.com' || email.trim().toLowerCase() === 'admin@test.com';
-            const isValidPassword = password === 'adminpassword' || password === 'admin';
-            const isValidPasscode = passcode === 'admin123' || passcode === 'WELILE_ADMIN_2026';
+            if (isInstructor) {
+                // Instructor credentials check
+                const isValidEmail = email.trim().toLowerCase() === 'instructor@welile.com' || email.trim().toLowerCase() === 'instructor@test.com' || email.trim().toLowerCase() === 'sarah.jenkins@schoolofai.edu' || email.trim().toLowerCase() === 'kenji.tanaka@schoolofai.edu' || email.trim().toLowerCase() === 'marcus.vance@schoolofai.edu';
+                const isValidPassword = password === 'instructorpassword' || password === 'instructor';
+                const isValidPasscode = passcode === 'instructor123' || passcode === 'WELILE_INSTRUCTOR_2026';
 
-            if (!isValidEmail) {
-                setError('Invalid Administrative Email address.');
+                if (!isValidEmail) {
+                    setError('Invalid Instructor Email address.');
+                    setLoading(false);
+                    return;
+                }
+
+                if (!isValidPassword) {
+                    setError('Incorrect password.');
+                    setLoading(false);
+                    return;
+                }
+
+                if (!isValidPasscode) {
+                    setError('Incorrect Security Passcode. Access denied.');
+                    setLoading(false);
+                    return;
+                }
+
+                // Success! Store instructor-session token separately
+                localStorage.setItem('instructor-session', 'true');
                 setLoading(false);
-                return;
-            }
+                onLoginSuccess();
+            } else {
+                // Distinct administrative rules: Email + Password + Security Passcode
+                const isValidEmail = email.trim().toLowerCase() === 'admin@welile.com' || email.trim().toLowerCase() === 'admin@test.com';
+                const isValidPassword = password === 'adminpassword' || password === 'admin';
+                const isValidPasscode = passcode === 'admin123' || passcode === 'WELILE_ADMIN_2026';
 
-            if (!isValidPassword) {
-                setError('Incorrect password.');
+                if (!isValidEmail) {
+                    setError('Invalid Administrative Email address.');
+                    setLoading(false);
+                    return;
+                }
+
+                if (!isValidPassword) {
+                    setError('Incorrect password.');
+                    setLoading(false);
+                    return;
+                }
+
+                if (!isValidPasscode) {
+                    setError('Incorrect Security Passcode. Access denied.');
+                    setLoading(false);
+                    return;
+                }
+
+                // Success! Store admin-session token separately from student auth
+                localStorage.setItem('admin-session', 'true');
                 setLoading(false);
-                return;
+                onLoginSuccess();
             }
-
-            if (!isValidPasscode) {
-                setError('Incorrect Security Passcode. Access denied.');
-                setLoading(false);
-                return;
-            }
-
-            // Success! Store admin-session token separately from student auth
-            localStorage.setItem('admin-session', 'true');
-            setLoading(false);
-            onLoginSuccess();
         }, 1200);
     };
 
@@ -98,12 +129,12 @@ const AdminLoginPage: React.FC<AdminLoginPageProps> = ({ onLoginSuccess, onBackT
                         bg-white/70 dark:bg-slate-900/50 
                         hover:bg-amber-50 dark:hover:bg-slate-800 
                         border-slate-200 dark:border-slate-800
-                        hover:border-amber-300 dark:hover:border-amber-700"
+                        transition-colors duration-300"
                     aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
                 >
                     {isDark ? (
                         <>
-                            <Sun size={14} className="transition-transform group-hover:rotate-45 duration-300" />
+                            <Sun size={14} className="transition-transform group-hover:rotate-45 duration-500" />
                             Light Mode
                         </>
                     ) : (
@@ -123,8 +154,12 @@ const AdminLoginPage: React.FC<AdminLoginPageProps> = ({ onLoginSuccess, onBackT
                         <div className="mx-auto w-12 h-12 bg-violet-100 dark:bg-violet-950/50 border border-violet-300 dark:border-violet-800/60 text-violet-500 dark:text-violet-400 rounded-2xl flex items-center justify-center mb-4 shadow-lg shadow-violet-100 dark:shadow-violet-950/20 transition-colors duration-300">
                             <KeyRound size={22} className="animate-pulse" />
                         </div>
-                        <h2 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white transition-colors duration-300">Admin Console</h2>
-                        <p className="text-slate-500 dark:text-slate-400 text-xs mt-1.5 uppercase tracking-wider font-semibold">Administrative Access Portal</p>
+                        <h2 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white transition-colors duration-300">
+                            {isInstructor ? 'Instructor Console' : 'Admin Console'}
+                        </h2>
+                        <p className="text-slate-500 dark:text-slate-400 text-xs mt-1.5 uppercase tracking-wider font-semibold">
+                            {isInstructor ? 'Instructor Access Portal' : 'Administrative Access Portal'}
+                        </p>
                     </div>
 
                     {/* Hint / Demo Credentials Box */}
@@ -133,14 +168,25 @@ const AdminLoginPage: React.FC<AdminLoginPageProps> = ({ onLoginSuccess, onBackT
                             <Info size={14} />
                             <span className="text-[11px] font-bold uppercase tracking-wider">Demo Credentials</span>
                         </div>
-                        <div className="grid grid-cols-2 gap-x-2 gap-y-1 text-xs text-slate-500 dark:text-slate-400">
-                            <span className="font-semibold text-slate-700 dark:text-slate-300">Admin Email:</span>
-                            <code className="text-violet-600 dark:text-violet-300">admin@welile.com</code>
-                            <span className="font-semibold text-slate-700 dark:text-slate-300">Password:</span>
-                            <code className="text-violet-600 dark:text-violet-300">adminpassword</code>
-                            <span className="font-semibold text-slate-700 dark:text-slate-300">Security Passcode:</span>
-                            <code className="text-violet-600 dark:text-violet-300">admin123</code>
-                        </div>
+                        {isInstructor ? (
+                            <div className="grid grid-cols-2 gap-x-2 gap-y-1 text-xs text-slate-500 dark:text-slate-400">
+                                <span className="font-semibold text-slate-700 dark:text-slate-300">Inst. Email:</span>
+                                <code className="text-violet-600 dark:text-violet-300">instructor@test.com</code>
+                                <span className="font-semibold text-slate-700 dark:text-slate-300">Password:</span>
+                                <code className="text-violet-600 dark:text-violet-300">instructor</code>
+                                <span className="font-semibold text-slate-700 dark:text-slate-300">Passcode:</span>
+                                <code className="text-violet-600 dark:text-violet-300">instructor123</code>
+                            </div>
+                        ) : (
+                            <div className="grid grid-cols-2 gap-x-2 gap-y-1 text-xs text-slate-500 dark:text-slate-400">
+                                <span className="font-semibold text-slate-700 dark:text-slate-300">Admin Email:</span>
+                                <code className="text-violet-600 dark:text-violet-300">admin@welile.com</code>
+                                <span className="font-semibold text-slate-700 dark:text-slate-300">Password:</span>
+                                <code className="text-violet-600 dark:text-violet-300">adminpassword</code>
+                                <span className="font-semibold text-slate-700 dark:text-slate-300">Passcode:</span>
+                                <code className="text-violet-600 dark:text-violet-300">admin123</code>
+                            </div>
+                        )}
                     </div>
 
                     {error && (
@@ -161,7 +207,7 @@ const AdminLoginPage: React.FC<AdminLoginPageProps> = ({ onLoginSuccess, onBackT
                                     required
                                     value={email}
                                     onChange={(e) => setEmail(e.target.value)}
-                                    placeholder="admin@welile.com"
+                                    placeholder={isInstructor ? "instructor@test.com" : "admin@welile.com"}
                                     className="w-full bg-white dark:bg-slate-950/50 border border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 focus:border-violet-500 text-slate-900 dark:text-white pl-11 pr-4 py-3 rounded-2xl outline-none transition-all text-sm placeholder:text-slate-400 dark:placeholder:text-slate-600"
                                 />
                             </div>
@@ -196,7 +242,7 @@ const AdminLoginPage: React.FC<AdminLoginPageProps> = ({ onLoginSuccess, onBackT
                                     required
                                     value={passcode}
                                     onChange={(e) => setPasscode(e.target.value)}
-                                    placeholder="Secret Admin Key"
+                                    placeholder={isInstructor ? "Secret Instructor Key" : "Secret Admin Key"}
                                     className="w-full bg-white dark:bg-slate-950/50 border border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 focus:border-violet-500 text-slate-900 dark:text-white pl-11 pr-4 py-3 rounded-2xl outline-none transition-all text-sm font-mono tracking-widest placeholder:text-slate-400 dark:placeholder:text-slate-600 placeholder:font-sans placeholder:tracking-normal"
                                 />
                             </div>
@@ -213,7 +259,7 @@ const AdminLoginPage: React.FC<AdminLoginPageProps> = ({ onLoginSuccess, onBackT
                                 <>
                                     <Loader2 size={16} className="animate-spin" /> Verifying Access
                                 </>
-                            ) : 'Authenticate Console'}
+                            ) : (isInstructor ? 'Authenticate Instructor' : 'Authenticate Console')}
                         </button>
                     </form>
                 </div>
@@ -221,11 +267,13 @@ const AdminLoginPage: React.FC<AdminLoginPageProps> = ({ onLoginSuccess, onBackT
 
             {/* Footer */}
             <div className="text-center py-4 text-[10px] text-slate-400 dark:text-slate-600 font-medium transition-colors duration-300">
-                Welile School Administrative Access Area • Authorized Credentials Only.
+                {isInstructor 
+                    ? 'Welile School Instructor Access Area • Authorized Credentials Only.'
+                    : 'Welile School Administrative Access Area • Authorized Credentials Only.'
+                }
             </div>
         </div>
     );
 };
 
 export default AdminLoginPage;
-

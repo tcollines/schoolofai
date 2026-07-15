@@ -132,6 +132,7 @@ function App() {
                     onLoginClick={() => window.location.href = '/login'}
                     onSignupClick={() => window.location.href = '/signup'}
                     onAdminConsoleClick={() => window.location.href = '/admin'}
+                    onInstructorConsoleClick={() => window.location.href = '/instructor'}
                 />
             ) : <Navigate to="/dashboard" replace />
         } />
@@ -159,6 +160,11 @@ function App() {
         {/* Admin Route - uses its own authentication via AdminLoginPage */}
         <Route path="/admin/*" element={
              <AdminLayout onExit={() => window.location.href = '/dashboard'} />
+        } />
+        
+        {/* Instructor Route - uses its own authentication via AdminLoginPage in instructor mode */}
+        <Route path="/instructor/*" element={
+             <AdminLayout onExit={() => window.location.href = '/dashboard'} isInstructor={true} />
         } />
 
         {/* Student Routes wrapper */}

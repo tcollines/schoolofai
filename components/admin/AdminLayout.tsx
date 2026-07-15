@@ -12,17 +12,19 @@ import AdminMails from './AdminMails';
 
 interface AdminLayoutProps {
     onExit: () => void;
+    isInstructor?: boolean;
 }
 
-const AdminLayout: React.FC<AdminLayoutProps> = ({ onExit }) => {
+const AdminLayout: React.FC<AdminLayoutProps> = ({ onExit, isInstructor }) => {
     const navigate = useNavigate();
     const location = useLocation();
     
-    const activeTab = location.pathname.split('/')[2] || 'enrollments';
+    const activeTab = location.pathname.split('/')[2] || (isInstructor ? 'courses' : 'enrollments');
 
-    // Persist admin session across page refreshes
+    // Persist admin/instructor session across page refreshes
     const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(() => {
-        return localStorage.getItem('admin-session') === 'true';
+        const sessionKey = isInstructor ? 'instructor-session' : 'admin-session';
+        return localStorage.getItem(sessionKey) === 'true';
     });
 
     const [isDark, setIsDark] = useState(true);
@@ -50,15 +52,18 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ onExit }) => {
     }, [isAdminAuthenticated]);
 
     const handleExitConsole = () => {
-        localStorage.removeItem('admin-session');
+        const sessionKey = isInstructor ? 'instructor-session' : 'admin-session';
+        localStorage.removeItem(sessionKey);
         onExit();
     };
 
     if (!isAdminAuthenticated) {
         return (
             <AdminLoginPage 
+                isInstructor={isInstructor}
                 onLoginSuccess={() => {
-                    localStorage.setItem('admin-session', 'true');
+                    const sessionKey = isInstructor ? 'instructor-session' : 'admin-session';
+                    localStorage.setItem(sessionKey, 'true');
                     setIsAdminAuthenticated(true);
                 }}
                 onBackToStudentPortal={() => window.location.href = '/'}
@@ -66,25 +71,31 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ onExit }) => {
         );
     }
 
-    const menuItems = [
-        { id: 'enrollments', label: 'Enrollments', icon: Users },
-        { id: 'courses', label: 'Course Setup', icon: BookOpen },
-        { id: 'instructors', label: 'Instructors', icon: UserCheck },
-        { id: 'exams', label: 'Exam Setup', icon: FileQuestion },
-        { id: 'events', label: 'Ongoing Events', icon: Calendar },
-        { id: 'mails', label: 'Mails', icon: Mail },
-    ] as const;
+    const menuItems = isInstructor 
+        ? ([
+            { id: 'courses', label: 'Course Setup', icon: BookOpen },
+            { id: 'exams', label: 'Exam Setup', icon: FileQuestion },
+            { id: 'events', label: 'Ongoing Events', icon: Calendar },
+          ] as const)
+        : ([
+            { id: 'enrollments', label: 'Enrollments', icon: Users },
+            { id: 'courses', label: 'Course Setup', icon: BookOpen },
+            { id: 'instructors', label: 'Instructors', icon: UserCheck },
+            { id: 'exams', label: 'Exam Setup', icon: FileQuestion },
+            { id: 'events', label: 'Ongoing Events', icon: Calendar },
+            { id: 'mails', label: 'Mails', icon: Mail },
+          ] as const);
 
     const renderContent = () => {
         return (
             <Routes>
-                <Route path="/" element={<Navigate to="enrollments" replace />} />
-                <Route path="enrollments" element={<AdminEnrollments />} />
+                <Route path="/" element={<Navigate to={isInstructor ? "courses" : "enrollments"} replace />} />
+                {!isInstructor && <Route path="enrollments" element={<AdminEnrollments />} />}
                 <Route path="courses" element={<AdminCourses />} />
-                <Route path="instructors" element={<AdminInstructors />} />
+                {!isInstructor && <Route path="instructors" element={<AdminInstructors />} />}
                 <Route path="exams" element={<AdminExams />} />
                 <Route path="events" element={<AdminEvents />} />
-                <Route path="mails" element={<AdminMails />} />
+                {!isInstructor && <Route path="mails" element={<AdminMails />} />}
             </Routes>
         );
     };
@@ -96,9 +107,11 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ onExit }) => {
                 <div className="p-6 border-b border-slate-800 flex items-center justify-between">
                     <div className="flex items-center gap-3">
                         <div className="w-8 h-8 bg-violet-600 rounded-lg flex items-center justify-center">
-                            <span className="font-bold text-white">A</span>
+                            <span className="font-bold text-white">{isInstructor ? 'I' : 'A'}</span>
                         </div>
-                        <span className="text-xl font-bold tracking-tight">Admin<span className="text-violet-400">Portal</span></span>
+                        <span className="text-xl font-bold tracking-tight">
+                            {isInstructor ? 'Instructor' : 'Admin'}<span className="text-violet-400">Portal</span>
+                        </span>
                     </div>
                 </div>
 
@@ -106,7 +119,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ onExit }) => {
                     {menuItems.map((item) => (
                         <button
                             key={item.id}
-                            onClick={() => navigate(`/admin/${item.id}`)}
+                            onClick={() => navigate(isInstructor ? `/instructor/${item.id}` : `/admin/${item.id}`)}
                             className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 text-sm font-medium ${
                                 activeTab === item.id
                                     ? 'bg-violet-600 text-white shadow-lg shadow-violet-900/20'
@@ -124,7 +137,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ onExit }) => {
                         onClick={handleExitConsole}
                         className="flex items-center justify-center gap-2 w-full px-4 py-3 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white rounded-xl transition-colors text-sm font-medium"
                     >
-                        <LogOut size={16} /> Exit Admin Console
+                        <LogOut size={16} /> Exit {isInstructor ? 'Instructor' : 'Admin'} Console
                     </button>
                 </div>
             </div>

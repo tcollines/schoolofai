@@ -60,7 +60,19 @@ const AdminExams: React.FC = () => {
         }
     };
 
-    const handleNext = () => setStep(s => Math.min(s + 1, 3));
+    const handleNext = () => {
+        if (step === 1) {
+            if (!examCourseId) {
+                alert('Please select a course first.');
+                return;
+            }
+            if (!quizTitle.trim()) {
+                alert('Please enter an exam title.');
+                return;
+            }
+        }
+        setStep(s => Math.min(s + 1, 3));
+    };
     const handlePrev = () => setStep(s => Math.max(s - 1, 1));
     
     const handleAddQuestion = () => {
