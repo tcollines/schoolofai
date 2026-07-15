@@ -149,7 +149,8 @@ const getDB = (): LocalDB => {
                     email: 'sarah.jenkins@schoolofai.edu',
                     bio: 'Sarah is an AI Researcher specializing in Natural Language Processing and Cognitive Computing.',
                     avatar: 'SJ',
-                    courses_count: 2
+                    courses_count: 2,
+                    passcode: 'instructor123'
                 },
                 {
                     id: 'inst-2',
@@ -157,7 +158,8 @@ const getDB = (): LocalDB => {
                     email: 'kenji.tanaka@schoolofai.edu',
                     bio: 'Dr. Tanaka has 15+ years of academic research experience in Deep Learning and Neural Network architectures.',
                     avatar: 'KT',
-                    courses_count: 1
+                    courses_count: 1,
+                    passcode: 'instructor123'
                 },
                 {
                     id: 'inst-3',
@@ -165,7 +167,8 @@ const getDB = (): LocalDB => {
                     email: 'marcus.vance@schoolofai.edu',
                     bio: 'Marcus is a Data Scientist who loves mentoring students in Python and Data Engineering.',
                     avatar: 'MV',
-                    courses_count: 1
+                    courses_count: 1,
+                    passcode: 'instructor123'
                 }
             ]
         };
@@ -185,7 +188,8 @@ const getDB = (): LocalDB => {
                 email: 'sarah.jenkins@schoolofai.edu',
                 bio: 'Sarah is an AI Researcher specializing in Natural Language Processing and Cognitive Computing.',
                 avatar: 'SJ',
-                courses_count: 2
+                courses_count: 2,
+                passcode: 'instructor123'
             },
             {
                 id: 'inst-2',
@@ -193,7 +197,8 @@ const getDB = (): LocalDB => {
                 email: 'kenji.tanaka@schoolofai.edu',
                 bio: 'Dr. Tanaka has 15+ years of academic research experience in Deep Learning and Neural Network architectures.',
                 avatar: 'KT',
-                courses_count: 1
+                courses_count: 1,
+                passcode: 'instructor123'
             },
             {
                 id: 'inst-3',
@@ -201,7 +206,8 @@ const getDB = (): LocalDB => {
                 email: 'marcus.vance@schoolofai.edu',
                 bio: 'Marcus is a Data Scientist who loves mentoring students in Python and Data Engineering.',
                 avatar: 'MV',
-                courses_count: 1
+                courses_count: 1,
+                passcode: 'instructor123'
             }
         ];
         dbUpdated = true;

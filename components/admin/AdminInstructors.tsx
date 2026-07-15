@@ -9,6 +9,7 @@ interface Instructor {
     bio: string;
     avatar: string;
     courses_count: number;
+    passcode?: string;
 }
 
 const AdminInstructors: React.FC = () => {
@@ -25,6 +26,7 @@ const AdminInstructors: React.FC = () => {
     const [email, setEmail] = useState('');
     const [bio, setBio] = useState('');
     const [avatar, setAvatar] = useState('');
+    const [passcode, setPasscode] = useState('');
 
     const fetchInstructors = async () => {
         setLoading(true);
@@ -49,6 +51,7 @@ const AdminInstructors: React.FC = () => {
         setEmail('');
         setBio('');
         setAvatar('');
+        setPasscode('');
         setIsOpen(true);
     };
 
@@ -58,6 +61,7 @@ const AdminInstructors: React.FC = () => {
         setEmail(inst.email);
         setBio(inst.bio);
         setAvatar(inst.avatar);
+        setPasscode(inst.passcode || '');
         setIsOpen(true);
     };
 
@@ -86,6 +90,7 @@ const AdminInstructors: React.FC = () => {
                         email,
                         bio,
                         avatar: avatar || name.split(' ').map(n => n[0]).join('').toUpperCase(),
+                        passcode: passcode || 'instructor123'
                     })
                     .eq('id', editingInstructor.id);
                 if (error) throw error;
@@ -98,7 +103,8 @@ const AdminInstructors: React.FC = () => {
                         email,
                         bio,
                         avatar: avatar || name.split(' ').map(n => n[0]).join('').toUpperCase(),
-                        courses_count: 0
+                        courses_count: 0,
+                        passcode: passcode || 'instructor123'
                     });
                 if (error) throw error;
             }
@@ -237,13 +243,25 @@ const AdminInstructors: React.FC = () => {
                             </div>
 
                             <div>
-                                <label className="block text-xs font-bold text-gray-605 dark:text-slate-400 uppercase tracking-wider mb-2">Avatar Initials / Image URL (Optional)</label>
+                                <label className="block text-xs font-bold text-gray-650 dark:text-slate-400 uppercase tracking-wider mb-2">Avatar Initials / Image URL (Optional)</label>
                                 <input
                                     type="text"
                                     value={avatar}
                                     onChange={(e) => setAvatar(e.target.value)}
                                     placeholder="e.g. SJ or https://..."
                                     className="w-full bg-gray-50 dark:bg-slate-950 border border-gray-200 dark:border-slate-800 rounded-xl px-4 py-2.5 text-sm text-gray-900 dark:text-white focus:outline-none focus:border-violet-500"
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-xs font-bold text-gray-650 dark:text-slate-400 uppercase tracking-wider mb-2">Security Passcode / Secret Key</label>
+                                <input
+                                    type="text"
+                                    required
+                                    value={passcode}
+                                    onChange={(e) => setPasscode(e.target.value)}
+                                    placeholder="e.g. instructor123"
+                                    className="w-full bg-gray-50 dark:bg-slate-950 border border-gray-200 dark:border-slate-800 rounded-xl px-4 py-2.5 text-sm text-gray-900 dark:text-white focus:outline-none focus:border-violet-500 font-mono"
                                 />
                             </div>
 

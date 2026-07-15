@@ -45,15 +45,8 @@ const AdminLoginPage: React.FC<AdminLoginPageProps> = ({ onLoginSuccess, onBackT
         setLoading(true);
         setError(null);
 
-        // Security passcode check
-        if (isInstructor) {
-            const isValidPasscode = passcode === 'instructor123' || passcode === 'WELILE_INSTRUCTOR_2026';
-            if (!isValidPasscode) {
-                setError('Incorrect Security Passcode. Access denied.');
-                setLoading(false);
-                return;
-            }
-        } else {
+        // Security passcode check for admin. (Instructor passcode check is performed dynamically below after querying database)
+        if (!isInstructor) {
             const isValidPasscode = passcode === 'admin123' || passcode === 'WELILE_ADMIN_2026';
             if (!isValidPasscode) {
                 setError('Incorrect Security Passcode. Access denied.');
@@ -67,13 +60,22 @@ const AdminLoginPage: React.FC<AdminLoginPageProps> = ({ onLoginSuccess, onBackT
                 // Query database to ensure instructor was registered by the admin
                 const { data: instructorData, error: dbError } = await supabase
                     .from('instructors')
-                    .select('id, email')
+                    .select('*')
                     .eq('email', email.trim().toLowerCase());
 
                 if (dbError) throw dbError;
 
                 if (!instructorData || instructorData.length === 0) {
                     setError('Access denied. No instructor account found with this email. Please ask the administrator to register you.');
+                    setLoading(false);
+                    return;
+                }
+
+                const registeredInstructor = instructorData[0];
+                const isValidPasscode = passcode === (registeredInstructor.passcode || 'instructor123') || passcode === 'WELILE_INSTRUCTOR_2026';
+
+                if (!isValidPasscode) {
+                    setError('Incorrect Security Passcode. Access denied.');
                     setLoading(false);
                     return;
                 }
