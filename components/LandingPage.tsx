@@ -18,7 +18,8 @@ import {
     Wallet,
     Video,
     X,
-    Loader
+    Loader,
+    Shield
 } from 'lucide-react';
 
 interface LandingPageProps {
@@ -120,14 +121,16 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLoginClick, onSignupClick, 
                             </button>
                             <button
                                 onClick={onAdminConsoleClick}
-                                className="hidden md:block text-gray-600 dark:text-slate-400 hover:text-gray-900 dark:hover:text-white font-medium text-sm transition-colors"
+                                className="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold bg-slate-100 hover:bg-slate-200 dark:bg-slate-800/80 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 transition-all border border-slate-200/50 dark:border-slate-700/50 cursor-pointer shadow-sm"
                             >
+                                <Shield size={12} />
                                 Admin Console
                             </button>
                             <button
                                 onClick={onInstructorConsoleClick}
-                                className="hidden md:block text-gray-600 dark:text-slate-400 hover:text-gray-900 dark:hover:text-white font-medium text-sm transition-colors"
+                                className="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold bg-violet-50 hover:bg-violet-100 dark:bg-violet-950/40 dark:hover:bg-violet-900/30 text-violet-700 dark:text-violet-300 transition-all border border-violet-100 dark:border-violet-900/50 cursor-pointer shadow-sm"
                             >
+                                <GraduationCap size={12} />
                                 Instructor Console
                             </button>
                             <button
