@@ -417,7 +417,7 @@ const SignupPage: React.FC<SignupPageProps> = ({ onSignup, onNavigateToLogin, on
                                 Cancel
                             </button>
                         </form>
-                    )}              </div>
+                    )}
                 </div>
             </div>
             
