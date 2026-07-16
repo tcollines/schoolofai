@@ -119,6 +119,18 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLoginClick, onSignupClick, 
                                 {isDark ? <Sun size={18} /> : <Moon size={18} />}
                             </button>
                             <button
+                                onClick={onAdminConsoleClick}
+                                className="hidden md:block text-gray-600 dark:text-slate-400 hover:text-gray-900 dark:hover:text-white font-medium text-sm transition-colors"
+                            >
+                                Admin Console
+                            </button>
+                            <button
+                                onClick={onInstructorConsoleClick}
+                                className="hidden md:block text-gray-600 dark:text-slate-400 hover:text-gray-900 dark:hover:text-white font-medium text-sm transition-colors"
+                            >
+                                Instructor Console
+                            </button>
+                            <button
                                 onClick={onLoginClick}
                                 className="text-gray-600 dark:text-slate-300 hover:text-gray-900 dark:hover:text-white font-medium text-sm transition-colors"
                             >
@@ -579,8 +591,6 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLoginClick, onSignupClick, 
                         <span className="font-bold tracking-tight text-gray-900">Welile<span className="text-violet-600">School</span></span>
                     </div>
                     <div className="flex gap-6 items-center">
-                        <button onClick={onAdminConsoleClick} className="text-sm font-medium text-gray-500 hover:text-violet-600">Admin Console</button>
-                        <button onClick={onInstructorConsoleClick} className="text-sm font-medium text-gray-500 hover:text-violet-600">Instructor Console</button>
                         <div className="text-sm text-gray-500">
                             © 2024 Welile School. All rights reserved.
                         </div>
