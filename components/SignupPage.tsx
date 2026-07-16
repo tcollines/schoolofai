@@ -21,6 +21,14 @@ const SignupPage: React.FC<SignupPageProps> = ({ onSignup, onNavigateToLogin, on
     const [error, setError] = useState<string | null>(null);
     const [showGoogleChooser, setShowGoogleChooser] = useState(false);
     const [isSubmitted, setIsSubmitted] = useState(false);
+    const [step, setStep] = useState<'signup' | 'google-verify'>('signup');
+    const [correctCode, setCorrectCode] = useState('');
+    const [showGmailToast, setShowGmailToast] = useState(false);
+    
+    // Google verification states
+    const [pendingGoogleEmail, setPendingGoogleEmail] = useState('');
+    const [pendingGoogleName, setPendingGoogleName] = useState('');
+    const [googleVerifyInput, setGoogleVerifyInput] = useState('');
 
     const handleEmailSignup = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -64,21 +72,46 @@ const SignupPage: React.FC<SignupPageProps> = ({ onSignup, onNavigateToLogin, on
     };
 
     const handleSelectGoogleAccount = async (selectedEmail: string, name: string) => {
-        try {
-            setLoading(true);
-            await supabase.auth.signUp({
-                email: selectedEmail,
-                options: {
-                    data: {
-                        full_name: name
+        setPendingGoogleEmail(selectedEmail);
+        setPendingGoogleName(name);
+        
+        // Generate random 6-digit verification code
+        const code = Math.floor(100000 + Math.random() * 900000).toString();
+        setCorrectCode(code);
+        setGoogleVerifyInput('');
+        
+        // Switch step to google-verify and show Gmail notification toast
+        setStep('google-verify');
+        setShowGmailToast(true);
+        setShowGoogleChooser(false);
+    };
+
+    const handleGoogleVerifySubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setLoading(true);
+        setError(null);
+
+        if (googleVerifyInput === correctCode) {
+            try {
+                await supabase.auth.signUp({
+                    email: pendingGoogleEmail,
+                    options: {
+                        data: {
+                            full_name: pendingGoogleName
+                        }
                     }
-                }
-            });
-            setShowGoogleChooser(false);
-            onSignup();
-        } catch (err: any) {
-            setError(err.message);
-        } finally {
+                });
+                
+                setShowGmailToast(false);
+                setStep('signup');
+                onSignup();
+            } catch (err: any) {
+                setError(err.message);
+            } finally {
+                setLoading(false);
+            }
+        } else {
+            setError('Invalid Google verification code. Please check the code sent to your Gmail inbox.');
             setLoading(false);
         }
     };
@@ -108,6 +141,23 @@ const SignupPage: React.FC<SignupPageProps> = ({ onSignup, onNavigateToLogin, on
 
     return (
         <div className="min-h-screen bg-white flex">
+            {showGmailToast && (
+                <div className="fixed top-4 left-1/2 -translate-x-1/2 z-50 w-full max-w-md bg-slate-900 border border-slate-800 text-white rounded-2xl shadow-2xl p-4 flex gap-3 animate-in slide-in-from-top-10 duration-300">
+                    <div className="w-10 h-10 bg-red-100 dark:bg-red-950/40 text-red-600 dark:text-red-400 rounded-full flex items-center justify-center shrink-0">
+                        <Mail size={20} />
+                    </div>
+                    <div className="flex-1 text-xs text-left">
+                        <div className="flex justify-between items-center mb-1">
+                            <span className="font-bold text-red-500">Gmail • Verified Sender</span>
+                            <span className="text-[10px] text-gray-400">Just now</span>
+                        </div>
+                        <p className="font-semibold text-gray-200">From: auth-service@gmail.com</p>
+                        <p className="text-gray-400 mt-1 text-left">
+                            Your WSAI Google Login verification code is: <span className="font-mono font-bold text-sm text-yellow-400 bg-black/45 px-2 py-0.5 rounded">{correctCode}</span>
+                        </p>
+                    </div>
+                </div>
+            )}
             {/* Left Side - Image/Brand */}
             <div className="hidden lg:block w-1/2 bg-gray-900 relative overflow-hidden">
                 <div className="absolute inset-0 bg-gradient-to-br from-violet-600/30 to-blue-600/30 mix-blend-overlay"></div>
@@ -152,150 +202,222 @@ const SignupPage: React.FC<SignupPageProps> = ({ onSignup, onNavigateToLogin, on
                         </div>
                     )}
 
-                    <form onSubmit={handleEmailSignup} className="space-y-6">
-                        <div className="grid grid-cols-2 gap-4">
+                    {step === 'signup' ? (
+                        <>
+                            <form onSubmit={handleEmailSignup} className="space-y-6">
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">First Name</label>
+                                        <div className="relative">
+                                            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
+                                                <User className="w-5 h-5" />
+                                            </div>
+                                            <input
+                                                type="text"
+                                                required
+                                                value={firstName}
+                                                onChange={(e) => setFirstName(e.target.value)}
+                                                className="block w-full pl-10 pr-3 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-violet-500 focus:border-transparent transition-all outline-none"
+                                                placeholder="John"
+                                            />
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">Last Name</label>
+                                        <div className="relative">
+                                            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
+                                                <User className="w-5 h-5" />
+                                            </div>
+                                            <input
+                                                type="text"
+                                                required
+                                                value={lastName}
+                                                onChange={(e) => setLastName(e.target.value)}
+                                                className="block w-full pl-10 pr-3 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-violet-500 focus:border-transparent transition-all outline-none"
+                                                placeholder="Doe"
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
+                                    <div className="relative">
+                                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
+                                            <Mail className="w-5 h-5" />
+                                        </div>
+                                        <input
+                                            type="email"
+                                            required
+                                            value={email}
+                                            onChange={(e) => setEmail(e.target.value)}
+                                            className="block w-full pl-10 pr-3 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-violet-500 focus:border-transparent transition-all outline-none"
+                                            placeholder="you@example.com"
+                                        />
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
+                                    <div className="relative">
+                                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
+                                            <Lock className="w-5 h-5" />
+                                        </div>
+                                        <input
+                                            type={showPassword ? 'text' : 'password'}
+                                            required
+                                            value={password}
+                                            onChange={(e) => setPassword(e.target.value)}
+                                            className="block w-full pl-10 pr-10 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-violet-500 focus:border-transparent transition-all outline-none"
+                                            placeholder="••••••••"
+                                            minLength={6}
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowPassword(!showPassword)}
+                                            className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 transition-colors"
+                                        >
+                                            {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                                        </button>
+                                    </div>
+                                    <p className="mt-1 text-xs text-gray-500">Must be at least 6 characters</p>
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Confirm Password</label>
+                                    <div className="relative">
+                                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
+                                            <Lock className="w-5 h-5" />
+                                        </div>
+                                        <input
+                                            type={showConfirmPassword ? 'text' : 'password'}
+                                            required
+                                            value={confirmPassword}
+                                            onChange={(e) => setConfirmPassword(e.target.value)}
+                                            className="block w-full pl-10 pr-10 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-violet-500 focus:border-transparent transition-all outline-none"
+                                            placeholder="••••••••"
+                                            minLength={6}
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                                            className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 transition-colors"
+                                        >
+                                            {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <button
+                                    type="submit"
+                                    disabled={loading}
+                                    className="w-full flex justify-center py-3 px-4 border border-transparent rounded-xl shadow-sm text-sm font-medium text-white bg-violet-600 hover:bg-violet-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-violet-500 transition-colors disabled:opacity-70 disabled:cursor-not-allowed cursor-pointer"
+                                >
+                                    {loading ? (
+                                        <>
+                                            <Loader2 className="animate-spin -ml-1 mr-2 h-4 w-4" />
+                                            Creating account...
+                                        </>
+                                    ) : (
+                                        'Create Account'
+                                    )}
+                                </button>
+                            </form>
+
+                            <div className="mt-8 relative">
+                                <div className="absolute inset-0 flex items-center">
+                                    <div className="w-full border-t border-gray-200"></div>
+                                </div>
+                                <div className="relative flex justify-center text-sm">
+                                    <span className="px-2 bg-white text-gray-500">Or continue with</span>
+                                </div>
+                            </div>
+
+                            <div className="mt-8 grid grid-cols-1 gap-3">
+                                <button
+                                    onClick={handleGoogleLogin}
+                                    className="w-full flex items-center justify-center px-4 py-3 border border-gray-200 rounded-xl shadow-sm bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors cursor-pointer"
+                                >
+                                    <svg className="h-5 w-5 mr-3" aria-hidden="true" viewBox="0 0 48 48">
+                                        <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
+                                        <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
+                                        <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
+                                        <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
+                                        <path fill="none" d="M0 0h48v48H0z"/>
+                                    </svg>
+                                    Google
+                                </button>
+                            </div>
+                        </>
+                    ) : (
+                        <form onSubmit={handleGoogleVerifySubmit} className="space-y-6">
+                            <div className="text-center mb-2">
+                                <div className="mx-auto w-14 h-14 bg-violet-50 text-violet-600 rounded-2xl flex items-center justify-center mb-4">
+                                    <Mail size={24} />
+                                </div>
+                                <h2 className="text-2xl font-bold text-gray-900 mb-1">Gmail Verification</h2>
+                                <p className="text-xs text-gray-500">
+                                    A 6-digit verification code has been sent to <span className="font-semibold text-gray-800">{pendingGoogleEmail}</span>
+                                </p>
+                            </div>
+
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">First Name</label>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    Enter 6-digit Verification Code
+                                </label>
                                 <div className="relative">
                                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
-                                        <User className="w-5 h-5" />
+                                        <Lock className="w-5 h-5" />
                                     </div>
                                     <input
                                         type="text"
                                         required
-                                        value={firstName}
-                                        onChange={(e) => setFirstName(e.target.value)}
-                                        className="block w-full pl-10 pr-3 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-violet-500 focus:border-transparent transition-all outline-none"
-                                        placeholder="John"
+                                        maxLength={6}
+                                        pattern="[0-9]{6}"
+                                        value={googleVerifyInput}
+                                        onChange={(e) => setGoogleVerifyInput(e.target.value.replace(/\D/g, ''))}
+                                        className="block w-full pl-10 pr-3 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-violet-500 focus:border-transparent outline-none tracking-widest font-mono text-lg text-center"
+                                        placeholder="000000"
                                     />
                                 </div>
                             </div>
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Last Name</label>
-                                <div className="relative">
-                                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
-                                        <User className="w-5 h-5" />
-                                    </div>
-                                    <input
-                                        type="text"
-                                        required
-                                        value={lastName}
-                                        onChange={(e) => setLastName(e.target.value)}
-                                        className="block w-full pl-10 pr-3 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-violet-500 focus:border-transparent transition-all outline-none"
-                                        placeholder="Doe"
-                                    />
-                                </div>
-                            </div>
-                        </div>
 
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
-                            <div className="relative">
-                                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
-                                    <Mail className="w-5 h-5" />
-                                </div>
-                                <input
-                                    type="email"
-                                    required
-                                    value={email}
-                                    onChange={(e) => setEmail(e.target.value)}
-                                    className="block w-full pl-10 pr-3 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-violet-500 focus:border-transparent transition-all outline-none"
-                                    placeholder="you@example.com"
-                                />
-                            </div>
-                        </div>
+                            <button
+                                type="submit"
+                                disabled={loading}
+                                className="w-full flex justify-center py-3 px-4 border border-transparent rounded-xl shadow-sm text-sm font-medium text-white bg-violet-600 hover:bg-violet-750 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-violet-500 transition-colors disabled:opacity-70 disabled:cursor-not-allowed cursor-pointer"
+                            >
+                                {loading ? (
+                                    <>
+                                        <Loader2 className="animate-spin -ml-1 mr-2 h-4 w-4" />
+                                        Verifying...
+                                    </>
+                                ) : (
+                                    'Verify & Sign Up'
+                                )}
+                            </button>
 
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
-                            <div className="relative">
-                                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
-                                    <Lock className="w-5 h-5" />
-                                </div>
-                                <input
-                                    type={showPassword ? 'text' : 'password'}
-                                    required
-                                    value={password}
-                                    onChange={(e) => setPassword(e.target.value)}
-                                    className="block w-full pl-10 pr-10 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-violet-500 focus:border-transparent transition-all outline-none"
-                                    placeholder="••••••••"
-                                    minLength={6}
-                                />
-                                <button
-                                    type="button"
-                                    onClick={() => setShowPassword(!showPassword)}
-                                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 transition-colors"
-                                >
-                                    {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-                                </button>
-                            </div>
-                            <p className="mt-1 text-xs text-gray-500">Must be at least 6 characters</p>
-                        </div>
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    const code = Math.floor(100000 + Math.random() * 900000).toString();
+                                    setCorrectCode(code);
+                                    setShowGmailToast(true);
+                                }}
+                                className="w-full text-center text-xs text-violet-600 hover:text-violet-755 font-bold cursor-pointer"
+                            >
+                                Resend Verification Code
+                            </button>
 
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Confirm Password</label>
-                            <div className="relative">
-                                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
-                                    <Lock className="w-5 h-5" />
-                                </div>
-                                <input
-                                    type={showConfirmPassword ? 'text' : 'password'}
-                                    required
-                                    value={confirmPassword}
-                                    onChange={(e) => setConfirmPassword(e.target.value)}
-                                    className="block w-full pl-10 pr-10 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-violet-500 focus:border-transparent transition-all outline-none"
-                                    placeholder="••••••••"
-                                    minLength={6}
-                                />
-                                <button
-                                    type="button"
-                                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 transition-colors"
-                                >
-                                    {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-                                </button>
-                            </div>
-                        </div>
-
-                        <button
-                            type="submit"
-                            disabled={loading}
-                            className="w-full flex justify-center py-3 px-4 border border-transparent rounded-xl shadow-sm text-sm font-medium text-white bg-violet-600 hover:bg-violet-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-violet-500 transition-colors disabled:opacity-70 disabled:cursor-not-allowed"
-                        >
-                            {loading ? (
-                                <>
-                                    <Loader2 className="animate-spin -ml-1 mr-2 h-4 w-4" />
-                                    Creating account...
-                                </>
-                            ) : (
-                                'Create Account'
-                            )}
-                        </button>
-                    </form>
-
-                    <div className="mt-8 relative">
-                        <div className="absolute inset-0 flex items-center">
-                            <div className="w-full border-t border-gray-200"></div>
-                        </div>
-                        <div className="relative flex justify-center text-sm">
-                            <span className="px-2 bg-white text-gray-500">Or continue with</span>
-                        </div>
-                    </div>
-
-                    <div className="mt-8 grid grid-cols-1 gap-3">
-                        <button
-                            onClick={handleGoogleLogin}
-                            className="w-full flex items-center justify-center px-4 py-3 border border-gray-200 rounded-xl shadow-sm bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
-                        >
-                            <svg className="h-5 w-5 mr-3" aria-hidden="true" viewBox="0 0 48 48">
-                                <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
-                                <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
-                                <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
-                                <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
-                                <path fill="none" d="M0 0h48v48H0z"/>
-                            </svg>
-                            Google
-                        </button>
-                    </div>
+                            <button
+                                type="button"
+                                onClick={() => { setStep('signup'); setError(null); setShowGmailToast(false); }}
+                                className="w-full text-center text-sm text-gray-500 hover:text-gray-900 font-medium cursor-pointer"
+                            >
+                                Cancel
+                            </button>
+                        </form>
+                    )}              </div>
                 </div>
             </div>
             

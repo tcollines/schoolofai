@@ -15,11 +15,16 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onNavigateToSignup, onBa
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
-    const [step, setStep] = useState<'login' | 'mfa' | 'forgot-email' | 'forgot-code' | 'forgot-newpass'>('login');
+    const [step, setStep] = useState<'login' | 'mfa' | 'forgot-email' | 'forgot-code' | 'forgot-newpass' | 'google-verify'>('login');
     const [mfaCode, setMfaCode] = useState('');
     const [correctCode, setCorrectCode] = useState('');
     const [showGmailToast, setShowGmailToast] = useState(false);
     const [showGoogleChooser, setShowGoogleChooser] = useState(false);
+    
+    // Google verification states
+    const [pendingGoogleEmail, setPendingGoogleEmail] = useState('');
+    const [pendingGoogleName, setPendingGoogleName] = useState('');
+    const [googleVerifyInput, setGoogleVerifyInput] = useState('');
 
     // Forgot password state
     const [forgotEmail, setForgotEmail] = useState('');
@@ -197,21 +202,46 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onNavigateToSignup, onBa
     };
 
     const handleSelectGoogleAccount = async (selectedEmail: string, name: string) => {
-        try {
-            setLoading(true);
-            await supabase.auth.signUp({
-                email: selectedEmail,
-                options: {
-                    data: {
-                        full_name: name
+        setPendingGoogleEmail(selectedEmail);
+        setPendingGoogleName(name);
+        
+        // Generate random 6-digit verification code
+        const code = Math.floor(100000 + Math.random() * 900000).toString();
+        setCorrectCode(code);
+        setGoogleVerifyInput('');
+        
+        // Switch step to google-verify and show Gmail notification toast
+        setStep('google-verify');
+        setShowGmailToast(true);
+        setShowGoogleChooser(false);
+    };
+
+    const handleGoogleVerifySubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setLoading(true);
+        setError(null);
+
+        if (googleVerifyInput === correctCode) {
+            try {
+                await supabase.auth.signUp({
+                    email: pendingGoogleEmail,
+                    options: {
+                        data: {
+                            full_name: pendingGoogleName
+                        }
                     }
-                }
-            });
-            setShowGoogleChooser(false);
-            onLogin();
-        } catch (err: any) {
-            setError(err.message);
-        } finally {
+                });
+                
+                setShowGmailToast(false);
+                setStep('login');
+                onLogin();
+            } catch (err: any) {
+                setError(err.message);
+            } finally {
+                setLoading(false);
+            }
+        } else {
+            setError('Invalid Google verification code. Please check the code sent to your Gmail inbox.');
             setLoading(false);
         }
     };
@@ -230,7 +260,10 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onNavigateToSignup, onBa
                         </div>
                         <p className="font-semibold text-gray-200">From: auth-service@gmail.com</p>
                         <p className="text-gray-400 mt-1 text-left">
-                            Your WSAI 2FA verification code is: <span className="font-mono font-bold text-sm text-yellow-400 bg-black/45 px-2 py-0.5 rounded">{correctCode}</span>
+                            {step === 'google-verify' 
+                                ? 'Your WSAI Google Login verification code is: ' 
+                                : 'Your WSAI 2FA verification code is: '}
+                            <span className="font-mono font-bold text-sm text-yellow-400 bg-black/45 px-2 py-0.5 rounded">{correctCode}</span>
                         </p>
                     </div>
                 </div>
@@ -279,7 +312,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onNavigateToSignup, onBa
                         </div>
                     )}
 
-                    {step === 'login' ? (
+                    {step === 'login' && (
                         <form onSubmit={handleEmailLogin} className="space-y-6">
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
@@ -333,7 +366,9 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onNavigateToSignup, onBa
                                 )}
                             </button>
                         </form>
-                    ) : (
+                    )}
+
+                    {step === 'mfa' && (
                         <form onSubmit={handleMfaVerify} className="space-y-6">
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -382,9 +417,79 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onNavigateToSignup, onBa
                                     setShowGmailToast(true);
                                     alert('A new verification code has been sent to your Gmail.');
                                 }}
-                                className="w-full text-center text-xs text-violet-600 hover:text-violet-750 font-bold cursor-pointer"
+                                className="w-full text-center text-xs text-violet-600 hover:text-violet-755 font-bold cursor-pointer"
                             >
                                 Resend Verification Code
+                            </button>
+                        </form>
+                    )}
+
+                    {step === 'google-verify' && (
+                        <form onSubmit={handleGoogleVerifySubmit} className="space-y-6">
+                            <div className="text-center mb-2">
+                                <div className="mx-auto w-14 h-14 bg-violet-55 text-violet-600 rounded-2xl flex items-center justify-center mb-4">
+                                    <Mail size={24} />
+                                </div>
+                                <h2 className="text-2xl font-bold text-gray-900 mb-1">Gmail Verification</h2>
+                                <p className="text-xs text-gray-500">
+                                    A 6-digit verification code has been sent to <span className="font-semibold text-gray-800">{pendingGoogleEmail}</span>
+                                </p>
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    Enter 6-digit Verification Code
+                                </label>
+                                <div className="relative">
+                                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
+                                        <Lock className="w-5 h-5" />
+                                    </div>
+                                    <input
+                                        type="text"
+                                        required
+                                        maxLength={6}
+                                        pattern="[0-9]{6}"
+                                        value={googleVerifyInput}
+                                        onChange={(e) => setGoogleVerifyInput(e.target.value.replace(/\D/g, ''))}
+                                        className="block w-full pl-10 pr-3 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-violet-500 focus:border-transparent outline-none tracking-widest font-mono text-lg text-center"
+                                        placeholder="000000"
+                                    />
+                                </div>
+                            </div>
+
+                            <button
+                                type="submit"
+                                disabled={loading}
+                                className="w-full flex justify-center py-3 px-4 border border-transparent rounded-xl shadow-sm text-sm font-medium text-white bg-violet-600 hover:bg-violet-750 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-violet-500 transition-colors disabled:opacity-70 disabled:cursor-not-allowed cursor-pointer"
+                            >
+                                {loading ? (
+                                    <>
+                                        <Loader2 className="animate-spin -ml-1 mr-2 h-4 w-4" />
+                                        Verifying...
+                                    </>
+                                ) : (
+                                    'Verify & Log In'
+                                )}
+                            </button>
+
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    const code = Math.floor(100000 + Math.random() * 900000).toString();
+                                    setCorrectCode(code);
+                                    setShowGmailToast(true);
+                                }}
+                                className="w-full text-center text-xs text-violet-600 hover:text-violet-755 font-bold cursor-pointer"
+                            >
+                                Resend Verification Code
+                            </button>
+
+                            <button
+                                type="button"
+                                onClick={() => { setStep('login'); setError(null); setShowGmailToast(false); }}
+                                className="w-full text-center text-sm text-gray-500 hover:text-gray-900 font-medium cursor-pointer"
+                            >
+                                Cancel
                             </button>
                         </form>
                     )}
