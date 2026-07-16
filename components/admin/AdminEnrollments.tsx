@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useAdmin } from '../../src/hooks/useAdmin';
 import { UserRole } from '../../types';
-import { Trash2, Check, Edit2, X, ChevronDown, Search } from 'lucide-react';
+import { Trash2, Check, Edit2, X, ChevronDown, Search, Copy } from 'lucide-react';
 import { supabase } from '../../src/lib/supabase';
 
 const AdminEnrollments: React.FC = () => {
@@ -14,6 +14,7 @@ const AdminEnrollments: React.FC = () => {
     const [instPassword, setInstPassword] = useState('instructor');
     const [instBio, setInstBio] = useState('');
     const [instPasscode, setInstPasscode] = useState('');
+    const [copied, setCopied] = useState(false);
 
     const handleApproveUpgrade = async (u: any) => {
         try {
@@ -471,6 +472,17 @@ const AdminEnrollments: React.FC = () => {
                                 {instPasscode && (
                                     <div className="mt-1 flex items-center justify-between bg-white dark:bg-slate-900 px-3 py-1.5 rounded-xl border border-gray-150 dark:border-slate-800/85 font-mono text-xs font-bold text-violet-600 dark:text-violet-400 tracking-wider">
                                         <span>Key: {instPasscode}</span>
+                                        <button
+                                            onClick={() => {
+                                                navigator.clipboard.writeText(instPasscode);
+                                                setCopied(true);
+                                                setTimeout(() => setCopied(false), 2000);
+                                            }}
+                                            className="text-gray-400 hover:text-violet-650 dark:hover:text-violet-450 transition-colors p-1 hover:bg-gray-50 dark:hover:bg-slate-800 rounded-lg cursor-pointer flex items-center justify-center"
+                                            title="Copy Key"
+                                        >
+                                            {copied ? <Check size={12} className="text-green-500" /> : <Copy size={12} />}
+                                        </button>
                                     </div>
                                 )}
                             </div>

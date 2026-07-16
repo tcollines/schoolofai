@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../../src/lib/supabase';
-import { Plus, Edit2, Trash2, Mail, FileText, UserCheck, X, Loader } from 'lucide-react';
+import { Plus, Edit2, Trash2, Mail, FileText, UserCheck, X, Loader, Copy, Check } from 'lucide-react';
 
 interface Instructor {
     id: string;
@@ -16,6 +16,13 @@ interface Instructor {
 const AdminInstructors: React.FC = () => {
     const [instructors, setInstructors] = useState<Instructor[]>([]);
     const [loading, setLoading] = useState(true);
+    const [copiedId, setCopiedId] = useState<string | null>(null);
+
+    const handleCopy = (id: string, text: string) => {
+        navigator.clipboard.writeText(text);
+        setCopiedId(id);
+        setTimeout(() => setCopiedId(null), 2000);
+    };
     
     // Modal states
     const [isOpen, setIsOpen] = useState(false);
@@ -243,10 +250,17 @@ const AdminInstructors: React.FC = () => {
                                         </span>
                                     </div>
                                     {inst.passcode && (
-                                        <div className="mt-1 flex items-center justify-between bg-white dark:bg-slate-900 px-3 py-1.5 rounded-xl border border-gray-150 dark:border-slate-800/80 font-mono text-xs font-bold text-violet-600 dark:text-violet-400 tracking-wider">
-                                            <span>Key: {inst.passcode}</span>
-                                        </div>
-                                    )}
+                                         <div className="mt-1 flex items-center justify-between bg-white dark:bg-slate-900 px-3 py-1.5 rounded-xl border border-gray-150 dark:border-slate-800/80 font-mono text-xs font-bold text-violet-600 dark:text-violet-400 tracking-wider">
+                                             <span>Key: {inst.passcode}</span>
+                                             <button
+                                                 onClick={() => handleCopy(inst.id, inst.passcode || '')}
+                                                 className="text-gray-400 hover:text-violet-650 dark:hover:text-violet-450 transition-colors p-1 hover:bg-gray-50 dark:hover:bg-slate-800 rounded-lg cursor-pointer flex items-center justify-center"
+                                                 title="Copy Key"
+                                             >
+                                                 {copiedId === inst.id ? <Check size={12} className="text-green-500" /> : <Copy size={12} />}
+                                             </button>
+                                         </div>
+                                     )}
                                 </div>
                             </div>
 
