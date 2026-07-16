@@ -33,9 +33,34 @@ const AdminInstructors: React.FC = () => {
     const fetchInstructors = async () => {
         setLoading(true);
         try {
-            const { data, error } = await supabase.from('instructors').select('*');
-            if (error) throw error;
-            setInstructors(data || []);
+            const { data: instData, error: instError } = await supabase.from('instructors').select('*');
+            if (instError) throw instError;
+
+            const { data: profilesData, error: profilesError } = await supabase.from('profiles').select('email, role');
+            if (profilesError) throw profilesError;
+
+            const adminEmails = new Set(
+                (profilesData || [])
+                    .filter(p => p.role === 'ADMIN')
+                    .map(p => p.email?.trim().toLowerCase())
+            );
+
+            const validInstructors = (instData || []).filter(inst => {
+                const isEmailValid = adminEmails.has(inst.email?.trim().toLowerCase());
+                if (!isEmailValid) {
+                    supabase
+                        .from('instructors')
+                        .delete()
+                        .eq('id', inst.id)
+                        .then(({ error }) => {
+                            if (error) console.error('Failed to cleanup orphaned instructor:', error);
+                        });
+                    return false;
+                }
+                return true;
+            });
+
+            setInstructors(validInstructors);
         } catch (err) {
             console.error('Error fetching instructors:', err);
         } finally {
