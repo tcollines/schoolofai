@@ -21,13 +21,31 @@ import { useCourses } from './src/hooks/useCourses';
 import { useProfile } from './src/hooks/useProfile';
 import { UserRole } from './types';
 
+const ProtectedRoute = ({ isAuthenticated, children }: { isAuthenticated: boolean, children: React.ReactNode }) => {
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace />;
+  }
+  return <>{children}</>;
+};
+
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [session, setSession] = useState<any>(null);
   const [authLoading, setAuthLoading] = useState(true);
 
+  // Global theme initializer — ensures stored theme is always applied on mount
+  useEffect(() => {
+    const storedTheme = localStorage.getItem('theme');
+    if (storedTheme === 'dark') {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  }, []);
+
   const { courses, loading: coursesLoading } = useCourses(isAuthenticated ? session?.user?.id : undefined);
   const { profile: userProfile } = useProfile(isAuthenticated ? session : null);
+
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -42,19 +60,34 @@ function App() {
       setSession(session);
       setIsAuthenticated(!!session);
       
+      if (session) {
+          localStorage.setItem('logged_in_email', session.user?.email || 'student@test.com');
+      } else {
+          localStorage.removeItem('logged_in_email');
+          // Clear login fired flag from sessionStorage on logout
+          const keysToRemove: string[] = [];
+          for (let i = 0; i < sessionStorage.length; i++) {
+              const key = sessionStorage.key(i);
+              if (key && key.startsWith('login_notif_fired_')) {
+                  keysToRemove.push(key);
+              }
+          }
+          keysToRemove.forEach(k => sessionStorage.removeItem(k));
+      }
+      
       if (event === 'SIGNED_IN' && session) {
-          // Trigger login notification
           const emailAddress = session.user?.email || 'student@test.com';
-          const storedNotifs = localStorage.getItem('portal-notifications');
-          const notifList = storedNotifs ? JSON.parse(storedNotifs) : [];
+          const notifKey = `portal-notifications-${emailAddress}`;
           
-          // Check if we already registered a login notification for this exact timestamp (within 3 seconds) to avoid duplicate fires on redirects
-          const isDuplicate = notifList.some((n: any) => 
-              n.title === "New Login Detected" && 
-              (Date.now() - new Date(n.timestamp).getTime()) < 3000
-          );
+          // Check if login notification already fired in this tab session to prevent refresh duplicates
+          const hasFiredForSession = sessionStorage.getItem(`login_notif_fired_${emailAddress}`);
           
-          if (!isDuplicate) {
+          if (!hasFiredForSession) {
+              sessionStorage.setItem(`login_notif_fired_${emailAddress}`, 'true');
+              
+              const storedNotifs = localStorage.getItem(notifKey);
+              const notifList = storedNotifs ? JSON.parse(storedNotifs) : [];
+              
               const now = new Date();
               const dateStr = now.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
               const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
@@ -67,7 +100,7 @@ function App() {
                   read: false,
                   type: 'system'
               };
-              localStorage.setItem('portal-notifications', JSON.stringify([newNotif, ...notifList]));
+              localStorage.setItem(notifKey, JSON.stringify([newNotif, ...notifList]));
               window.dispatchEvent(new Event('notifications-update'));
           }
       }
@@ -99,6 +132,7 @@ function App() {
                     onLoginClick={() => window.location.href = '/login'}
                     onSignupClick={() => window.location.href = '/signup'}
                     onAdminConsoleClick={() => window.location.href = '/admin'}
+                    onInstructorConsoleClick={() => window.location.href = '/instructor'}
                 />
             ) : <Navigate to="/dashboard" replace />
         } />
@@ -123,22 +157,34 @@ function App() {
             ) : <Navigate to="/dashboard" replace />
         } />
         
-        {/* Admin Route */}
+        {/* Admin Route - uses its own authentication via AdminLoginPage */}
         <Route path="/admin/*" element={
              <AdminLayout onExit={() => window.location.href = '/'} />
+        } />
+        
+        {/* Instructor Route - uses its own authentication via AdminLoginPage in instructor mode */}
+        <Route path="/instructor/*" element={
+             <AdminLayout onExit={() => window.location.href = '/dashboard'} isInstructor={true} />
         } />
 
         {/* Student Routes wrapper */}
         <Route element={<StudentLayout session={session} isAuthenticated={isAuthenticated} isAdminMode={false} courses={courses} />}>
-            <Route path="/dashboard" element={<DashboardHome courses={courses} userId={session?.user?.id || 'guest'} />} />
+            <Route path="/dashboard" element={<ProtectedRoute isAuthenticated={isAuthenticated}><DashboardHome courses={courses} userId={session?.user?.id || 'guest'} /></ProtectedRoute>} />
             
             <Route path="/discover" element={
                 <DiscoverCourses 
                   courses={courses} 
                   isAuthenticated={isAuthenticated} 
+                  userRole={userProfile?.role}
                   onLoginClick={() => window.location.href = '/login'} 
                   onEnroll={async (courseId) => {
                     if (!session?.user?.id) return;
+                    // Block enrollment for basic users on premium courses
+                    const course = courses.find(c => c.id === courseId);
+                    if (course?.accessTier === 'PAID' && userProfile?.role !== UserRole.PRO && userProfile?.role !== UserRole.SPONSORED && userProfile?.role !== UserRole.ADMIN) {
+                      window.location.href = '/plans';
+                      return;
+                    }
                     await supabase.from('enrollments').insert({
                       user_id: session.user.id,
                       course_id: courseId,
@@ -158,6 +204,12 @@ function App() {
                   onLoginClick={() => window.location.href = '/login'} 
                   onEnroll={async (courseId) => {
                     if (!session?.user?.id) return;
+                    // Block enrollment for basic users on premium courses
+                    const course = courses.find(c => c.id === courseId);
+                    if (course?.accessTier === 'PAID' && userProfile?.role !== UserRole.PRO && userProfile?.role !== UserRole.SPONSORED && userProfile?.role !== UserRole.ADMIN) {
+                      window.location.href = '/plans';
+                      return;
+                    }
                     await supabase.from('enrollments').insert({
                       user_id: session.user.id,
                       course_id: courseId,
@@ -177,14 +229,14 @@ function App() {
                 />
             } />
             
-            <Route path="/courses" element={<MyCourses courses={isAuthenticated ? courses : []} />} />
-            <Route path="/discussions" element={<DiscussionsPage />} />
-            <Route path="/career" element={<Certificates courses={isAuthenticated ? courses : []} />} />
-            <Route path="/profile" element={<Profile user={userProfile || ({} as any)} onUpgradeClick={() => window.location.href = '/plans'} />} />
-            <Route path="/plans" element={<PlansPage user={userProfile} currentPlan={(userProfile?.role === UserRole.PRO || userProfile?.role === UserRole.ADMIN) ? userProfile.role : UserRole.INDIVIDUAL} onUpgrade={() => {}} onBack={() => window.location.href = '/profile'} />} />
-            <Route path="/settings" element={<SettingsPage />} />
-            <Route path="/notifications" element={<NotificationsPage />} />
-            <Route path="/events" element={<EventsPage courses={courses} />} />
+            <Route path="/courses" element={<ProtectedRoute isAuthenticated={isAuthenticated}><MyCourses courses={isAuthenticated ? courses : []} /></ProtectedRoute>} />
+            <Route path="/discussions" element={<ProtectedRoute isAuthenticated={isAuthenticated}><DiscussionsPage /></ProtectedRoute>} />
+            <Route path="/career" element={<ProtectedRoute isAuthenticated={isAuthenticated}><Certificates courses={isAuthenticated ? courses : []} /></ProtectedRoute>} />
+            <Route path="/profile" element={<ProtectedRoute isAuthenticated={isAuthenticated}><Profile user={userProfile || ({} as any)} onUpgradeClick={() => window.location.href = '/plans'} /></ProtectedRoute>} />
+            <Route path="/plans" element={<ProtectedRoute isAuthenticated={isAuthenticated}><PlansPage user={userProfile} currentPlan={userProfile?.role || UserRole.INDIVIDUAL} onUpgrade={() => {}} onBack={() => window.location.href = '/profile'} /></ProtectedRoute>} />
+            <Route path="/settings" element={<ProtectedRoute isAuthenticated={isAuthenticated}><SettingsPage /></ProtectedRoute>} />
+            <Route path="/notifications" element={<ProtectedRoute isAuthenticated={isAuthenticated}><NotificationsPage /></ProtectedRoute>} />
+            <Route path="/events" element={<ProtectedRoute isAuthenticated={isAuthenticated}><EventsPage courses={courses} /></ProtectedRoute>} />
             
             {/* Default fallback route inside Layout */}
             <Route path="*" element={<Navigate to={isAuthenticated ? "/dashboard" : "/"} replace />} />

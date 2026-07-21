@@ -26,9 +26,10 @@ export const useAdmin = (isAdmin: boolean) => {
                 name: p.full_name || 'Student',
                 email: p.email || '',
                 role: (p.role as UserRole) || UserRole.INDIVIDUAL,
-                avatar: p.avatar_url || 'https://via.placeholder.com/150',
+                avatar: p.avatar_url || '',
                 walletBalance: Number(p.wallet_balance) || 0,
                 skills: [],
+                companyName: p.company_name,
                 pending_role: p.pending_role,
                 pending_txid: p.pending_txid,
                 pending_screenshot: p.pending_screenshot,
@@ -286,5 +287,24 @@ export const useAdmin = (isAdmin: boolean) => {
         }
     };
 
-    return { users, courses, enrollments, loading, error, addCourse, updateCourse, deleteCourse, updateCourseQuiz, updateUserRole, deleteUser, verifyAndIssueCertificate, refresh: fetchData };
+    const releaseExamMarks = async (userId: string, courseId: string) => {
+        try {
+            const { error } = await supabase
+                .from('enrollments')
+                .update({ 
+                    exam_marks_released: true
+                })
+                .eq('user_id', userId)
+                .eq('course_id', courseId);
+
+            if (error) throw error;
+            await fetchData(true); // Refresh silently
+            window.dispatchEvent(new Event('profile-update'));
+        } catch (err: any) {
+            console.error('Error releasing exam marks:', err);
+            throw err;
+        }
+    };
+
+    return { users, courses, enrollments, loading, error, addCourse, updateCourse, deleteCourse, updateCourseQuiz, updateUserRole, deleteUser, verifyAndIssueCertificate, releaseExamMarks, refresh: fetchData };
 };

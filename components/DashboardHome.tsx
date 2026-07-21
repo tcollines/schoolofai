@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { TrendingUp, CheckCircle, PlayCircle, BookOpen, MessageSquare, Award } from 'lucide-react';
+import { TrendingUp, CheckCircle, PlayCircle, BookOpen, MessageSquare, Award, Shield } from 'lucide-react';
 import { Course, CourseStatus } from '../types';
 import { useTranslation } from './translations';
 import { supabase } from '../src/lib/supabase';
@@ -57,10 +57,14 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({ courses, userId }) => {
     }, [userId]);
 
     useEffect(() => {
+        if (!userId || userId === 'guest') return;
+        const userEmail = localStorage.getItem('mock_logged_in_email') || userId;
         const loadQuizGrades = () => {
-            const stored = localStorage.getItem('quiz-grades');
+            const stored = localStorage.getItem(`quiz-grades-${userEmail}`);
             if (stored) {
                 setQuizGrades(JSON.parse(stored));
+            } else {
+                setQuizGrades([]);
             }
         };
         loadQuizGrades();
@@ -70,17 +74,21 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({ courses, userId }) => {
             window.removeEventListener('storage', loadQuizGrades);
             window.removeEventListener('quiz-grades-update', loadQuizGrades);
         };
-    }, []);
+    }, [userId]);
 
     useEffect(() => {
-        const recentId = localStorage.getItem('recent-tapped-course-id');
+        if (!userId || userId === 'guest') return;
+        const userEmail = localStorage.getItem('mock_logged_in_email') || userId;
+        const recentId = localStorage.getItem(`recent-tapped-course-id-${userEmail}`);
         if (recentId) {
             const course = courses.find(c => c.id === recentId);
             if (course) {
                 setRecentCourse(course);
             }
+        } else {
+            setRecentCourse(null);
         }
-    }, [courses]);
+    }, [courses, userId]);
 
     // Dynamic stats based on enrolled courses
     const chartData = [
@@ -104,7 +112,10 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({ courses, userId }) => {
 
 
 
-    const targetCourse = recentCourse || (enrolledCourses.length > 0 ? enrolledCourses[0] : null);
+    // Only show recentCourse in "Your Active Course" if user is actually enrolled in it
+    const targetCourse = (recentCourse && recentCourse.status !== CourseStatus.NOT_STARTED) 
+        ? recentCourse 
+        : (enrolledCourses.length > 0 ? enrolledCourses[0] : null);
     const allLessons = targetCourse?.sections?.flatMap(s => s.lessons) || [];
     const nextLessonIndex = targetCourse ? Math.min(targetCourse.lessonsCompleted || 0, Math.max(0, allLessons.length - 1)) : 0;
     const nextLesson = allLessons[nextLessonIndex];
@@ -140,7 +151,14 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({ courses, userId }) => {
                     ) : (
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                             {courses.filter(c => c.status === CourseStatus.NOT_STARTED && !c.isDraft).slice(0, 3).map((course) => (
-                                <div key={course.id} className="bg-white dark:bg-slate-900 p-4 rounded-3xl shadow-sm border border-gray-100 dark:border-slate-800 hover:shadow-md transition-shadow">
+                                <div key={course.id} className={`bg-white dark:bg-slate-900 p-4 rounded-3xl border border-gray-100 dark:border-slate-800 shadow-sm hover:shadow-xl hover:transform hover:-translate-y-1 hover:border-welile-purple dark:hover:border-purple-600 transition-all duration-300 ${course.accessTier === 'PAID' && userRole === 'INDIVIDUAL' ? 'relative' : ''}`}>
+                                    {course.accessTier === 'PAID' && userRole === 'INDIVIDUAL' && (
+                                        <div className="absolute top-3 right-3 z-10">
+                                            <span className="px-2 py-0.5 bg-gradient-to-r from-yellow-400 to-amber-500 text-white rounded-full text-[10px] font-bold shadow-sm flex items-center gap-1">
+                                                <Shield size={9} /> Premium
+                                            </span>
+                                        </div>
+                                    )}
                                     <div className="flex gap-3 mb-3">
                                         <div className="w-10 h-10 rounded-full bg-orange-100 dark:bg-orange-950/20 flex items-center justify-center text-orange-600 dark:text-orange-400 font-bold text-xs shrink-0">
                                             {course.category.substring(0, 2).toUpperCase()}
@@ -279,7 +297,8 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({ courses, userId }) => {
                     <div
                         onClick={() => {
                             if (targetCourse) {
-                                localStorage.setItem('recent-tapped-course-id', targetCourse.id);
+                                const scopeKey = localStorage.getItem('mock_logged_in_email') || userId;
+                                localStorage.setItem(`recent-tapped-course-id-${scopeKey}`, targetCourse.id);
                                 window.location.href = `/courses`;
                             } else {
                                 window.location.href = `/discover`;

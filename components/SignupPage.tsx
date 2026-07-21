@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { supabase } from '../src/lib/supabase';
 import { ArrowLeft, Mail, Lock, User, Loader2, X, Eye, EyeOff, CheckCircle } from 'lucide-react';
 
@@ -111,8 +112,8 @@ const SignupPage: React.FC<SignupPageProps> = ({ onSignup, onNavigateToLogin, on
             <div className="hidden lg:block w-1/2 bg-gray-900 relative overflow-hidden">
                 <div className="absolute inset-0 bg-gradient-to-br from-violet-600/30 to-blue-600/30 mix-blend-overlay"></div>
                 <img
-                    src="https://images.unsplash.com/photo-1523240795612-9a054b0db644?q=80&w=2070&auto=format&fit=crop"
-                    alt="Student studying with technology"
+                    src="/classroom_students.png"
+                    alt="Students collaborating in classroom"
                     className="w-full h-full object-cover opacity-50"
                 />
                 <div className="absolute bottom-20 left-12 text-white p-8">
@@ -122,16 +123,16 @@ const SignupPage: React.FC<SignupPageProps> = ({ onSignup, onNavigateToLogin, on
             </div>
 
             {/* Right Side - Form */}
-            <div className="w-full lg:w-1/2 flex flex-col justify-center px-8 sm:px-16 lg:px-24 relative">
-                <button
-                    onClick={onBack}
-                    className="absolute top-8 left-8 text-gray-500 hover:text-gray-900 flex items-center"
+            <div className="w-full lg:w-1/2 flex flex-col justify-center px-4 sm:px-8 lg:px-24 relative min-h-screen lg:min-h-0">
+                <Link
+                    to="/"
+                    className="absolute top-8 left-4 sm:left-8 text-gray-500 hover:text-gray-900 flex items-center z-10"
                 >
                     <ArrowLeft className="w-5 h-5 mr-2" />
                     Back
-                </button>
+                </Link>
 
-                <div className="max-w-md w-full mx-auto">
+                <div className="max-w-md w-full mx-auto lg:bg-transparent lg:shadow-none lg:border-0 lg:p-0 lg:rounded-none bg-white shadow-xl border border-gray-100 rounded-3xl p-6 sm:p-8 mt-20 lg:mt-0">
                     <div className="mb-10">
                         <h2 className="text-3xl font-bold text-gray-900 mb-2">Create an account</h2>
                         <p className="text-gray-500">
@@ -285,23 +286,12 @@ const SignupPage: React.FC<SignupPageProps> = ({ onSignup, onNavigateToLogin, on
                             onClick={handleGoogleLogin}
                             className="w-full flex items-center justify-center px-4 py-3 border border-gray-200 rounded-xl shadow-sm bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
                         >
-                            <svg className="h-5 w-5 mr-3" aria-hidden="true" viewBox="0 0 24 24">
-                                <path
-                                    d="M12.0003 20.45c4.65 0 8.04-3.19 8.04-7.94 0-.74-.06-1.46-.19-2.22h-7.85v4.23h4.48c-.2 1.05-.75 2.04-1.66 2.68v2.21h2.69c1.58-1.46 2.49-3.61 2.49-6.88 0-.66-.07-1.3-.19-1.92H12v3.66h5.04c-.47 2.37-2.58 4.16-5.04 4.16-2.91 0-5.27-2.36-5.27-5.27s2.36-5.27 5.27-5.27c1.38 0 2.64.49 3.63 1.3l2.72-2.72C16.69 2.19 14.47 1.25 12.0003 1.25 7.0503 1.25 3.0003 5.3 3.0003 10.25s4.05 9 9.0003 9z"
-                                    fill="#4285F4"
-                                />
-                                <path
-                                    d="M3.0003 10.25c0-1.4.37-2.71 1.02-3.86l2.84 2.22c-.27.52-.42 1.1-.42 1.64 0 .54.15 1.12.42 1.64l-2.84 2.22c-.65-1.15-1.02-2.46-1.02-3.86z"
-                                    fill="#FBBC05"
-                                />
-                                <path
-                                    d="M12.0003 3.75c1.38 0 2.64.49 3.63 1.3l2.72-2.72C16.69 0.69 14.47 -0.25 12.0003 -0.25 7.6003 -0.25 3.8603 2.5 1.9403 6.39l2.84 2.22c.67-2.72 3.12-4.86 6.22-4.86z"
-                                    fill="#EA4335"
-                                />
-                                <path
-                                    d="M12.0003 19.25c2.46 0 4.57-1.79 5.04-4.16h-5.04v-3.66h8.85c.13.76.19 1.48.19 2.22 0 4.75-3.39 7.94-8.04 7.94-2.28 0-4.39-0.89-5.96-2.34l-2.69-2.21c1.57 1.45 3.68 2.34 5.96 2.34z"
-                                    fill="#34A853"
-                                />
+                            <svg className="h-5 w-5 mr-3" aria-hidden="true" viewBox="0 0 48 48">
+                                <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
+                                <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
+                                <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
+                                <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
+                                <path fill="none" d="M0 0h48v48H0z"/>
                             </svg>
                             Google
                         </button>
@@ -326,14 +316,24 @@ interface GoogleChooserModalProps {
 
 const GoogleChooserModal: React.FC<GoogleChooserModalProps> = ({ isOpen, onClose, onSelect }) => {
     const [customEmail, setCustomEmail] = useState('');
+    const [accounts, setAccounts] = useState<{email: string; name: string; avatar: string}[]>([]);
+    
+    useEffect(() => {
+        if (isOpen) {
+            // Load accounts from the actual database
+            supabase.from('profiles').select('*').then(({ data }: any) => {
+                if (data && Array.isArray(data)) {
+                    setAccounts(data.map((p: any) => ({
+                        email: p.email,
+                        name: p.full_name || p.email.split('@')[0],
+                        avatar: p.avatar_url || `https://api.dicebear.com/7.x/initials/svg?seed=${p.full_name || p.email}`
+                    })));
+                }
+            });
+        }
+    }, [isOpen]);
     
     if (!isOpen) return null;
-    
-    const defaultAccounts = [
-        { email: 'chemayekabraham289@gmail.com', name: 'Abraham Chemayek', avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&q=80&w=150' },
-        { email: 'mr.collins@schoolofai.edu', name: 'Mr. Collins', avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&q=80&w=150' },
-        { email: 'student@test.com', name: 'Test Student', avatar: 'https://i.pravatar.cc/150?u=a042581f4e29026704d' }
-    ];
 
     const handleSubmitCustom = (e: React.FormEvent) => {
         e.preventDefault();
@@ -365,7 +365,7 @@ const GoogleChooserModal: React.FC<GoogleChooserModalProps> = ({ isOpen, onClose
                 </div>
 
                 <div className="space-y-2.5 max-h-60 overflow-y-auto mb-4">
-                    {defaultAccounts.map((acc) => (
+                    {accounts.map((acc) => (
                         <button
                             key={acc.email}
                             onClick={() => onSelect(acc.email, acc.name)}

@@ -37,23 +37,27 @@ const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, isOpen, onCl
 
       {/* Sidebar Container */}
       <div className={`
-        fixed top-0 bottom-0 left-0 z-50 w-64 bg-[#111111] text-white flex flex-col h-full overflow-y-auto 
-        transition-transform duration-300 ease-in-out shadow-2xl lg:shadow-none
+        fixed top-0 bottom-0 left-0 z-50 w-64 
+        bg-gray-50 dark:bg-[#111111] 
+        text-gray-800 dark:text-white 
+        border-r border-gray-200 dark:border-transparent
+        flex flex-col h-full overflow-y-auto 
+        transition-all duration-300 ease-in-out shadow-2xl lg:shadow-none
         lg:translate-x-0 
         ${isOpen ? 'translate-x-0' : '-translate-x-full'}
       `}>
         <div className="p-8 flex items-center justify-between">
           <div className="flex items-center gap-3">
             {/* Logo Placeholder */}
-            <div className="w-8 h-8 bg-white rounded-full flex items-center justify-center">
-              <div className="w-4 h-4 bg-black rounded-full"></div>
+            <div className="w-8 h-8 bg-gray-900 dark:bg-white rounded-full flex items-center justify-center">
+              <div className="w-4 h-4 bg-white dark:bg-black rounded-full"></div>
             </div>
-            <span className="text-xl font-bold tracking-tight">Welile<span className="text-welile-purple">School</span></span>
+            <span className="text-xl font-bold tracking-tight text-gray-900 dark:text-white">Welile<span className="text-welile-purple">School</span></span>
           </div>
           {/* Close button for mobile */}
           <button
             onClick={onClose}
-            className="lg:hidden text-gray-400 hover:text-white"
+            className="lg:hidden text-gray-400 hover:text-gray-900 dark:hover:text-white"
           >
             <X size={20} />
           </button>
@@ -66,7 +70,7 @@ const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, isOpen, onCl
               onClick={() => setActiveTab(item.id)}
               className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 text-sm font-medium text-left ${activeTab === item.id
                 ? 'bg-welile-purple text-white shadow-lg shadow-purple-900/20'
-                : 'text-gray-400 hover:bg-gray-800 hover:text-white'
+                : 'text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white'
                 }`}
             >
               <item.icon size={20} />
@@ -76,20 +80,12 @@ const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, isOpen, onCl
         </nav>
 
         <div className="p-4 mt-auto">
-          {/* <div className="bg-gray-900 rounded-2xl p-4 relative overflow-hidden group cursor-pointer hidden md:block">
-            <div className="absolute top-0 right-0 w-16 h-16 bg-welile-lime rounded-full blur-2xl opacity-10 group-hover:opacity-20 transition-opacity"></div>
-            <h4 className="font-semibold text-sm mb-1">{t('mobile_app')}</h4>
-            <p className="text-xs text-gray-400 mb-3">{t('download_app')}</p>
-            <div className="w-8 h-8 bg-welile-lime rounded-full flex items-center justify-center text-black">
-              <LayoutDashboard size={14} />
-            </div>
-          </div> */}
           <button 
             onClick={async () => {
               await supabase.auth.signOut();
               window.location.href = '/';
             }}
-            className="flex items-center gap-3 text-gray-400 hover:text-white px-4 py-4 w-full mt-2 text-sm"
+            className="flex items-center gap-3 text-gray-400 hover:text-gray-900 dark:hover:text-white px-4 py-4 w-full mt-2 text-sm"
           >
             <LogOut size={18} />
             {t('sign_out')}

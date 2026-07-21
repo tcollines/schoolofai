@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import { Link } from 'react-router-dom';
 import { supabase } from '../src/lib/supabase';
-import { ArrowLeft, Mail, Lock, Loader2, X } from 'lucide-react';
+import { ArrowLeft, Mail, Lock, Loader2, X, KeyRound, ShieldCheck, Clock, Eye, EyeOff } from 'lucide-react';
 
 interface LoginPageProps {
     onLogin: () => void;
@@ -14,11 +15,139 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onNavigateToSignup, onBa
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
-    const [step, setStep] = useState<'login' | 'mfa'>('login');
+    const [step, setStep] = useState<'login' | 'mfa' | 'forgot-email' | 'forgot-code' | 'forgot-newpass'>('login');
     const [mfaCode, setMfaCode] = useState('');
     const [correctCode, setCorrectCode] = useState('');
     const [showGmailToast, setShowGmailToast] = useState(false);
     const [showGoogleChooser, setShowGoogleChooser] = useState(false);
+
+    // Forgot password state
+    const [forgotEmail, setForgotEmail] = useState('');
+    const [forgotCode, setForgotCode] = useState('');
+    const [forgotResetCode, setForgotResetCode] = useState('');
+    const [forgotCodeExpiry, setForgotCodeExpiry] = useState<number>(0);
+    const [forgotTimeLeft, setForgotTimeLeft] = useState(0);
+    const [newPassword, setNewPassword] = useState('');
+    const [confirmPassword, setConfirmPassword] = useState('');
+    const [showNewPassword, setShowNewPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+    const [passwordChanged, setPasswordChanged] = useState(false);
+    const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+    // Countdown timer for forgot password code
+    useEffect(() => {
+        if (step === 'forgot-code' && forgotCodeExpiry > 0) {
+            timerRef.current = setInterval(() => {
+                const remaining = Math.max(0, Math.floor((forgotCodeExpiry - Date.now()) / 1000));
+                setForgotTimeLeft(remaining);
+                if (remaining <= 0) {
+                    if (timerRef.current) clearInterval(timerRef.current);
+                }
+            }, 1000);
+            return () => { if (timerRef.current) clearInterval(timerRef.current); };
+        }
+    }, [step, forgotCodeExpiry]);
+
+    const handleForgotSendCode = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setLoading(true);
+        setError(null);
+
+        // Check if user exists
+        const { data } = await supabase.from('profiles').select('*');
+        const profiles = (data as any[]) || [];
+        const userExists = profiles.some((p: any) => p.email === forgotEmail.trim().toLowerCase());
+
+        if (!userExists) {
+            setError('No account found with that email address.');
+            setLoading(false);
+            return;
+        }
+
+        // Generate 6-digit code with 3-minute expiry
+        const code = Math.floor(100000 + Math.random() * 900000).toString();
+        setForgotResetCode(code);
+        const expiry = Date.now() + 3 * 60 * 1000; // 3 minutes
+        setForgotCodeExpiry(expiry);
+        setForgotTimeLeft(180);
+        setShowGmailToast(true);
+        setCorrectCode(code);
+        setStep('forgot-code');
+        setLoading(false);
+    };
+
+    const handleForgotVerifyCode = (e: React.FormEvent) => {
+        e.preventDefault();
+        setError(null);
+
+        if (Date.now() > forgotCodeExpiry) {
+            setError('Verification code has expired. Please request a new one.');
+            return;
+        }
+
+        if (forgotCode !== forgotResetCode) {
+            setError('Invalid verification code. Please check the code sent to your email.');
+            return;
+        }
+
+        setShowGmailToast(false);
+        setStep('forgot-newpass');
+    };
+
+    const handleForgotResendCode = () => {
+        const code = Math.floor(100000 + Math.random() * 900000).toString();
+        setForgotResetCode(code);
+        setCorrectCode(code);
+        const expiry = Date.now() + 3 * 60 * 1000;
+        setForgotCodeExpiry(expiry);
+        setForgotTimeLeft(180);
+        setForgotCode('');
+        setError(null);
+        setShowGmailToast(true);
+    };
+
+    const handleSetNewPassword = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setError(null);
+
+        if (newPassword.length < 6) {
+            setError('Password must be at least 6 characters.');
+            return;
+        }
+
+        if (newPassword !== confirmPassword) {
+            setError('Passwords do not match.');
+            return;
+        }
+
+        setLoading(true);
+        // Update password in mock DB (store as a simple hash placeholder)
+        const { data } = await supabase.from('profiles').select('*');
+        const profiles = (data as any[]) || [];
+        const profile = profiles.find((p: any) => p.email === forgotEmail.trim().toLowerCase());
+        if (profile) {
+            await supabase.from('profiles').update({ password: newPassword }).eq('id', profile.id);
+        }
+        setLoading(false);
+        setPasswordChanged(true);
+
+        // After 2 seconds, go back to login
+        setTimeout(() => {
+            setStep('login');
+            setPasswordChanged(false);
+            setForgotEmail('');
+            setForgotCode('');
+            setNewPassword('');
+            setConfirmPassword('');
+            setError(null);
+        }, 2500);
+    };
+
+    const formatTime = (seconds: number) => {
+        const m = Math.floor(seconds / 60);
+        const s = seconds % 60;
+        return `${m}:${s.toString().padStart(2, '0')}`;
+    };
 
     const handleEmailLogin = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -110,8 +239,8 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onNavigateToSignup, onBa
             <div className="hidden lg:block w-1/2 bg-gray-900 relative overflow-hidden">
                 <div className="absolute inset-0 bg-gradient-to-br from-violet-600/30 to-blue-600/30 mix-blend-overlay"></div>
                 <img
-                    src="https://images.unsplash.com/photo-1522202176988-66273c2fd55f?q=80&w=2071&auto=format&fit=crop"
-                    alt="Students learning"
+                    src="/classroom_students.png"
+                    alt="Students collaborating in classroom"
                     className="w-full h-full object-cover opacity-50"
                 />
                 <div className="absolute bottom-20 left-12 text-white p-8">
@@ -121,16 +250,16 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onNavigateToSignup, onBa
             </div>
 
             {/* Right Side - Form */}
-            <div className="w-full lg:w-1/2 flex flex-col justify-center px-8 sm:px-16 lg:px-24 relative">
-                <button
-                    onClick={onBack}
-                    className="absolute top-8 left-8 text-gray-500 hover:text-gray-900 flex items-center"
+            <div className="w-full lg:w-1/2 flex flex-col justify-center px-4 sm:px-8 lg:px-24 relative min-h-screen lg:min-h-0">
+                <Link
+                    to="/"
+                    className="absolute top-8 left-4 sm:left-8 text-gray-500 hover:text-gray-900 flex items-center z-10"
                 >
                     <ArrowLeft className="w-5 h-5 mr-2" />
                     Back
-                </button>
+                </Link>
 
-                <div className="max-w-md w-full mx-auto">
+                <div className="max-w-md w-full mx-auto lg:bg-transparent lg:shadow-none lg:border-0 lg:p-0 lg:rounded-none bg-white shadow-xl border border-gray-100 rounded-3xl p-6 sm:p-8 mt-20 lg:mt-0">
                     <div className="mb-10">
                         <h2 className="text-3xl font-bold text-gray-900 mb-2">Log in to your account</h2>
                         <p className="text-gray-500">
@@ -172,7 +301,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onNavigateToSignup, onBa
                             <div>
                                 <div className="flex justify-between items-center mb-1">
                                     <label className="block text-sm font-medium text-gray-700">Password</label>
-                                    <a href="#" className="text-sm text-gray-500 hover:text-gray-900">Forgot password?</a>
+                                    <button type="button" onClick={() => { setStep('forgot-email'); setError(null); setForgotEmail(email); }} className="text-sm text-gray-500 hover:text-gray-900 cursor-pointer">Forgot password?</button>
                                 </div>
                                 <div className="relative">
                                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
@@ -260,6 +389,200 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onNavigateToSignup, onBa
                         </form>
                     )}
 
+                    {step === 'forgot-email' && (
+                        <form onSubmit={handleForgotSendCode} className="space-y-6">
+                            <div className="text-center mb-2">
+                                <div className="mx-auto w-14 h-14 bg-violet-50 text-violet-600 rounded-2xl flex items-center justify-center mb-4">
+                                    <KeyRound size={24} />
+                                </div>
+                                <h2 className="text-2xl font-bold text-gray-900 mb-1">Forgot Password?</h2>
+                                <p className="text-sm text-gray-500">Enter your email and we'll send you a 6-digit verification code.</p>
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
+                                <div className="relative">
+                                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
+                                        <Mail className="w-5 h-5" />
+                                    </div>
+                                    <input
+                                        type="email"
+                                        required
+                                        value={forgotEmail}
+                                        onChange={(e) => setForgotEmail(e.target.value)}
+                                        className="block w-full pl-10 pr-3 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-violet-500 focus:border-transparent transition-all outline-none"
+                                        placeholder="you@example.com"
+                                    />
+                                </div>
+                            </div>
+
+                            <button
+                                type="submit"
+                                disabled={loading}
+                                className="w-full flex justify-center py-3 px-4 border border-transparent rounded-xl shadow-sm text-sm font-medium text-white bg-violet-600 hover:bg-violet-700 transition-colors disabled:opacity-70 cursor-pointer"
+                            >
+                                {loading ? (
+                                    <><Loader2 className="animate-spin -ml-1 mr-2 h-4 w-4" /> Sending code...</>
+                                ) : (
+                                    'Send Verification Code'
+                                )}
+                            </button>
+
+                            <button
+                                type="button"
+                                onClick={() => { setStep('login'); setError(null); }}
+                                className="w-full text-center text-sm text-gray-500 hover:text-gray-900 font-medium cursor-pointer"
+                            >
+                                ← Back to Login
+                            </button>
+                        </form>
+                    )}
+
+                    {step === 'forgot-code' && (
+                        <form onSubmit={handleForgotVerifyCode} className="space-y-6">
+                            <div className="text-center mb-2">
+                                <div className="mx-auto w-14 h-14 bg-violet-50 text-violet-600 rounded-2xl flex items-center justify-center mb-4">
+                                    <ShieldCheck size={24} />
+                                </div>
+                                <h2 className="text-2xl font-bold text-gray-900 mb-1">Enter Verification Code</h2>
+                                <p className="text-sm text-gray-500">
+                                    A 6-digit code has been sent to <span className="font-semibold text-gray-700">{forgotEmail}</span>
+                                </p>
+                            </div>
+
+                            {/* Timer */}
+                            <div className={`flex items-center justify-center gap-2 text-sm font-semibold ${forgotTimeLeft <= 30 ? 'text-red-500' : 'text-gray-600'}`}>
+                                <Clock size={16} />
+                                {forgotTimeLeft > 0 ? (
+                                    <span>Code expires in <span className="font-mono">{formatTime(forgotTimeLeft)}</span></span>
+                                ) : (
+                                    <span className="text-red-500">Code expired</span>
+                                )}
+                            </div>
+
+                            <div>
+                                <div className="relative">
+                                    <input
+                                        type="text"
+                                        required
+                                        maxLength={6}
+                                        pattern="[0-9]{6}"
+                                        value={forgotCode}
+                                        onChange={(e) => setForgotCode(e.target.value.replace(/\D/g, ''))}
+                                        className="block w-full py-4 border border-gray-200 rounded-xl focus:ring-2 focus:ring-violet-500 focus:border-transparent outline-none tracking-[0.5em] font-mono text-2xl text-center"
+                                        placeholder="000000"
+                                    />
+                                </div>
+                            </div>
+
+                            <button
+                                type="submit"
+                                disabled={forgotTimeLeft <= 0}
+                                className="w-full flex justify-center py-3 px-4 border border-transparent rounded-xl shadow-sm text-sm font-medium text-white bg-violet-600 hover:bg-violet-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                            >
+                                Verify Code
+                            </button>
+
+                            <div className="flex items-center justify-between">
+                                <button
+                                    type="button"
+                                    onClick={() => { setStep('forgot-email'); setError(null); setShowGmailToast(false); }}
+                                    className="text-sm text-gray-500 hover:text-gray-900 font-medium cursor-pointer"
+                                >
+                                    ← Change email
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={handleForgotResendCode}
+                                    className="text-sm text-violet-600 hover:text-violet-700 font-semibold cursor-pointer"
+                                >
+                                    Resend Code
+                                </button>
+                            </div>
+                        </form>
+                    )}
+
+                    {step === 'forgot-newpass' && (
+                        passwordChanged ? (
+                            <div className="text-center py-8">
+                                <div className="mx-auto w-16 h-16 bg-green-50 text-green-600 rounded-full flex items-center justify-center mb-4">
+                                    <ShieldCheck size={32} />
+                                </div>
+                                <h2 className="text-2xl font-bold text-gray-900 mb-2">Password Changed!</h2>
+                                <p className="text-sm text-gray-500">Your password has been updated successfully. Redirecting to login...</p>
+                            </div>
+                        ) : (
+                            <form onSubmit={handleSetNewPassword} className="space-y-6">
+                                <div className="text-center mb-2">
+                                    <div className="mx-auto w-14 h-14 bg-green-50 text-green-600 rounded-2xl flex items-center justify-center mb-4">
+                                        <Lock size={24} />
+                                    </div>
+                                    <h2 className="text-2xl font-bold text-gray-900 mb-1">Set New Password</h2>
+                                    <p className="text-sm text-gray-500">Create a strong password for your account.</p>
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">New Password</label>
+                                    <div className="relative">
+                                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
+                                            <Lock className="w-5 h-5" />
+                                        </div>
+                                        <input
+                                            type={showNewPassword ? 'text' : 'password'}
+                                            required
+                                            minLength={6}
+                                            value={newPassword}
+                                            onChange={(e) => setNewPassword(e.target.value)}
+                                            className="block w-full pl-10 pr-10 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-violet-500 focus:border-transparent transition-all outline-none"
+                                            placeholder="Min. 6 characters"
+                                        />
+                                        <button type="button" onClick={() => setShowNewPassword(!showNewPassword)} className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 cursor-pointer">
+                                            {showNewPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Confirm Password</label>
+                                    <div className="relative">
+                                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
+                                            <Lock className="w-5 h-5" />
+                                        </div>
+                                        <input
+                                            type={showConfirmPassword ? 'text' : 'password'}
+                                            required
+                                            minLength={6}
+                                            value={confirmPassword}
+                                            onChange={(e) => setConfirmPassword(e.target.value)}
+                                            className="block w-full pl-10 pr-10 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-violet-500 focus:border-transparent transition-all outline-none"
+                                            placeholder="Re-enter password"
+                                        />
+                                        <button type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)} className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 cursor-pointer">
+                                            {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                                        </button>
+                                    </div>
+                                    {confirmPassword && newPassword !== confirmPassword && (
+                                        <p className="text-xs text-red-500 mt-1">Passwords do not match</p>
+                                    )}
+                                </div>
+
+                                <button
+                                    type="submit"
+                                    disabled={loading || newPassword !== confirmPassword}
+                                    className="w-full flex justify-center py-3 px-4 border border-transparent rounded-xl shadow-sm text-sm font-medium text-white bg-violet-600 hover:bg-violet-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                                >
+                                    {loading ? (
+                                        <><Loader2 className="animate-spin -ml-1 mr-2 h-4 w-4" /> Updating password...</>
+                                    ) : (
+                                        'Change Password'
+                                    )}
+                                </button>
+                            </form>
+                        )
+                    )}
+
+                    {(step === 'login' || step === 'mfa') && (
+                    <>
                     <div className="mt-8 relative">
                         <div className="absolute inset-0 flex items-center">
                             <div className="w-full border-t border-gray-200"></div>
@@ -274,27 +597,18 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onNavigateToSignup, onBa
                             onClick={handleGoogleLogin}
                             className="w-full flex items-center justify-center px-4 py-3 border border-gray-200 rounded-xl shadow-sm bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
                         >
-                            <svg className="h-5 w-5 mr-3" aria-hidden="true" viewBox="0 0 24 24">
-                                <path
-                                    d="M12.0003 20.45c4.65 0 8.04-3.19 8.04-7.94 0-.74-.06-1.46-.19-2.22h-7.85v4.23h4.48c-.2 1.05-.75 2.04-1.66 2.68v2.21h2.69c1.58-1.46 2.49-3.61 2.49-6.88 0-.66-.07-1.3-.19-1.92H12v3.66h5.04c-.47 2.37-2.58 4.16-5.04 4.16-2.91 0-5.27-2.36-5.27-5.27s2.36-5.27 5.27-5.27c1.38 0 2.64.49 3.63 1.3l2.72-2.72C16.69 2.19 14.47 1.25 12.0003 1.25 7.0503 1.25 3.0003 5.3 3.0003 10.25s4.05 9 9.0003 9z"
-                                    fill="#4285F4"
-                                />
-                                <path
-                                    d="M3.0003 10.25c0-1.4.37-2.71 1.02-3.86l2.84 2.22c-.27.52-.42 1.1-.42 1.64 0 .54.15 1.12.42 1.64l-2.84 2.22c-.65-1.15-1.02-2.46-1.02-3.86z"
-                                    fill="#FBBC05"
-                                />
-                                <path
-                                    d="M12.0003 3.75c1.38 0 2.64.49 3.63 1.3l2.72-2.72C16.69 0.69 14.47 -0.25 12.0003 -0.25 7.6003 -0.25 3.8603 2.5 1.9403 6.39l2.84 2.22c.67-2.72 3.12-4.86 6.22-4.86z"
-                                    fill="#EA4335"
-                                />
-                                <path
-                                    d="M12.0003 19.25c2.46 0 4.57-1.79 5.04-4.16h-5.04v-3.66h8.85c.13.76.19 1.48.19 2.22 0 4.75-3.39 7.94-8.04 7.94-2.28 0-4.39-0.89-5.96-2.34l-2.69-2.21c1.57 1.45 3.68 2.34 5.96 2.34z"
-                                    fill="#34A853"
-                                />
+                            <svg className="h-5 w-5 mr-3" aria-hidden="true" viewBox="0 0 48 48">
+                                <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
+                                <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
+                                <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
+                                <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
+                                <path fill="none" d="M0 0h48v48H0z"/>
                             </svg>
                             Google
                         </button>
                     </div>
+                    </>
+                    )}
                 </div>
             </div>
             
@@ -315,14 +629,24 @@ interface GoogleChooserModalProps {
 
 const GoogleChooserModal: React.FC<GoogleChooserModalProps> = ({ isOpen, onClose, onSelect }) => {
     const [customEmail, setCustomEmail] = useState('');
+    const [accounts, setAccounts] = useState<{email: string; name: string; avatar: string}[]>([]);
+    
+    useEffect(() => {
+        if (isOpen) {
+            // Load accounts from the actual database
+            supabase.from('profiles').select('*').then(({ data }: any) => {
+                if (data && Array.isArray(data)) {
+                    setAccounts(data.map((p: any) => ({
+                        email: p.email,
+                        name: p.full_name || p.email.split('@')[0],
+                        avatar: p.avatar_url || `https://api.dicebear.com/7.x/initials/svg?seed=${p.full_name || p.email}`
+                    })));
+                }
+            });
+        }
+    }, [isOpen]);
     
     if (!isOpen) return null;
-    
-    const defaultAccounts = [
-        { email: 'chemayekabraham289@gmail.com', name: 'Abraham Chemayek', avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&q=80&w=150' },
-        { email: 'mr.collins@schoolofai.edu', name: 'Mr. Collins', avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&q=80&w=150' },
-        { email: 'student@test.com', name: 'Test Student', avatar: 'https://i.pravatar.cc/150?u=a042581f4e29026704d' }
-    ];
 
     const handleSubmitCustom = (e: React.FormEvent) => {
         e.preventDefault();
@@ -354,7 +678,7 @@ const GoogleChooserModal: React.FC<GoogleChooserModalProps> = ({ isOpen, onClose
                 </div>
 
                 <div className="space-y-2.5 max-h-60 overflow-y-auto mb-4">
-                    {defaultAccounts.map((acc) => (
+                    {accounts.map((acc) => (
                         <button
                             key={acc.email}
                             onClick={() => onSelect(acc.email, acc.name)}

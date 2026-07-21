@@ -17,7 +17,9 @@ const MyCourses: React.FC<MyCoursesProps> = ({ courses }) => {
     const { t } = useTranslation();
 
     const addPortalNotification = (title: string, description: string, type: 'assignment' | 'profile' | 'course' | 'system') => {
-        const stored = localStorage.getItem('portal-notifications');
+        const userEmail = localStorage.getItem('logged_in_email') || 'student@test.com';
+        const notifKey = `portal-notifications-${userEmail}`;
+        const stored = localStorage.getItem(notifKey);
         const list = stored ? JSON.parse(stored) : [];
         const newItem = {
             id: Date.now().toString(),
@@ -27,7 +29,7 @@ const MyCourses: React.FC<MyCoursesProps> = ({ courses }) => {
             read: false,
             type
         };
-        localStorage.setItem('portal-notifications', JSON.stringify([newItem, ...list]));
+        localStorage.setItem(notifKey, JSON.stringify([newItem, ...list]));
         window.dispatchEvent(new Event('notifications-update'));
     };
 
@@ -169,7 +171,7 @@ const MyCourses: React.FC<MyCoursesProps> = ({ courses }) => {
         if (currentIndex !== -1 && selectedCourse) {
             const completedCount = currentIndex + 1;
             if (completedCount > selectedCourse.lessonsCompleted) {
-                const hasExam = !!selectedCourse.quiz;
+                const hasExam = selectedCourse.quiz && !selectedCourse.quiz.isDraft;
                 const newStatus = (completedCount >= selectedCourse.lessonsTotal && !hasExam) 
                     ? CourseStatus.COMPLETED 
                     : CourseStatus.IN_PROGRESS;
@@ -227,23 +229,34 @@ const MyCourses: React.FC<MyCoursesProps> = ({ courses }) => {
         );
     }
 
-    if (takingExam && selectedCourse && selectedCourse.quiz) {
+    if (takingExam && selectedCourse && selectedCourse.quiz && !selectedCourse.quiz.isDraft) {
         return (
             <ExamPlayer 
                 quiz={selectedCourse.quiz}
                 courseTitle={selectedCourse.title}
                 onClose={() => setTakingExam(false)}
                 onSubmit={async (score) => {
-                    alert(`Exam submitted! You scored ${score}%`);
+                    alert("Exam submitted for grading! The admin will review and release your score.");
                     setTakingExam(false);
                     try {
                         const { data: { session } } = await supabase.auth.getSession();
                         if (session?.user?.id && selectedCourse) {
+                            const scopeKey = session.user.email || 'guest';
+                            const existingGrades = JSON.parse(localStorage.getItem(`quiz-grades-${scopeKey}`) || '[]');
+                            const courseGrades = existingGrades.filter((g: any) => g.courseId === selectedCourse.id);
+                            const quizScore = courseGrades.length > 0
+                                ? Math.round(courseGrades.reduce((sum: number, g: any) => sum + (g.percentage || 0), 0) / courseGrades.length)
+                                : 0;
+                            const finalScore = Math.round((quizScore * 0.3) + (score * 0.7));
+
                             const { error } = await supabase
                                 .from('enrollments')
                                 .update({ 
                                     exam_completed: true,
                                     exam_score: score,
+                                    quiz_score: quizScore,
+                                    final_score: finalScore,
+                                    exam_marks_released: false,
                                     status: CourseStatus.COMPLETED
                                 })
                                 .eq('user_id', session.user.id)
@@ -254,15 +267,18 @@ const MyCourses: React.FC<MyCoursesProps> = ({ courses }) => {
                             const updatedCourse = {
                                 ...selectedCourse,
                                 examCompleted: true,
-                                examScore: score,
+                                examMarksReleased: false,
+                                examScore: undefined,
+                                quizScore: undefined,
+                                finalScore: undefined,
                                 status: CourseStatus.COMPLETED
                             };
                             setSelectedCourse(updatedCourse);
                             setLocalCourses(prev => prev.map(c => c.id === selectedCourse.id ? updatedCourse : c));
                             
                             addPortalNotification(
-                                "Exam Completed Successfully",
-                                `You have finished the final exam for ${selectedCourse.title} with a score of ${score}%. The admin team will verify and issue your certificate soon.`,
+                                "Exam Submitted for Grading",
+                                `You have successfully submitted the final exam for ${selectedCourse.title}. The admin team will review and release your grade soon.`,
                                 "course"
                             );
 
@@ -362,25 +378,39 @@ const MyCourses: React.FC<MyCoursesProps> = ({ courses }) => {
                             </div>
                         </div>
 
-                        {selectedCourse.quiz && (selectedCourse.status === CourseStatus.COMPLETED || (selectedCourse.lessonsTotal > 0 && selectedCourse.lessonsCompleted >= selectedCourse.lessonsTotal)) && (
+                        {selectedCourse.quiz && !selectedCourse.quiz.isDraft && (selectedCourse.status === CourseStatus.COMPLETED || (selectedCourse.lessonsTotal > 0 && selectedCourse.lessonsCompleted >= selectedCourse.lessonsTotal)) && (
                             <div className="mt-4 p-4 bg-indigo-50 dark:bg-indigo-950/20 border border-indigo-100 dark:border-indigo-900/50 rounded-xl flex items-center justify-between">
                                 <div>
-                                    <h4 className="font-bold text-indigo-900 dark:text-indigo-200">Final Exam Available</h4>
-                                    <p className="text-xs text-indigo-700 dark:text-indigo-300">Test your knowledge to earn your certificate.</p>
+                                    <h4 className="font-bold text-indigo-900 dark:text-indigo-200">Final Exam</h4>
+                                    {selectedCourse.examCompleted ? (
+                                        selectedCourse.examMarksReleased ? (
+                                            <p className="text-xs text-green-700 dark:text-green-400">
+                                                Exam Completed! Your Score: <span className="font-bold">{selectedCourse.examScore}%</span>
+                                            </p>
+                                        ) : (
+                                            <p className="text-xs text-amber-700 dark:text-amber-400 font-semibold animate-pulse">
+                                                Exam Submitted! Waiting for Admin to grade and release marks.
+                                            </p>
+                                        )
+                                    ) : (
+                                        <p className="text-xs text-indigo-700 dark:text-indigo-300">Test your knowledge to earn your certificate.</p>
+                                    )}
                                 </div>
-                                <button 
-                                    onClick={() => {
-                                        addPortalNotification(
-                                            `Started Final Exam: ${selectedCourse.title}`,
-                                            "You have successfully initiated the exam room environment. Avoid minimizing the window or switching tabs.",
-                                            "course"
-                                        );
-                                        setTakingExam(true);
-                                    }}
-                                    className="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-indigo-700"
-                                >
-                                    {t('start_exam')}
-                                </button>
+                                {!selectedCourse.examCompleted && (
+                                    <button 
+                                        onClick={() => {
+                                            addPortalNotification(
+                                                `Started Final Exam: ${selectedCourse.title}`,
+                                                "You have successfully initiated the exam room environment. Avoid minimizing the window or switching tabs.",
+                                                "course"
+                                            );
+                                            setTakingExam(true);
+                                        }}
+                                        className="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-indigo-700"
+                                    >
+                                        {t('start_exam')}
+                                    </button>
+                                )}
                             </div>
                         )}
 
@@ -930,7 +960,8 @@ const MyCourses: React.FC<MyCoursesProps> = ({ courses }) => {
                             key={course.id}
                             course={course}
                             onClick={() => {
-                                localStorage.setItem('recent-tapped-course-id', course.id);
+                                const scopeKey = localStorage.getItem('mock_logged_in_email') || 'guest';
+                                localStorage.setItem(`recent-tapped-course-id-${scopeKey}`, course.id);
                                 setSelectedCourse(course);
                             }}
                         />

@@ -1,11 +1,11 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useAdmin } from '../../src/hooks/useAdmin';
 import { UserRole } from '../../types';
-import { Trash2 } from 'lucide-react';
+import { Trash2, Check, Edit2, X } from 'lucide-react';
 import { supabase } from '../../src/lib/supabase';
 
 const AdminEnrollments: React.FC = () => {
-    const { users, courses, enrollments, loading, updateUserRole, deleteUser, verifyAndIssueCertificate } = useAdmin(true);
+    const { users, courses, enrollments, loading, updateUserRole, deleteUser, refresh } = useAdmin(true);
 
     const handleApproveUpgrade = async (u: any) => {
         try {
@@ -23,22 +23,28 @@ const AdminEnrollments: React.FC = () => {
 
             window.dispatchEvent(new Event('profile-update'));
 
-            const stored = localStorage.getItem('portal-notifications');
+            const notifKey = `portal-notifications-${u.email}`;
+            const stored = localStorage.getItem(notifKey);
             const list = stored ? JSON.parse(stored) : [];
             
-            const recommendation = u.pending_role === 'PLUS'
+            const isSponsored = u.pending_role === 'SPONSORED';
+            const recommendation = isSponsored
+                ? `You're now on our Business plan sponsored by ${u.companyName || 'your company'}! Explore all modules and start learning.`
+                : u.pending_role === 'PLUS'
                 ? "Since you upgraded to Plus, consider checking out the PRO plan to get unlimited AI Tutor support and complete course access!"
                 : "You're now on our highest Pro plan! Explore advanced modules and ask our AI Tutor anything.";
 
             const newItem = {
                 id: 'notif-' + Date.now(),
-                title: "Payment Verified Successfully!",
-                description: `Your payment has been successfully verified by our admin team. Welcome to the ${u.pending_role} plan! We appreciate your support. ${recommendation}`,
+                title: isSponsored ? "Corporate Plan Activated!" : "Payment Verified Successfully!",
+                description: isSponsored
+                    ? `Your corporate enrollment request has been approved. Welcome to the Business plan for ${u.companyName || 'your company'}!`
+                    : `Your payment has been successfully verified by our admin team. Welcome to the ${u.pending_role} plan! We appreciate your support. ${recommendation}`,
                 timestamp: new Date().toISOString(),
                 read: false,
                 type: 'payment'
             };
-            localStorage.setItem('portal-notifications', JSON.stringify([newItem, ...list]));
+            localStorage.setItem(notifKey, JSON.stringify([newItem, ...list]));
             window.dispatchEvent(new Event('notifications-update'));
 
             window.dispatchEvent(new CustomEvent('payment-verified-alert', {
@@ -70,17 +76,21 @@ const AdminEnrollments: React.FC = () => {
 
             window.dispatchEvent(new Event('profile-update'));
 
-            const stored = localStorage.getItem('portal-notifications');
+            const notifKey = `portal-notifications-${u.email}`;
+            const stored = localStorage.getItem(notifKey);
             const list = stored ? JSON.parse(stored) : [];
+            const isSponsored = u.pending_role === 'SPONSORED';
             const newItem = {
                 id: 'notif-' + Date.now(),
-                title: "Upgrade Request Declined",
-                description: `Your upgrade request for plan ${u.pending_role} was declined by admin. Please verify your payment transaction ID or screenshot receipt and try again.`,
+                title: isSponsored ? "Corporate Plan Request Declined" : "Upgrade Request Declined",
+                description: isSponsored
+                    ? `Your corporate enrollment request for the Business plan was declined by admin.`
+                    : `Your upgrade request for plan ${u.pending_role} was declined by admin. Please verify your payment transaction ID or screenshot receipt and try again.`,
                 timestamp: new Date().toISOString(),
                 read: false,
                 type: 'payment'
             };
-            localStorage.setItem('portal-notifications', JSON.stringify([newItem, ...list]));
+            localStorage.setItem(notifKey, JSON.stringify([newItem, ...list]));
             window.dispatchEvent(new Event('notifications-update'));
 
             alert('Upgrade request declined.');
@@ -113,16 +123,20 @@ const AdminEnrollments: React.FC = () => {
                         {users.map(u => (
                             <tr key={u.id} className="hover:bg-gray-50 transition-colors">
                                 <td className="py-4 px-6 font-medium text-gray-900 flex items-center gap-3">
-                                    <div className="w-8 h-8 rounded-full overflow-hidden bg-gray-200 shrink-0">
-                                        <img 
-                                            src={u.avatar} 
-                                            alt={u.name} 
-                                            className="w-full h-full object-cover" 
-                                            style={{
-                                                transform: `scale(${u.avatarScale || 1}) translate(${u.avatarPositionX || 0}px, ${u.avatarPositionY || 0}px)`,
-                                                transformOrigin: 'center center'
-                                            }}
-                                        />
+                                    <div className="w-8 h-8 rounded-full overflow-hidden bg-violet-100 dark:bg-violet-950 text-violet-700 dark:text-violet-300 shrink-0 flex items-center justify-center text-xs font-bold border border-violet-200 dark:border-violet-850">
+                                        {u.avatar ? (
+                                            <img 
+                                                src={u.avatar} 
+                                                alt={u.name} 
+                                                className="w-full h-full object-cover" 
+                                                style={{
+                                                    transform: `scale(${u.avatarScale || 1}) translate(${u.avatarPositionX || 0}px, ${u.avatarPositionY || 0}px)`,
+                                                    transformOrigin: 'center center'
+                                                }}
+                                            />
+                                        ) : (
+                                            <span>{u.name.split(' ').map((n: string) => n[0]).join('').slice(0, 2).toUpperCase()}</span>
+                                        )}
                                     </div>
                                     {u.name}
                                 </td>
@@ -136,12 +150,22 @@ const AdminEnrollments: React.FC = () => {
                                         'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-900/50'
                                     }`}>
                                         {u.role === UserRole.INDIVIDUAL ? 'BASIC' : u.role}
+                                    {u.role === UserRole.SPONSORED && u.companyName && (
+                                        <div className="text-[10px] text-indigo-600 dark:text-indigo-400 font-semibold mt-1">
+                                            Co: {u.companyName}
+                                        </div>
+                                    )}
                                     </span>
 
-                                    {u.pending_role && (
-                                         <div className="mt-2 text-xs bg-yellow-50 dark:bg-yellow-950/20 text-yellow-800 dark:text-yellow-450 p-2.5 rounded-xl border border-yellow-100 dark:border-yellow-900/30 flex flex-col gap-1.5 items-start max-w-[190px]">
+                                     {u.pending_role && (
+                                         <div className="mt-2 text-xs bg-yellow-50 dark:bg-yellow-950/20 text-yellow-800 dark:text-yellow-400 p-2.5 rounded-xl border border-yellow-100 dark:border-yellow-900/30 flex flex-col gap-1.5 items-start max-w-[190px]">
                                              <span className="font-bold">Pending: {u.pending_role}</span>
-                                             <span className="text-[10px] text-gray-550 dark:text-slate-400 font-mono break-all select-all">TxID: {u.pending_txid}</span>
+                                             {u.pending_role === 'SPONSORED' && u.companyName && (
+                                                 <span className="text-[10px] font-semibold text-indigo-700 bg-indigo-50 dark:bg-indigo-950/30 px-1.5 py-0.5 rounded">
+                                                     Co: {u.companyName}
+                                                 </span>
+                                             )}
+                                             <span className="text-[10px] text-gray-500 dark:text-slate-400 font-mono break-all select-all">TxID: {u.pending_txid}</span>
                                              {u.pending_screenshot && u.pending_screenshot.startsWith('data:image') && (
                                                  <a href={u.pending_screenshot} target="_blank" rel="noreferrer" className="text-[10px] text-purple-600 hover:underline flex items-center gap-1 font-semibold">
                                                      View Receipt Image
@@ -183,6 +207,7 @@ const AdminEnrollments: React.FC = () => {
                                         >
                                             <option value={UserRole.INDIVIDUAL}>BASIC</option>
                                             <option value={UserRole.PRO}>PRO</option>
+                                            <option value={UserRole.SPONSORED}>SPONSORED</option>
                                             <option value={UserRole.ADMIN}>ADMIN</option>
                                         </select>
                                         <button
@@ -239,129 +264,6 @@ const AdminEnrollments: React.FC = () => {
                         ))}
                     </tbody>
                 </table>
-            </div>
-
-            {/* Certificates Management Section */}
-            <div className="mt-8 bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-                <div className="p-6 border-b border-gray-100 flex justify-between items-center">
-                    <h2 className="text-lg font-semibold text-gray-900">Exam Submissions & Certificates</h2>
-                    <div className="text-sm text-gray-500">
-                        Total: {enrollments.filter(e => e.exam_completed).length} completed exams
-                    </div>
-                </div>
-                <div className="overflow-x-auto">
-                    <table className="w-full text-left border-collapse">
-                        <thead className="bg-gray-50">
-                            <tr className="text-gray-500 text-xs uppercase tracking-wider font-semibold">
-                                <th className="py-4 px-6 border-b border-gray-200">Student</th>
-                                <th className="py-4 px-6 border-b border-gray-200">Course</th>
-                                <th className="py-4 px-6 border-b border-gray-200 text-center">Exam Score</th>
-                                <th className="py-4 px-6 border-b border-gray-200">Certificate File / URL</th>
-                                <th className="py-4 px-6 border-b border-gray-200 text-center">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody className="divide-y divide-gray-100">
-                            {enrollments.filter(e => e.exam_completed).length === 0 ? (
-                                <tr>
-                                    <td colSpan={5} className="py-8 px-6 text-center text-gray-500 text-sm">
-                                        No exam completions or issued certificates found.
-                                    </td>
-                                </tr>
-                            ) : (
-                                enrollments.filter(e => e.exam_completed).map(e => {
-                                    const student = users.find(u => u.id === e.user_id);
-                                    const course = courses.find(c => c.id === e.course_id);
-                                    if (!student || !course) return null;
-
-                                    return (
-                                        <tr key={`${e.user_id}-${e.course_id}`} className="hover:bg-gray-55 transition-colors">
-                                            <td className="py-4 px-6 font-medium text-gray-900">
-                                                <div className="flex flex-col">
-                                                    <span>{student.name}</span>
-                                                    <span className="text-xs text-gray-500 font-normal">{student.email}</span>
-                                                </div>
-                                            </td>
-                                            <td className="py-4 px-6 text-gray-700 text-sm font-medium">{course.title}</td>
-                                            <td className="py-4 px-6 text-center">
-                                                <span className="px-2.5 py-1 bg-indigo-50 dark:bg-indigo-950/30 text-indigo-700 dark:text-indigo-400 font-bold rounded-lg text-xs">
-                                                    {e.exam_score !== undefined ? `${e.exam_score}%` : '100%'}
-                                                </span>
-                                            </td>
-                                            <td className="py-4 px-6 text-sm">
-                                                {e.is_certificate_verified && e.certificate_url ? (
-                                                    <a 
-                                                        href={e.certificate_url} 
-                                                        target="_blank" 
-                                                        rel="noreferrer" 
-                                                        className="text-purple-650 hover:underline font-semibold flex items-center gap-1"
-                                                    >
-                                                        📄 View Issued Certificate
-                                                    </a>
-                                                ) : (
-                                                    <div className="flex flex-col gap-1">
-                                                        <input 
-                                                            type="file" 
-                                                            accept="application/pdf,image/*"
-                                                            onChange={async (event) => {
-                                                                const file = event.target.files?.[0];
-                                                                if (file) {
-                                                                    const reader = new FileReader();
-                                                                    reader.onload = () => {
-                                                                        if (typeof reader.result === 'string') {
-                                                                            (e as any).uploaded_cert_data = reader.result;
-                                                                            alert("Certificate file loaded! Click Verify to save.");
-                                                                        }
-                                                                    };
-                                                                    reader.readAsDataURL(file);
-                                                                }
-                                                            }}
-                                                            className="text-xs text-gray-550 file:mr-2 file:py-1 file:px-2 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-purple-50 file:text-purple-700 hover:file:bg-purple-100 cursor-pointer"
-                                                        />
-                                                        <span className="text-[10px] text-gray-400">Or paste Certificate URL:</span>
-                                                        <input 
-                                                            type="text" 
-                                                            placeholder="https://..."
-                                                            onChange={(event) => {
-                                                                (e as any).uploaded_cert_data = event.target.value;
-                                                            }}
-                                                            className="p-1 border rounded text-xs w-full max-w-[200px]"
-                                                        />
-                                                    </div>
-                                                )}
-                                            </td>
-                                            <td className="py-4 px-6 text-center">
-                                                {e.is_certificate_verified ? (
-                                                    <span className="text-xs text-green-600 font-bold flex items-center justify-center gap-1">
-                                                        ✓ Verified & Issued
-                                                    </span>
-                                                ) : (
-                                                    <button
-                                                        onClick={async () => {
-                                                            const certData = (e as any).uploaded_cert_data;
-                                                            if (!certData) {
-                                                                alert("Please upload a file or enter a Certificate URL first.");
-                                                                return;
-                                                            }
-                                                            try {
-                                                                await verifyAndIssueCertificate(e.user_id, e.course_id, certData);
-                                                                alert("Certificate successfully verified and uploaded!");
-                                                            } catch (err: any) {
-                                                                alert("Failed to verify certificate.");
-                                                            }
-                                                        }}
-                                                        className="px-3 py-1 bg-purple-600 hover:bg-purple-750 text-white rounded-lg text-xs font-bold transition-colors cursor-pointer"
-                                                    >
-                                                        Verify & Upload
-                                                    </button>
-                                                )}
-                                            </td>
-                                        </tr>
-                                    );
-                                })
-                            )}
-                        </tbody>
-                    </table>
-                </div>
             </div>
         </div>
     );

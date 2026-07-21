@@ -102,12 +102,13 @@ const Header: React.FC<HeaderProps> = ({
 
   useEffect(() => {
     const updateUnreadCount = () => {
-      const stored = localStorage.getItem('portal-notifications');
+      const userEmail = localStorage.getItem('logged_in_email') || 'student@test.com';
+      const stored = localStorage.getItem(`portal-notifications-${userEmail}`);
       if (stored) {
         const list = JSON.parse(stored);
         setUnreadCount(list.filter((n: any) => !n.read).length);
       } else {
-        setUnreadCount(1);
+        setUnreadCount(0);
       }
     };
     updateUnreadCount();

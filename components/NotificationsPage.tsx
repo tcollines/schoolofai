@@ -18,39 +18,16 @@ const NotificationsPage: React.FC = () => {
     const [notifications, setNotifications] = useState<NotificationItem[]>([]);
     const [filter, setFilter] = useState<'all' | 'unread'>('all');
     const [expandedNotificationId, setExpandedNotificationId] = useState<string | null>(null);
+    const userEmail = localStorage.getItem('logged_in_email') || 'student@test.com';
+    const notifKey = `portal-notifications-${userEmail}`;
 
     const getNotifications = (): NotificationItem[] => {
-        const stored = localStorage.getItem('portal-notifications');
+        const stored = localStorage.getItem(notifKey);
         if (stored) {
             return JSON.parse(stored);
         }
-        const defaults: NotificationItem[] = [
-            {
-                id: '1',
-                title: 'New Assignment Added: AI Ethics Research Paper',
-                description: 'A new assignment has been posted by Welile for the course "Introduction to Artificial Intelligence". Due in 5 days.',
-                timestamp: new Date(Date.now() - 3600000 * 2).toISOString(), // 2 hours ago
-                read: false,
-                type: 'assignment'
-            },
-            {
-                id: '2',
-                title: 'Profile Picture Updated Successfully',
-                description: 'Your profile avatar was successfully updated across the schoolofai portal.',
-                timestamp: new Date(Date.now() - 3600000 * 24).toISOString(), // 1 day ago
-                read: true,
-                type: 'profile'
-            },
-            {
-                id: '3',
-                title: 'Welcome to Welile School of AI!',
-                description: 'Explore the Discover tab to find your first study course and start learning.',
-                timestamp: new Date(Date.now() - 3600000 * 72).toISOString(), // 3 days ago
-                read: true,
-                type: 'system'
-            }
-        ];
-        localStorage.setItem('portal-notifications', JSON.stringify(defaults));
+        const defaults: NotificationItem[] = [];
+        localStorage.setItem(notifKey, JSON.stringify(defaults));
         return defaults;
     };
 
@@ -62,7 +39,7 @@ const NotificationsPage: React.FC = () => {
             if (customEvent.detail?.origin === 'NotificationsPage') {
                 return;
             }
-            const stored = localStorage.getItem('portal-notifications');
+            const stored = localStorage.getItem(notifKey);
             if (stored) {
                 setNotifications(JSON.parse(stored));
             }
@@ -81,7 +58,7 @@ const NotificationsPage: React.FC = () => {
         if (!item.read) {
             const updated = notifications.map(n => n.id === item.id ? { ...n, read: true } : n);
             setNotifications(updated);
-            localStorage.setItem('portal-notifications', JSON.stringify(updated));
+            localStorage.setItem(notifKey, JSON.stringify(updated));
             window.dispatchEvent(new CustomEvent('notifications-update', { detail: { origin: 'NotificationsPage' } }));
         }
     };
@@ -89,20 +66,20 @@ const NotificationsPage: React.FC = () => {
     const toggleRead = (id: string) => {
         const updated = notifications.map(n => n.id === id ? { ...n, read: !n.read } : n);
         setNotifications(updated);
-        localStorage.setItem('portal-notifications', JSON.stringify(updated));
+        localStorage.setItem(notifKey, JSON.stringify(updated));
         window.dispatchEvent(new CustomEvent('notifications-update', { detail: { origin: 'NotificationsPage' } }));
     };
 
     const markAllRead = () => {
         const updated = notifications.map(n => ({ ...n, read: true }));
         setNotifications(updated);
-        localStorage.setItem('portal-notifications', JSON.stringify(updated));
+        localStorage.setItem(notifKey, JSON.stringify(updated));
         window.dispatchEvent(new CustomEvent('notifications-update', { detail: { origin: 'NotificationsPage' } }));
     };
 
     const clearAll = () => {
         setNotifications([]);
-        localStorage.setItem('portal-notifications', '[]');
+        localStorage.setItem(notifKey, '[]');
         window.dispatchEvent(new CustomEvent('notifications-update', { detail: { origin: 'NotificationsPage' } }));
     };
 
@@ -110,7 +87,7 @@ const NotificationsPage: React.FC = () => {
         e.stopPropagation(); // prevent toggling read/expansion
         const updated = notifications.filter(n => n.id !== id);
         setNotifications(updated);
-        localStorage.setItem('portal-notifications', JSON.stringify(updated));
+        localStorage.setItem(notifKey, JSON.stringify(updated));
         window.dispatchEvent(new CustomEvent('notifications-update', { detail: { origin: 'NotificationsPage' } }));
         if (expandedNotificationId === id) {
             setExpandedNotificationId(null);

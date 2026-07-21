@@ -6,6 +6,8 @@ interface LocalDB {
     courses: any[];
     profiles: any[];
     enrollments: any[];
+    mails: any[];
+    instructors?: any[];
 }
 
 const defaultCourses = [
@@ -138,7 +140,34 @@ const getDB = (): LocalDB => {
                     wallet_balance: 100
                 }
             ],
-            enrollments: []
+            enrollments: [],
+            mails: [],
+            instructors: [
+                {
+                    id: 'inst-1',
+                    name: 'Sarah Jenkins',
+                    email: 'sarah.jenkins@schoolofai.edu',
+                    bio: 'Sarah is an AI Researcher specializing in Natural Language Processing and Cognitive Computing.',
+                    avatar: 'SJ',
+                    courses_count: 2
+                },
+                {
+                    id: 'inst-2',
+                    name: 'Dr. Kenji Tanaka',
+                    email: 'kenji.tanaka@schoolofai.edu',
+                    bio: 'Dr. Tanaka has 15+ years of academic research experience in Deep Learning and Neural Network architectures.',
+                    avatar: 'KT',
+                    courses_count: 1
+                },
+                {
+                    id: 'inst-3',
+                    name: 'Marcus Vance',
+                    email: 'marcus.vance@schoolofai.edu',
+                    bio: 'Marcus is a Data Scientist who loves mentoring students in Python and Data Engineering.',
+                    avatar: 'MV',
+                    courses_count: 1
+                }
+            ]
         };
         localStorage.setItem(DB_KEY, JSON.stringify(db));
         localStorage.setItem('default-courses-seeded', 'true');
@@ -147,6 +176,47 @@ const getDB = (): LocalDB => {
 
     // Migration / update step: ensure Chemayek, Collins, and Test Student profiles have high quality avatars and correct names
     let dbUpdated = false;
+
+    if (!db.instructors) {
+        db.instructors = [
+            {
+                id: 'inst-1',
+                name: 'Sarah Jenkins',
+                email: 'sarah.jenkins@schoolofai.edu',
+                bio: 'Sarah is an AI Researcher specializing in Natural Language Processing and Cognitive Computing.',
+                avatar: 'SJ',
+                courses_count: 2
+            },
+            {
+                id: 'inst-2',
+                name: 'Dr. Kenji Tanaka',
+                email: 'kenji.tanaka@schoolofai.edu',
+                bio: 'Dr. Tanaka has 15+ years of academic research experience in Deep Learning and Neural Network architectures.',
+                avatar: 'KT',
+                courses_count: 1
+            },
+            {
+                id: 'inst-3',
+                name: 'Marcus Vance',
+                email: 'marcus.vance@schoolofai.edu',
+                bio: 'Marcus is a Data Scientist who loves mentoring students in Python and Data Engineering.',
+                avatar: 'MV',
+                courses_count: 1
+            }
+        ];
+        dbUpdated = true;
+    }
+
+    if (!db.mails) {
+        db.mails = [];
+        dbUpdated = true;
+    } else {
+        const originalLength = db.mails.length;
+        db.mails = db.mails.filter((m: any) => m.id !== 'mail-1' && m.id !== 'mail-2');
+        if (db.mails.length !== originalLength) {
+            dbUpdated = true;
+        }
+    }
 
     // Reset legacy roles (e.g. PLUS, SPONSORED) to INDIVIDUAL (Basic) by default
     db.profiles.forEach((p: any) => {
@@ -158,47 +228,24 @@ const getDB = (): LocalDB => {
     
     const chemayekProfile = db.profiles.find(p => p.email === 'chemayekabraham289@gmail.com');
     if (chemayekProfile) {
-        if (chemayekProfile.full_name !== 'Abraham Chemayek' || !chemayekProfile.avatar_url || chemayekProfile.avatar_url.includes('dicebear')) {
+        if (chemayekProfile.full_name !== 'Abraham Chemayek') {
             chemayekProfile.full_name = 'Abraham Chemayek';
-            chemayekProfile.avatar_url = 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&q=80&w=150';
             dbUpdated = true;
         }
-    } else {
-        db.profiles.push({
-            id: 'user-chemayek',
-            full_name: 'Abraham Chemayek',
-            email: 'chemayekabraham289@gmail.com',
-            role: 'INDIVIDUAL',
-            avatar_url: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&q=80&w=150',
-            wallet_balance: 100
-        });
-        dbUpdated = true;
     }
 
     const collinsProfile = db.profiles.find(p => p.email === 'mr.collins@schoolofai.edu');
     if (collinsProfile) {
-        if (collinsProfile.full_name !== 'Mr. Collins' || !collinsProfile.avatar_url || collinsProfile.avatar_url.includes('dicebear')) {
+        if (collinsProfile.full_name !== 'Mr. Collins') {
             collinsProfile.full_name = 'Mr. Collins';
-            collinsProfile.avatar_url = 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&q=80&w=150';
             dbUpdated = true;
         }
-    } else {
-        db.profiles.push({
-            id: 'user-collins',
-            full_name: 'Mr. Collins',
-            email: 'mr.collins@schoolofai.edu',
-            role: 'ADMIN',
-            avatar_url: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&q=80&w=150',
-            wallet_balance: 100
-        });
-        dbUpdated = true;
     }
 
     const testStudentProfile = db.profiles.find(p => p.email === 'student@test.com');
     if (testStudentProfile) {
-        if (testStudentProfile.full_name !== 'Test Student' || !testStudentProfile.avatar_url || testStudentProfile.avatar_url.includes('dicebear') || testStudentProfile.avatar_url.includes('placeholder')) {
+        if (testStudentProfile.full_name !== 'Test Student') {
             testStudentProfile.full_name = 'Test Student';
-            testStudentProfile.avatar_url = 'https://i.pravatar.cc/150?u=a042581f4e29026704d';
             dbUpdated = true;
         }
     }
@@ -370,7 +417,12 @@ export const supabase = {
             const email = localStorage.getItem('mock_logged_in_email') || 'student@test.com';
             const db = getDB();
             const profile = db.profiles.find(p => p.email === email);
-            if (!profile) return { data: { user: null }, error: null };
+            if (!profile) {
+                localStorage.setItem('mock_logged_out', 'true');
+                localStorage.removeItem('mock_logged_in_email');
+                localStorage.removeItem('mock_logged_in_name');
+                return { data: { user: null }, error: null };
+            }
             return { data: { user: { id: profile.id, email: profile.email } }, error: null };
         },
         getSession: async () => {
@@ -381,29 +433,11 @@ export const supabase = {
             const db = getDB();
             let profile = db.profiles.find(p => p.email === email);
             if (!profile) {
-                const isChemayek = email === 'chemayekabraham289@gmail.com';
-                const isCollins = email === 'mr.collins@schoolofai.edu';
-                const isTestStudent = email === 'student@test.com';
-                
-                const name = isChemayek ? 'Abraham Chemayek' : isCollins ? 'Mr. Collins' : isTestStudent ? 'Test Student' : email.split('@')[0].split('.').map((s: string) => s.charAt(0).toUpperCase() + s.slice(1)).join(' ');
-                const avatar = isChemayek 
-                    ? 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&q=80&w=150' 
-                    : isCollins 
-                        ? 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&q=80&w=150' 
-                        : isTestStudent 
-                            ? 'https://i.pravatar.cc/150?u=a042581f4e29026704d' 
-                            : `https://api.dicebear.com/7.x/initials/svg?seed=${name}`;
-
-                profile = {
-                    id: email === 'student@test.com' ? 'user-1' : 'user-' + Math.random().toString(36).substr(2, 9),
-                    full_name: name,
-                    email: email,
-                    role: isCollins ? 'ADMIN' : 'INDIVIDUAL',
-                    avatar_url: avatar,
-                    wallet_balance: 100
-                };
-                db.profiles.push(profile);
-                saveDB(db);
+                // If profile doesn't exist, log them out
+                localStorage.setItem('mock_logged_out', 'true');
+                localStorage.removeItem('mock_logged_in_email');
+                localStorage.removeItem('mock_logged_in_name');
+                return { data: { session: null }, error: null };
             }
             return { data: { session: { user: { id: profile.id, email: profile.email } } }, error: null };
         },
@@ -417,31 +451,14 @@ export const supabase = {
                     const db = getDB();
                     let profile = db.profiles.find(p => p.email === email);
                     if (!profile) {
-                        const isChemayek = email === 'chemayekabraham289@gmail.com';
-                        const isCollins = email === 'mr.collins@schoolofai.edu';
-                        const isTestStudent = email === 'student@test.com';
-                        
-                        const name = isChemayek ? 'Abraham Chemayek' : isCollins ? 'Mr. Collins' : isTestStudent ? 'Test Student' : email.split('@')[0].split('.').map((s: string) => s.charAt(0).toUpperCase() + s.slice(1)).join(' ');
-                        const avatar = isChemayek 
-                            ? 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&q=80&w=150' 
-                            : isCollins 
-                                ? 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&q=80&w=150' 
-                                : isTestStudent 
-                                    ? 'https://i.pravatar.cc/150?u=a042581f4e29026704d' 
-                                    : `https://api.dicebear.com/7.x/initials/svg?seed=${name}`;
-
-                        profile = {
-                            id: email === 'student@test.com' ? 'user-1' : 'user-' + Math.random().toString(36).substr(2, 9),
-                            full_name: name,
-                            email: email,
-                            role: isCollins ? 'ADMIN' : 'INDIVIDUAL',
-                            avatar_url: avatar,
-                            wallet_balance: 100
-                        };
-                        db.profiles.push(profile);
-                        saveDB(db);
+                        // If profile doesn't exist, log them out
+                        localStorage.setItem('mock_logged_out', 'true');
+                        localStorage.removeItem('mock_logged_in_email');
+                        localStorage.removeItem('mock_logged_in_name');
+                        callback('SIGNED_OUT', null);
+                    } else {
+                        callback('SIGNED_IN', { user: { id: profile.id, email: profile.email } });
                     }
-                    callback('SIGNED_IN', { user: { id: profile.id, email: profile.email } });
                 }
             }, 100);
             return { data: { subscription: { unsubscribe: () => { } } } };
@@ -453,42 +470,8 @@ export const supabase = {
             const db = getDB();
             let profile = db.profiles.find(p => p.email === email);
             if (!profile) {
-                const isChemayek = email === 'chemayekabraham289@gmail.com';
-                const isCollins = email === 'mr.collins@schoolofai.edu';
-                const isTestStudent = email === 'student@test.com';
-                
-                const name = isChemayek ? 'Abraham Chemayek' : isCollins ? 'Mr. Collins' : isTestStudent ? 'Test Student' : email.split('@')[0].split('.').map((s: string) => s.charAt(0).toUpperCase() + s.slice(1)).join(' ');
-                const avatar = isChemayek 
-                    ? 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&q=80&w=150' 
-                    : isCollins 
-                        ? 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&q=80&w=150' 
-                        : isTestStudent 
-                            ? 'https://i.pravatar.cc/150?u=a042581f4e29026704d' 
-                            : `https://api.dicebear.com/7.x/initials/svg?seed=${name}`;
-
-                profile = {
-                    id: email === 'student@test.com' ? 'user-1' : 'user-' + Math.random().toString(36).substr(2, 9),
-                    full_name: name,
-                    email: email,
-                    role: isCollins ? 'ADMIN' : 'INDIVIDUAL',
-                    avatar_url: avatar,
-                    wallet_balance: 100
-                };
-                db.profiles.push(profile);
-                saveDB(db);
+                return { data: { user: null }, error: { message: 'Invalid credentials' } };
             } else {
-                // Ensure name and avatar are upgraded if they are old formats
-                const isChemayek = email === 'chemayekabraham289@gmail.com';
-                const isCollins = email === 'mr.collins@schoolofai.edu';
-                if (isChemayek && (profile.full_name !== 'Abraham Chemayek' || !profile.avatar_url || profile.avatar_url.includes('dicebear'))) {
-                    profile.full_name = 'Abraham Chemayek';
-                    profile.avatar_url = 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&q=80&w=150';
-                    saveDB(db);
-                } else if (isCollins && (profile.full_name !== 'Mr. Collins' || !profile.avatar_url || profile.avatar_url.includes('dicebear'))) {
-                    profile.full_name = 'Mr. Collins';
-                    profile.avatar_url = 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&q=80&w=150';
-                    saveDB(db);
-                }
                 localStorage.setItem('mock_logged_in_name', profile.full_name);
             }
             window.dispatchEvent(new Event('profile-update'));
@@ -528,21 +511,47 @@ export const supabase = {
                 db.profiles.push(profile);
                 saveDB(db);
             } else {
-                if (isChemayek && (profile.full_name !== 'Abraham Chemayek' || !profile.avatar_url || profile.avatar_url.includes('dicebear'))) {
-                    profile.full_name = 'Abraham Chemayek';
-                    profile.avatar_url = 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&q=80&w=150';
-                    saveDB(db);
-                } else if (isCollins && (profile.full_name !== 'Mr. Collins' || !profile.avatar_url || profile.avatar_url.includes('dicebear'))) {
-                    profile.full_name = 'Mr. Collins';
-                    profile.avatar_url = 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&q=80&w=150';
-                    saveDB(db);
-                }
+                localStorage.setItem('mock_logged_in_name', profile.full_name);
             }
             window.dispatchEvent(new Event('profile-update'));
             return { data: { session: { user: { id: profile.id, email } }, user: { id: profile.id, email } }, error: null };
         },
-        signInWithOAuth: async ({ provider }: any) => {
+        signInWithOAuth: async ({ provider, options }: any) => {
             localStorage.removeItem('mock_logged_out');
+            
+            if (provider === 'google') {
+                const mockEmail = 'student@gmail.com';
+                const mockName = 'Google User';
+                
+                let db = getDB();
+                let profile = db.profiles.find((p: any) => p.email === mockEmail);
+                if (!profile) {
+                    profile = {
+                        id: 'google-user-' + Date.now(),
+                        email: mockEmail,
+                        full_name: mockName,
+                        role: 'INDIVIDUAL',
+                        avatar_url: 'https://ui-avatars.com/api/?name=Google+User&background=4285F4&color=fff',
+                        wallet_balance: 0,
+                        skills: []
+                    };
+                    db.profiles.push(profile);
+                    saveDB(db);
+                }
+                
+                localStorage.setItem('mock_logged_in_email', mockEmail);
+                localStorage.setItem('mock_logged_in_name', mockName);
+                window.dispatchEvent(new Event('profile-update'));
+
+                setTimeout(() => {
+                    if (options?.redirectTo) {
+                        window.location.href = options.redirectTo;
+                    } else {
+                        window.location.href = '/dashboard';
+                    }
+                }, 600);
+            }
+
             return { data: { provider, url: '' }, error: null };
         },
         signOut: async () => {
