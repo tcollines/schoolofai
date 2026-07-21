@@ -125,7 +125,7 @@ function App() {
         
         {/* Admin Route */}
         <Route path="/admin/*" element={
-             <AdminLayout onExit={() => window.location.href = '/dashboard'} />
+             <AdminLayout onExit={() => window.location.href = '/'} />
         } />
 
         {/* Student Routes wrapper */}

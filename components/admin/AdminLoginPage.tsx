@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Mail, Lock, KeyRound, ShieldAlert, ArrowLeft, Loader2, Info } from 'lucide-react';
+import { Mail, Lock, ShieldAlert, ArrowLeft, Loader2, KeyRound } from 'lucide-react';
+import { supabaseClient } from '../../src/lib/supabaseClient';
 
 interface AdminLoginPageProps {
     onLoginSuccess: () => void;
@@ -9,7 +10,6 @@ interface AdminLoginPageProps {
 const AdminLoginPage: React.FC<AdminLoginPageProps> = ({ onLoginSuccess, onBackToStudentPortal }) => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
-    const [passcode, setPasscode] = useState('');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
@@ -18,27 +18,14 @@ const AdminLoginPage: React.FC<AdminLoginPageProps> = ({ onLoginSuccess, onBackT
         setLoading(true);
         setError(null);
 
-        // Simulate admin verification delay
-        setTimeout(() => {
-            // Distinct administrative rules: Email + Password + Security Passcode
-            const isValidEmail = email.trim().toLowerCase() === 'admin@welile.com' || email.trim().toLowerCase() === 'admin@test.com';
-            const isValidPassword = password === 'adminpassword' || password === 'admin';
-            const isValidPasscode = passcode === 'admin123' || passcode === 'WELILE_ADMIN_2026';
+        try {
+            const { error: signInError } = await supabaseClient.auth.signInWithPassword({
+                email,
+                password
+            });
 
-            if (!isValidEmail) {
-                setError('Invalid Administrative Email address.');
-                setLoading(false);
-                return;
-            }
-
-            if (!isValidPassword) {
-                setError('Incorrect password.');
-                setLoading(false);
-                return;
-            }
-
-            if (!isValidPasscode) {
-                setError('Incorrect Security Passcode. Access denied.');
+            if (signInError) {
+                setError(signInError.message);
                 setLoading(false);
                 return;
             }
@@ -47,7 +34,10 @@ const AdminLoginPage: React.FC<AdminLoginPageProps> = ({ onLoginSuccess, onBackT
             localStorage.setItem('admin-session', 'true');
             setLoading(false);
             onLoginSuccess();
-        }, 1200);
+        } catch (err: any) {
+            setError(err.message || 'An unexpected error occurred');
+            setLoading(false);
+        }
     };
 
     return (
@@ -78,21 +68,7 @@ const AdminLoginPage: React.FC<AdminLoginPageProps> = ({ onLoginSuccess, onBackT
                         <p className="text-slate-400 text-xs mt-1.5 uppercase tracking-wider font-semibold">Administrative Access Portal</p>
                     </div>
 
-                    {/* Hint / Demo Credentials Box */}
-                    <div className="mb-6 bg-slate-950/60 rounded-2xl border border-slate-800/50 p-4 space-y-2">
-                        <div className="flex items-center gap-2 text-violet-400">
-                            <Info size={14} />
-                            <span className="text-[11px] font-bold uppercase tracking-wider">Demo Credentials</span>
-                        </div>
-                        <div className="grid grid-cols-2 gap-x-2 gap-y-1 text-xs text-slate-400">
-                            <span className="font-semibold text-slate-300">Admin Email:</span>
-                            <code className="text-violet-300">admin@welile.com</code>
-                            <span className="font-semibold text-slate-300">Password:</span>
-                            <code className="text-violet-300">adminpassword</code>
-                            <span className="font-semibold text-slate-300">Security Passcode:</span>
-                            <code className="text-violet-300">admin123</code>
-                        </div>
-                    </div>
+
 
                     {error && (
                         <div className="mb-6 bg-red-950/20 border border-red-800/40 text-red-300 p-3.5 rounded-2xl text-xs flex gap-2.5 items-start">
@@ -112,7 +88,7 @@ const AdminLoginPage: React.FC<AdminLoginPageProps> = ({ onLoginSuccess, onBackT
                                     required
                                     value={email}
                                     onChange={(e) => setEmail(e.target.value)}
-                                    placeholder="admin@welile.com"
+                                    placeholder="admin@example.com"
                                     className="w-full bg-slate-950/50 border border-slate-800 hover:border-slate-700 focus:border-violet-500 text-white pl-11 pr-4 py-3 rounded-2xl outline-none transition-all text-sm"
                                 />
                             </div>
@@ -134,25 +110,7 @@ const AdminLoginPage: React.FC<AdminLoginPageProps> = ({ onLoginSuccess, onBackT
                             </div>
                         </div>
 
-                        {/* Passcode Input (Distinct Rule check) */}
-                        <div className="space-y-1.5">
-                            <div className="flex justify-between items-center">
-                                <label className="text-xs font-bold text-slate-300 uppercase tracking-wider">Security Passcode</label>
-                                <span className="text-[10px] text-violet-400 font-bold bg-violet-950/40 px-1.5 py-0.5 rounded">REQUIRED</span>
-                            </div>
-                            <div className="relative">
-                                <KeyRound size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500" />
-                                <input
-                                    type="password"
-                                    required
-                                    value={passcode}
-                                    onChange={(e) => setPasscode(e.target.value)}
-                                    placeholder="Secret Admin Key"
-                                    className="w-full bg-slate-950/50 border border-slate-800 hover:border-slate-700 focus:border-violet-500 text-white pl-11 pr-4 py-3 rounded-2xl outline-none transition-all text-sm font-mono tracking-widest"
-                                />
-                            </div>
-                            <p className="text-[10px] text-slate-500 mt-1">Different from ordinary student login authentication.</p>
-                        </div>
+
 
                         {/* Submit Button */}
                         <button

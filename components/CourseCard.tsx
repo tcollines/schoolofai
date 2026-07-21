@@ -42,16 +42,22 @@ const CourseCard: React.FC<CourseCardProps> = ({ course, onClick }) => {
     >
       {/* Course Image */}
       <div className="relative h-48 overflow-hidden">
-        <img
-          src={course.image}
-          alt={course.title}
-          className="w-full h-full object-cover transition-transform duration-500"
-          style={{
-              objectPosition: `${course.imagePositionX ?? 50}% ${course.imagePositionY ?? 50}%`,
-              transform: `scale(${course.imageScale ?? 1})`,
-              transformOrigin: `${course.imagePositionX ?? 50}% ${course.imagePositionY ?? 50}%`
-          }}
-        />
+        {course.image ? (
+          <img
+            src={course.image}
+            alt={course.title}
+            className="w-full h-full object-cover transition-transform duration-500"
+            style={{
+                objectPosition: `${course.imagePositionX ?? 50}% ${course.imagePositionY ?? 50}%`,
+                transform: `scale(${course.imageScale ?? 1})`,
+                transformOrigin: `${course.imagePositionX ?? 50}% ${course.imagePositionY ?? 50}%`
+            }}
+          />
+        ) : (
+          <div className="w-full h-full bg-gradient-to-br from-violet-500 to-purple-700 flex items-center justify-center">
+            <span className="text-white/80 font-bold text-5xl">{course.title.charAt(0).toUpperCase()}</span>
+          </div>
+        )}
         <div className="absolute top-4 right-4">
           <span className={`px-3 py-1 rounded-full text-xs font-bold ${getStatusColor(course.status)}`}>
             {getStatusText(course.status)}

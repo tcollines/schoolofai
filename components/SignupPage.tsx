@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { supabase } from '../src/lib/supabase';
-import { ArrowLeft, Mail, Lock, User, Loader2, X } from 'lucide-react';
+import { ArrowLeft, Mail, Lock, User, Loader2, X, Eye, EyeOff, CheckCircle } from 'lucide-react';
 
 interface SignupPageProps {
     onSignup: () => void;
@@ -9,15 +9,26 @@ interface SignupPageProps {
 }
 
 const SignupPage: React.FC<SignupPageProps> = ({ onSignup, onNavigateToLogin, onBack }) => {
-    const [fullName, setFullName] = useState('');
+    const [firstName, setFirstName] = useState('');
+    const [lastName, setLastName] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [confirmPassword, setConfirmPassword] = useState('');
+    const [showPassword, setShowPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [showGoogleChooser, setShowGoogleChooser] = useState(false);
+    const [isSubmitted, setIsSubmitted] = useState(false);
 
     const handleEmailSignup = async (e: React.FormEvent) => {
         e.preventDefault();
+        
+        if (password !== confirmPassword) {
+            setError("Passwords do not match.");
+            return;
+        }
+
         setLoading(true);
         setError(null);
 
@@ -27,23 +38,17 @@ const SignupPage: React.FC<SignupPageProps> = ({ onSignup, onNavigateToLogin, on
                 password,
                 options: {
                     data: {
-                        full_name: fullName,
+                        full_name: `${firstName} ${lastName}`.trim(),
                     },
                 },
             });
 
             if (signUpError) throw signUpError;
 
-            // If auto-confirm is on, we can proceed. If not, we might check for session.
             if (data.session) {
                 onSignup();
             } else {
-                // If email confirmation is required, Supabase returns user but no session usually.
-                // For now, let's assume we can proceed or show a "Check email" message.
-                // But the prop is onSignup(), which implies immediate login. 
-                // Let's call it and let the App handle logic, or show a message.
-                // Actually, typically we want to auto-login.
-                onSignup();
+                setIsSubmitted(true);
             }
 
         } catch (err: any) {
@@ -76,6 +81,29 @@ const SignupPage: React.FC<SignupPageProps> = ({ onSignup, onNavigateToLogin, on
             setLoading(false);
         }
     };
+
+    if (isSubmitted) {
+        return (
+            <div className="min-h-screen bg-gray-50 flex items-center justify-center p-6">
+                <div className="max-w-md w-full bg-white rounded-2xl shadow-xl border border-gray-100 p-8 text-center space-y-6">
+                    <div className="w-16 h-16 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner">
+                        <CheckCircle size={32} />
+                    </div>
+                    <h2 className="text-3xl font-bold text-gray-900">Check your email</h2>
+                    <p className="text-gray-600 text-base leading-relaxed">
+                        We've sent a confirmation link to <span className="font-semibold text-gray-900">{email}</span>. 
+                        Please click the link to verify your account and complete the signup process.
+                    </p>
+                    <button
+                        onClick={onNavigateToLogin}
+                        className="mt-8 w-full flex justify-center py-3.5 px-4 border border-transparent rounded-xl shadow-md text-sm font-bold text-white bg-violet-600 hover:bg-violet-700 transition-colors transform hover:-translate-y-0.5"
+                    >
+                        Return to Login
+                    </button>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="min-h-screen bg-white flex">
@@ -124,20 +152,38 @@ const SignupPage: React.FC<SignupPageProps> = ({ onSignup, onNavigateToLogin, on
                     )}
 
                     <form onSubmit={handleEmailSignup} className="space-y-6">
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
-                            <div className="relative">
-                                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
-                                    <User className="w-5 h-5" />
+                        <div className="grid grid-cols-2 gap-4">
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">First Name</label>
+                                <div className="relative">
+                                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
+                                        <User className="w-5 h-5" />
+                                    </div>
+                                    <input
+                                        type="text"
+                                        required
+                                        value={firstName}
+                                        onChange={(e) => setFirstName(e.target.value)}
+                                        className="block w-full pl-10 pr-3 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-violet-500 focus:border-transparent transition-all outline-none"
+                                        placeholder="John"
+                                    />
                                 </div>
-                                <input
-                                    type="text"
-                                    required
-                                    value={fullName}
-                                    onChange={(e) => setFullName(e.target.value)}
-                                    className="block w-full pl-10 pr-3 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-violet-500 focus:border-transparent transition-all outline-none"
-                                    placeholder="John Doe"
-                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Last Name</label>
+                                <div className="relative">
+                                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
+                                        <User className="w-5 h-5" />
+                                    </div>
+                                    <input
+                                        type="text"
+                                        required
+                                        value={lastName}
+                                        onChange={(e) => setLastName(e.target.value)}
+                                        className="block w-full pl-10 pr-3 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-violet-500 focus:border-transparent transition-all outline-none"
+                                        placeholder="Doe"
+                                    />
+                                </div>
                             </div>
                         </div>
 
@@ -165,16 +211,48 @@ const SignupPage: React.FC<SignupPageProps> = ({ onSignup, onNavigateToLogin, on
                                     <Lock className="w-5 h-5" />
                                 </div>
                                 <input
-                                    type="password"
+                                    type={showPassword ? 'text' : 'password'}
                                     required
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
-                                    className="block w-full pl-10 pr-3 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-violet-500 focus:border-transparent transition-all outline-none"
+                                    className="block w-full pl-10 pr-10 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-violet-500 focus:border-transparent transition-all outline-none"
                                     placeholder="••••••••"
                                     minLength={6}
                                 />
+                                <button
+                                    type="button"
+                                    onClick={() => setShowPassword(!showPassword)}
+                                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 transition-colors"
+                                >
+                                    {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                                </button>
                             </div>
                             <p className="mt-1 text-xs text-gray-500">Must be at least 6 characters</p>
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Confirm Password</label>
+                            <div className="relative">
+                                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
+                                    <Lock className="w-5 h-5" />
+                                </div>
+                                <input
+                                    type={showConfirmPassword ? 'text' : 'password'}
+                                    required
+                                    value={confirmPassword}
+                                    onChange={(e) => setConfirmPassword(e.target.value)}
+                                    className="block w-full pl-10 pr-10 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-violet-500 focus:border-transparent transition-all outline-none"
+                                    placeholder="••••••••"
+                                    minLength={6}
+                                />
+                                <button
+                                    type="button"
+                                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 transition-colors"
+                                >
+                                    {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                                </button>
+                            </div>
                         </div>
 
                         <button

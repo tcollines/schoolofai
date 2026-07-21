@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 import { useAdmin } from '../../src/hooks/useAdmin';
 import { Course, CourseSection, CourseModule, ModuleType } from '../../types';
-import { Plus, X, ArrowRight, ArrowLeft, Save, Video, FileText, Trash2, GripVertical, Headphones, File, HelpCircle } from 'lucide-react';
+import { Plus, X, ArrowRight, ArrowLeft, Save, Video, FileText, Trash2, GripVertical, Headphones, File, HelpCircle, Wand2, Loader2 } from 'lucide-react';
+import { generateCourseThumbnail } from '../../src/lib/gemini';
+import { supabaseClient } from '../../src/lib/supabaseClient';
 
 interface RichTextEditorProps {
     value: string;
@@ -101,6 +103,7 @@ const AdminCourses: React.FC = () => {
     const [isEditMode, setIsEditMode] = useState(false);
     const [editingCourseId, setEditingCourseId] = useState<string | null>(null);
     const [isAdjustModalOpen, setIsAdjustModalOpen] = useState(false);
+    const [isGeneratingImage, setIsGeneratingImage] = useState(false);
     
     // Wizard State
     const [step, setStep] = useState(1);
@@ -108,8 +111,61 @@ const AdminCourses: React.FC = () => {
         title: '', instructor: '', instructorEmail: '', instructorAvatar: '', duration: '', category: '', accessTier: 'FREE', image: '', sections: [], description: '', outcomes: []
     });
 
+    const [uploadingFiles, setUploadingFiles] = useState<Record<string, boolean>>({});
+
+    const handleFileUpload = async (file: File, path: string, key: string): Promise<string> => {
+        setUploadingFiles(prev => ({ ...prev, [key]: true }));
+        try {
+            const fileExt = file.name.split('.').pop();
+            const fileName = `${Math.random().toString(36).substring(2)}_${Date.now()}.${fileExt}`;
+            const filePath = `${path}/${fileName}`;
+
+            const { data, error } = await supabaseClient.storage
+                .from('course-assets')
+                .upload(filePath, file, {
+                    cacheControl: '3600',
+                    upsert: false
+                });
+
+            if (error) throw error;
+
+            const { data: { publicUrl } } = supabaseClient.storage
+                .from('course-assets')
+                .getPublicUrl(filePath);
+
+            return publicUrl;
+        } catch (error) {
+            console.error('Error uploading file:', error);
+            alert('Failed to upload file. See console for details.');
+            throw error;
+        } finally {
+            setUploadingFiles(prev => ({ ...prev, [key]: false }));
+        }
+    };
+
     const handleNext = () => setStep(s => Math.min(s + 1, 4));
     const handlePrev = () => setStep(s => Math.max(s - 1, 1));
+    
+    const handleGenerateImage = async () => {
+        if (!newCourse.title || !newCourse.description) {
+            alert('Please provide a course title and description in Step 1 first.');
+            return;
+        }
+        setIsGeneratingImage(true);
+        try {
+            const base64Image = await generateCourseThumbnail(newCourse.title, newCourse.description);
+            if (base64Image) {
+                setNewCourse({ ...newCourse, image: base64Image, imageScale: 1, imagePositionX: 50, imagePositionY: 50 });
+            } else {
+                alert('Failed to generate image. Please make sure your API key is set.');
+            }
+        } catch (error) {
+            alert('An error occurred during generation.');
+            console.error(error);
+        } finally {
+            setIsGeneratingImage(false);
+        }
+    };
     
     const addSection = () => {
         const newSection: CourseSection = {
@@ -235,7 +291,7 @@ const AdminCourses: React.FC = () => {
                 {courses.map(c => (
                     <div key={c.id} className="bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
                         <div className="h-40 bg-gray-200 relative">
-                            {c.image && (
+                            {c.image ? (
                                 <img 
                                     src={c.image} 
                                     alt={c.title} 
@@ -246,6 +302,10 @@ const AdminCourses: React.FC = () => {
                                         transformOrigin: `${c.imagePositionX ?? 50}% ${c.imagePositionY ?? 50}%`
                                     }}
                                 />
+                            ) : (
+                                <div className="w-full h-full bg-gradient-to-br from-violet-500 to-purple-700 flex items-center justify-center">
+                                    <span className="text-white/80 font-bold text-4xl">{c.title.charAt(0).toUpperCase()}</span>
+                                </div>
                             )}
                             <div className="absolute top-3 right-3 flex gap-2">
                                 {c.isDraft && (
@@ -436,7 +496,9 @@ const AdminCourses: React.FC = () => {
                                                             }}
                                                         />
                                                     ) : (
-                                                        <div className="w-full h-full flex items-center justify-center text-gray-400 text-xs">No image</div>
+                                                        <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-violet-500 to-purple-700 text-white font-bold text-2xl">
+                                                            {newCourse.title ? newCourse.title.charAt(0).toUpperCase() : 'C'}
+                                                        </div>
                                                     )}
                                                 </div>
                                                 {newCourse.image && (
@@ -451,24 +513,33 @@ const AdminCourses: React.FC = () => {
                                             </div>
                                             <div className="flex-1">
                                                 <input value={newCourse.image?.startsWith('data:') ? '' : newCourse.image} onChange={e => setNewCourse({...newCourse, image: e.target.value, imageScale: 1, imagePositionX: 50, imagePositionY: 50})} className="w-full p-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-violet-500 outline-none transition-all mb-2 text-sm text-gray-900 dark:text-white" placeholder="Paste URL or upload image..." />
-                                                <label className="cursor-pointer bg-white dark:bg-slate-850 border border-gray-200 dark:border-slate-750 hover:bg-gray-50 dark:hover:bg-slate-800 text-gray-700 dark:text-slate-200 text-sm px-4 py-2 rounded-xl font-medium flex items-center justify-center w-full transition-colors">
-                                                    <span>Browse Image File...</span>
-                                                    <input 
-                                                        type="file" 
-                                                        accept="image/*" 
-                                                        className="hidden" 
-                                                        onChange={e => {
-                                                            const file = e.target.files?.[0];
-                                                            if (file) {
-                                                                const reader = new FileReader();
-                                                                reader.onloadend = () => {
-                                                                    setNewCourse({...newCourse, image: reader.result as string, imageScale: 1, imagePositionX: 50, imagePositionY: 50});
-                                                                };
-                                                                reader.readAsDataURL(file);
-                                                            }
-                                                        }}
-                                                    />
-                                                </label>
+                                                <div className="flex gap-2 mt-2">
+                                                    <label className="cursor-pointer flex-1 bg-white dark:bg-slate-850 border border-gray-200 dark:border-slate-750 hover:bg-gray-50 dark:hover:bg-slate-800 text-gray-700 dark:text-slate-200 text-sm px-4 py-2 rounded-xl font-medium flex items-center justify-center transition-colors">
+                                                        <span>{uploadingFiles['courseCover'] ? 'Uploading...' : 'Browse File...'}</span>
+                                                        <input 
+                                                            type="file" 
+                                                            accept="image/*" 
+                                                            className="hidden" 
+                                                            onChange={e => {
+                                                                const file = e.target.files?.[0];
+                                                                if (file) {
+                                                                    handleFileUpload(file, 'covers', 'courseCover').then(url => {
+                                                                        setNewCourse({...newCourse, image: url, imageScale: 1, imagePositionX: 50, imagePositionY: 50});
+                                                                    });
+                                                                }
+                                                            }}
+                                                        />
+                                                    </label>
+                                                    <button
+                                                        type="button"
+                                                        onClick={handleGenerateImage}
+                                                        disabled={isGeneratingImage}
+                                                        className={`flex-1 bg-gradient-to-r from-violet-600 to-fuchsia-600 text-white text-sm px-4 py-2 rounded-xl font-medium flex items-center justify-center gap-2 transition-all ${isGeneratingImage ? 'opacity-70 cursor-not-allowed' : 'hover:shadow-lg hover:from-violet-700 hover:to-fuchsia-700'}`}
+                                                    >
+                                                        {isGeneratingImage ? <Loader2 size={16} className="animate-spin" /> : <Wand2 size={16} />}
+                                                        <span>{isGeneratingImage ? 'Generating...' : 'Auto-Generate'}</span>
+                                                    </button>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
@@ -604,7 +675,7 @@ const AdminCourses: React.FC = () => {
                                                                             placeholder="Paste raw MP4 URL (e.g. https://example.com/video.mp4)"
                                                                         />
                                                                         <label className="cursor-pointer bg-gray-100 dark:bg-slate-800 border border-transparent dark:border-slate-750 hover:bg-gray-200 dark:hover:bg-slate-700 text-gray-700 dark:text-slate-200 text-xs px-3 py-1.5 rounded font-medium flex items-center">
-                                                                            <span>Browse MP4...</span>
+                                                                            <span>{uploadingFiles[`lesson_${lesson.id}`] ? 'Uploading...' : 'Browse MP4...'}</span>
                                                                             <input 
                                                                                 type="file" 
                                                                                 accept="video/mp4" 
@@ -612,8 +683,9 @@ const AdminCourses: React.FC = () => {
                                                                                 onChange={e => {
                                                                                     const file = e.target.files?.[0];
                                                                                     if (file) {
-                                                                                        const url = URL.createObjectURL(file);
-                                                                                        updateLesson(section.id, lesson.id, { videoUrl: url });
+                                                                                        handleFileUpload(file, 'videos', `lesson_${lesson.id}`).then(url => {
+                                                                                            updateLesson(section.id, lesson.id, { videoUrl: url });
+                                                                                        });
                                                                                     }
                                                                                 }}
                                                                             />
@@ -632,7 +704,7 @@ const AdminCourses: React.FC = () => {
                                                                                 placeholder="Paste raw Audio URL (e.g. https://example.com/audio.mp3)"
                                                                             />
                                                                             <label className="cursor-pointer bg-gray-100 dark:bg-slate-800 border border-transparent dark:border-slate-750 hover:bg-gray-200 dark:hover:bg-slate-700 text-gray-700 dark:text-slate-200 text-xs px-3 py-1.5 rounded font-medium flex items-center">
-                                                                                <span>Browse Audio...</span>
+                                                                                <span>{uploadingFiles[`lesson_${lesson.id}`] ? 'Uploading...' : 'Browse Audio...'}</span>
                                                                                 <input 
                                                                                     type="file" 
                                                                                     accept="audio/*" 
@@ -640,8 +712,9 @@ const AdminCourses: React.FC = () => {
                                                                                     onChange={e => {
                                                                                         const file = e.target.files?.[0];
                                                                                         if (file) {
-                                                                                            const url = URL.createObjectURL(file);
-                                                                                            updateLesson(section.id, lesson.id, { audioUrl: url, fileName: file.name });
+                                                                                            handleFileUpload(file, 'audio', `lesson_${lesson.id}`).then(url => {
+                                                                                                updateLesson(section.id, lesson.id, { audioUrl: url, fileName: file.name });
+                                                                                            });
                                                                                         }
                                                                                     }}
                                                                                 />
@@ -664,7 +737,7 @@ const AdminCourses: React.FC = () => {
                                                                                 placeholder="Paste Document/File URL (e.g. https://example.com/doc.pdf)"
                                                                             />
                                                                             <label className="cursor-pointer bg-gray-100 dark:bg-slate-800 border border-transparent dark:border-slate-750 hover:bg-gray-200 dark:hover:bg-slate-700 text-gray-700 dark:text-slate-200 text-xs px-3 py-1.5 rounded font-medium flex items-center">
-                                                                                <span>Browse File...</span>
+                                                                                <span>{uploadingFiles[`lesson_${lesson.id}`] ? 'Uploading...' : 'Browse File...'}</span>
                                                                                 <input 
                                                                                     type="file" 
                                                                                     accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt" 
@@ -672,8 +745,9 @@ const AdminCourses: React.FC = () => {
                                                                                     onChange={e => {
                                                                                         const file = e.target.files?.[0];
                                                                                         if (file) {
-                                                                                            const url = URL.createObjectURL(file);
-                                                                                            updateLesson(section.id, lesson.id, { fileUrl: url, fileName: file.name });
+                                                                                            handleFileUpload(file, 'documents', `lesson_${lesson.id}`).then(url => {
+                                                                                                updateLesson(section.id, lesson.id, { fileUrl: url, fileName: file.name });
+                                                                                            });
                                                                                         }
                                                                                     }}
                                                                                 />

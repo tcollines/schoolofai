@@ -94,7 +94,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLoginClick, onSignupClick, 
             </nav>
 
             {/* Hero Section */}
-            <section className="pt-24 pb-12 overflow-hidden relative flex flex-col items-center justify-center">
+            <section className="pt-20 sm:pt-24 pb-12 overflow-hidden relative flex flex-col items-center justify-center">
                 {/* Text and Orb Container */}
                 <div className="relative w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-8 h-[500px] flex items-center justify-center">
                     {/* Background Orb */}
@@ -110,26 +110,28 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLoginClick, onSignupClick, 
                         </div>
                     </div>
 
-                    <div className="relative z-10 text-center max-w-3xl mx-auto pointer-events-none">
-                        <div className="inline-flex items-center px-3 py-1 rounded-full bg-violet-100 dark:bg-violet-900/30 text-violet-600 dark:text-violet-300 text-xs font-semibold uppercase tracking-wide mb-6">
-                            <Sparkles className="w-3 h-3 mr-2" />
+                    <div className="relative z-10 text-center max-w-3xl mx-auto pointer-events-none px-4 sm:px-6">
+                        <div className="inline-flex items-center px-3 py-1.5 rounded-full bg-violet-100/80 dark:bg-violet-900/40 text-violet-700 dark:text-violet-300 text-[10px] sm:text-xs font-bold uppercase tracking-widest mb-6 sm:mb-8 backdrop-blur-md shadow-sm border border-violet-200/50 dark:border-violet-800/50">
+                            <Sparkles className="w-3 h-3 sm:w-3.5 sm:h-3.5 mr-2" />
                             The Future of Learning
                         </div>
-                        <h1 className="text-5xl md:text-6xl font-extrabold tracking-tight text-gray-900 dark:text-white mb-6 leading-tight">
-                            Learn faster using <br />
-                            <span className="text-transparent bg-clip-text bg-gradient-to-r from-violet-600 to-indigo-600 dark:from-violet-400 dark:to-indigo-400">Artificial Intelligence</span>
+                        <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold tracking-tight text-gray-900 dark:text-white mb-6 sm:mb-8 leading-[1.1] md:leading-[1.15]">
+                            Learn faster using <br className="hidden sm:block" />
+                            <span className="block sm:inline text-transparent bg-clip-text bg-gradient-to-r from-violet-600 to-indigo-600 dark:from-violet-400 dark:to-indigo-400 drop-shadow-sm mt-1 sm:mt-0">
+                                Artificial Intelligence
+                            </span>
                         </h1>
-                        <p className="text-xl text-gray-500 dark:text-gray-300 mb-10 leading-relaxed">
+                        <p className="text-base sm:text-lg md:text-xl text-gray-700 dark:text-gray-300 mb-8 sm:mb-10 leading-relaxed max-w-2xl mx-auto drop-shadow-md sm:drop-shadow-none bg-white/40 dark:bg-slate-900/40 sm:bg-transparent sm:dark:bg-transparent backdrop-blur-sm sm:backdrop-blur-none p-4 sm:p-0 rounded-2xl border border-white/20 sm:border-none">
                             Welile School creates personalized video courses tailored to your specific goals.
                             Skip the fluff and focus on what matters with an AI tutor that adapts to you.
                         </p>
-                        <div className="flex flex-col sm:flex-row justify-center gap-4 pointer-events-auto">
+                        <div className="flex flex-col sm:flex-row justify-center gap-3 sm:gap-4 pointer-events-auto w-full sm:w-auto px-2 sm:px-0">
                             <button
                                 onClick={onGetStarted}
-                                className="px-8 py-4 bg-black dark:bg-white text-white dark:text-slate-950 rounded-full font-semibold text-lg hover:bg-gray-800 dark:hover:bg-slate-100 transition-all shadow-lg hover:shadow-xl flex items-center justify-center group"
+                                className="w-full sm:w-auto px-8 py-4 bg-gray-900 dark:bg-white text-white dark:text-slate-950 rounded-full font-bold text-[15px] sm:text-lg hover:bg-gray-800 dark:hover:bg-slate-100 transition-all shadow-xl hover:shadow-2xl hover:-translate-y-0.5 flex items-center justify-center group"
                             >
                                 Start Learning Now
-                                <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                                <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1.5 transition-transform" />
                             </button>
                         </div>
                     </div>
