@@ -131,8 +131,6 @@ function App() {
                     onGetStarted={() => window.location.href = '/signup'}
                     onLoginClick={() => window.location.href = '/login'}
                     onSignupClick={() => window.location.href = '/signup'}
-                    onAdminConsoleClick={() => window.location.href = '/admin'}
-                    onInstructorConsoleClick={() => window.location.href = '/instructor'}
                 />
             ) : <Navigate to="/dashboard" replace />
         } />
