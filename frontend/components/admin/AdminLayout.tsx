@@ -10,6 +10,7 @@ import AdminExams from './AdminExams';
 import AdminEvents from './AdminEvents';
 import AdminLoginPage from './AdminLoginPage';
 import AdminMails from './AdminMails';
+import { AdminAttendance } from './AdminAttendance';
 import { mysqlClient } from '../../src/lib/mysqlClient';
 
 interface AdminLayoutProps {
@@ -193,11 +194,13 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ onExit, isInstructor, isAdmin
     const menuItems = isInstructor 
         ? ([
             { id: 'courses', label: 'Course Setup', icon: BookOpen },
+            { id: 'attendance', label: 'Attendance', icon: ClipboardList },
             { id: 'exams', label: 'Exam Setup', icon: FileQuestion },
             { id: 'events', label: 'Ongoing Events', icon: Calendar },
           ] as const)
         : ([
             { id: 'enrollments', label: 'Enrollments', icon: Users },
+            { id: 'attendance', label: 'Attendance', icon: ClipboardList },
             { id: 'courses', label: 'Course Setup', icon: BookOpen },
             { id: 'instructors', label: 'Instructors', icon: UserCheck },
             { id: 'exams', label: 'Exam Setup', icon: FileQuestion },
@@ -210,6 +213,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ onExit, isInstructor, isAdmin
             <Routes>
                 <Route path="/" element={<Navigate to={isInstructor ? "courses" : "enrollments"} replace />} />
                 {!isInstructor && <Route path="enrollments" element={<AdminEnrollments />} />}
+                <Route path="attendance" element={<AdminAttendance isInstructor={isInstructor} />} />
                 <Route path="courses" element={<AdminCourses isInstructor={isInstructor} />} />
                 {!isInstructor && <Route path="instructors" element={<AdminInstructors />} />}
                 <Route path="exams" element={<AdminExams isInstructor={isInstructor} />} />

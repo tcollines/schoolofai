@@ -155,6 +155,19 @@ class QueryBuilder {
                     return { data, error: res.ok ? null : { message: data.error } };
                 }
 
+                if (this.table === 'attendance') {
+                    let url = `${baseUrl}/attendance`;
+                    const params: string[] = [];
+                    if (this.filters.course_id) params.push(`courseId=${encodeURIComponent(this.filters.course_id)}`);
+                    if (this.filters.date) params.push(`date=${encodeURIComponent(this.filters.date)}`);
+                    if (this.filters.user_id) params.push(`userId=${encodeURIComponent(this.filters.user_id)}`);
+                    if (params.length > 0) url += `?${params.join('&')}`;
+                    
+                    const res = await fetch(url, { headers });
+                    const data = await res.json();
+                    return { data, error: res.ok ? null : { message: data.error } };
+                }
+
                 if (this.table === 'events') {
                     const res = await fetch(`${baseUrl}/events`, { headers });
                     const data = await res.json();
@@ -196,12 +209,13 @@ class QueryBuilder {
                 const singlePayload = Array.isArray(this.payload) ? this.payload[0] : this.payload;
                 let url = '';
                 
-                if (this.table === 'courses') url = `${baseUrl}/courses`;
+                 if (this.table === 'courses') url = `${baseUrl}/courses`;
                 else if (this.table === 'profiles') url = `${baseUrl}/auth/signup`;
                 else if (this.table === 'enrollments') url = `${baseUrl}/enrollments`;
                 else if (this.table === 'events') url = `${baseUrl}/events`;
                 else if (this.table === 'mails') url = `${baseUrl}/mails`;
                 else if (this.table === 'instructors') url = `${baseUrl}/instructors`;
+                else if (this.table === 'attendance') url = `${baseUrl}/attendance`;
 
                 if (!url) throw new Error(`Unsupported insert table: ${this.table}`);
 

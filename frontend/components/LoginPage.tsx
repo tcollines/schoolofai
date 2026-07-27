@@ -30,6 +30,15 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onNavigateToSignup, onBa
     const [showPassword, setShowPassword] = useState(false);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [rememberMe, setRememberMe] = useState(false);
+
+    useEffect(() => {
+        const savedEmail = localStorage.getItem('remember_me_email');
+        if (savedEmail) {
+            setEmail(savedEmail);
+            setRememberMe(true);
+        }
+    }, []);
 
     const [step, setStep] = useState<'login' | 'mfa' | 'forgot-email' | 'forgot-code' | 'forgot-newpass' | 'google-verify'>('login');
     const [mfaCode, setMfaCode] = useState('');
@@ -216,6 +225,12 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onNavigateToSignup, onBa
 
             if (error) {
                 throw new Error(error.message || 'Invalid email or password');
+            }
+
+            if (rememberMe) {
+                localStorage.setItem('remember_me_email', email.trim().toLowerCase());
+            } else {
+                localStorage.removeItem('remember_me_email');
             }
 
             setLoading(false);
@@ -480,8 +495,20 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onNavigateToSignup, onBa
                                     </button>
                                 </div>
 
-                                {/* Action row matching mockup layout */}
+                                {/* Remember me & Forgot Password */}
                                 <div className="flex items-center justify-between pt-4">
+                                    <label className="flex items-center space-x-2 cursor-pointer group">
+                                        <input
+                                            type="checkbox"
+                                            checked={rememberMe}
+                                            onChange={(e) => setRememberMe(e.target.checked)}
+                                            className="w-4 h-4 rounded border-gray-300 dark:border-slate-700 text-violet-600 focus:ring-violet-500 focus:ring-offset-0 cursor-pointer dark:bg-slate-850 transition-colors"
+                                        />
+                                        <span className="text-xs font-semibold text-gray-400 dark:text-slate-400 group-hover:text-gray-600 dark:group-hover:text-slate-300 transition-colors select-none">
+                                            Remember me
+                                        </span>
+                                    </label>
+                                    
                                     <button
                                         type="button"
                                         onClick={() => { setForgotEmail(email); setStep('forgot-email'); setError(null); }}
@@ -489,7 +516,10 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onNavigateToSignup, onBa
                                     >
                                         Forgot Password?
                                     </button>
-                                    
+                                </div>
+                                
+                                {/* Action row matching mockup layout */}
+                                <div className="flex items-center justify-end pt-4">
                                     <button
                                         type="submit"
                                         disabled={loading}

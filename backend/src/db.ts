@@ -106,6 +106,22 @@ export const checkDBConnection = async () => {
         // Ensure master admin has ADMIN role
         await connection.query("UPDATE profiles SET role = 'ADMIN' WHERE email = 'chemayekabraham289@gmail.com'");
 
+        // Create attendance table if missing
+        await connection.query(`
+            CREATE TABLE IF NOT EXISTS attendance (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                user_id VARCHAR(50) NOT NULL,
+                course_id VARCHAR(50) NOT NULL,
+                status ENUM('PRESENT', 'ABSENT', 'LATE') DEFAULT 'PRESENT',
+                date DATE NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (user_id) REFERENCES profiles(id) ON DELETE CASCADE,
+                FOREIGN KEY (course_id) REFERENCES courses(id) ON DELETE CASCADE,
+                UNIQUE KEY unique_user_course_date (user_id, course_id, date)
+            )
+        `);
+        logger.info('Attendance database table verified/created.');
+
         connection.release();
     } catch (error) {
         logger.error('Database connection failed:', error);
