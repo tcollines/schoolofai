@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { supabase } from '../src/lib/supabase';
+import { supabase } from '../src/lib/mysqlClient';
 import Orb from './Orb';
 import {
     Bot,

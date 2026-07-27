@@ -3,7 +3,7 @@ import { useAdmin } from '../../src/hooks/useAdmin';
 import { Course, CourseSection, CourseModule, ModuleType } from '../../types';
 import { Plus, X, ArrowRight, ArrowLeft, Save, Video, FileText, Trash2, GripVertical, Headphones, File, HelpCircle, Wand2, Loader2 } from 'lucide-react';
 import { generateCourseThumbnail } from '../../src/lib/gemini';
-import { supabaseClient } from '../../src/lib/supabaseClient';
+import { supabaseClient } from '../../src/lib/mysqlClient';
 
 interface RichTextEditorProps {
     value: string;

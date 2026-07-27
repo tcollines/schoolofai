@@ -16,7 +16,7 @@ import SettingsPage from './components/SettingsPage';
 import NotificationsPage from './components/NotificationsPage';
 import EventsPage from './components/EventsPage';
 import DiscussionsPage from './components/DiscussionsPage';
-import { supabase } from './src/lib/supabase';
+import { supabase } from './src/lib/mysqlClient';
 import { useCourses } from './src/hooks/useCourses';
 import { useProfile } from './src/hooks/useProfile';
 import { UserRole } from './types';

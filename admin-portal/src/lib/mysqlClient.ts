@@ -436,5 +436,33 @@ export const mysqlClient = {
             window.dispatchEvent(new Event('profile-update'));
             return { error: null };
         }
+    },
+    storage: {
+        from: (bucketName: string) => ({
+            upload: async (filePath: string, file: File, options?: any) => {
+                try {
+                    const dataUrl = await new Promise<string>((resolve, reject) => {
+                        const reader = new FileReader();
+                        reader.onload = () => resolve(reader.result as string);
+                        reader.onerror = reject;
+                        reader.readAsDataURL(file);
+                    });
+                    if (!(window as any).__mock_storage__) {
+                        (window as any).__mock_storage__ = {};
+                    }
+                    (window as any).__mock_storage__[filePath] = dataUrl;
+                    return { data: { path: filePath }, error: null };
+                } catch (err: any) {
+                    return { data: null, error: err };
+                }
+            },
+            getPublicUrl: (filePath: string) => {
+                const url = (window as any).__mock_storage__?.[filePath] || '';
+                return { data: { publicUrl: url } };
+            }
+        })
     }
 };
+
+export const supabase = mysqlClient;
+export const supabaseClient = mysqlClient;
