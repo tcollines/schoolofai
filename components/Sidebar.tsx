@@ -48,11 +48,7 @@ const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, isOpen, onCl
       `}>
         <div className="p-8 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            {/* Logo Placeholder */}
-            <div className="w-8 h-8 bg-gray-900 dark:bg-white rounded-full flex items-center justify-center">
-              <div className="w-4 h-4 bg-white dark:bg-black rounded-full"></div>
-            </div>
-            <span className="text-xl font-bold tracking-tight text-gray-900 dark:text-white">Welile<span className="text-welile-purple">School</span></span>
+            <img src="/schoolofai-logo.png" alt="School of AI Logo" className="h-16 object-contain" />
           </div>
           {/* Close button for mobile */}
           <button

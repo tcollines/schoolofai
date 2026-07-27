@@ -100,10 +100,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLoginClick, onSignupClick, 
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="flex justify-between items-center h-16">
                         <div className="flex items-center">
-                            <div className="w-8 h-8 bg-black dark:bg-white rounded-full flex items-center justify-center mr-2 transition-colors">
-                                <div className="w-3 h-3 bg-white dark:bg-black rounded-full transition-colors"></div>
-                            </div>
-                            <span className="text-xl font-bold tracking-tight text-slate-900 dark:text-white transition-colors">Welile<span className="text-violet-600 dark:text-violet-400">School</span></span>
+                            <img src="/schoolofai-logo.png" alt="School of AI Logo" className="h-16 object-contain" />
                         </div>
                         <div className="hidden md:flex items-center space-x-8">
                             <a href="#features" className="text-gray-600 dark:text-slate-300 hover:text-gray-900 dark:hover:text-white font-medium text-sm transition-colors">Features</a>
@@ -573,10 +570,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLoginClick, onSignupClick, 
             <footer className="bg-white py-12 border-t border-gray-100">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row justify-between items-center">
                     <div className="flex items-center mb-4 md:mb-0">
-                        <div className="w-6 h-6 bg-black rounded-full flex items-center justify-center mr-2">
-                            <div className="w-2 h-2 bg-white rounded-full"></div>
-                        </div>
-                        <span className="font-bold tracking-tight text-gray-900">Welile<span className="text-violet-600">School</span></span>
+                        <img src="/schoolofai-logo.png" alt="School of AI Logo" className="h-12 object-contain" />
                     </div>
                     <div className="flex gap-6 items-center">
                         <button onClick={onAdminConsoleClick} className="text-sm font-medium text-gray-500 hover:text-violet-600">Admin Console</button>
