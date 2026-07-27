@@ -545,7 +545,7 @@ const SignupPage: React.FC<SignupPageProps> = ({ onSignup, onNavigateToLogin, on
 
                                 <button
                                     type="submit"
-                                    disabled={loading || password !== confirmPassword}
+                                    disabled={loading}
                                     className="w-full py-3 bg-gradient-to-r from-violet-600 to-indigo-650 hover:from-violet-750 hover:to-indigo-750 text-white rounded-full text-xs font-extrabold tracking-widest uppercase shadow-md hover:shadow-lg transition-all duration-200 cursor-pointer disabled:opacity-50"
                                 >
                                     {loading ? 'Completing...' : 'Complete Registration'}
