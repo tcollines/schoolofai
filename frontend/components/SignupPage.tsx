@@ -28,6 +28,88 @@ const validatePassword = (password: string): string | null => {
     return null;
 };
 
+const checkPasswordCriteria = (pass: string) => {
+    return {
+        length: pass.length >= 6 && pass.length <= 10,
+        uppercase: /[A-Z]/.test(pass),
+        lowercase: /[a-z]/.test(pass),
+        number: /[0-9]/.test(pass),
+        symbol: /[^A-Za-z0-9]/.test(pass)
+    };
+};
+
+const PasswordCriteriaGuide: React.FC<{ password: string }> = ({ password }) => {
+    const criteria = checkPasswordCriteria(password);
+    const metCount = Object.values(criteria).filter(Boolean).length;
+    
+    let strengthLabel = "Weak password. Must contain:";
+    let barColor = "bg-rose-500";
+    let textColor = "text-rose-600 dark:text-rose-455";
+    let progressWidth = "w-1/5";
+    
+    if (metCount === 5) {
+        strengthLabel = "Eligible password!";
+        barColor = "bg-emerald-500";
+        textColor = "text-emerald-600 dark:text-emerald-455";
+        progressWidth = "w-full";
+    } else if (metCount >= 3) {
+        strengthLabel = "Moderate password. Must contain:";
+        barColor = "bg-amber-500";
+        textColor = "text-amber-600 dark:text-amber-455";
+        progressWidth = "w-3/5";
+    } else if (metCount === 2) {
+        progressWidth = "w-2/5";
+    }
+
+    const checklist = [
+        { key: 'length', label: 'Between 6 and 10 characters' },
+        { key: 'uppercase', label: 'At least 1 uppercase letter' },
+        { key: 'lowercase', label: 'At least 1 lowercase letter' },
+        { key: 'number', label: 'At least 1 number' },
+        { key: 'symbol', label: 'At least 1 symbol (e.g. @, $, !, %)' }
+    ];
+
+    return (
+        <div className="space-y-3 p-4 bg-slate-50 dark:bg-slate-800/40 rounded-2xl border border-gray-150 dark:border-slate-800/60 transition-all text-left mt-3">
+            {/* Strength Bar */}
+            <div className="space-y-1.5">
+                <div className="flex justify-between items-center">
+                    <span className={`text-[11px] font-bold uppercase tracking-wider ${textColor}`}>
+                        {strengthLabel}
+                    </span>
+                    <span className="text-[10px] text-gray-400 font-semibold">{metCount}/5</span>
+                </div>
+                <div className="h-1.5 w-full bg-gray-200 dark:bg-slate-700/50 rounded-full overflow-hidden">
+                    <div className={`h-full ${barColor} ${progressWidth} transition-all duration-300`} />
+                </div>
+            </div>
+
+            {/* Checklist */}
+            <ul className="space-y-1.5 text-xs font-semibold">
+                {checklist.map((item) => {
+                    const isMet = criteria[item.key as keyof typeof criteria];
+                    return (
+                        <li key={item.key} className="flex items-center gap-2">
+                            {isMet ? (
+                                <span className="flex items-center justify-center w-4 h-4 bg-emerald-100 dark:bg-emerald-950/30 text-emerald-600 dark:text-emerald-400 rounded-full text-[9px]">
+                                    ✓
+                                </span>
+                            ) : (
+                                <span className="flex items-center justify-center w-4 h-4 bg-gray-100 dark:bg-slate-800 text-gray-400 dark:text-slate-550 rounded-full text-[8px]">
+                                    ✕
+                                </span>
+                            )}
+                            <span className={isMet ? "text-gray-650 dark:text-slate-350" : "text-gray-400 dark:text-slate-550"}>
+                                {item.label}
+                            </span>
+                        </li>
+                    );
+                })}
+            </ul>
+        </div>
+    );
+};
+
 const SignupPage: React.FC<SignupPageProps> = ({ onSignup, onNavigateToLogin, onBack }) => {
     const [isDark, setIsDark] = useState(() => document.documentElement.classList.contains('dark'));
     
@@ -562,6 +644,8 @@ const SignupPage: React.FC<SignupPageProps> = ({ onSignup, onNavigateToLogin, on
                                         {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                                     </button>
                                 </div>
+
+                                <PasswordCriteriaGuide password={password} />
 
                                 <button
                                     type="submit"
