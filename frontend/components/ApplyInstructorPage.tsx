@@ -1,9 +1,34 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { Mail, User, BookOpen, Upload, CheckCircle, ArrowLeft, AlertCircle, FileText, Image, Loader2, Sparkles } from 'lucide-react';
+import { Mail, User, BookOpen, Upload, CheckCircle, ArrowLeft, AlertCircle, FileText, Image, Loader2, Sparkles, Sun, Moon, X } from 'lucide-react';
 
 const ApplyInstructorPage: React.FC = () => {
     const navigate = useNavigate();
+    const [isDark, setIsDark] = useState(() => {
+        return document.documentElement.classList.contains('dark');
+    });
+
+    useEffect(() => {
+        const handleThemeChange = () => {
+            setIsDark(document.documentElement.classList.contains('dark'));
+        };
+        window.addEventListener('theme-change', handleThemeChange);
+        return () => window.removeEventListener('theme-change', handleThemeChange);
+    }, []);
+
+    const toggleTheme = () => {
+        const nextDark = !isDark;
+        setIsDark(nextDark);
+        if (nextDark) {
+            document.documentElement.classList.add('dark');
+            localStorage.setItem('theme', 'dark');
+        } else {
+            document.documentElement.classList.remove('dark');
+            localStorage.setItem('theme', 'light');
+        }
+        window.dispatchEvent(new Event('theme-change'));
+    };
+
     const [userEmail, setUserEmail] = useState('');
     const [fullName, setFullName] = useState('');
     const [courseList, setCourseList] = useState<string[]>([]);
@@ -76,7 +101,16 @@ const ApplyInstructorPage: React.FC = () => {
             setError('Please enter your full name / username.');
             return;
         }
-        if (courseList.length === 0) {
+
+        let finalCourseList = [...courseList];
+        const trimmedInput = currentCourseInput.trim();
+        if (trimmedInput && !finalCourseList.includes(trimmedInput)) {
+            finalCourseList.push(trimmedInput);
+            setCourseList(finalCourseList);
+            setCurrentCourseInput('');
+        }
+
+        if (finalCourseList.length === 0) {
             setError('Please add at least one course you plan to teach.');
             return;
         }
@@ -91,17 +125,15 @@ const ApplyInstructorPage: React.FC = () => {
 
         setLoading(true);
         try {
-            const token = localStorage.getItem('auth_token') || '';
             const res = await fetch('http://localhost:5001/api/instructor-applications', {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
+                    'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
                     email: userEmail,
                     username: fullName,
-                    courses: courseList.join(', '),
+                    courses: finalCourseList.join(', '),
                     passportPhoto: passportPhoto,
                     nationalId: nationalId
                 })
@@ -122,9 +154,18 @@ const ApplyInstructorPage: React.FC = () => {
 
     if (success) {
         return (
-            <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex items-center justify-center p-4 relative overflow-hidden transition-colors">
-                <div className="absolute top-10 left-10 w-96 h-96 bg-violet-500/10 dark:bg-violet-500/5 rounded-full blur-3xl pointer-events-none"></div>
-                <div className="absolute bottom-10 right-10 w-96 h-96 bg-indigo-500/10 dark:bg-indigo-500/5 rounded-full blur-3xl pointer-events-none"></div>
+            <div className="min-h-screen bg-gradient-to-br from-violet-600 via-purple-600 to-indigo-800 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 flex items-center justify-center p-4 relative overflow-hidden transition-colors">
+                <div className="absolute top-10 left-10 w-96 h-96 bg-white/5 rounded-full blur-3xl pointer-events-none"></div>
+                <div className="absolute bottom-10 right-10 w-96 h-96 bg-white/5 rounded-full blur-3xl pointer-events-none"></div>
+
+                <button
+                    type="button"
+                    onClick={toggleTheme}
+                    className="absolute top-8 right-8 p-2 text-white/80 hover:bg-white/10 rounded-full transition-all cursor-pointer flex items-center justify-center z-20"
+                    title={isDark ? "Activate Light Mode" : "Activate Dark Mode"}
+                >
+                    {isDark ? <Sun size={18} /> : <Moon size={18} />}
+                </button>
 
                 <div className="w-full max-w-md bg-white dark:bg-slate-900 rounded-[32px] p-8 shadow-2xl border border-gray-150 dark:border-slate-800/80 text-center relative z-10 animate-in zoom-in duration-200">
                     <div className="mx-auto w-20 h-20 bg-green-50 dark:bg-green-950/20 text-green-500 rounded-full flex items-center justify-center mb-6">
@@ -150,7 +191,7 @@ const ApplyInstructorPage: React.FC = () => {
 
                     <button
                         onClick={() => navigate('/dashboard')}
-                        className="w-full py-3 bg-gradient-to-r from-violet-600 to-indigo-650 hover:from-violet-750 hover:to-indigo-750 text-white rounded-full text-xs font-extrabold tracking-widest uppercase shadow-md hover:shadow-lg transition-all duration-200 cursor-pointer"
+                        className="w-full py-3.5 bg-gradient-to-r from-violet-600 to-indigo-650 hover:from-violet-750 hover:to-indigo-750 text-white rounded-xl text-xs font-extrabold tracking-widest uppercase shadow-md hover:shadow-lg transition-all duration-200 cursor-pointer"
                     >
                         Go to Dashboard
                     </button>
@@ -160,38 +201,38 @@ const ApplyInstructorPage: React.FC = () => {
     }
 
     return (
-        <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex items-center justify-center p-4 relative overflow-hidden transition-colors">
-            <div className="absolute top-10 left-10 w-96 h-96 bg-violet-500/10 dark:bg-violet-500/5 rounded-full blur-3xl pointer-events-none"></div>
-            <div className="absolute bottom-10 right-10 w-96 h-96 bg-indigo-500/10 dark:bg-indigo-500/5 rounded-full blur-3xl pointer-events-none"></div>
+        <div className="min-h-screen bg-gradient-to-br from-violet-600 via-purple-600 to-indigo-800 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 flex items-center justify-center p-4 relative overflow-hidden transition-colors">
+            <div className="absolute top-10 left-10 w-96 h-96 bg-white/5 rounded-full blur-3xl pointer-events-none"></div>
+            <div className="absolute bottom-10 right-10 w-96 h-96 bg-white/5 rounded-full blur-3xl pointer-events-none"></div>
 
-            <Link
-                to="/dashboard"
-                className="absolute top-8 left-8 text-gray-500 dark:text-slate-400 hover:text-gray-900 dark:hover:text-white flex items-center gap-2 z-20 text-sm font-semibold transition-colors"
+            <button
+                type="button"
+                onClick={toggleTheme}
+                className="absolute top-8 right-8 p-2 text-white/85 hover:bg-white/10 rounded-full transition-all cursor-pointer flex items-center justify-center z-20"
+                title={isDark ? "Activate Light Mode" : "Activate Dark Mode"}
             >
-                <ArrowLeft className="w-5 h-5" />
-                Back to Dashboard
-            </Link>
+                {isDark ? <Sun size={18} /> : <Moon size={18} />}
+            </button>
 
-            <div className="w-full max-w-2xl bg-white dark:bg-slate-900 rounded-[32px] overflow-hidden shadow-2xl border border-gray-150 dark:border-slate-800/80 relative z-10 flex flex-col md:flex-row">
+            <div className="w-full max-w-lg bg-white dark:bg-slate-900 rounded-[32px] p-8 sm:p-10 shadow-2xl border border-gray-150 dark:border-slate-800/80 relative z-10 animate-in zoom-in duration-200">
                 
-                <div className="md:w-1/3 bg-gradient-to-br from-violet-650 to-indigo-900 dark:from-violet-950 dark:to-indigo-950 p-8 flex flex-col justify-between text-white text-left relative overflow-hidden">
-                    <div className="absolute -top-12 -left-12 w-32 h-64 bg-white/5 rounded-full transform -rotate-45"></div>
-                    <div className="z-10 space-y-6">
-                        <div className="w-12 h-12 bg-white/10 rounded-2xl flex items-center justify-center">
-                            <Sparkles className="w-6 h-6 text-violet-300" />
-                        </div>
-                        <h3 className="text-xl font-bold tracking-tight">Teach on Welile</h3>
-                        <p className="text-xs text-white/70 leading-relaxed">
-                            Share your skills, design custom curriculums, and guide students inside the premium School of AI dashboard.
-                        </p>
-                    </div>
-                    <p className="text-[10px] text-white/50 font-bold tracking-widest uppercase mt-8 z-10">Welile School of AI</p>
-                </div>
+                <button
+                    type="button"
+                    onClick={() => navigate('/dashboard')}
+                    className="absolute top-6 right-6 text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors cursor-pointer"
+                    title="Close"
+                >
+                    <X size={20} />
+                </button>
 
-                <form onSubmit={handleSubmit} className="md:w-2/3 p-8 sm:p-10 space-y-6 text-left">
-                    <div>
-                        <h2 className="text-xl font-extrabold text-gray-900 dark:text-white tracking-wider uppercase">Apply for Instructor Rights</h2>
-                        <p className="text-xs text-gray-400 font-semibold mt-1">Complete this verification form to upgrade your account.</p>
+                <form onSubmit={handleSubmit} className="space-y-6">
+                    <div className="text-center pb-2">
+                        <h2 className="text-xl font-extrabold text-violet-600 dark:text-violet-400 tracking-widest uppercase">
+                            • Apply for Instructor Rights •
+                        </h2>
+                        <p className="text-xs text-gray-400 dark:text-slate-400 font-semibold mt-1">
+                            Complete this verification form to upgrade your account.
+                        </p>
                     </div>
 
                     {error && (
@@ -202,10 +243,10 @@ const ApplyInstructorPage: React.FC = () => {
                     )}
 
                     <div className="space-y-4">
-                        <div className="space-y-1">
+                        <div className="space-y-1 text-left">
                             <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Email Address</label>
-                            <div className="relative border-b border-gray-200 dark:border-slate-850 focus-within:border-violet-500 py-1.5 flex items-center transition-colors">
-                                <Mail className="w-4 h-4 text-gray-400 mr-2" />
+                            <div className="relative border-b border-gray-200 dark:border-slate-800 focus-within:border-violet-500 py-1.5 flex items-center transition-colors">
+                                <Mail className="w-4 h-4 text-gray-400 mr-2 shrink-0" />
                                 <input
                                     type="email"
                                     required
@@ -217,10 +258,10 @@ const ApplyInstructorPage: React.FC = () => {
                             </div>
                         </div>
 
-                        <div className="space-y-1">
+                        <div className="space-y-1 text-left">
                             <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Full Name / Username</label>
-                            <div className="relative border-b border-gray-200 dark:border-slate-850 focus-within:border-violet-500 py-1.5 flex items-center transition-colors">
-                                <User className="w-4 h-4 text-gray-400 mr-2" />
+                            <div className="relative border-b border-gray-200 dark:border-slate-800 focus-within:border-violet-500 py-1.5 flex items-center transition-colors">
+                                <User className="w-4 h-4 text-gray-400 mr-2 shrink-0" />
                                 <input
                                     type="text"
                                     required
@@ -232,10 +273,10 @@ const ApplyInstructorPage: React.FC = () => {
                             </div>
                         </div>
 
-                        <div className="space-y-1">
+                        <div className="space-y-1 text-left">
                             <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Syllabus / Courses You Teach</label>
-                            <div className="relative border-b border-gray-200 dark:border-slate-850 focus-within:border-violet-500 py-1.5 flex items-center transition-colors">
-                                <BookOpen className="w-4 h-4 text-gray-400 mr-2" />
+                            <div className="relative border-b border-gray-200 dark:border-slate-800 focus-within:border-violet-500 py-1.5 flex items-center transition-colors">
+                                <BookOpen className="w-4 h-4 text-gray-400 mr-2 shrink-0" />
                                 <input
                                     type="text"
                                     value={currentCourseInput}
@@ -252,7 +293,7 @@ const ApplyInstructorPage: React.FC = () => {
                                 <button
                                     type="button"
                                     onClick={handleAddCourse}
-                                    className="ml-2 px-3 py-1 bg-violet-605 hover:bg-violet-750 text-white rounded-lg text-xs font-bold transition-colors cursor-pointer"
+                                    className="ml-2 px-3 py-1 bg-gradient-to-r from-violet-600 to-indigo-650 hover:from-violet-750 hover:to-indigo-750 text-white rounded-lg text-xs font-bold transition-all cursor-pointer shadow-sm shrink-0"
                                 >
                                     Add
                                 </button>
@@ -263,7 +304,7 @@ const ApplyInstructorPage: React.FC = () => {
                                     {courseList.map((course, idx) => (
                                         <span
                                             key={idx}
-                                            className="flex items-center gap-1.5 px-3 py-1 bg-violet-50 dark:bg-violet-955/20 text-violet-700 dark:text-violet-400 border border-violet-100 dark:border-violet-900/40 rounded-full text-xs font-semibold"
+                                            className="flex items-center gap-1.5 px-3 py-1 bg-violet-50 dark:bg-violet-950/20 text-violet-700 dark:text-violet-400 border border-violet-100 dark:border-violet-900/40 rounded-full text-xs font-semibold"
                                         >
                                             {course}
                                             <button
@@ -279,10 +320,10 @@ const ApplyInstructorPage: React.FC = () => {
                             )}
                         </div>
 
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-left pt-2">
                             <div className="space-y-1">
                                 <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block mb-1">Passport Photo</label>
-                                <label className="relative border-2 border-dashed border-gray-200 dark:border-slate-800 hover:border-violet-550 dark:hover:border-violet-500 rounded-2xl p-4 flex flex-col items-center justify-center gap-1.5 cursor-pointer bg-slate-50/50 dark:bg-slate-900/50 hover:bg-slate-50 dark:hover:bg-slate-850 transition-all text-center min-h-[100px]">
+                                <label className="relative border-2 border-dashed border-gray-200 dark:border-slate-800 hover:border-violet-500 dark:hover:border-violet-500 rounded-2xl p-4 flex flex-col items-center justify-center gap-1.5 cursor-pointer bg-slate-50/50 dark:bg-slate-900/50 hover:bg-slate-50 dark:hover:bg-slate-850 transition-all text-center min-h-[100px]">
                                     <input
                                         type="file"
                                         accept="image/*"
@@ -297,7 +338,7 @@ const ApplyInstructorPage: React.FC = () => {
                                     ) : (
                                         <>
                                             <Upload className="w-5 h-5 text-gray-400" />
-                                            <span className="text-[10px] font-bold text-gray-650 dark:text-slate-350">Upload Photo</span>
+                                            <span className="text-[10px] font-bold text-gray-600 dark:text-slate-350">Upload Photo</span>
                                         </>
                                     )}
                                 </label>
@@ -305,7 +346,7 @@ const ApplyInstructorPage: React.FC = () => {
 
                             <div className="space-y-1">
                                 <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block mb-1">National ID / ID Card</label>
-                                <label className="relative border-2 border-dashed border-gray-200 dark:border-slate-800 hover:border-violet-550 dark:hover:border-violet-500 rounded-2xl p-4 flex flex-col items-center justify-center gap-1.5 cursor-pointer bg-slate-50/50 dark:bg-slate-900/50 hover:bg-slate-50 dark:hover:bg-slate-850 transition-all text-center min-h-[100px]">
+                                <label className="relative border-2 border-dashed border-gray-200 dark:border-slate-800 hover:border-violet-500 dark:hover:border-violet-500 rounded-2xl p-4 flex flex-col items-center justify-center gap-1.5 cursor-pointer bg-slate-50/50 dark:bg-slate-900/50 hover:bg-slate-50 dark:hover:bg-slate-850 transition-all text-center min-h-[100px]">
                                     <input
                                         type="file"
                                         accept="image/*"
@@ -328,18 +369,29 @@ const ApplyInstructorPage: React.FC = () => {
                         </div>
                     </div>
 
-                    <button
-                        type="submit"
-                        disabled={loading}
-                        className="w-full py-3.5 bg-gradient-to-r from-violet-600 to-indigo-650 hover:from-violet-750 hover:to-indigo-750 text-white rounded-full text-xs font-extrabold tracking-widest uppercase shadow-md hover:shadow-lg transition-all duration-200 cursor-pointer disabled:opacity-50 flex items-center justify-center gap-2"
-                    >
-                        {loading ? (
-                            <>
-                                <Loader2 size={16} className="animate-spin" />
-                                <span>Submitting...</span>
-                            </>
-                        ) : 'Submit Verification'}
-                    </button>
+                    <div className="pt-2">
+                        <button
+                            type="submit"
+                            disabled={loading}
+                            className="w-full py-3.5 bg-gradient-to-r from-violet-600 to-indigo-650 hover:from-violet-750 hover:to-indigo-750 text-white rounded-xl text-sm font-extrabold tracking-widest uppercase shadow-md hover:shadow-lg transition-all duration-200 cursor-pointer disabled:opacity-50 flex items-center justify-center gap-2"
+                        >
+                            {loading ? (
+                                <>
+                                    <Loader2 size={16} className="animate-spin" />
+                                    <span>Submitting...</span>
+                                </>
+                            ) : 'Submit Verification'}
+                        </button>
+                    </div>
+
+                    <div className="text-center pt-2">
+                        <Link
+                            to="/dashboard"
+                            className="text-xs font-bold text-violet-600 dark:text-violet-400 hover:text-violet-700 dark:hover:text-violet-300 transition-colors cursor-pointer"
+                        >
+                            Back to Student Dashboard
+                        </Link>
+                    </div>
                 </form>
             </div>
         </div>

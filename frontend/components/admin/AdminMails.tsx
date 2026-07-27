@@ -18,6 +18,8 @@ const AdminMails: React.FC = () => {
         setExpandedMailIds(newExpanded);
     };
 
+    const [applicationsMap, setApplicationsMap] = useState<Record<string, any>>({});
+
     const fetchMails = async () => {
         setLoading(true);
         try {
@@ -26,8 +28,30 @@ const AdminMails: React.FC = () => {
                 .select('*');
             if (error) throw error;
             
+            // Also fetch instructor applications list to enrich mails with DB document files
+            const appMap: Record<string, any> = {};
+            try {
+                const appRes = await fetch('http://localhost:5001/api/instructor-applications');
+                const appsList = await appRes.json();
+                if (Array.isArray(appsList)) {
+                    appsList.forEach((a: any) => {
+                        if (a.email) {
+                            appMap[a.email.toLowerCase()] = a;
+                        }
+                    });
+                }
+            } catch (e) {}
+            setApplicationsMap(appMap);
+
+            // Filter out system auto-reply logs (e.g. subject containing "Application Received")
+            const userMails = (data || []).filter((m: any) => {
+                if (m.subject && m.subject.includes('Application Received')) return false;
+                if (m.body && m.body.includes('Application Received!')) return false;
+                return true;
+            });
+
             // Sort by created_at descending (latest first)
-            const sorted = (data || []).sort((a: any, b: any) => {
+            const sorted = userMails.sort((a: any, b: any) => {
                 return new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime();
             });
             setMails(sorted);
@@ -77,6 +101,9 @@ const AdminMails: React.FC = () => {
 
     const filteredMails = mails.filter(m => {
         if (filter === 'ALL') return true;
+        if (filter === 'APPLICATION') {
+            return m.type === 'APPLICATION' || m.subject === 'APPLICATION' || m.subject?.includes('Instructor Request');
+        }
         return m.type === filter;
     });
 
@@ -84,6 +111,12 @@ const AdminMails: React.FC = () => {
         if (!dateStr) return '';
         const d = new Date(dateStr);
         return d.toLocaleDateString() + ' ' + d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    };
+
+    const subjectIsApp = (subject?: string) => {
+        if (!subject) return false;
+        const s = subject.toUpperCase();
+        return s.includes('APPLICATION') || s.includes('INSTRUCTOR');
     };
 
     return (
@@ -131,7 +164,7 @@ const AdminMails: React.FC = () => {
                             onClick={() => setFilter('APPLICATION')}
                             className={`flex-1 sm:flex-none text-xs font-bold px-3 py-2 rounded-lg transition-colors cursor-pointer ${
                                 filter === 'APPLICATION'
-                                    ? 'bg-white dark:bg-slate-900 text-violet-605 dark:text-violet-405 shadow-sm'
+                                    ? 'bg-white dark:bg-slate-900 text-violet-600 dark:text-violet-400 shadow-sm'
                                     : 'text-gray-550 hover:text-gray-900 dark:hover:text-white'
                             }`}
                         >
@@ -166,65 +199,181 @@ const AdminMails: React.FC = () => {
                 <div className="grid gap-6">
                     {filteredMails.map((m) => {
                         const isExpanded = expandedMailIds.has(m.id);
+                        
+                        let parsedPayload: any = null;
+                        try {
+                            parsedPayload = typeof m.body === 'string' ? JSON.parse(m.body) : m.body;
+                        } catch (e) {
+                            parsedPayload = null;
+                        }
+
+                        const rawEmail = parsedPayload?.email || m.sender_email || m.email || '';
+                        const email = rawEmail.replace(/.*<([^>]+)>.*/, '$1').trim();
+                        const matchedApp = applicationsMap[email.toLowerCase()] || applicationsMap[m.sender_email?.toLowerCase()] || null;
+
+                        const name = parsedPayload?.name || matchedApp?.username || m.name || m.sender_email?.split('@')[0] || 'Applicant';
+                        const courses = parsedPayload?.courses || matchedApp?.courses || (m.company_name ? m.company_name.replace('Courses: ', '') : '');
+                        const passportPhoto = parsedPayload?.passportPhoto || matchedApp?.passport_photo;
+                        const nationalId = parsedPayload?.nationalId || matchedApp?.national_id;
+                        const appStatus = matchedApp?.status || parsedPayload?.status || 'PENDING';
+                        const isAppMail = m.type === 'APPLICATION' || parsedPayload?.type === 'APPLICATION' || subjectIsApp(m.subject) || !!matchedApp;
+
+                        const handleProcessApp = async (action: 'approve' | 'reject') => {
+                            if (!confirm(`Are you sure you want to ${action} this instructor application?`)) return;
+                            try {
+                                // Find application ID if available, or fetch applications list
+                                let appId = parsedPayload?.applicationId;
+                                if (!appId) {
+                                    const appRes = await fetch('http://localhost:5001/api/instructor-applications');
+                                    const appsData = await appRes.json();
+                                    const match = (appsData || []).find((a: any) => a.email.toLowerCase() === email.toLowerCase());
+                                    if (match) appId = match.id;
+                                }
+
+                                if (!appId) {
+                                    alert('Application record not found in database.');
+                                    return;
+                                }
+
+                                const res = await fetch(`http://localhost:5001/api/instructor-applications/${appId}/${action}`, {
+                                    method: 'POST'
+                                });
+                                const data = await res.json();
+                                if (!res.ok) throw new Error(data.error || `Failed to ${action} application.`);
+
+                                alert(`Application ${action === 'approve' ? 'approved' : 'declined'} successfully!`);
+                                fetchMails();
+                            } catch (err: any) {
+                                alert(err.message || 'An error occurred.');
+                            }
+                        };
+
                         return (
                             <div 
                                 key={m.id} 
                                 onClick={() => toggleMailExpand(m.id)}
-                                className="bg-white dark:bg-slate-900 border border-gray-150 dark:border-slate-800 rounded-2xl p-6 shadow-sm flex flex-col md:flex-row justify-between items-start gap-6 hover:shadow-md transition-all duration-200 cursor-pointer hover:bg-gray-50/30 dark:hover:bg-slate-850/10"
+                                className="bg-white dark:bg-slate-900 border border-gray-150 dark:border-slate-800 rounded-2xl p-6 shadow-sm flex flex-col justify-between items-start gap-6 hover:shadow-md transition-all duration-200 cursor-pointer hover:bg-gray-50/30 dark:hover:bg-slate-850/10"
                             >
-                                <div className="space-y-4 flex-1">
-                                    <div className="flex flex-wrap items-center gap-2.5">
-                                        <div className="text-gray-400 dark:text-slate-500">
-                                            {isExpanded ? <MailOpen size={16} className="text-violet-500 dark:text-violet-400" /> : <Mail size={16} />}
+                                <div className="space-y-4 w-full">
+                                    <div className="flex flex-wrap items-center justify-between gap-2.5 w-full">
+                                        <div className="flex items-center gap-2.5">
+                                            <div className="text-gray-400 dark:text-slate-500">
+                                                {isExpanded ? <MailOpen size={16} className="text-violet-500 dark:text-violet-400" /> : <Mail size={16} />}
+                                            </div>
+                                            <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold inline-block border ${
+                                                m.type === 'INQUIRY'
+                                                    ? 'bg-green-50 text-green-700 border-green-200 dark:bg-green-950/20 dark:text-green-400 dark:border-green-900/50'
+                                                    : isAppMail
+                                                    ? 'bg-violet-50 text-violet-750 border-violet-200 dark:bg-violet-955/20 dark:text-violet-400 dark:border-violet-900/50'
+                                                    : 'bg-indigo-50 text-indigo-700 border-indigo-200 dark:bg-indigo-950/20 dark:text-indigo-400 dark:border-indigo-900/50'
+                                            }`}>
+                                                {m.type === 'INQUIRY' ? 'Inquiry' : isAppMail ? 'Application' : 'Enrollment Request'}
+                                            </span>
+                                            
+                                            {isAppMail && (
+                                                <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${
+                                                    appStatus === 'APPROVED'
+                                                        ? 'bg-green-100 text-green-800 border-green-300 dark:bg-green-950/40 dark:text-green-300'
+                                                        : appStatus === 'REJECTED' || appStatus === 'DECLINED'
+                                                        ? 'bg-rose-100 text-rose-800 border-rose-300 dark:bg-rose-950/40 dark:text-rose-300'
+                                                        : 'bg-amber-100 text-amber-800 border-amber-300 dark:bg-amber-950/40 dark:text-amber-300'
+                                                }`}>
+                                                    {appStatus}
+                                                </span>
+                                            )}
+
+                                            <span className="text-xs text-gray-400">{formatDate(m.created_at)}</span>
                                         </div>
-                                        <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold inline-block border ${
-                                            m.type === 'INQUIRY'
-                                                ? 'bg-green-50 text-green-700 border-green-200 dark:bg-green-950/20 dark:text-green-400 dark:border-green-900/50'
-                                                : m.type === 'APPLICATION'
-                                                ? 'bg-violet-50 text-violet-750 border-violet-200 dark:bg-violet-955/20 dark:text-violet-400 dark:border-violet-900/50'
-                                                : 'bg-indigo-50 text-indigo-700 border-indigo-200 dark:bg-indigo-950/20 dark:text-indigo-400 dark:border-indigo-900/50'
-                                        }`}>
-                                            {m.type === 'INQUIRY' ? 'Inquiry' : m.type === 'APPLICATION' ? 'Application' : 'Enrollment Request'}
-                                        </span>
-                                        
-                                        <span className="text-xs text-gray-400">{formatDate(m.created_at)}</span>
+
+                                        <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+                                            {isAppMail && appStatus === 'PENDING' && (
+                                                <>
+                                                    <button
+                                                        onClick={() => handleProcessApp('approve')}
+                                                        className="px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white rounded-xl text-xs font-bold transition-all shadow-sm flex items-center gap-1 cursor-pointer"
+                                                    >
+                                                        <Check size={14} /> Approve User
+                                                    </button>
+                                                    <button
+                                                        onClick={() => handleProcessApp('reject')}
+                                                        className="px-3 py-1.5 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-bold transition-all shadow-sm flex items-center gap-1 cursor-pointer"
+                                                    >
+                                                        Decline
+                                                    </button>
+                                                </>
+                                            )}
+                                            <button 
+                                                onClick={() => handleDeleteMail(m.id)}
+                                                className="p-2 bg-red-50 hover:bg-red-150 text-red-600 dark:bg-red-950/20 dark:hover:bg-red-950/40 dark:text-red-400 rounded-xl transition-colors cursor-pointer flex items-center gap-1 text-xs font-bold"
+                                                title="Delete Message"
+                                            >
+                                                <Trash2 size={14} />
+                                            </button>
+                                        </div>
                                     </div>
 
                                     <div>
                                         <h3 className="font-bold text-gray-900 dark:text-white flex items-center gap-2 flex-wrap text-sm sm:text-base">
-                                            {m.name}
-                                            <span className="text-xs text-gray-500 dark:text-slate-400 font-normal">({m.email})</span>
+                                            {name}
+                                            <span className="text-xs text-gray-500 dark:text-slate-400 font-normal">({email})</span>
                                         </h3>
-                                        {m.company_name && (
-                                            <p className="text-xs text-indigo-650 dark:text-indigo-400 font-semibold mt-1">
-                                                🏢 Company: {m.company_name}
+                                        {courses && (
+                                            <p className="text-xs text-violet-600 dark:text-violet-400 font-semibold mt-1">
+                                                📚 Courses to teach: {courses}
                                             </p>
                                         )}
                                     </div>
 
-                                    {isExpanded ? (
-                                        <div className="p-4 bg-gray-50 dark:bg-slate-850 rounded-xl border dark:border-slate-800 text-sm text-gray-700 dark:text-slate-300 leading-relaxed font-sans whitespace-pre-wrap animate-in fade-in duration-200">
-                                            {m.message}
-                                        </div>
-                                    ) : (
-                                        <p className="text-xs text-gray-500 dark:text-slate-400 line-clamp-1 italic font-medium">
-                                            {m.message ? m.message.slice(0, 100) + (m.message.length > 100 ? '...' : '') : 'Empty message'}
-                                        </p>
-                                    )}
-                                </div>
+                                    {/* Document Previews Section */}
+                                    {isAppMail && (passportPhoto || nationalId) && (
+                                        <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-4 p-4 bg-gray-50 dark:bg-slate-850 rounded-xl border border-gray-150 dark:border-slate-800" onClick={(e) => e.stopPropagation()}>
+                                            {passportPhoto && (
+                                                <div className="space-y-1.5">
+                                                    <span className="text-xs font-bold text-gray-700 dark:text-slate-300 flex items-center gap-1">
+                                                        📷 Passport Photo:
+                                                    </span>
+                                                    <div className="relative group rounded-lg overflow-hidden border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-1">
+                                                        <img src={passportPhoto} alt="Passport Photo" className="w-full h-32 object-cover rounded" />
+                                                        <a href={passportPhoto} target="_blank" rel="noreferrer" className="mt-1 block text-[11px] text-center font-bold text-violet-600 dark:text-violet-400 hover:underline">
+                                                            Open Full Image
+                                                        </a>
+                                                    </div>
+                                                </div>
+                                            )}
 
-                                <div className="flex md:flex-col justify-end w-full md:w-auto border-t md:border-t-0 pt-4 md:pt-0 border-gray-100 dark:border-slate-850">
-                                    <button 
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            handleDeleteMail(m.id);
-                                        }}
-                                        className="p-2.5 bg-red-50 hover:bg-red-150 text-red-600 dark:bg-red-950/20 dark:hover:bg-red-950/40 dark:text-red-400 rounded-xl transition-colors cursor-pointer flex items-center gap-1.5 text-xs font-bold"
-                                        title="Delete Message"
-                                    >
-                                        <Trash2 size={16} />
-                                        Delete
-                                    </button>
+                                            {nationalId && (
+                                                <div className="space-y-1.5">
+                                                    <span className="text-xs font-bold text-gray-700 dark:text-slate-300 flex items-center gap-1">
+                                                        🪪 National ID / ID Card:
+                                                    </span>
+                                                    <div className="relative group rounded-lg overflow-hidden border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-1">
+                                                        {nationalId.startsWith('data:image') ? (
+                                                            <img src={nationalId} alt="National ID" className="w-full h-32 object-cover rounded" />
+                                                        ) : (
+                                                            <div className="w-full h-32 flex items-center justify-center bg-gray-100 dark:bg-slate-800 rounded text-xs font-bold text-gray-600 dark:text-slate-400">
+                                                                Document File (PDF / ID)
+                                                            </div>
+                                                        )}
+                                                        <a href={nationalId} target="_blank" rel="noreferrer" className="mt-1 block text-[11px] text-center font-bold text-violet-600 dark:text-violet-400 hover:underline">
+                                                            View Document
+                                                        </a>
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </div>
+                                    )}
+
+                                    {isExpanded && (
+                                        <div className="p-4 bg-gray-50 dark:bg-slate-850 rounded-xl border dark:border-slate-800 text-sm text-gray-700 dark:text-slate-300 leading-relaxed font-sans whitespace-pre-wrap animate-in fade-in duration-200">
+                                            {(() => {
+                                                const rawMsg = parsedPayload?.message || m.message || m.body || '';
+                                                if (rawMsg.trim().startsWith('<')) {
+                                                    return rawMsg.replace(/<[^>]*>?/gm, ' ').replace(/\s+/g, ' ').trim();
+                                                }
+                                                return rawMsg;
+                                            })()}
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                         );

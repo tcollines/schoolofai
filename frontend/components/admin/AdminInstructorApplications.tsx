@@ -12,10 +12,10 @@ const AdminInstructorApplications: React.FC = () => {
         setLoading(true);
         setError(null);
         try {
-            const token = localStorage.getItem('auth_token') || '';
+            const email = localStorage.getItem('admin-email') || localStorage.getItem('auth_logged_in_email') || '';
             const res = await fetch('http://localhost:5001/api/instructor-applications', {
                 headers: {
-                    'Authorization': `Bearer ${token}`
+                    'X-User-Email': email
                 }
             });
             const data = await res.json();
@@ -36,11 +36,11 @@ const AdminInstructorApplications: React.FC = () => {
         if (!confirm(`Are you sure you want to ${action} this application?`)) return;
         setActionLoadingId(id);
         try {
-            const token = localStorage.getItem('auth_token') || '';
+            const email = localStorage.getItem('admin-email') || localStorage.getItem('auth_logged_in_email') || '';
             const res = await fetch(`http://localhost:5001/api/instructor-applications/${id}/${action}`, {
                 method: 'POST',
                 headers: {
-                    'Authorization': `Bearer ${token}`
+                    'X-User-Email': email
                 }
             });
             const data = await res.json();

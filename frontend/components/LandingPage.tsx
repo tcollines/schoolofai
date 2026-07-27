@@ -121,7 +121,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLoginClick, onSignupClick, 
 
                             <Link
                                 to="/apply-instructor"
-                                className="text-violet-605 dark:text-violet-400 hover:text-violet-750 dark:hover:text-violet-300 font-semibold text-sm transition-colors mr-1"
+                                className="text-violet-600 dark:text-violet-400 hover:text-violet-700 dark:hover:text-violet-300 font-semibold text-sm transition-colors mr-1"
                             >
                                 Apply as Instructor
                             </Link>

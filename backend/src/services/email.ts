@@ -246,7 +246,7 @@ export function sendInstructorApplicationEmail(to: string, username: string): Pr
                             
                             <div style="background: #f5f3ff; border-radius: 12px; padding: 16px; border: 1px solid #ddd6fe; text-align: center; margin-bottom: 20px;">
                                 <span style="font-size: 14px; font-weight: 700; color: #7c3aed; display: block;">What happens next?</span>
-                                <span style="font-size: 13px; color: #6b7280; display: block; margin-top: 4px;">We will verify your uploaded documents and get back to you with the results within 24-48 business hours.</span>
+                                <span style="font-size: 13px; color: #6b7280; display: block; margin-top: 4px;">We will verify your uploaded documents and get back to you with the results soon.</span>
                             </div>
 
                             <p style="font-size: 15px; line-height: 1.6; color: #4b5563; margin: 0 0 8px 0;">
@@ -327,16 +327,8 @@ export function sendInstructorApplicationEmail(to: string, username: string): Pr
                         break;
                     case 9:
                         socket.end();
-                        pool.query(
-                            'INSERT INTO mails (sender_email, recipient_email, subject, body) VALUES (?, ?, ?, ?)',
-                            [user, to, subject, bodyHtml]
-                        ).then(() => {
-                            logger.info(`Application confirmation email logged in DB for applicant: ${to}`);
-                            resolve(true);
-                        }).catch((dbErr) => {
-                            logger.error(`Failed to log application email: ${(dbErr as Error).message}`);
-                            resolve(true);
-                        });
+                        logger.info(`Application confirmation email sent via SMTP to applicant: ${to}`);
+                        resolve(true);
                         break;
                 }
             });
@@ -404,6 +396,14 @@ export function sendInstructorStatusEmail(to: string, username: string, approved
                                     ${messageBody}
                                 </p>
                             </div>
+
+                            ${approved ? `
+                            <div style="text-align: center; margin-top: 24px; margin-bottom: 8px;">
+                                <a href="http://localhost:4000/login" style="background: linear-gradient(135deg, #a855f7, #6366f1); color: #ffffff; padding: 14px 28px; border-radius: 12px; font-weight: 700; font-size: 14px; text-decoration: none; display: inline-block; box-shadow: 0 4px 12px rgba(168, 85, 247, 0.25);">
+                                    Access Instructor Portal / Log In &rarr;
+                                </a>
+                            </div>
+                            ` : ''}
                         </div>
                         <div style="background-color: #f9fafb; padding: 20px 32px; border-top: 1px solid #e5e7eb; text-align: center;">
                             <p style="font-size: 12px; color: #9ca3af; margin: 0;">
@@ -479,16 +479,8 @@ export function sendInstructorStatusEmail(to: string, username: string, approved
                         break;
                     case 9:
                         socket.end();
-                        pool.query(
-                            'INSERT INTO mails (sender_email, recipient_email, subject, body) VALUES (?, ?, ?, ?)',
-                            [user, to, subject, bodyHtml]
-                        ).then(() => {
-                            logger.info(`Status notification email logged in DB for applicant: ${to}`);
-                            resolve(true);
-                        }).catch((dbErr) => {
-                            logger.error(`Failed to log status email: ${(dbErr as Error).message}`);
-                            resolve(true);
-                        });
+                        logger.info(`Status notification email sent via SMTP to applicant: ${to}`);
+                        resolve(true);
                         break;
                 }
             });

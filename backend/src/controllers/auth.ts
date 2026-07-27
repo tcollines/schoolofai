@@ -12,24 +12,45 @@ export class AuthController {
             const validated = signupSchema.parse(req.body);
             const { email, password, fullName, role, avatarUrl } = validated;
 
+            const emailClean = email.trim().toLowerCase();
+
             // Check if user already exists
-            const [existing]: any = await pool.query('SELECT id FROM profiles WHERE email = ?', [email.trim().toLowerCase()]);
+            const [existing]: any = await pool.query('SELECT id FROM profiles WHERE email = ?', [emailClean]);
             if (existing.length > 0) {
                 return res.status(400).json({ error: 'User with this email already exists' });
             }
 
             const id = 'user-' + Math.random().toString(36).substring(2, 11);
+
+            // Check if email has approved instructor application
+            const [appRows]: any = await pool.query(
+                'SELECT username FROM instructor_applications WHERE email = ? AND status = "APPROVED"',
+                [emailClean]
+            );
+            let finalRole = role;
+            if (appRows.length > 0) {
+                finalRole = 'INSTRUCTOR';
+                // Also ensure they are in the instructors table
+                const [existingInst]: any = await pool.query('SELECT id FROM instructors WHERE email = ?', [emailClean]);
+                if (existingInst.length === 0) {
+                    const instId = 'inst-' + Math.random().toString(36).substring(7);
+                    await pool.query(
+                        'INSERT INTO instructors (id, name, email, bio, avatar, passcode, password) VALUES (?, ?, ?, ?, ?, ?, ?)',
+                        [instId, fullName, emailClean, '', '', '', password]
+                    );
+                }
+            }
             
             await pool.query(
                 'INSERT INTO profiles (id, full_name, email, role, avatar_url, wallet_balance, password) VALUES (?, ?, ?, ?, ?, ?, ?)',
-                [id, fullName, email.trim().toLowerCase(), role, avatarUrl || '', 100.00, password]
+                [id, fullName, emailClean, finalRole, avatarUrl || '', 100.00, password]
             );
 
-            await auditLog(pool, 'USER_SIGNUP', email, `Signed up user: ${fullName} (${id}) as ${role}`);
+            await auditLog(pool, 'USER_SIGNUP', emailClean, `Signed up user: ${fullName} (${id}) as ${finalRole}`);
             
             return res.status(201).json({
-                user: { id, email, fullName, role, avatarUrl },
-                session: { user: { id, email } }
+                user: { id, email: emailClean, fullName, role: finalRole, avatarUrl },
+                session: { user: { id, email: emailClean } }
             });
         } catch (error: any) {
             if (error.name === 'ZodError') {
@@ -599,20 +620,39 @@ export class AuthController {
             const role = record.role || (emailClean === 'chemayekabraham289@gmail.com' ? 'ADMIN' : 'INDIVIDUAL');
             const avatarUrl = record.avatarUrl || '';
 
+            // Check if email has approved instructor application
+            const [appRows]: any = await pool.query(
+                'SELECT username FROM instructor_applications WHERE email = ? AND status = "APPROVED"',
+                [emailClean]
+            );
+            let finalRole = role;
+            if (appRows.length > 0) {
+                finalRole = 'INSTRUCTOR';
+                // Also ensure they are in the instructors table
+                const [existingInst]: any = await pool.query('SELECT id FROM instructors WHERE email = ?', [emailClean]);
+                if (existingInst.length === 0) {
+                    const instId = 'inst-' + Math.random().toString(36).substring(7);
+                    await pool.query(
+                        'INSERT INTO instructors (id, name, email, bio, avatar, passcode, password) VALUES (?, ?, ?, ?, ?, ?, ?)',
+                        [instId, fullName, emailClean, '', '', '', password]
+                    );
+                }
+            }
+
             // Insert into DB
             await pool.query(
                 'INSERT INTO profiles (id, full_name, email, role, avatar_url, wallet_balance, password) VALUES (?, ?, ?, ?, ?, ?, ?)',
-                [id, fullName, emailClean, role, avatarUrl, 100.00, password]
+                [id, fullName, emailClean, finalRole, avatarUrl, 100.00, password]
             );
 
             // Clean up OTP store
             AuthController.otpStore.delete(emailClean);
 
-            await auditLog(pool, 'USER_SIGNUP', emailClean, `Signed up user: ${fullName} (${id}) as ${role}`);
+            await auditLog(pool, 'USER_SIGNUP', emailClean, `Signed up user: ${fullName} (${id}) as ${finalRole}`);
 
             return res.status(201).json({ 
                 message: 'Account created successfully', 
-                user: { id, email: emailClean, fullName, role }
+                user: { id, email: emailClean, fullName, role: finalRole }
             });
         } catch (error: any) {
             logger.error(`AuthController.completeSignup error: ${error.message}`);
