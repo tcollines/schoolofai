@@ -121,6 +121,14 @@ export class MailsController {
                     message,
                     company_name: companyName
                 };
+            }).filter((m: any) => {
+                const isSystemEmail = m.subject && (
+                    m.subject.includes('Verification') ||
+                    m.subject.includes('OTP') ||
+                    m.subject.includes('Password') ||
+                    m.subject.includes('Welcome to School of AI')
+                );
+                return !isSystemEmail;
             });
 
             return res.json(mails);
