@@ -121,6 +121,42 @@ function App() {
     );
   }
 
+  // Subdomain detection and routing
+  const hostname = window.location.hostname;
+  const isInstructorSubdomain = hostname.startsWith('instructor.') || hostname.startsWith('instructors.');
+  const isAdminSubdomain = hostname.startsWith('admin.');
+
+  if (isInstructorSubdomain) {
+    return (
+      <BrowserRouter>
+        <Routes>
+          <Route path="/*" element={
+            <AdminLayout 
+              onExit={() => window.location.reload()} 
+              isInstructor={true} 
+              isAdminSubdomain={true} 
+            />
+          } />
+        </Routes>
+      </BrowserRouter>
+    );
+  }
+
+  if (isAdminSubdomain) {
+    return (
+      <BrowserRouter>
+        <Routes>
+          <Route path="/*" element={
+            <AdminLayout 
+              onExit={() => window.location.reload()} 
+              isAdminSubdomain={true} 
+            />
+          } />
+        </Routes>
+      </BrowserRouter>
+    );
+  }
+
   return (
     <BrowserRouter>
       <Routes>

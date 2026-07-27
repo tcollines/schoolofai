@@ -30,13 +30,43 @@ export function sendOtpEmail(to: string, code: string): Promise<boolean> {
             // Define email details in outer scope so they can be logged to database on success
             const subject = 'Your School of AI Verification Code';
             const bodyHtml = `
-                <div style="font-family: sans-serif; padding: 20px; color: #333; max-width: 500px; margin: 0 auto; border: 1px solid #e5e7eb; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);">
-                    <h2 style="color: #7c3aed; text-align: center;">Welcome to School of AI</h2>
-                    <p style="font-size: 16px; line-height: 1.5; color: #4b5563;">Use the following verification code to complete your login:</p>
-                    <div style="background-color: #f3f4f6; padding: 15px; font-size: 32px; font-weight: bold; letter-spacing: 4px; text-align: center; border-radius: 8px; margin: 20px 0; color: #111827; font-family: monospace;">
-                        ${code}
+                <div style="background-color: #f9fafb; padding: 30px 15px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">
+                    <div style="max-width: 460px; margin: 0 auto; background-color: #ffffff; border-radius: 16px; border: 1px solid #e5e7eb; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03); overflow: hidden;">
+                        <!-- Header Gradient Accent -->
+                        <div style="height: 5px; background: linear-gradient(90deg, #7c3aed, #4f46e5);"></div>
+                        
+                        <div style="padding: 40px 32px;">
+                            <!-- Brand Title -->
+                            <div style="text-align: center; margin-bottom: 28px;">
+                                <span style="font-size: 20px; font-weight: 800; letter-spacing: -0.5px; color: #1f2937;">School of AI</span>
+                            </div>
+                            
+                            <h2 style="font-size: 20px; font-weight: 700; color: #111827; margin: 0 0 12px 0; text-align: center;">Confirm your identity</h2>
+                            
+                            <p style="font-size: 15px; line-height: 1.6; color: #4b5563; margin: 0 0 24px 0; text-align: center;">
+                                Please use the secure verification code below to complete your login. This code is valid for 10 minutes.
+                            </p>
+                            
+                            <!-- Premium Code Box -->
+                            <div style="background: #f5f3ff; border: 1px solid #ddd6fe; border-radius: 12px; padding: 18px; text-align: center; margin-bottom: 24px;">
+                                <span style="font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-size: 34px; font-weight: 800; letter-spacing: 6px; color: #7c3aed; display: block; line-height: 1; margin-left: 6px;">${code}</span>
+                            </div>
+                            
+                            <p style="font-size: 13px; line-height: 1.5; color: #9ca3af; text-align: center; margin: 0 0 8px 0;">
+                                For your security, please do not share this code with anyone.
+                            </p>
+                            <p style="font-size: 13px; line-height: 1.5; color: #9ca3af; text-align: center; margin: 0;">
+                                If you did not request this code, you can safely ignore this email.
+                            </p>
+                        </div>
+                        
+                        <!-- Footer -->
+                        <div style="background-color: #f9fafb; padding: 20px 32px; border-top: 1px solid #e5e7eb; text-align: center;">
+                            <p style="font-size: 12px; color: #9ca3af; margin: 0;">
+                                © 2026 School of AI. All rights reserved.
+                            </p>
+                        </div>
                     </div>
-                    <p style="font-size: 14px; color: #6b7280; text-align: center;">If you did not request this, you can safely ignore this email.</p>
                 </div>
             `;
 
