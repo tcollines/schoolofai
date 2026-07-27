@@ -52,10 +52,12 @@ const startServer = async () => {
         const { pool } = require('./db');
         // Restore Abraham Chemayek as ADMIN and clear profile picture
         await pool.query("UPDATE profiles SET role = 'ADMIN', avatar_url = '' WHERE email = 'chemayekabraham289@gmail.com'");
-        // Delete all mock profiles (any profile except the master admin)
-        await pool.query("DELETE FROM profiles WHERE email != 'chemayekabraham289@gmail.com'");
+        // Delete only the mock profiles and their enrollments/attendance (leaves your active testing profiles safe)
+        await pool.query("DELETE FROM enrollments WHERE user_id IN ('student-dianne', 'student-theresa', 'student-cody', 'student-jane')");
+        await pool.query("DELETE FROM attendance WHERE user_id IN ('student-dianne', 'student-theresa', 'student-cody', 'student-jane')");
+        await pool.query("DELETE FROM profiles WHERE id IN ('student-dianne', 'student-theresa', 'student-cody', 'student-jane')");
         
-        logger.info('Database startup updates executed successfully (restored admin role and cleared all other test profiles).');
+        logger.info('Database startup updates executed successfully (restored admin role and cleared mock student profiles).');
     } catch (dbErr: any) {
         logger.error(`Database startup updates error: ${dbErr.message}`);
     }
