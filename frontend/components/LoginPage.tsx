@@ -9,6 +9,25 @@ interface LoginPageProps {
     onBack: () => void;
 }
 
+const validatePassword = (password: string): string | null => {
+    if (password.length < 6 || password.length > 10) {
+        return "Password must be between 6 and 10 characters long.";
+    }
+    if (!/[A-Z]/.test(password)) {
+        return "Password must contain at least one uppercase letter (A-Z).";
+    }
+    if (!/[a-z]/.test(password)) {
+        return "Password must contain at least one lowercase letter (a-z).";
+    }
+    if (!/[0-9]/.test(password)) {
+        return "Password must contain at least one number (0-9).";
+    }
+    if (!/[^A-Za-z0-9]/.test(password)) {
+        return "Password must contain at least one symbol (e.g. @, $, !, %, *, ?, &, #).";
+    }
+    return null;
+};
+
 const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onNavigateToSignup, onBack }) => {
     const [isDark, setIsDark] = useState(() => document.documentElement.classList.contains('dark'));
     
@@ -198,8 +217,9 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onNavigateToSignup, onBa
         e.preventDefault();
         setError(null);
 
-        if (newPassword.length < 6) {
-            setError('Password must be at least 6 characters.');
+        const passwordError = validatePassword(newPassword);
+        if (passwordError) {
+            setError(passwordError);
             return;
         }
 
@@ -345,6 +365,13 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onNavigateToSignup, onBa
         e.preventDefault();
         setLoading(true);
         setError(null);
+
+        const passwordError = validatePassword(googleVerifyPassword);
+        if (passwordError) {
+            setError(passwordError);
+            setLoading(false);
+            return;
+        }
 
         try {
             const res = await fetch('/api/auth/google-otp/verify', {
