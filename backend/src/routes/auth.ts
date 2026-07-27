@@ -22,6 +22,7 @@ router.get('/google/callback', AuthController.googleCallback);
 router.post('/google-otp', AuthController.sendGoogleOtp);
 router.post('/google-otp/verify', AuthController.verifyGoogleOtp);
 router.post('/send-mfa-otp', AuthController.sendMfaOtp);
+router.post('/send-reset-otp', AuthController.sendResetOtp);
 
 // Standard Email/Password Signup OTP verification routes
 router.post('/signup-otp', AuthController.sendSignupOtp);

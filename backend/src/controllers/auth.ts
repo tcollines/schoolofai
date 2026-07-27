@@ -399,6 +399,26 @@ export class AuthController {
         }
     }
 
+    // Send Password Reset OTP
+    static async sendResetOtp(req: Request, res: Response) {
+        try {
+            const { email, code } = req.body;
+            if (!email || !code) {
+                return res.status(400).json({ error: 'Email and code are required' });
+            }
+
+            const sent = await sendOtpEmail(email, code);
+            if (!sent) {
+                return res.status(500).json({ error: 'Failed to send reset code email. Please check SMTP config.' });
+            }
+
+            return res.json({ success: true, message: 'Reset code email sent successfully' });
+        } catch (error: any) {
+            logger.error(`AuthController.sendResetOtp error: ${error.message}`);
+            return res.status(500).json({ error: 'Internal server error' });
+        }
+    }
+
     // Send Google OTP (for Real Email OTP Verification)
     static async sendGoogleOtp(req: Request, res: Response) {
         try {

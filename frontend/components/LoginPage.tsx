@@ -50,6 +50,8 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onNavigateToSignup, onBa
     const [pendingGoogleEmail, setPendingGoogleEmail] = useState('');
     const [pendingGoogleName, setPendingGoogleName] = useState('');
     const [googleVerifyInput, setGoogleVerifyInput] = useState('');
+    const [googleVerifyPassword, setGoogleVerifyPassword] = useState('');
+    const [showGoogleVerifyPassword, setShowGoogleVerifyPassword] = useState(false);
     const [pendingUser, setPendingUser] = useState<{ email: string; fullName: string } | null>(null);
 
     // Forgot password state
@@ -103,27 +105,44 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onNavigateToSignup, onBa
         setLoading(true);
         setError(null);
 
-        // Check if user exists
-        const { data } = await mysqlClient.from('profiles').select('*');
-        const profiles = (data as any[]) || [];
-        const userExists = profiles.some((p: any) => p.email === forgotEmail.trim().toLowerCase());
+        try {
+            // Check if user exists
+            const { data } = await mysqlClient.from('profiles').select('*');
+            const profiles = (data as any[]) || [];
+            const userExists = profiles.some((p: any) => p.email === forgotEmail.trim().toLowerCase());
 
-        if (!userExists) {
-            setError('No account found with that email address.');
+            if (!userExists) {
+                setError('No account found with that email address.');
+                setLoading(false);
+                return;
+            }
+
+            // Generate 6-digit code with 3-minute expiry
+            const code = Math.floor(100000 + Math.random() * 900000).toString();
+
+            // Call backend to send the email containing this code
+            const res = await fetch('/api/auth/send-reset-otp', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email: forgotEmail.trim().toLowerCase(), code })
+            });
+            const resData = await res.json();
+            if (!res.ok) {
+                throw new Error(resData.error || 'Failed to send reset code.');
+            }
+
+            setForgotResetCode(code);
+            const expiry = Date.now() + 3 * 60 * 1000; // 3 minutes
+            setForgotCodeExpiry(expiry);
+            setForgotTimeLeft(180);
+            setShowGmailToast(true);
+            setCorrectCode(code);
+            setStep('forgot-code');
+        } catch (err: any) {
+            setError(err.message || 'An error occurred while sending the verification code.');
+        } finally {
             setLoading(false);
-            return;
         }
-
-        // Generate 6-digit code with 3-minute expiry
-        const code = Math.floor(100000 + Math.random() * 900000).toString();
-        setForgotResetCode(code);
-        const expiry = Date.now() + 3 * 60 * 1000; // 3 minutes
-        setForgotCodeExpiry(expiry);
-        setForgotTimeLeft(180);
-        setShowGmailToast(true);
-        setCorrectCode(code);
-        setStep('forgot-code');
-        setLoading(false);
     };
 
     const handleForgotVerifyCode = (e: React.FormEvent) => {
@@ -144,16 +163,35 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onNavigateToSignup, onBa
         setStep('forgot-newpass');
     };
 
-    const handleForgotResendCode = () => {
-        const code = Math.floor(100000 + Math.random() * 900000).toString();
-        setForgotResetCode(code);
-        setCorrectCode(code);
-        const expiry = Date.now() + 3 * 60 * 1000;
-        setForgotCodeExpiry(expiry);
-        setForgotTimeLeft(180);
-        setForgotCode('');
+    const handleForgotResendCode = async () => {
+        setLoading(true);
         setError(null);
-        setShowGmailToast(true);
+        try {
+            const code = Math.floor(100000 + Math.random() * 900000).toString();
+            
+            // Call backend to send the email containing this code
+            const res = await fetch('/api/auth/send-reset-otp', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email: forgotEmail.trim().toLowerCase(), code })
+            });
+            const resData = await res.json();
+            if (!res.ok) {
+                throw new Error(resData.error || 'Failed to resend code.');
+            }
+
+            setForgotResetCode(code);
+            setCorrectCode(code);
+            const expiry = Date.now() + 3 * 60 * 1000;
+            setForgotCodeExpiry(expiry);
+            setForgotTimeLeft(180);
+            setForgotCode('');
+            setShowGmailToast(true);
+        } catch (err: any) {
+            setError(err.message || 'Failed to resend verification code.');
+        } finally {
+            setLoading(false);
+        }
     };
 
     const handleSetNewPassword = async (e: React.FormEvent) => {
@@ -312,7 +350,11 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onNavigateToSignup, onBa
             const res = await fetch('/api/auth/google-otp/verify', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email: pendingGoogleEmail, code: googleVerifyInput })
+                body: JSON.stringify({ 
+                    email: pendingGoogleEmail, 
+                    code: googleVerifyInput,
+                    password: googleVerifyPassword
+                })
             });
             const data = await res.json();
             if (!res.ok) {
@@ -598,6 +640,34 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onNavigateToSignup, onBa
                                         className="block w-full pl-8 pr-3 bg-transparent border-0 outline-none focus:ring-0 text-sm text-gray-900 dark:text-white placeholder-gray-400 text-center font-mono tracking-widest text-lg"
                                         placeholder="000000"
                                     />
+                                </div>
+
+                                {/* Set custom password for future logins */}
+                                <div className="space-y-1">
+                                    <p className="text-[10px] font-bold text-gray-400 dark:text-slate-500 uppercase tracking-widest text-center">
+                                        Set your password for future logins
+                                    </p>
+                                    <div className="relative group border-b border-gray-200 dark:border-slate-850 focus-within:border-violet-500 transition-all duration-300 py-2 text-left">
+                                        <div className="absolute inset-y-0 left-0 pl-1 flex items-center pointer-events-none text-gray-400 group-focus-within:text-violet-500 transition-colors">
+                                            <KeyRound className="w-5 h-5" />
+                                        </div>
+                                        <input
+                                            type={showGoogleVerifyPassword ? 'text' : 'password'}
+                                            required
+                                            minLength={6}
+                                            value={googleVerifyPassword}
+                                            onChange={(e) => setGoogleVerifyPassword(e.target.value)}
+                                            className="block w-full pl-8 pr-10 bg-transparent border-0 outline-none focus:ring-0 text-sm text-gray-900 dark:text-white placeholder-gray-400"
+                                            placeholder="Enter Password"
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowGoogleVerifyPassword(!showGoogleVerifyPassword)}
+                                            className="absolute inset-y-0 right-1 pr-1 flex items-center text-gray-400 hover:text-gray-655 cursor-pointer"
+                                        >
+                                            {showGoogleVerifyPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                                        </button>
+                                    </div>
                                 </div>
 
                                 <div className="flex items-center justify-between pt-4">
