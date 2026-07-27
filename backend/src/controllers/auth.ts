@@ -450,7 +450,7 @@ export class AuthController {
     // Verify Google OTP
     static async verifyGoogleOtp(req: Request, res: Response) {
         try {
-            const { email, code } = req.body;
+            const { email, code, password } = req.body;
             if (!email || !code) {
                 return res.status(400).json({ error: 'Email and code are required' });
             }
@@ -481,14 +481,17 @@ export class AuthController {
 
             if (existing.length > 0) {
                 userObj = existing[0];
+                if (password) {
+                    await pool.query('UPDATE profiles SET password = ? WHERE email = ?', [password, emailClean]);
+                }
             } else {
                 const newId = 'user-' + Math.random().toString(36).substring(2, 11);
-                const defaultPassword = 'oauth-' + Math.random().toString(36).substring(2, 11);
+                const userPassword = password || ('oauth-' + Math.random().toString(36).substring(2, 11));
                 const userRole = emailClean === 'chemayekabraham289@gmail.com' ? 'ADMIN' : 'INDIVIDUAL';
                 
                 await pool.query(
                     'INSERT INTO profiles (id, full_name, email, role, avatar_url, wallet_balance, password) VALUES (?, ?, ?, ?, ?, ?, ?)',
-                    [newId, fullName, emailClean, userRole, '', 100.00, defaultPassword]
+                    [newId, fullName, emailClean, userRole, '', 100.00, userPassword]
                 );
                 
                 userObj = { id: newId, full_name: fullName, role: userRole };
