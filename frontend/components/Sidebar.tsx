@@ -10,9 +10,10 @@ interface SidebarProps {
   isOpen: boolean;
   onClose: () => void;
   isAdmin?: boolean;
+  isInstructor?: boolean;
 }
 
-const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, isOpen, onClose, isAdmin }) => {
+const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, isOpen, onClose, isAdmin, isInstructor }) => {
   const { t } = useTranslation();
 
   const menuItems = [
@@ -25,6 +26,10 @@ const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, isOpen, onCl
     { id: 'plans', label: t('subscription_plans') || 'Upgrade Plan', icon: CreditCard },
     { id: 'settings', label: t('settings'), icon: Settings },
   ];
+
+  if (!isAdmin && !isInstructor) {
+    menuItems.push({ id: 'apply-instructor', label: 'Apply as Instructor', icon: Award });
+  }
 
   return (
     <>

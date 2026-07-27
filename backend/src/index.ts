@@ -10,6 +10,7 @@ import authRouter from './routes/auth';
 import enrollmentsRouter from './routes/enrollments';
 import eventsRouter from './routes/events';
 import attendanceRouter from './routes/attendance';
+import instructorApplicationsRouter from './routes/instructorApplications';
 
 dotenv.config();
 
@@ -31,6 +32,7 @@ app.use('/api/courses', coursesRouter);
 app.use('/api/auth', authRouter);
 app.use('/api/enrollments', enrollmentsRouter);
 app.use('/api/attendance', attendanceRouter);
+app.use('/api/instructor-applications', instructorApplicationsRouter);
 app.use('/api', eventsRouter); // maps /api/events, /api/mails, /api/instructors
 
 // Root health check endpoint

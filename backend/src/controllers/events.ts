@@ -96,7 +96,7 @@ export class MailsController {
                     }
                 } catch (e) {
                     // Not JSON - check if it's a raw SMTP email log
-                    if (m.subject === 'ENROLLMENT' || m.subject === 'INQUIRY') {
+                    if (m.subject === 'ENROLLMENT' || m.subject === 'INQUIRY' || m.subject === 'APPLICATION') {
                         type = m.subject;
                     } else if (m.subject && (m.subject.includes('OTP') || m.subject.includes('Verification') || m.subject.includes('Password'))) {
                         type = 'INQUIRY';

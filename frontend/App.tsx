@@ -16,6 +16,7 @@ import SettingsPage from './components/SettingsPage';
 import NotificationsPage from './components/NotificationsPage';
 import EventsPage from './components/EventsPage';
 import DiscussionsPage from './components/DiscussionsPage';
+import ApplyInstructorPage from './components/ApplyInstructorPage';
 import { supabase } from './src/lib/mysqlClient';
 import { useCourses } from './src/hooks/useCourses';
 import { useProfile } from './src/hooks/useProfile';
@@ -207,6 +208,8 @@ function App() {
                 />
             ) : <Navigate to="/dashboard" replace />
         } />
+
+        <Route path="/apply-instructor" element={<ApplyInstructorPage />} />
         
         {/* Admin Route - uses its own authentication via AdminLoginPage */}
         <Route path="/admin/*" element={

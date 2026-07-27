@@ -370,7 +370,7 @@ export class AuthController {
         }
     }
 
-    private static otpStore = new Map<string, { code: string; expires: number; fullName?: string; password?: string; role?: string; verified?: boolean }>();
+    private static otpStore = new Map<string, { code: string; expires: number; fullName?: string; password?: string; role?: string; verified?: boolean; avatarUrl?: string }>();
 
     // Send 2FA/MFA OTP via real SMTP
     static async sendMfaOtp(req: Request, res: Response) {
@@ -469,6 +469,10 @@ export class AuthController {
             if (record.code !== code) {
                 return res.status(400).json({ error: 'Invalid verification code' });
             }
+
+            const [existing]: any = await pool.query('SELECT * FROM profiles WHERE email = ?', [emailClean]);
+            let userObj: any = null;
+            const fullName = record.fullName || emailClean.split('@')[0];
 
             if (existing.length > 0) {
                 // Code matches, clean up the store

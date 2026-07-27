@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Routes, Route, useNavigate, useLocation, Navigate } from 'react-router-dom';
-import { LayoutDashboard, Users, BookOpen, FileQuestion, LogOut, Sun, Moon, Calendar, MessageSquare, ClipboardList, Mail, UserCheck } from 'lucide-react';
+import { LayoutDashboard, Users, BookOpen, FileQuestion, LogOut, Sun, Moon, Calendar, MessageSquare, ClipboardList, Mail, UserCheck, Award } from 'lucide-react';
 import { getCurrencyPreference, setCurrencyPreference, CurrencyType } from '../../src/lib/currency';
 import AdminOverview from './AdminOverview';
 import AdminEnrollments from './AdminEnrollments';
@@ -11,6 +11,7 @@ import AdminEvents from './AdminEvents';
 import AdminLoginPage from './AdminLoginPage';
 import AdminMails from './AdminMails';
 import { AdminAttendance } from './AdminAttendance';
+import AdminInstructorApplications from './AdminInstructorApplications';
 import { mysqlClient } from '../../src/lib/mysqlClient';
 
 interface AdminLayoutProps {
@@ -203,6 +204,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ onExit, isInstructor, isAdmin
             { id: 'attendance', label: 'Attendance', icon: ClipboardList },
             { id: 'courses', label: 'Course Setup', icon: BookOpen },
             { id: 'instructors', label: 'Instructors', icon: UserCheck },
+            { id: 'applications', label: 'Instructor Requests', icon: Award },
             { id: 'exams', label: 'Exam Setup', icon: FileQuestion },
             { id: 'events', label: 'Ongoing Events', icon: Calendar },
             { id: 'mails', label: 'Mails', icon: Mail },
@@ -218,6 +220,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ onExit, isInstructor, isAdmin
                 {!isInstructor && <Route path="instructors" element={<AdminInstructors />} />}
                 <Route path="exams" element={<AdminExams isInstructor={isInstructor} />} />
                 <Route path="events" element={<AdminEvents />} />
+                {!isInstructor && <Route path="applications" element={<AdminInstructorApplications />} />}
                 {!isInstructor && <Route path="mails" element={<AdminMails />} />}
             </Routes>
         );

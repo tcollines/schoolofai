@@ -5,7 +5,7 @@ import { Trash2, Mail, MailOpen, Filter, Inbox, Check } from 'lucide-react';
 const AdminMails: React.FC = () => {
     const [mails, setMails] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
-    const [filter, setFilter] = useState<'ALL' | 'INQUIRY' | 'ENROLLMENT'>('ALL');
+    const [filter, setFilter] = useState<'ALL' | 'INQUIRY' | 'ENROLLMENT' | 'APPLICATION'>('ALL');
     const [expandedMailIds, setExpandedMailIds] = useState<Set<string>>(new Set());
 
     const toggleMailExpand = (id: string) => {
@@ -127,6 +127,16 @@ const AdminMails: React.FC = () => {
                         >
                             Enrollments ({mails.filter(m => m.type === 'ENROLLMENT').length})
                         </button>
+                        <button
+                            onClick={() => setFilter('APPLICATION')}
+                            className={`flex-1 sm:flex-none text-xs font-bold px-3 py-2 rounded-lg transition-colors cursor-pointer ${
+                                filter === 'APPLICATION'
+                                    ? 'bg-white dark:bg-slate-900 text-violet-605 dark:text-violet-405 shadow-sm'
+                                    : 'text-gray-550 hover:text-gray-900 dark:hover:text-white'
+                            }`}
+                        >
+                            Applications ({mails.filter(m => m.type === 'APPLICATION').length})
+                        </button>
                     </div>
 
                     {mails.length > 0 && (
@@ -170,9 +180,11 @@ const AdminMails: React.FC = () => {
                                         <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold inline-block border ${
                                             m.type === 'INQUIRY'
                                                 ? 'bg-green-50 text-green-700 border-green-200 dark:bg-green-950/20 dark:text-green-400 dark:border-green-900/50'
+                                                : m.type === 'APPLICATION'
+                                                ? 'bg-violet-50 text-violet-750 border-violet-200 dark:bg-violet-955/20 dark:text-violet-400 dark:border-violet-900/50'
                                                 : 'bg-indigo-50 text-indigo-700 border-indigo-200 dark:bg-indigo-950/20 dark:text-indigo-400 dark:border-indigo-900/50'
                                         }`}>
-                                            {m.type === 'INQUIRY' ? 'Inquiry' : 'Enrollment Request'}
+                                            {m.type === 'INQUIRY' ? 'Inquiry' : m.type === 'APPLICATION' ? 'Application' : 'Enrollment Request'}
                                         </span>
                                         
                                         <span className="text-xs text-gray-400">{formatDate(m.created_at)}</span>

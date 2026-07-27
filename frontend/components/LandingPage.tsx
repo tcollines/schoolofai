@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../src/lib/mysqlClient';
+import { Link } from 'react-router-dom';
 import Orb from './Orb';
 import {
     Bot,
@@ -117,6 +118,13 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLoginClick, onSignupClick, 
                             >
                                 {isDark ? <Sun size={18} /> : <Moon size={18} />}
                             </button>
+
+                            <Link
+                                to="/apply-instructor"
+                                className="text-violet-605 dark:text-violet-400 hover:text-violet-750 dark:hover:text-violet-300 font-semibold text-sm transition-colors mr-1"
+                            >
+                                Apply as Instructor
+                            </Link>
 
                             <button
                                 onClick={onLoginClick}

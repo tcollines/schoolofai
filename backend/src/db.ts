@@ -122,6 +122,21 @@ export const checkDBConnection = async () => {
         `);
         logger.info('Attendance database table verified/created.');
 
+        // Create instructor_applications table if missing
+        await connection.query(`
+            CREATE TABLE IF NOT EXISTS instructor_applications (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                email VARCHAR(100) NOT NULL,
+                username VARCHAR(100) NOT NULL,
+                courses TEXT NOT NULL,
+                passport_photo MEDIUMTEXT NOT NULL,
+                national_id MEDIUMTEXT NOT NULL,
+                status ENUM('PENDING', 'APPROVED', 'REJECTED') DEFAULT 'PENDING',
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        `);
+        logger.info('Instructor applications database table verified/created.');
+
         connection.release();
     } catch (error) {
         logger.error('Database connection failed:', error);

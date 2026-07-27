@@ -80,6 +80,7 @@ const StudentLayout: React.FC<StudentLayoutProps> = ({ session, isAuthenticated,
                 isOpen={isMobileMenuOpen}
                 onClose={() => setIsMobileMenuOpen(false)}
                 isAdmin={isAdminMode || displayUser?.role === UserRole.ADMIN}
+                isInstructor={displayUser?.role === UserRole.INSTRUCTOR}
             />
 
             {/* Main Content Area */}
