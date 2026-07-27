@@ -55,54 +55,7 @@ const startServer = async () => {
         // Delete all mock profiles (any profile except the master admin)
         await pool.query("DELETE FROM profiles WHERE email != 'chemayekabraham289@gmail.com'");
         
-        // Seed mock students from mockup
-        await pool.query(`
-            INSERT INTO profiles (id, full_name, email, role, password, date_of_birth, nationality) VALUES
-            ('student-dianne', 'Dianne Russell', 'dianne.r@example.com', 'INDIVIDUAL', 'password123', '2004-05-15', 'United States'),
-            ('student-theresa', 'Theresa Webb', 'theresa.w@example.com', 'INDIVIDUAL', 'password123', '2004-04-10', 'United Kingdom'),
-            ('student-cody', 'Cody Fisher', 'cody.f@example.com', 'INDIVIDUAL', 'password123', '2005-11-22', 'Canada'),
-            ('student-jane', 'Jane Cooper', 'jane.c@example.com', 'INDIVIDUAL', 'password123', '2003-02-12', 'Australia')
-            ON DUPLICATE KEY UPDATE id=id
-        `);
-
-        // Seed enrollments for the mock students
-        await pool.query(`
-            INSERT IGNORE INTO enrollments (user_id, course_id, status, progress) VALUES
-            ('student-dianne', '5', 'IN_PROGRESS', 25),
-            ('student-theresa', '5', 'IN_PROGRESS', 50),
-            ('student-cody', '5', 'IN_PROGRESS', 75),
-            ('student-jane', '5', 'IN_PROGRESS', 10),
-            ('student-dianne', '6', 'IN_PROGRESS', 0),
-            ('student-theresa', '6', 'IN_PROGRESS', 10),
-            ('student-cody', '6', 'IN_PROGRESS', 40),
-            ('student-jane', '6', 'IN_PROGRESS', 90)
-        `);
-
-        // Seed 7 days of mock attendance
-        const [attendanceCheck]: any = await pool.query('SELECT COUNT(*) as count FROM attendance');
-        if (attendanceCheck[0].count === 0) {
-            const studentIds = ['student-dianne', 'student-theresa', 'student-cody', 'student-jane'];
-            const courseIds = ['5', '6'];
-            const statuses = ['PRESENT', 'PRESENT', 'PRESENT', 'ABSENT', 'LATE'];
-            
-            for (let i = 0; i < 7; i++) {
-                const date = new Date();
-                date.setDate(date.getDate() - i);
-                const dateStr = date.toISOString().split('T')[0];
-                
-                for (const studentId of studentIds) {
-                    for (const courseId of courseIds) {
-                        const status = statuses[Math.floor(Math.random() * statuses.length)];
-                        await pool.query(
-                            'INSERT IGNORE INTO attendance (user_id, course_id, status, date) VALUES (?, ?, ?, ?)',
-                            [studentId, courseId, status, dateStr]
-                        );
-                    }
-                }
-            }
-        }
-
-        logger.info('Database startup updates executed successfully (restored admin role, seeded mock students, enrollments, and attendance logs).');
+        logger.info('Database startup updates executed successfully (restored admin role and cleared all other test profiles).');
     } catch (dbErr: any) {
         logger.error(`Database startup updates error: ${dbErr.message}`);
     }

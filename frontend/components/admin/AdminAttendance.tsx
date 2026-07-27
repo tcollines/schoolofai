@@ -66,18 +66,18 @@ export const AdminAttendance: React.FC<AdminAttendanceProps> = ({ isInstructor =
                 // If backend returns empty array, generate mock days to keep chart beautiful
                 if (stats.length === 0) {
                     const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-                    const mockStats = Array.from({ length: 7 }).map((_, i) => {
+                    const zeroStats = Array.from({ length: 7 }).map((_, i) => {
                         const d = new Date();
                         d.setDate(d.getDate() - i);
                         return {
                             name: days[d.getDay()],
-                            Present: Math.floor(Math.random() * 4),
-                            Absent: Math.floor(Math.random() * 2),
-                            Late: Math.floor(Math.random() * 2),
+                            Present: 0,
+                            Absent: 0,
+                            Late: 0,
                             dateOrder: d.getTime()
                         };
                     }).sort((a, b) => a.dateOrder - b.dateOrder);
-                    setChartData(mockStats);
+                    setChartData(zeroStats);
                 } else {
                     setChartData(stats);
                 }
