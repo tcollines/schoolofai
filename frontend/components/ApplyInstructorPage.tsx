@@ -6,7 +6,8 @@ const ApplyInstructorPage: React.FC = () => {
     const navigate = useNavigate();
     const [userEmail, setUserEmail] = useState('');
     const [fullName, setFullName] = useState('');
-    const [courses, setCourses] = useState('');
+    const [courseList, setCourseList] = useState<string[]>([]);
+    const [currentCourseInput, setCurrentCourseInput] = useState('');
     const [passportPhoto, setPassportPhoto] = useState<string | null>(null);
     const [passportPhotoName, setPassportPhotoName] = useState('');
     const [nationalId, setNationalId] = useState<string | null>(null);
@@ -28,6 +29,18 @@ const ApplyInstructorPage: React.FC = () => {
         };
         fetchUser();
     }, []);
+
+    const handleAddCourse = () => {
+        const trimmed = currentCourseInput.trim();
+        if (trimmed && !courseList.includes(trimmed)) {
+            setCourseList([...courseList, trimmed]);
+            setCurrentCourseInput('');
+        }
+    };
+
+    const handleRemoveCourse = (index: number) => {
+        setCourseList(courseList.filter((_, i) => i !== index));
+    };
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, type: 'passport' | 'id') => {
         const file = e.target.files?.[0];
@@ -63,8 +76,8 @@ const ApplyInstructorPage: React.FC = () => {
             setError('Please enter your full name / username.');
             return;
         }
-        if (!courses) {
-            setError('Please specify the courses you plan to teach.');
+        if (courseList.length === 0) {
+            setError('Please add at least one course you plan to teach.');
             return;
         }
         if (!passportPhoto) {
@@ -88,7 +101,7 @@ const ApplyInstructorPage: React.FC = () => {
                 body: JSON.stringify({
                     email: userEmail,
                     username: fullName,
-                    courses: courses,
+                    courses: courseList.join(', '),
                     passportPhoto: passportPhoto,
                     nationalId: nationalId
                 })
@@ -221,17 +234,49 @@ const ApplyInstructorPage: React.FC = () => {
 
                         <div className="space-y-1">
                             <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Syllabus / Courses You Teach</label>
-                            <div className="relative border-b border-gray-200 dark:border-slate-850 focus-within:border-violet-500 py-1.5 flex items-start transition-colors">
-                                <BookOpen className="w-4 h-4 text-gray-400 mr-2 mt-1.5" />
-                                <textarea
-                                    required
-                                    rows={2}
-                                    value={courses}
-                                    onChange={(e) => setCourses(e.target.value)}
-                                    placeholder="E.g. Prompt Engineering, Introduction to Python..."
-                                    className="w-full bg-transparent border-0 outline-none focus:ring-0 text-sm text-gray-900 dark:text-white resize-none"
+                            <div className="relative border-b border-gray-200 dark:border-slate-850 focus-within:border-violet-500 py-1.5 flex items-center transition-colors">
+                                <BookOpen className="w-4 h-4 text-gray-400 mr-2" />
+                                <input
+                                    type="text"
+                                    value={currentCourseInput}
+                                    onChange={(e) => setCurrentCourseInput(e.target.value)}
+                                    onKeyDown={(e) => {
+                                        if (e.key === 'Enter') {
+                                            e.preventDefault();
+                                            handleAddCourse();
+                                        }
+                                    }}
+                                    placeholder="Enter course name & press Enter or Add"
+                                    className="w-full bg-transparent border-0 outline-none focus:ring-0 text-sm text-gray-900 dark:text-white"
                                 />
+                                <button
+                                    type="button"
+                                    onClick={handleAddCourse}
+                                    className="ml-2 px-3 py-1 bg-violet-605 hover:bg-violet-750 text-white rounded-lg text-xs font-bold transition-colors cursor-pointer"
+                                >
+                                    Add
+                                </button>
                             </div>
+                            
+                            {courseList.length > 0 && (
+                                <div className="flex flex-wrap gap-2 pt-2">
+                                    {courseList.map((course, idx) => (
+                                        <span
+                                            key={idx}
+                                            className="flex items-center gap-1.5 px-3 py-1 bg-violet-50 dark:bg-violet-955/20 text-violet-700 dark:text-violet-400 border border-violet-100 dark:border-violet-900/40 rounded-full text-xs font-semibold"
+                                        >
+                                            {course}
+                                            <button
+                                                type="button"
+                                                onClick={() => handleRemoveCourse(idx)}
+                                                className="text-violet-400 hover:text-violet-600 dark:hover:text-violet-300 font-bold ml-1.5 focus:outline-none"
+                                            >
+                                                ✕
+                                            </button>
+                                        </span>
+                                    ))}
+                                </div>
+                            )}
                         </div>
 
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
