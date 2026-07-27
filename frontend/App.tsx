@@ -48,6 +48,23 @@ function App() {
 
 
   useEffect(() => {
+    // Parse Google OAuth success callback parameters
+    const searchParams = new URLSearchParams(window.location.search);
+    const oauthSuccess = searchParams.get('oauth_success');
+    const oauthEmail = searchParams.get('email');
+    const oauthName = searchParams.get('name');
+
+    if (oauthSuccess === 'true' && oauthEmail) {
+      localStorage.removeItem('auth_logged_out');
+      localStorage.setItem('auth_logged_in_email', oauthEmail);
+      if (oauthName) {
+        localStorage.setItem('auth_logged_in_name', oauthName);
+      }
+      window.dispatchEvent(new Event('profile-update'));
+      // Clean up the URL query parameters
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
+
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setIsAuthenticated(!!session);
