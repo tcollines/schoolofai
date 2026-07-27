@@ -466,6 +466,7 @@ const SettingsPage: React.FC = () => {
                                 publicProfile ? 'translate-x-5' : 'translate-x-0'
                             }`} />
                         </button>
+                    </div>
                 </div>
             </div>
 
