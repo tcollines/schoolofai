@@ -5,7 +5,7 @@ import { mysqlClient } from '../src/lib/mysqlClient';
 
 const checkPasswordCriteria = (pass: string) => {
     return {
-        length: pass.length >= 6 && pass.length <= 10,
+        length: pass.length >= 6 && pass.length <= 20,
         uppercase: /[A-Z]/.test(pass),
         lowercase: /[a-z]/.test(pass),
         number: /[0-9]/.test(pass),
@@ -37,7 +37,7 @@ const PasswordCriteriaGuide: React.FC<{ password: string }> = ({ password }) => 
     }
 
     const checklist = [
-        { key: 'length', label: 'Between 6 and 10 characters' },
+        { key: 'length', label: 'Between 6 and 20 characters' },
         { key: 'uppercase', label: 'At least 1 uppercase letter' },
         { key: 'lowercase', label: 'At least 1 lowercase letter' },
         { key: 'number', label: 'At least 1 number' },
@@ -155,8 +155,8 @@ const SettingsPage: React.FC = () => {
     }, []);
 
     const validatePassword = (pass: string): string | null => {
-        if (pass.length < 6 || pass.length > 10) {
-            return "Password must be between 6 and 10 characters long.";
+        if (pass.length < 6 || pass.length > 20) {
+            return "Password must be between 6 and 20 characters long.";
         }
         if (!/[A-Z]/.test(pass)) {
             return "Password must contain at least one uppercase letter (A-Z).";
@@ -599,13 +599,13 @@ const SettingsPage: React.FC = () => {
 
                     <div className="space-y-1">
                         <label className="block text-xs font-bold text-gray-550 dark:text-slate-455 uppercase tracking-widest text-left">New Password</label>
-                        <p className="text-[10px] text-gray-400 dark:text-slate-500 font-medium text-left">Criteria: 6-10 characters, capital/small letters, numbers, and symbols.</p>
+                        <p className="text-[10px] text-gray-400 dark:text-slate-500 font-medium text-left">Criteria: 6-20 characters, capital/small letters, numbers, and symbols.</p>
                         <div className="relative border border-gray-200 dark:border-slate-800 focus-within:border-violet-500 rounded-xl transition-all duration-300 p-1 flex items-center">
                             <input
                                 type={showNewPassword ? 'text' : 'password'}
                                 required
                                 minLength={6}
-                                maxLength={10}
+                                maxLength={20}
                                 value={newPassword}
                                 onChange={(e) => setNewPassword(e.target.value)}
                                 className="w-full px-3 py-2 bg-transparent outline-none border-0 text-sm text-gray-900 dark:text-white placeholder-gray-400"

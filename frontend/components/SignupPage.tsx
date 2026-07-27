@@ -10,8 +10,8 @@ interface SignupPageProps {
 }
 
 const validatePassword = (password: string): string | null => {
-    if (password.length < 6 || password.length > 10) {
-        return "Password must be between 6 and 10 characters long.";
+    if (password.length < 6 || password.length > 20) {
+        return "Password must be between 6 and 20 characters long.";
     }
     if (!/[A-Z]/.test(password)) {
         return "Password must contain at least one uppercase letter (A-Z).";
@@ -30,7 +30,7 @@ const validatePassword = (password: string): string | null => {
 
 const checkPasswordCriteria = (pass: string) => {
     return {
-        length: pass.length >= 6 && pass.length <= 10,
+        length: pass.length >= 6 && pass.length <= 20,
         uppercase: /[A-Z]/.test(pass),
         lowercase: /[a-z]/.test(pass),
         number: /[0-9]/.test(pass),
@@ -62,7 +62,7 @@ const PasswordCriteriaGuide: React.FC<{ password: string }> = ({ password }) => 
     }
 
     const checklist = [
-        { key: 'length', label: 'Between 6 and 10 characters' },
+        { key: 'length', label: 'Between 6 and 20 characters' },
         { key: 'uppercase', label: 'At least 1 uppercase letter' },
         { key: 'lowercase', label: 'At least 1 lowercase letter' },
         { key: 'number', label: 'At least 1 number' },
