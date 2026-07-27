@@ -59,7 +59,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onNavigateToSignup, onBa
         }
     }, []);
 
-    const [step, setStep] = useState<'login' | 'mfa' | 'forgot-email' | 'forgot-code' | 'forgot-newpass' | 'google-verify'>('login');
+    const [step, setStep] = useState<'login' | 'mfa' | 'forgot-email' | 'forgot-code' | 'forgot-newpass' | 'google-verify' | 'google-setup-password'>('login');
     const [mfaCode, setMfaCode] = useState('');
     const [correctCode, setCorrectCode] = useState('');
     const [showGmailToast, setShowGmailToast] = useState(false);
@@ -366,6 +366,44 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onNavigateToSignup, onBa
         setLoading(true);
         setError(null);
 
+        try {
+            const res = await fetch('/api/auth/google-otp/verify', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                    email: pendingGoogleEmail, 
+                    code: googleVerifyInput
+                })
+            });
+            const data = await res.json();
+            if (!res.ok) {
+                throw new Error(data.error || 'Invalid verification code.');
+            }
+
+            if (data.isNewUser) {
+                setGoogleVerifyPassword('');
+                setStep('google-setup-password');
+            } else {
+                localStorage.removeItem('auth_logged_out');
+                localStorage.setItem('auth_logged_in_email', data.user.email);
+                localStorage.setItem('auth_logged_in_name', data.user.fullName);
+                window.dispatchEvent(new Event('profile-update'));
+
+                setStep('login');
+                onLogin();
+            }
+        } catch (err: any) {
+            setError(err.message || 'An error occurred during authentication.');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleGoogleSetupPasswordSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setLoading(true);
+        setError(null);
+
         const passwordError = validatePassword(googleVerifyPassword);
         if (passwordError) {
             setError(passwordError);
@@ -374,18 +412,17 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onNavigateToSignup, onBa
         }
 
         try {
-            const res = await fetch('/api/auth/google-otp/verify', {
+            const res = await fetch('/api/auth/signup-complete', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ 
                     email: pendingGoogleEmail, 
-                    code: googleVerifyInput,
                     password: googleVerifyPassword
                 })
             });
             const data = await res.json();
             if (!res.ok) {
-                throw new Error(data.error || 'Invalid verification code.');
+                throw new Error(data.error || 'Failed to save password.');
             }
 
             localStorage.removeItem('auth_logged_out');
@@ -396,7 +433,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onNavigateToSignup, onBa
             setStep('login');
             onLogin();
         } catch (err: any) {
-            setError(err.message || 'An error occurred during authentication.');
+            setError(err.message || 'An error occurred while saving the password.');
         } finally {
             setLoading(false);
         }
@@ -669,34 +706,6 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onNavigateToSignup, onBa
                                     />
                                 </div>
 
-                                {/* Set custom password for future logins */}
-                                <div className="space-y-1">
-                                    <p className="text-[10px] font-bold text-gray-400 dark:text-slate-500 uppercase tracking-widest text-center">
-                                        Set your password for future logins
-                                    </p>
-                                    <div className="relative group border-b border-gray-200 dark:border-slate-850 focus-within:border-violet-500 transition-all duration-300 py-2 text-left">
-                                        <div className="absolute inset-y-0 left-0 pl-1 flex items-center pointer-events-none text-gray-400 group-focus-within:text-violet-500 transition-colors">
-                                            <KeyRound className="w-5 h-5" />
-                                        </div>
-                                        <input
-                                            type={showGoogleVerifyPassword ? 'text' : 'password'}
-                                            required
-                                            minLength={6}
-                                            value={googleVerifyPassword}
-                                            onChange={(e) => setGoogleVerifyPassword(e.target.value)}
-                                            className="block w-full pl-8 pr-10 bg-transparent border-0 outline-none focus:ring-0 text-sm text-gray-900 dark:text-white placeholder-gray-400"
-                                            placeholder="Enter Password"
-                                        />
-                                        <button
-                                            type="button"
-                                            onClick={() => setShowGoogleVerifyPassword(!showGoogleVerifyPassword)}
-                                            className="absolute inset-y-0 right-1 pr-1 flex items-center text-gray-400 hover:text-gray-655 cursor-pointer"
-                                        >
-                                            {showGoogleVerifyPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                                        </button>
-                                    </div>
-                                </div>
-
                                 <div className="flex items-center justify-between pt-4">
                                     <button
                                         type="button"
@@ -738,6 +747,60 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onNavigateToSignup, onBa
                                 >
                                     Cancel
                                 </button>
+                            </form>
+                        )}
+
+                        {step === 'google-setup-password' && (
+                            <form onSubmit={handleGoogleSetupPasswordSubmit} className="space-y-6 animate-in fade-in slide-in-from-bottom-5 duration-300">
+                                <p className="text-xs text-gray-500 text-center mb-2">
+                                    Set your password for <span className="font-semibold text-gray-800 dark:text-slate-200">{pendingGoogleEmail}</span>.
+                                </p>
+
+                                <div className="space-y-2">
+                                    <p className="text-[10px] font-bold text-gray-400 dark:text-slate-500 uppercase tracking-widest text-center leading-normal">
+                                        Criteria: 6-10 characters, including capital/small letters, numbers, and symbols.
+                                    </p>
+                                    <div className="relative group border-b border-gray-200 dark:border-slate-850 focus-within:border-violet-500 transition-all duration-300 py-2 text-left">
+                                        <div className="absolute inset-y-0 left-0 pl-1 flex items-center pointer-events-none text-gray-400 group-focus-within:text-violet-500 transition-colors">
+                                            <KeyRound className="w-5 h-5" />
+                                        </div>
+                                        <input
+                                            type={showGoogleVerifyPassword ? 'text' : 'password'}
+                                            required
+                                            minLength={6}
+                                            maxLength={10}
+                                            value={googleVerifyPassword}
+                                            onChange={(e) => setGoogleVerifyPassword(e.target.value)}
+                                            className="block w-full pl-8 pr-10 bg-transparent border-0 outline-none focus:ring-0 text-sm text-gray-900 dark:text-white placeholder-gray-400 font-sans"
+                                            placeholder="Enter Password"
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowGoogleVerifyPassword(!showGoogleVerifyPassword)}
+                                            className="absolute inset-y-0 right-1 pr-1 flex items-center text-gray-400 hover:text-gray-655 cursor-pointer"
+                                        >
+                                            {showGoogleVerifyPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div className="flex items-center justify-between pt-4">
+                                    <button
+                                        type="button"
+                                        onClick={() => { setStep('login'); setError(null); }}
+                                        className="text-xs font-bold text-gray-550 hover:text-gray-700 cursor-pointer"
+                                    >
+                                        Cancel
+                                    </button>
+
+                                    <button
+                                        type="submit"
+                                        disabled={loading}
+                                        className="px-8 py-2.5 bg-gradient-to-r from-violet-600 to-indigo-650 hover:from-violet-750 hover:to-indigo-750 text-white rounded-full text-xs font-extrabold tracking-widest uppercase shadow-md hover:shadow-lg transition-all duration-200 cursor-pointer disabled:opacity-50"
+                                    >
+                                        {loading ? 'Saving...' : 'Set Password'}
+                                    </button>
+                                </div>
                             </form>
                         )}
 

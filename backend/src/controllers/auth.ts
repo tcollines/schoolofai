@@ -470,45 +470,32 @@ export class AuthController {
                 return res.status(400).json({ error: 'Invalid verification code' });
             }
 
-            // Code matches, clean up the store
-            AuthController.otpStore.delete(emailClean);
-
-            const fullName = record.fullName || emailClean.split('@')[0];
-
-            // Find or create user profile in the database
-            const [existing]: any = await pool.query('SELECT id, full_name, role FROM profiles WHERE email = ?', [emailClean]);
-            let userObj: any;
-
             if (existing.length > 0) {
+                // Code matches, clean up the store
+                AuthController.otpStore.delete(emailClean);
                 userObj = existing[0];
-                if (password) {
-                    await pool.query('UPDATE profiles SET password = ? WHERE email = ?', [password, emailClean]);
-                }
+                await auditLog(pool, 'USER_SIGNIN_OAUTH', emailClean, 'Logged in via Google OTP');
+
+                return res.json({ 
+                    message: 'OTP verified successfully', 
+                    isNewUser: false,
+                    user: {
+                        id: userObj.id,
+                        email: emailClean,
+                        fullName: userObj.full_name || userObj.fullName || fullName,
+                        role: userObj.role || 'INDIVIDUAL'
+                    }
+                });
             } else {
-                const newId = 'user-' + Math.random().toString(36).substring(2, 11);
-                const userPassword = password || ('oauth-' + Math.random().toString(36).substring(2, 11));
-                const userRole = emailClean === 'chemayekabraham289@gmail.com' ? 'ADMIN' : 'INDIVIDUAL';
-                
-                await pool.query(
-                    'INSERT INTO profiles (id, full_name, email, role, avatar_url, wallet_balance, password) VALUES (?, ?, ?, ?, ?, ?, ?)',
-                    [newId, fullName, emailClean, userRole, '', 100.00, userPassword]
-                );
-                
-                userObj = { id: newId, full_name: fullName, role: userRole };
-                await auditLog(pool, 'USER_SIGNUP_OAUTH', emailClean, `Registered via Google OTP: ${fullName}`);
+                // Mark record as verified in store and keep it there for completeSignup
+                record.verified = true;
+                AuthController.otpStore.set(emailClean, record);
+
+                return res.json({ 
+                    message: 'OTP verified successfully', 
+                    isNewUser: true
+                });
             }
-
-            await auditLog(pool, 'USER_SIGNIN_OAUTH', emailClean, 'Logged in via Google OTP');
-
-            return res.json({ 
-                message: 'OTP verified successfully', 
-                user: {
-                    id: userObj.id,
-                    email: emailClean,
-                    fullName: userObj.full_name || userObj.fullName || fullName,
-                    role: userObj.role || 'INDIVIDUAL'
-                }
-            });
         } catch (error: any) {
             logger.error(`AuthController.verifyGoogleOtp error: ${error.message}`);
             return res.status(500).json({ error: 'Internal server error during verification' });
@@ -605,12 +592,13 @@ export class AuthController {
 
             const id = 'user-' + Math.random().toString(36).substring(2, 11);
             const fullName = record.fullName || emailClean.split('@')[0];
-            const role = record.role || 'INDIVIDUAL';
+            const role = record.role || (emailClean === 'chemayekabraham289@gmail.com' ? 'ADMIN' : 'INDIVIDUAL');
+            const avatarUrl = record.avatarUrl || '';
 
             // Insert into DB
             await pool.query(
                 'INSERT INTO profiles (id, full_name, email, role, avatar_url, wallet_balance, password) VALUES (?, ?, ?, ?, ?, ?, ?)',
-                [id, fullName, emailClean, role, '', 100.00, password]
+                [id, fullName, emailClean, role, avatarUrl, 100.00, password]
             );
 
             // Clean up OTP store
