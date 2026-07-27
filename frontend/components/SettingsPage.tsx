@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Sun, Moon, Globe, Bell, Shield, Lock, Check, Loader, Save } from 'lucide-react';
+import { Sun, Moon, Globe, Bell, Shield, Lock, Check, Loader, Save, Eye, EyeOff, KeyRound } from 'lucide-react';
 import { useTranslation } from './translations';
+import { mysqlClient } from '../src/lib/mysqlClient';
 
 const SettingsPage: React.FC = () => {
     const { t } = useTranslation();
@@ -39,6 +40,110 @@ const SettingsPage: React.FC = () => {
     // 6. UI State
     const [isSaving, setIsSaving] = useState(false);
     const [showSuccessToast, setShowSuccessToast] = useState(false);
+
+    // Change Password States
+    const [profile, setProfile] = useState<any>(null);
+    const [currentPassword, setCurrentPassword] = useState('');
+    const [newPassword, setNewPassword] = useState('');
+    const [confirmPassword, setConfirmPassword] = useState('');
+    const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+    const [showNewPassword, setShowNewPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+    const [passwordSaving, setPasswordSaving] = useState(false);
+    const [passwordError, setPasswordError] = useState<string | null>(null);
+    const [passwordSuccess, setPasswordSuccess] = useState<string | null>(null);
+
+    useEffect(() => {
+        const fetchProfile = async () => {
+            const activeEmail = localStorage.getItem('auth_logged_in_email') || '';
+            if (!activeEmail) return;
+            try {
+                const { data } = await mysqlClient.from('profiles').select('*');
+                if (data && Array.isArray(data)) {
+                    const user = data.find((p: any) => p.email === activeEmail);
+                    if (user) {
+                        setProfile(user);
+                    }
+                }
+            } catch (err) {
+                console.error("Failed to load profile for settings", err);
+            }
+        };
+        fetchProfile();
+    }, []);
+
+    const validatePassword = (pass: string): string | null => {
+        if (pass.length < 6 || pass.length > 10) {
+            return "Password must be between 6 and 10 characters long.";
+        }
+        if (!/[A-Z]/.test(pass)) {
+            return "Password must contain at least one uppercase letter (A-Z).";
+        }
+        if (!/[a-z]/.test(pass)) {
+            return "Password must contain at least one lowercase letter (a-z).";
+        }
+        if (!/[0-9]/.test(pass)) {
+            return "Password must contain at least one number (0-9).";
+        }
+        if (!/[^A-Za-z0-9]/.test(pass)) {
+            return "Password must contain at least one symbol (e.g. @, $, !, %, *, ?, &, #).";
+        }
+        return null;
+    };
+
+    const handlePasswordUpdate = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setPasswordError(null);
+        setPasswordSuccess(null);
+
+        if (!profile) {
+            setPasswordError("Failed to fetch user session. Please log in again.");
+            return;
+        }
+
+        if (profile.password !== currentPassword) {
+            setPasswordError("Incorrect current password.");
+            return;
+        }
+
+        const criteriaError = validatePassword(newPassword);
+        if (criteriaError) {
+            setPasswordError(criteriaError);
+            return;
+        }
+
+        if (newPassword === currentPassword) {
+            setPasswordError("New password cannot be the same as the current password.");
+            return;
+        }
+
+        if (newPassword !== confirmPassword) {
+            setPasswordError("Passwords do not match.");
+            return;
+        }
+
+        setPasswordSaving(true);
+        try {
+            const { error } = await mysqlClient
+                .from('profiles')
+                .update({ password: newPassword })
+                .eq('id', profile.id);
+
+            if (error) {
+                throw new Error(error.message || "Failed to update password.");
+            }
+
+            setPasswordSuccess("Password updated successfully!");
+            setCurrentPassword('');
+            setNewPassword('');
+            setConfirmPassword('');
+            setProfile({ ...profile, password: newPassword });
+        } catch (err: any) {
+            setPasswordError(err.message || "An error occurred.");
+        } finally {
+            setPasswordSaving(false);
+        }
+    };
 
     // Apply theme changes to the DOM and localStorage
     useEffect(() => {
@@ -361,8 +466,114 @@ const SettingsPage: React.FC = () => {
                                 publicProfile ? 'translate-x-5' : 'translate-x-0'
                             }`} />
                         </button>
+                </div>
+            </div>
+
+            {/* 5. Change Password Card */}
+            <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-slate-800 transition-colors duration-200">
+                <div className="flex items-center gap-3 mb-6">
+                    <div className="p-2.5 bg-violet-50 dark:bg-violet-950/50 text-violet-600 dark:text-violet-400 rounded-xl">
+                        <KeyRound size={20} />
+                    </div>
+                    <div>
+                        <h3 className="font-bold text-gray-900 dark:text-white">Change Password</h3>
+                        <p className="text-xs text-gray-500 dark:text-slate-400 font-medium">Update your account password</p>
                     </div>
                 </div>
+
+                <form onSubmit={handlePasswordUpdate} className="space-y-4 max-w-xl">
+                    {passwordError && (
+                        <div className="p-4 bg-rose-50 dark:bg-rose-950/20 text-rose-600 dark:text-rose-400 text-xs font-bold rounded-xl border border-rose-200 dark:border-rose-900/30">
+                            ⚠ {passwordError}
+                        </div>
+                    )}
+                    {passwordSuccess && (
+                        <div className="p-4 bg-emerald-50 dark:bg-emerald-950/20 text-emerald-600 dark:text-emerald-400 text-xs font-bold rounded-xl border border-emerald-200 dark:border-emerald-900/30">
+                            ✓ {passwordSuccess}
+                        </div>
+                    )}
+
+                    <div className="space-y-1">
+                        <label className="block text-xs font-bold text-gray-500 dark:text-slate-450 uppercase tracking-widest text-left">Current Password</label>
+                        <div className="relative border border-gray-200 dark:border-slate-800 focus-within:border-violet-500 rounded-xl transition-all duration-300 p-1 flex items-center">
+                            <input
+                                type={showCurrentPassword ? 'text' : 'password'}
+                                required
+                                value={currentPassword}
+                                onChange={(e) => setCurrentPassword(e.target.value)}
+                                className="w-full px-3 py-2 bg-transparent outline-none border-0 text-sm text-gray-900 dark:text-white placeholder-gray-400"
+                                placeholder="Enter current password"
+                            />
+                            <button
+                                type="button"
+                                onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                                className="px-3 text-gray-400 hover:text-gray-600 cursor-pointer"
+                            >
+                                {showCurrentPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                            </button>
+                        </div>
+                    </div>
+
+                    <div className="space-y-1">
+                        <label className="block text-xs font-bold text-gray-550 dark:text-slate-455 uppercase tracking-widest text-left">New Password</label>
+                        <p className="text-[10px] text-gray-400 dark:text-slate-500 font-medium text-left">Criteria: 6-10 characters, capital/small letters, numbers, and symbols.</p>
+                        <div className="relative border border-gray-200 dark:border-slate-800 focus-within:border-violet-500 rounded-xl transition-all duration-300 p-1 flex items-center">
+                            <input
+                                type={showNewPassword ? 'text' : 'password'}
+                                required
+                                minLength={6}
+                                maxLength={10}
+                                value={newPassword}
+                                onChange={(e) => setNewPassword(e.target.value)}
+                                className="w-full px-3 py-2 bg-transparent outline-none border-0 text-sm text-gray-900 dark:text-white placeholder-gray-400"
+                                placeholder="Enter new password"
+                            />
+                            <button
+                                type="button"
+                                onClick={() => setShowNewPassword(!showNewPassword)}
+                                className="px-3 text-gray-400 hover:text-gray-600 cursor-pointer"
+                            >
+                                {showNewPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                            </button>
+                        </div>
+                    </div>
+
+                    <div className="space-y-1">
+                        <label className="block text-xs font-bold text-gray-550 dark:text-slate-455 uppercase tracking-widest text-left">Confirm New Password</label>
+                        <div className="relative border border-gray-200 dark:border-slate-800 focus-within:border-violet-500 rounded-xl transition-all duration-300 p-1 flex items-center">
+                            <input
+                                type={showConfirmPassword ? 'text' : 'password'}
+                                required
+                                value={confirmPassword}
+                                onChange={(e) => setConfirmPassword(e.target.value)}
+                                className="w-full px-3 py-2 bg-transparent outline-none border-0 text-sm text-gray-900 dark:text-white placeholder-gray-400"
+                                placeholder="Confirm new password"
+                            />
+                            <button
+                                type="button"
+                                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                                className="px-3 text-gray-400 hover:text-gray-600 cursor-pointer"
+                            >
+                                {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                            </button>
+                        </div>
+                    </div>
+
+                    <button
+                        type="submit"
+                        disabled={passwordSaving}
+                        className="mt-2 flex items-center gap-2 bg-violet-650 hover:bg-violet-750 text-white text-xs font-bold px-6 py-3 rounded-xl shadow-md cursor-pointer transition-colors disabled:opacity-50"
+                    >
+                        {passwordSaving ? (
+                            <>
+                                <Loader size={14} className="animate-spin" />
+                                Updating...
+                            </>
+                        ) : (
+                            "Update Password"
+                        )}
+                    </button>
+                </form>
             </div>
 
             {/* Action Buttons */}
