@@ -161,13 +161,7 @@ const Header: React.FC<HeaderProps> = ({
   return (
     <header className="flex items-center justify-between sticky top-0 bg-[#f3f4f6]/95 dark:bg-slate-950/95 backdrop-blur-md border-b border-gray-200/30 dark:border-slate-800/30 z-30 w-full px-4 lg:px-8 py-3.5 transition-colors duration-200">
       <div className="flex items-center gap-3">
-        <button
-          onClick={() => navigate(-1)}
-          className="p-2 text-gray-600 dark:text-slate-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-200/60 dark:hover:bg-slate-800 rounded-xl transition-colors flex items-center justify-center cursor-pointer"
-          title={t('back') || 'Go Back'}
-        >
-          <ArrowLeft size={20} />
-        </button>
+
         <button
           onClick={onMenuClick}
           className="lg:hidden p-2 text-gray-600 dark:text-slate-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-250 dark:hover:bg-slate-800 rounded-lg transition-colors"
@@ -212,9 +206,11 @@ const Header: React.FC<HeaderProps> = ({
                 {user.role === 'PRO' ? 'Pro Plan' : user.role === 'PLUS' ? 'Plus Plan' : user.role === 'SPONSORED' ? 'Sponsored' : 'Basic Plan'}
               </span>
             </div>
-            <p className="text-gray-500 dark:text-slate-400 text-xs lg:text-sm mt-1 hidden sm:block">
-              {user.role === 'SPONSORED' ? 'Company Sponsored • ' + user.companyName : t('individual_learner')}
-            </p>
+            {user.role === 'SPONSORED' && (
+              <p className="text-gray-500 dark:text-slate-400 text-xs lg:text-sm mt-1 hidden sm:block">
+                Company Sponsored • {user.companyName}
+              </p>
+            )}
           </div>
         )}
       </div>
@@ -309,7 +305,7 @@ const Header: React.FC<HeaderProps> = ({
             <div className="text-right hidden sm:block">
               <p className="text-sm font-bold text-gray-900 dark:text-white leading-tight">{user.name}</p>
               <p className="text-[10px] font-semibold text-gray-500 dark:text-slate-400 capitalize">
-                {user.role === 'ADMIN' ? 'Instructor' : user.role.toLowerCase()}
+                {user.role === 'ADMIN' ? 'Instructor' : user.role === 'SPONSORED' ? 'Corporate Learner' : 'Individual Learner'}
               </p>
             </div>
             {!avatar || avatarError ? (

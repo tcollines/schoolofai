@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAdmin } from '../../hooks/useAdmin';
 import { UserRole } from '../../types';
 import { Trash2, Check, Edit2, X, ChevronDown, Search, Copy, Eye } from 'lucide-react';
-import { mysqlClient } from '../../lib/mysqlClient';
+import { supabaseClient } from '../../lib/supabaseClient';
 import { formatAmount, getCurrencyPreference, CurrencyType } from '../../lib/currency';
 
 const AdminEnrollments: React.FC = () => {
@@ -33,7 +33,7 @@ const AdminEnrollments: React.FC = () => {
 
     const handleApproveUpgrade = async (u: any) => {
         try {
-            const { error } = await mysqlClient
+            const { error } = await supabaseClient
                 .from('profiles')
                 .update({ 
                     role: u.pending_role,
@@ -87,7 +87,7 @@ const AdminEnrollments: React.FC = () => {
 
     const handleDeclineUpgrade = async (u: any) => {
         try {
-            const { error } = await mysqlClient
+            const { error } = await supabaseClient
                 .from('profiles')
                 .update({ 
                     pending_role: null,
@@ -347,7 +347,7 @@ const AdminEnrollments: React.FC = () => {
                                                                     let password = u.password || 'student123';
                                                                     if (u.role === UserRole.ADMIN) {
                                                                         try {
-                                                                            const { data } = await mysqlClient
+                                                                            const { data } = await supabaseClient
                                                                                 .from('instructors')
                                                                                 .select('*')
                                                                                 .eq('email', u.email.trim().toLowerCase());
@@ -385,7 +385,7 @@ const AdminEnrollments: React.FC = () => {
                                                                             setInstPassword('instructor');
                                                                             setInstBio('');
                                                                             try {
-                                                                                const { data: existing } = await mysqlClient
+                                                                                const { data: existing } = await supabaseClient
                                                                                     .from('instructors')
                                                                                     .select('*')
                                                                                     .eq('email', u.email.trim().toLowerCase());
@@ -479,9 +479,9 @@ const AdminEnrollments: React.FC = () => {
                                                                         await deleteUser(u.id);
                                                                         alert('User deleted successfully!');
                                                                         
-                                                                        const { data: { session } } = await mysqlClient.auth.getSession();
+                                                                        const { data: { session } } = await supabaseClient.auth.getSession();
                                                                         if (session?.user?.id === u.id) {
-                                                                            await mysqlClient.auth.signOut();
+                                                                            await supabaseClient.auth.signOut();
                                                                             window.location.href = '/';
                                                                         }
                                                                     } catch (err: any) {
@@ -566,14 +566,14 @@ const AdminEnrollments: React.FC = () => {
                                     }
                                     try {
                                         // 1. Check if instructor already exists in database
-                                        const { data: existing } = await mysqlClient
+                                        const { data: existing } = await supabaseClient
                                             .from('instructors')
                                             .select('id')
                                             .eq('email', selectedUpgradeUser.email.trim().toLowerCase());
 
                                         if (existing && existing.length > 0) {
                                             // Update
-                                            const { error: updErr } = await mysqlClient
+                                            const { error: updErr } = await supabaseClient
                                                 .from('instructors')
                                                 .update({
                                                     name: selectedUpgradeUser.name,
@@ -584,7 +584,7 @@ const AdminEnrollments: React.FC = () => {
                                             if (updErr) throw updErr;
                                         } else {
                                             // Insert
-                                            const { error: insErr } = await mysqlClient
+                                            const { error: insErr } = await supabaseClient
                                                 .from('instructors')
                                                 .insert({
                                                     id: 'inst-' + Math.random().toString(36).substr(2, 9),

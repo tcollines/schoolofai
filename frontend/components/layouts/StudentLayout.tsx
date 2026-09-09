@@ -68,11 +68,13 @@ const StudentLayout: React.FC<StudentLayoutProps> = ({ session, isAuthenticated,
     const hideHeaderWidgets = ['courses', 'career', 'profile', 'plans', 'discover', 'settings', 'discussions'].includes(currentPath);
     const profilePosition = ['courses', 'discover', 'settings', 'discussions'].includes(currentPath) ? 'left' : 'right';
 
+    const activeSidebarTab = currentPath === 'plans' ? 'profile' : (currentPath || 'dashboard');
+
     return (
         <div className="flex min-h-screen bg-[#f3f4f6] dark:bg-slate-950 dark:text-slate-100 transition-colors duration-200">
             {/* Sidebar */}
             <Sidebar
-                activeTab={currentPath || 'dashboard'}
+                activeTab={activeSidebarTab}
                 setActiveTab={(tab) => {
                     navigate(`/${tab}`);
                     setIsMobileMenuOpen(false);

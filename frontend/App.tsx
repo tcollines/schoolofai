@@ -16,15 +16,27 @@ import SettingsPage from './components/SettingsPage';
 import NotificationsPage from './components/NotificationsPage';
 import EventsPage from './components/EventsPage';
 import DiscussionsPage from './components/DiscussionsPage';
-import { supabase } from './src/lib/mysqlClient';
+import VerifyEmail from './components/onboarding/VerifyEmail';
+import ProfileSetup from './components/onboarding/ProfileSetup';
+import PaymentPlanSetup from './components/onboarding/PaymentPlanSetup';
+import RecommendedCourses from './components/onboarding/RecommendedCourses';
+import { supabase } from './src/lib/supabaseClient';
 import { useCourses } from './src/hooks/useCourses';
 import { useProfile } from './src/hooks/useProfile';
 import { UserRole } from './types';
 
-const ProtectedRoute = ({ isAuthenticated, children }: { isAuthenticated: boolean, children: React.ReactNode }) => {
+const ProtectedRoute = ({ isAuthenticated, requireOnboarding = false, userProfile, children }: { isAuthenticated: boolean, requireOnboarding?: boolean, userProfile?: any, children: React.ReactNode }) => {
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />;
   }
+  
+  if (requireOnboarding && userProfile && !userProfile.onboarding_complete) {
+     const isAlreadyOnboarding = window.location.pathname.startsWith('/onboarding');
+     if (!isAlreadyOnboarding) {
+         return <Navigate to="/onboarding/profile" replace />;
+     }
+  }
+
   return <>{children}</>;
 };
 
@@ -165,11 +177,18 @@ function App() {
              <AdminLayout onExit={() => window.location.href = '/dashboard'} isInstructor={true} />
         } />
 
+        {/* Onboarding Routes */}
+        <Route path="/onboarding/verify" element={<VerifyEmail />} />
+        <Route path="/onboarding/profile" element={<ProtectedRoute isAuthenticated={isAuthenticated} userProfile={userProfile}><ProfileSetup /></ProtectedRoute>} />
+        <Route path="/onboarding/plan" element={<ProtectedRoute isAuthenticated={isAuthenticated} userProfile={userProfile}><PaymentPlanSetup /></ProtectedRoute>} />
+        <Route path="/onboarding/courses" element={<ProtectedRoute isAuthenticated={isAuthenticated} userProfile={userProfile}><RecommendedCourses /></ProtectedRoute>} />
+
         {/* Student Routes wrapper */}
         <Route element={<StudentLayout session={session} isAuthenticated={isAuthenticated} isAdminMode={false} courses={courses} />}>
-            <Route path="/dashboard" element={<ProtectedRoute isAuthenticated={isAuthenticated}><DashboardHome courses={courses} userId={session?.user?.id || 'guest'} /></ProtectedRoute>} />
+            <Route path="/dashboard" element={<ProtectedRoute isAuthenticated={isAuthenticated} requireOnboarding={true} userProfile={userProfile}><DashboardHome courses={courses} userId={session?.user?.id || 'guest'} /></ProtectedRoute>} />
             
             <Route path="/discover" element={
+                <ProtectedRoute isAuthenticated={isAuthenticated} requireOnboarding={true} userProfile={userProfile}>
                 <DiscoverCourses 
                   courses={courses} 
                   isAuthenticated={isAuthenticated} 
@@ -192,9 +211,11 @@ function App() {
                     window.location.href = '/courses';
                   }}
                 />
+                </ProtectedRoute>
             } />
             
             <Route path="/discover/:courseId" element={
+                <ProtectedRoute isAuthenticated={isAuthenticated} requireOnboarding={true} userProfile={userProfile}>
                 <CourseOverview 
                   courses={courses} 
                   isAuthenticated={isAuthenticated} 
@@ -225,16 +246,17 @@ function App() {
                     window.location.reload();
                   }}
                 />
+                </ProtectedRoute>
             } />
             
-            <Route path="/courses" element={<ProtectedRoute isAuthenticated={isAuthenticated}><MyCourses courses={isAuthenticated ? courses : []} /></ProtectedRoute>} />
-            <Route path="/discussions" element={<ProtectedRoute isAuthenticated={isAuthenticated}><DiscussionsPage /></ProtectedRoute>} />
-            <Route path="/career" element={<ProtectedRoute isAuthenticated={isAuthenticated}><Certificates courses={isAuthenticated ? courses : []} /></ProtectedRoute>} />
-            <Route path="/profile" element={<ProtectedRoute isAuthenticated={isAuthenticated}><Profile user={userProfile || ({} as any)} onUpgradeClick={() => window.location.href = '/plans'} /></ProtectedRoute>} />
-            <Route path="/plans" element={<ProtectedRoute isAuthenticated={isAuthenticated}><PlansPage user={userProfile} currentPlan={userProfile?.role || UserRole.INDIVIDUAL} onUpgrade={() => {}} onBack={() => window.location.href = '/profile'} /></ProtectedRoute>} />
-            <Route path="/settings" element={<ProtectedRoute isAuthenticated={isAuthenticated}><SettingsPage /></ProtectedRoute>} />
-            <Route path="/notifications" element={<ProtectedRoute isAuthenticated={isAuthenticated}><NotificationsPage /></ProtectedRoute>} />
-            <Route path="/events" element={<ProtectedRoute isAuthenticated={isAuthenticated}><EventsPage courses={courses} /></ProtectedRoute>} />
+            <Route path="/courses" element={<ProtectedRoute isAuthenticated={isAuthenticated} requireOnboarding={true} userProfile={userProfile}><MyCourses courses={isAuthenticated ? courses : []} /></ProtectedRoute>} />
+            <Route path="/discussions" element={<ProtectedRoute isAuthenticated={isAuthenticated} requireOnboarding={true} userProfile={userProfile}><DiscussionsPage /></ProtectedRoute>} />
+            <Route path="/career" element={<ProtectedRoute isAuthenticated={isAuthenticated} requireOnboarding={true} userProfile={userProfile}><Certificates courses={isAuthenticated ? courses : []} /></ProtectedRoute>} />
+            <Route path="/profile" element={<ProtectedRoute isAuthenticated={isAuthenticated} requireOnboarding={true} userProfile={userProfile}><Profile user={userProfile || ({} as any)} onUpgradeClick={() => window.location.href = '/plans'} /></ProtectedRoute>} />
+            <Route path="/plans" element={<ProtectedRoute isAuthenticated={isAuthenticated} requireOnboarding={true} userProfile={userProfile}><PlansPage user={userProfile} currentPlan={userProfile?.role || UserRole.INDIVIDUAL} onUpgrade={() => {}} onBack={() => window.location.href = '/profile'} /></ProtectedRoute>} />
+            <Route path="/settings" element={<ProtectedRoute isAuthenticated={isAuthenticated} requireOnboarding={true} userProfile={userProfile}><SettingsPage /></ProtectedRoute>} />
+            <Route path="/notifications" element={<ProtectedRoute isAuthenticated={isAuthenticated} requireOnboarding={true} userProfile={userProfile}><NotificationsPage /></ProtectedRoute>} />
+            <Route path="/events" element={<ProtectedRoute isAuthenticated={isAuthenticated} requireOnboarding={true} userProfile={userProfile}><EventsPage courses={courses} /></ProtectedRoute>} />
             
             {/* Default fallback route inside Layout */}
             <Route path="*" element={<Navigate to={isAuthenticated ? "/dashboard" : "/"} replace />} />

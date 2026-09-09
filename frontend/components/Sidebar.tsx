@@ -1,6 +1,6 @@
 import React from 'react';
 import { LayoutDashboard, BookOpen, MessageSquare, CreditCard, User, Award, Settings, LogOut, Briefcase, X, Compass, Calendar, ClipboardList } from 'lucide-react';
-import { mysqlClient } from '../src/lib/mysqlClient';
+import { supabaseClient } from '../src/lib/supabaseClient';
 
 import { useTranslation } from './translations';
 
@@ -22,7 +22,6 @@ const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, isOpen, onCl
     { id: 'events', label: t('events') || 'Upcoming Events', icon: Calendar },
     { id: 'career', label: t('career_growth'), icon: Briefcase },
     { id: 'profile', label: t('my_profile'), icon: User },
-    { id: 'plans', label: t('subscription_plans') || 'Upgrade Plan', icon: CreditCard },
     { id: 'settings', label: t('settings'), icon: Settings },
   ];
 
@@ -78,7 +77,7 @@ const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, isOpen, onCl
         <div className="p-4 mt-auto">
           <button 
             onClick={async () => {
-              await mysqlClient.auth.signOut();
+              await supabaseClient.auth.signOut();
               window.location.href = '/';
             }}
             className="flex items-center gap-3 text-slate-400 hover:text-white px-4 py-4 w-full mt-2 text-sm"

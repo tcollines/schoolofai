@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useAdmin } from '../../hooks/useAdmin';
 import { Course, Quiz, Question } from '../../types';
 import { Plus, X, ArrowRight, ArrowLeft, Save, AlertTriangle, Edit2, Check, RefreshCw } from 'lucide-react';
-import { mysqlClient } from '../../lib/mysqlClient';
+import { supabaseClient } from '../../lib/supabaseClient';
 
 interface AdminExamsProps {
     isInstructor?: boolean;
@@ -57,7 +57,7 @@ const AdminExams: React.FC<AdminExamsProps> = ({ isInstructor = false }) => {
         if (!editingScores) return;
         try {
             const finalScore = Math.round((editingScores.quizScore * 0.3) + (editingScores.examScore * 0.7));
-            const { error } = await mysqlClient
+            const { error } = await supabaseClient
                 .from('enrollments')
                 .update({
                     quiz_score: editingScores.quizScore,

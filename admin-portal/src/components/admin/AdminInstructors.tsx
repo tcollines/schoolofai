@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { mysqlClient } from '../../lib/mysqlClient';
+import { supabaseClient } from '../../lib/supabaseClient';
 import { Plus, Edit2, Trash2, Mail, FileText, UserCheck, X, Loader, Copy, Check } from 'lucide-react';
 
 interface Instructor {
@@ -39,10 +39,10 @@ const AdminInstructors: React.FC = () => {
     const fetchInstructors = async () => {
         setLoading(true);
         try {
-            const { data: instData, error: instError } = await mysqlClient.from('instructors').select('*');
+            const { data: instData, error: instError } = await supabaseClient.from('instructors').select('*');
             if (instError) throw instError;
 
-            const { data: profilesData, error: profilesError } = await mysqlClient.from('profiles').select('email, role');
+            const { data: profilesData, error: profilesError } = await supabaseClient.from('profiles').select('email, role');
             if (profilesError) throw profilesError;
 
             const adminEmails = new Set(
@@ -54,7 +54,7 @@ const AdminInstructors: React.FC = () => {
             const validInstructors = (instData || []).filter(inst => {
                 const isEmailValid = adminEmails.has(inst.email?.trim().toLowerCase());
                 if (!isEmailValid) {
-                    mysqlClient
+                    supabaseClient
                         .from('instructors')
                         .delete()
                         .eq('id', inst.id)
@@ -101,7 +101,7 @@ const AdminInstructors: React.FC = () => {
     const handleDelete = async (id: string) => {
         if (!confirm('Are you sure you want to delete this instructor?')) return;
         try {
-            const { error } = await mysqlClient.from('instructors').delete().eq('id', id);
+            const { error } = await supabaseClient.from('instructors').delete().eq('id', id);
             if (error) throw error;
             fetchInstructors();
         } catch (err) {
@@ -116,7 +116,7 @@ const AdminInstructors: React.FC = () => {
         setIsSubmitting(true);
         try {
             if (editingInstructor) {
-                const { error } = await mysqlClient
+                const { error } = await supabaseClient
                     .from('instructors')
                     .update({
                         name,
@@ -128,7 +128,7 @@ const AdminInstructors: React.FC = () => {
                     .eq('id', editingInstructor.id);
                 if (error) throw error;
             } else {
-                const { error } = await mysqlClient
+                const { error } = await supabaseClient
                     .from('instructors')
                     .insert({
                         id: 'inst-' + Math.random().toString(36).substr(2, 9),

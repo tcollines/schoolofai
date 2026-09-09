@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { mysqlClient } from '../lib/mysqlClient';
+import { supabaseClient } from '../lib/supabaseClient';
 import { UserProfile, Course, UserRole } from '../../types';
 
 export const useAdmin = (isAdmin: boolean) => {
@@ -15,7 +15,7 @@ export const useAdmin = (isAdmin: boolean) => {
         setError(null);
         try {
             // Fetch Profiles
-            const { data: usersData, error: profilesError } = await mysqlClient
+            const { data: usersData, error: profilesError } = await supabaseClient
                 .from('profiles')
                 .select('*');
             
@@ -43,7 +43,7 @@ export const useAdmin = (isAdmin: boolean) => {
             setUsers(formattedUsers);
 
             // Fetch Courses
-            const { data: coursesData, error: coursesError } = await mysqlClient
+            const { data: coursesData, error: coursesError } = await supabaseClient
                 .from('courses')
                 .select('*');
 
@@ -82,7 +82,7 @@ export const useAdmin = (isAdmin: boolean) => {
             setCourses(formattedCourses);
 
             // Fetch Enrollments
-            const { data: enrollmentsData, error: enrollmentsError } = await mysqlClient
+            const { data: enrollmentsData, error: enrollmentsError } = await supabaseClient
                 .from('enrollments')
                 .select('*');
 
@@ -125,7 +125,7 @@ export const useAdmin = (isAdmin: boolean) => {
     const addCourse = async (courseData: Partial<Course>) => {
         try {
             const totalLessons = courseData.sections?.reduce((sum, section) => sum + (section.lessons?.length || 0), 0) || 0;
-            const { data, error } = await mysqlClient.from('courses').insert([
+            const { data, error } = await supabaseClient.from('courses').insert([
                 {
                     title: courseData.title,
                     instructor: courseData.instructor,
@@ -162,7 +162,7 @@ export const useAdmin = (isAdmin: boolean) => {
     const updateCourse = async (courseId: string, courseData: Partial<Course>) => {
         try {
             const totalLessons = courseData.sections?.reduce((sum, section) => sum + (section.lessons?.length || 0), 0) || 0;
-            const { data, error } = await mysqlClient
+            const { data, error } = await supabaseClient
                 .from('courses')
                 .update({
                     title: courseData.title,
@@ -201,7 +201,7 @@ export const useAdmin = (isAdmin: boolean) => {
     const deleteCourse = async (courseId: string) => {
         try {
             // Delete the course from courses table (MySQL cascade delete handles enrollments automatically)
-            const { data, error } = await mysqlClient
+            const { data, error } = await supabaseClient
                 .from('courses')
                 .delete()
                 .eq('id', courseId);
@@ -217,7 +217,7 @@ export const useAdmin = (isAdmin: boolean) => {
 
     const updateCourseQuiz = async (courseId: string, quizData: any, extraFields: any = {}) => {
         try {
-            const { data, error } = await mysqlClient
+            const { data, error } = await supabaseClient
                 .from('courses')
                 .update({ quiz: quizData, ...extraFields })
                 .eq('id', courseId)
@@ -235,13 +235,13 @@ export const useAdmin = (isAdmin: boolean) => {
     const updateUserRole = async (userId: string, role: UserRole) => {
         try {
             // Get user's email before updating to handle instructors cleanup
-            const { data: profile } = await mysqlClient
+            const { data: profile } = await supabaseClient
                 .from('profiles')
                 .select('email')
                 .eq('id', userId)
                 .single();
 
-            const { error } = await mysqlClient
+            const { error } = await supabaseClient
                 .from('profiles')
                 .update({ role })
                 .eq('id', userId);
@@ -250,7 +250,7 @@ export const useAdmin = (isAdmin: boolean) => {
 
             if (role !== UserRole.INSTRUCTOR && role !== UserRole.ADMIN && profile?.email) {
                 // Delete from instructors table so they disappear from instructors page
-                await mysqlClient
+                await supabaseClient
                     .from('instructors')
                     .delete()
                     .eq('email', profile.email.trim().toLowerCase());
@@ -266,7 +266,7 @@ export const useAdmin = (isAdmin: boolean) => {
 
     const updateUserWallet = async (userId: string, balance: number) => {
         try {
-            const { error } = await mysqlClient
+            const { error } = await supabaseClient
                 .from('profiles')
                 .update({ wallet_balance: balance })
                 .eq('id', userId);
@@ -283,7 +283,7 @@ export const useAdmin = (isAdmin: boolean) => {
     const deleteUser = async (userId: string) => {
         try {
             // Get user's email to delete instructor if exists
-            const { data: profile } = await mysqlClient
+            const { data: profile } = await supabaseClient
                 .from('profiles')
                 .select('email')
                 .eq('id', userId)
@@ -291,7 +291,7 @@ export const useAdmin = (isAdmin: boolean) => {
 
             if (profile?.email) {
                 // Fetch the instructor list to delete by ID since delete-by-email is unsupported
-                const { data: instructors } = await mysqlClient
+                const { data: instructors } = await supabaseClient
                     .from('instructors')
                     .select('*');
                 
@@ -300,7 +300,7 @@ export const useAdmin = (isAdmin: boolean) => {
                 );
                 
                 if (instructor) {
-                    await mysqlClient
+                    await supabaseClient
                         .from('instructors')
                         .delete()
                         .eq('id', instructor.id);
@@ -308,7 +308,7 @@ export const useAdmin = (isAdmin: boolean) => {
             }
 
             // Delete user's profile (the database schema ON DELETE CASCADE will handle deleting their enrollments)
-            const { error } = await mysqlClient
+            const { error } = await supabaseClient
                 .from('profiles')
                 .delete()
                 .eq('id', userId);
@@ -348,7 +348,7 @@ export const useAdmin = (isAdmin: boolean) => {
 
     const verifyAndIssueCertificate = async (userId: string, courseId: string, certificateUrl: string) => {
         try {
-            const { error } = await mysqlClient
+            const { error } = await supabaseClient
                 .from('enrollments')
                 .update({ 
                     is_certificate_verified: true,
@@ -368,7 +368,7 @@ export const useAdmin = (isAdmin: boolean) => {
 
     const releaseExamMarks = async (userId: string, courseId: string) => {
         try {
-            const { error } = await mysqlClient
+            const { error } = await supabaseClient
                 .from('enrollments')
                 .update({ 
                     exam_marks_released: true

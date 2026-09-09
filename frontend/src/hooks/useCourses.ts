@@ -1,6 +1,6 @@
 
 import { useEffect, useState } from 'react';
-import { mysqlClient } from '../lib/mysqlClient';
+import { supabaseClient } from '../lib/supabaseClient';
 import { Course, CourseStatus } from '../../types';
 
 export const useCourses = (userId: string | undefined) => {
@@ -14,7 +14,7 @@ export const useCourses = (userId: string | undefined) => {
                 setLoading(true);
 
                 // Fetch all courses
-                const { data: coursesData, error: coursesError } = await mysqlClient
+                const { data: coursesData, error: coursesError } = await supabaseClient
                     .from('courses')
                     .select('*');
 
@@ -23,7 +23,7 @@ export const useCourses = (userId: string | undefined) => {
                 // Fetch user enrollments if logged in
                 let enrollmentsMap: Record<string, any> = {};
                 if (userId) {
-                    const { data: enrollmentsData, error: enrollmentsError } = await mysqlClient
+                    const { data: enrollmentsData, error: enrollmentsError } = await supabaseClient
                         .from('enrollments')
                         .select('*')
                         .eq('user_id', userId);

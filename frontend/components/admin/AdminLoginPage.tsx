@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Mail, ShieldAlert, ArrowLeft, Loader2, KeyRound, Sun, Moon } from 'lucide-react';
-import { mysqlClient } from '../../src/lib/mysqlClient';
+import { supabaseClient } from '../../src/lib/supabaseClient';
 
 interface AdminLoginPageProps {
     onLoginSuccess: () => void;
@@ -176,7 +176,7 @@ const AdminLoginPage: React.FC<AdminLoginPageProps> = ({ onLoginSuccess, onBackT
             }
 
             if (isInstructor) {
-                const { data: instructorData } = await mysqlClient
+                const { data: instructorData } = await supabaseClient
                     .from('instructors')
                     .select('*')
                     .eq('email', emailClean);

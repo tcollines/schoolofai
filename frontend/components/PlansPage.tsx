@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { CheckCircle, Sparkles, X, Loader } from 'lucide-react';
 import { UserRole } from '../types';
 import { useTranslation } from './translations';
-import { mysqlClient } from '../src/lib/mysqlClient';
+import { supabaseClient } from '../src/lib/supabaseClient';
 import { formatAmount, getCurrencyPreference, CurrencyType } from '../src/lib/currency';
 
 interface PlansPageProps {
@@ -14,6 +15,7 @@ interface PlansPageProps {
 
 const PlansPage: React.FC<PlansPageProps> = ({ user, currentPlan, onUpgrade, onBack }) => {
     const { t } = useTranslation();
+    const navigate = useNavigate();
     const [currency, setCurrency] = useState<CurrencyType>(getCurrencyPreference);
 
     useEffect(() => {
@@ -42,7 +44,7 @@ const PlansPage: React.FC<PlansPageProps> = ({ user, currentPlan, onUpgrade, onB
         }
         setIsSubmittingBusiness(true);
         try {
-            const { error } = await mysqlClient
+            const { error } = await supabaseClient
                 .from('profiles')
                 .update({
                     pending_role: 'SPONSORED',
@@ -52,7 +54,7 @@ const PlansPage: React.FC<PlansPageProps> = ({ user, currentPlan, onUpgrade, onB
                 .eq('id', user.id);
             if (error) throw error;
 
-            await mysqlClient
+            await supabaseClient
                 .from('mails')
                 .insert({
                     name: user.name || 'Student',
@@ -98,14 +100,12 @@ const PlansPage: React.FC<PlansPageProps> = ({ user, currentPlan, onUpgrade, onB
                     <h2 className="text-3xl font-bold text-gray-900 dark:text-white">{t('subscription_plans')}</h2>
                     <p className="text-gray-500 dark:text-slate-400 mt-2">{t('choose_plan')}</p>
                 </div>
-                {onBack && (
-                    <button
-                        onClick={onBack}
-                        className="hidden sm:inline-block text-gray-500 dark:text-slate-400 hover:text-gray-900 dark:hover:text-white font-medium px-4 py-2 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
-                    >
-                        ← {t('back_to_profile')}
-                    </button>
-                )}
+                <button
+                    onClick={() => navigate('/profile')}
+                    className="hidden sm:inline-block text-gray-500 dark:text-slate-400 hover:text-gray-900 dark:hover:text-white font-medium px-4 py-2 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-lg transition-colors cursor-pointer"
+                >
+                    ← {t('back_to_profile')}
+                </button>
             </div>
 
             {(rating > 0 || localStorage.getItem(`schoolofai-rating-${user?.id || 'guest'}`)) ? (
@@ -362,7 +362,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({ isOpen, onClose, planName, 
         setIsSaving(true);
         try {
             // 1. Update profiles database with the pending upgrade information
-            const { error } = await mysqlClient
+            const { error } = await supabaseClient
                 .from('profiles')
                 .update({
                     pending_role: planName,

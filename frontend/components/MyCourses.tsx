@@ -6,7 +6,7 @@ import CoursePlayer from './CoursePlayer';
 import ExamPlayer from './ExamPlayer';
 import RatingModal from './RatingModal';
 import { Star } from 'lucide-react';
-import { mysqlClient } from '../src/lib/mysqlClient';
+import { supabaseClient } from '../src/lib/supabaseClient';
 import { useTranslation } from './translations';
 
 interface MyCoursesProps {
@@ -167,9 +167,9 @@ const MyCourses: React.FC<MyCoursesProps> = ({ courses }) => {
 
                 // Persist in background MySQL database
                 try {
-                    const { data: { user } } = await mysqlClient.auth.getUser();
+                    const { data: { user } } = await supabaseClient.auth.getUser();
                     if (user) {
-                        await mysqlClient
+                        await supabaseClient
                             .from('enrollments')
                             .update({ 
                                 progress: completedCount,
@@ -219,7 +219,7 @@ const MyCourses: React.FC<MyCoursesProps> = ({ courses }) => {
                     alert("Exam submitted for grading! The admin will review and release your score.");
                     setTakingExam(false);
                     try {
-                        const { data: { session } } = await mysqlClient.auth.getSession();
+                        const { data: { session } } = await supabaseClient.auth.getSession();
                         if (session?.user?.id && selectedCourse) {
                             const scopeKey = session.user.email || 'guest';
                             const existingGrades = JSON.parse(localStorage.getItem(`quiz-grades-${scopeKey}`) || '[]');
@@ -229,7 +229,7 @@ const MyCourses: React.FC<MyCoursesProps> = ({ courses }) => {
                                 : 0;
                             const finalScore = Math.round((quizScore * 0.3) + (score * 0.7));
 
-                            const { error } = await mysqlClient
+                            const { error } = await supabaseClient
                                 .from('enrollments')
                                 .update({ 
                                     exam_completed: true,
@@ -823,7 +823,7 @@ const MyCourses: React.FC<MyCoursesProps> = ({ courses }) => {
                         onClose={() => setIsRatingModalOpen(false)}
                         onSubmit={async (rating, review) => {
                             try {
-                                const { data: { session } } = await mysqlClient.auth.getSession();
+                                const { data: { session } } = await supabaseClient.auth.getSession();
                                 const userId = session?.user?.id || 'guest';
                                 
                                 let studentName = 'Student';
@@ -832,7 +832,7 @@ const MyCourses: React.FC<MyCoursesProps> = ({ courses }) => {
                                 let avatarPositionX = 0;
                                 let avatarPositionY = 0;
 
-                                const { data: profileData } = await mysqlClient
+                                const { data: profileData } = await supabaseClient
                                     .from('profiles')
                                     .select('*')
                                     .eq('id', userId)

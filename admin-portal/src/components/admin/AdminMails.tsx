@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { mysqlClient } from '../../lib/mysqlClient';
+import { supabaseClient } from '../../lib/supabaseClient';
 import { Trash2, Mail, MailOpen, Filter, Inbox, Check } from 'lucide-react';
 
 const AdminMails: React.FC = () => {
@@ -21,7 +21,7 @@ const AdminMails: React.FC = () => {
     const fetchMails = async () => {
         setLoading(true);
         try {
-            const { data, error } = await mysqlClient
+            const { data, error } = await supabaseClient
                 .from('mails')
                 .select('*');
             if (error) throw error;
@@ -47,7 +47,7 @@ const AdminMails: React.FC = () => {
     const handleDeleteMail = async (id: string) => {
         if (!confirm("Are you sure you want to delete this message?")) return;
         try {
-            const { error } = await mysqlClient
+            const { error } = await supabaseClient
                 .from('mails')
                 .delete()
                 .eq('id', id);

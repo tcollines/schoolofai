@@ -1,6 +1,6 @@
 
 import { useEffect, useState } from 'react';
-import { mysqlClient } from '../lib/mysqlClient';
+import { supabaseClient } from '../lib/supabaseClient';
 import { UserProfile, UserRole } from '../../types';
 
 export const useProfile = (session: any) => {
@@ -17,7 +17,7 @@ export const useProfile = (session: any) => {
 
             try {
                 setLoading(true);
-                const { data, error } = await mysqlClient
+                const { data, error } = await supabaseClient
                     .from('profiles')
                     .select('*')
                     .eq('id', session.user.id)
@@ -38,7 +38,8 @@ export const useProfile = (session: any) => {
                         dateOfBirth: '',
                         avatarScale: 1,
                         avatarPositionX: 0,
-                        avatarPositionY: 0
+                        avatarPositionY: 0,
+                        onboarding_complete: false
                     });
                 } else {
                     setProfile({
@@ -57,7 +58,8 @@ export const useProfile = (session: any) => {
                         dateOfBirth: data.dateOfBirth || data.date_of_birth || '',
                         avatarScale: data.avatarScale !== undefined ? Number(data.avatarScale) : (data.avatar_scale !== undefined ? Number(data.avatar_scale) : 1),
                         avatarPositionX: data.avatarPositionX !== undefined ? Number(data.avatarPositionX) : (data.avatar_pos_x !== undefined ? Number(data.avatar_pos_x) : 0),
-                        avatarPositionY: data.avatarPositionY !== undefined ? Number(data.avatarPositionY) : (data.avatar_pos_y !== undefined ? Number(data.avatar_pos_y) : 0)
+                        avatarPositionY: data.avatarPositionY !== undefined ? Number(data.avatarPositionY) : (data.avatar_pos_y !== undefined ? Number(data.avatar_pos_y) : 0),
+                        onboarding_complete: data.onboarding_complete
                     });
                 }
             } catch (err) {

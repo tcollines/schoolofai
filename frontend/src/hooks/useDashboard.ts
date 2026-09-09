@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { mysqlClient } from '../lib/mysqlClient';
+import { supabaseClient } from '../lib/supabaseClient';
 
 export interface ActivityLog {
     day: string;
@@ -37,7 +37,7 @@ export const useDashboard = (userId: string | undefined) => {
 
             try {
                 // Fetch Activity Logs
-                const { data: activityData } = await mysqlClient
+                const { data: activityData } = await supabaseClient
                     .from('activity_logs')
                     .select('date, hours')
                     .eq('user_id', userId)
@@ -56,7 +56,7 @@ export const useDashboard = (userId: string | undefined) => {
 
 
                 // Fetch Schedule
-                const { data: scheduleData } = await mysqlClient
+                const { data: scheduleData } = await supabaseClient
                     .from('schedule_items')
                     .select('*')
                     .eq('user_id', userId)
@@ -70,7 +70,7 @@ export const useDashboard = (userId: string | undefined) => {
 
 
                 // Fetch Assignments
-                const { data: assignmentsData } = await mysqlClient
+                const { data: assignmentsData } = await supabaseClient
                     .from('assignments')
                     .select('*')
                     .eq('user_id', userId)

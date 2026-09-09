@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAdmin } from '../../src/hooks/useAdmin';
-import { mysqlClient } from '../../src/lib/mysqlClient';
+import { supabaseClient } from '../../src/lib/supabaseClient';
 import { Users, BookOpen, TrendingUp, DollarSign, Calendar, Megaphone, Send } from 'lucide-react';
 import { formatAmount, getCurrencyPreference, CurrencyType } from '../../src/lib/currency';
 
@@ -105,7 +105,7 @@ const AdminOverview: React.FC = () => {
             visibility
         };
 
-        await mysqlClient.from('events').insert(newEvent);
+        await supabaseClient.from('events').insert(newEvent);
         window.dispatchEvent(new Event('admin-events-update'));
 
         // Add to portal notifications for all users

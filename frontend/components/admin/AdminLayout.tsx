@@ -10,7 +10,7 @@ import AdminExams from './AdminExams';
 import AdminEvents from './AdminEvents';
 import AdminLoginPage from './AdminLoginPage';
 import AdminMails from './AdminMails';
-import { mysqlClient } from '../../src/lib/mysqlClient';
+import { supabaseClient } from '../../src/lib/supabaseClient';
 
 interface AdminLayoutProps {
     onExit: () => void;
@@ -64,7 +64,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ onExit, isInstructor, isAdmin
                 setUserEmail(email);
                 
                 // Try to find the instructor in the database to get details
-                const { data } = await mysqlClient.from('instructors').select('*').eq('email', email.trim().toLowerCase());
+                const { data } = await supabaseClient.from('instructors').select('*').eq('email', email.trim().toLowerCase());
                 if (data && data.length > 0) {
                     const inst = data[0];
                     setUserName(inst.name || name);
@@ -75,7 +75,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ onExit, isInstructor, isAdmin
                 setUserEmail(email);
                 
                 // Find admin profile in database
-                const { data } = await mysqlClient.from('profiles').select('*').eq('email', email.trim().toLowerCase());
+                const { data } = await supabaseClient.from('profiles').select('*').eq('email', email.trim().toLowerCase());
                 if (data && data.length > 0) {
                     const prof = data[0];
                     setUserName(prof.full_name || 'Admin');
@@ -99,7 +99,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ onExit, isInstructor, isAdmin
                 try {
                     if (isInstructor) {
                         const email = localStorage.getItem('instructor-email') || '';
-                        const { data } = await mysqlClient.from('instructors').select('*').eq('email', email.trim().toLowerCase());
+                        const { data } = await supabaseClient.from('instructors').select('*').eq('email', email.trim().toLowerCase());
                         if (!data || data.length === 0) {
                             // Invalid instructor!
                             localStorage.removeItem(sessionKey);
@@ -115,7 +115,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ onExit, isInstructor, isAdmin
                             // Default admin accounts are valid and don't need database profile records
                             return;
                         }
-                        const { data } = await mysqlClient.from('profiles').select('role').eq('email', cleanEmail).single();
+                        const { data } = await supabaseClient.from('profiles').select('role').eq('email', cleanEmail).single();
                         if (!data || data.role !== 'ADMIN') {
                             // Invalid admin!
                             localStorage.removeItem(sessionKey);

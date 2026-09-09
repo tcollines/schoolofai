@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { Calendar, Clock, MapPin, Video, Users, Check, ExternalLink, ArrowRight, Loader, Eye, X } from 'lucide-react';
 import { useTranslation } from './translations';
 import { Course, CourseStatus } from '../types';
-import { mysqlClient } from '../src/lib/mysqlClient';
+import { supabaseClient } from '../src/lib/supabaseClient';
 
 interface EventItem {
     id: string;
@@ -46,9 +46,9 @@ const EventsPage: React.FC<EventsPageProps> = ({ courses = [] }) => {
 
     useEffect(() => {
         const fetchUserRole = async () => {
-            const { data } = await mysqlClient.auth.getUser();
+            const { data } = await supabaseClient.auth.getUser();
             if (data?.user) {
-                const { data: profile } = await mysqlClient.from('profiles').select('role').eq('id', data.user.id).single();
+                const { data: profile } = await supabaseClient.from('profiles').select('role').eq('id', data.user.id).single();
                 if (profile) {
                     setUserRole(profile.role);
                 }
@@ -94,7 +94,7 @@ const EventsPage: React.FC<EventsPageProps> = ({ courses = [] }) => {
     // Fetch admin events from database, synced with admin console updates
     useEffect(() => {
         const fetchEvents = async () => {
-            const { data } = await mysqlClient.from('events').select('*');
+            const { data } = await supabaseClient.from('events').select('*');
             if (data) {
                 setAdminEvents(data);
             }

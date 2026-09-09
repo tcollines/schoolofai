@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Mail, Lock, KeyRound, ShieldAlert, ArrowLeft, Loader2, Info, Sun, Moon } from 'lucide-react';
-import { supabaseClient } from '../../lib/mysqlClient';
-import { supabase } from '../../lib/mysqlClient';
+import { supabaseClient } from '../../lib/supabaseClient';
+import { supabase } from '../../lib/supabaseClient';
 
 interface AdminLoginPageProps {
     onLoginSuccess: () => void;

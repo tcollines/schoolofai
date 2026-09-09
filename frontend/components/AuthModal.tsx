@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { X, Mail, Lock, User, Loader2 } from 'lucide-react';
-import { mysqlClient } from '../src/lib/mysqlClient';
+import { supabaseClient } from '../src/lib/supabaseClient';
 
 interface AuthModalProps {
     isOpen: boolean;
@@ -156,7 +156,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onLogin }
     const handleGoogleLogin = async () => {
         try {
             setLoading(true);
-            const { error } = await mysqlClient.auth.signInWithOAuth({
+            const { error } = await supabaseClient.auth.signInWithOAuth({
                 provider: 'google',
                 options: {
                     redirectTo: window.location.origin + '/dashboard'

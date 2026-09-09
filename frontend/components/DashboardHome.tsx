@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { TrendingUp, CheckCircle, PlayCircle, BookOpen, MessageSquare, Award, Shield } from 'lucide-react';
 import { Course, CourseStatus } from '../types';
 import { useTranslation } from './translations';
-import { mysqlClient } from '../src/lib/mysqlClient';
+import { supabaseClient } from '../src/lib/supabaseClient';
 
 interface DashboardHomeProps {
     courses: Course[];
@@ -12,6 +13,7 @@ interface DashboardHomeProps {
 
 const DashboardHome: React.FC<DashboardHomeProps> = ({ courses, userId }) => {
     const { t } = useTranslation();
+    const navigate = useNavigate();
     const activeCourse = courses.find(c => c.status === CourseStatus.IN_PROGRESS);
     const enrolledCourses = courses.filter(c => c.status === CourseStatus.IN_PROGRESS || c.status === CourseStatus.COMPLETED);
 
@@ -84,7 +86,7 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({ courses, userId }) => {
                     }
                 }
                 
-                const { data } = await mysqlClient
+                const { data } = await supabaseClient
                     .from('profiles')
                     .select('role')
                     .eq('id', userId)
@@ -403,7 +405,7 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({ courses, userId }) => {
                         </p>
                         {userRole !== 'PRO' && userRole !== 'ADMIN' && (
                             <button 
-                                onClick={() => window.location.href = '/plans'}
+                                onClick={() => navigate('/plans')}
                                 className="bg-welile-lime text-black text-xs font-bold px-4 py-2 rounded-full hover:bg-lime-300 transition-colors cursor-pointer"
                             >
                                 {t('go_premium')}

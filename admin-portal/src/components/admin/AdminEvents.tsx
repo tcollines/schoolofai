@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Calendar, Plus, Trash2, MapPin, Video, Users, Clock, Send, X, Edit, Copy } from 'lucide-react';
 import { useAdmin } from '../../hooks/useAdmin';
-import { mysqlClient } from '../../lib/mysqlClient';
+import { supabaseClient } from '../../lib/supabaseClient';
 
 interface EventItem {
     id: string;
@@ -287,7 +287,7 @@ const AdminEvents: React.FC = () => {
     };
 
     const loadEvents = async () => {
-        const { data } = await mysqlClient.from('events').select('*');
+        const { data } = await supabaseClient.from('events').select('*');
         if (data) {
             setEvents(data);
         }
@@ -303,7 +303,7 @@ const AdminEvents: React.FC = () => {
 
     const handleDelete = async (id: string) => {
         if (!confirm('Are you sure you want to delete this event?')) return;
-        await mysqlClient.from('events').delete().eq('id', id);
+        await supabaseClient.from('events').delete().eq('id', id);
         window.dispatchEvent(new Event('admin-events-update'));
     };
 
@@ -355,7 +355,7 @@ const AdminEvents: React.FC = () => {
         }
 
         if (editingEvent) {
-            await mysqlClient.from('events').update({
+            await supabaseClient.from('events').update({
                 title,
                 description,
                 date,
@@ -391,7 +391,7 @@ const AdminEvents: React.FC = () => {
                 premiered,
                 visibility
             };
-            await mysqlClient.from('events').insert(newEvent);
+            await supabaseClient.from('events').insert(newEvent);
         }
 
         window.dispatchEvent(new Event('admin-events-update'));

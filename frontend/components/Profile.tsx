@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useOutletContext } from 'react-router-dom';
+import { useOutletContext, useNavigate } from 'react-router-dom';
 import { User, MapPin, Briefcase, GraduationCap, Save, Camera, FileImage, X, Loader, Trash2, Edit2 } from 'lucide-react';
 import { UserProfile } from '../types';
 import { useTranslation } from './translations';
-import { mysqlClient } from '../src/lib/mysqlClient';
+import { supabaseClient } from '../src/lib/supabaseClient';
 
 const DefaultAvatar = () => (
     <svg viewBox="0 0 128 128" className="w-full h-full text-gray-400 dark:text-slate-500 fill-current bg-gray-100 dark:bg-slate-800">
@@ -743,6 +743,7 @@ interface ProfileProps {
 
 const Profile: React.FC<ProfileProps> = ({ user, onUpgradeClick }) => {
     const { t } = useTranslation();
+    const navigate = useNavigate();
     const outletContext = useOutletContext<{ displayUser?: UserProfile }>() || {};
     const activeUser = (user && user.id) ? user : (outletContext.displayUser || user);
 
@@ -819,7 +820,7 @@ const Profile: React.FC<ProfileProps> = ({ user, onUpgradeClick }) => {
     const handleSelectImage = async (imageUrl: string, scale = 1, posX = 0, posY = 0) => {
         if (formData) {
             try {
-                const { error } = await mysqlClient
+                const { error } = await supabaseClient
                     .from('profiles')
                     .update({ 
                         avatar_url: imageUrl,
@@ -861,7 +862,7 @@ const Profile: React.FC<ProfileProps> = ({ user, onUpgradeClick }) => {
     const handleDeleteAvatar = async () => {
         if (formData) {
             try {
-                const { error } = await mysqlClient
+                const { error } = await supabaseClient
                     .from('profiles')
                     .update({ 
                         avatar_url: '',
@@ -903,7 +904,7 @@ const Profile: React.FC<ProfileProps> = ({ user, onUpgradeClick }) => {
     const handleSaveProfile = async (newName: string, newNationality: string, newDateOfBirth: string) => {
         if (!formData) return;
         try {
-            const { error } = await mysqlClient
+            const { error } = await supabaseClient
                 .from('profiles')
                 .update({
                     full_name: newName,
@@ -944,7 +945,14 @@ const Profile: React.FC<ProfileProps> = ({ user, onUpgradeClick }) => {
         }
     };
 
-    if (!formData) return <div>Loading...</div>;
+    if (!formData) {
+        return (
+            <div className="flex flex-col items-center justify-center h-[70vh]">
+                <Loader size={40} className="animate-spin text-violet-600 mb-4" />
+                <p className="text-gray-500 font-medium">Loading profile...</p>
+            </div>
+        );
+    }
 
     return (
         <div className="max-w-4xl mx-auto">
@@ -1009,7 +1017,7 @@ const Profile: React.FC<ProfileProps> = ({ user, onUpgradeClick }) => {
                         ) : (
                             <div className="mt-6 pt-6 border-t border-gray-50 dark:border-slate-800">
                                 <button
-                                    onClick={onUpgradeClick}
+                                    onClick={() => navigate('/plans')}
                                     className="w-full bg-black dark:bg-violet-600 text-white py-2.5 rounded-xl text-sm font-semibold hover:bg-gray-800 dark:hover:bg-violet-700 transition-colors shadow-lg shadow-gray-200 dark:shadow-none cursor-pointer"
                                 >
                                     Upgrade Plan

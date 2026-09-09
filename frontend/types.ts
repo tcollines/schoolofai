@@ -116,6 +116,7 @@ export interface UserProfile {
   avatarPositionX?: number;
   avatarPositionY?: number;
   password?: string;
+  onboarding_complete?: boolean;
 }
 
 export interface WalletTransaction {

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { mysqlClient } from '../src/lib/mysqlClient';
+import { supabaseClient } from '../src/lib/supabaseClient';
 import { ArrowLeft, Mail, Lock, User, Loader2, X, KeyRound, ShieldCheck, Clock, Eye, EyeOff, Brain, Cpu, Sparkles } from 'lucide-react';
 
 interface LoginPageProps {
@@ -95,7 +95,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onNavigateToSignup, onBa
         setError(null);
 
         // Check if user exists
-        const { data } = await mysqlClient.from('profiles').select('*');
+        const { data } = await supabaseClient.from('profiles').select('*');
         const profiles = (data as any[]) || [];
         const userExists = profiles.some((p: any) => p.email === forgotEmail.trim().toLowerCase());
 
@@ -163,11 +163,11 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onNavigateToSignup, onBa
 
         setLoading(true);
         // Update password in mock DB
-        const { data } = await mysqlClient.from('profiles').select('*');
+        const { data } = await supabaseClient.from('profiles').select('*');
         const profiles = (data as any[]) || [];
         const profile = profiles.find((p: any) => p.email === forgotEmail.trim().toLowerCase());
         if (profile) {
-            await mysqlClient.from('profiles').update({ password: newPassword }).eq('id', profile.id);
+            await supabaseClient.from('profiles').update({ password: newPassword }).eq('id', profile.id);
             
             setLoading(false);
             setPasswordChanged(true);
@@ -209,7 +209,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onNavigateToSignup, onBa
         setError(null);
 
         try {
-            const { data, error } = await mysqlClient.auth.signInWithPassword({
+            const { data, error } = await supabaseClient.auth.signInWithPassword({
                 email: email.trim().toLowerCase(),
                 password: password
             });
@@ -801,7 +801,7 @@ const GoogleChooserModal: React.FC<GoogleChooserModalProps> = ({ isOpen, onClose
     
     useEffect(() => {
         if (isOpen) {
-            mysqlClient.from('profiles').select('*').then(({ data }: any) => {
+            supabaseClient.from('profiles').select('*').then(({ data }: any) => {
                 if (data && Array.isArray(data)) {
                     setAccounts(data.map((p: any) => ({
                         email: p.email,
