@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { supabaseClient } from '../src/lib/supabaseClient';
-import { ArrowLeft, Mail, Lock, User, Loader2, X, KeyRound, ShieldCheck, Clock, Eye, EyeOff, Brain, Cpu, Sparkles } from 'lucide-react';
+import { ArrowLeft, Mail, Lock, User, Loader2, X, KeyRound, ShieldCheck, Clock, Eye, EyeOff, Brain, Cpu, Sparkles, AlertTriangle } from 'lucide-react';
 
 interface LoginPageProps {
     onLogin: () => void;
@@ -437,7 +437,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onNavigateToSignup, onBa
 
                         {error && (
                             <div className="bg-red-50 dark:bg-red-950/30 text-red-650 dark:text-red-400 p-4 rounded-xl mb-6 text-sm flex items-center border border-red-200 dark:border-red-900/30">
-                                <span className="mr-2">⚠️</span> {error}
+                                <span className="mr-2"><AlertTriangle className="inline-block w-4 h-4 mr-1 align-middle" />️</span> {error}
                             </div>
                         )}
 

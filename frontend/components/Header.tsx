@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Bell, Menu, Sun, Moon, ArrowLeft } from 'lucide-react';
+import { Search, Bell, Menu, Sun, Moon, ArrowLeft, Hand } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { UserProfile, Course } from '../types';
 import { useTranslation } from './translations';
@@ -192,7 +192,7 @@ const Header: React.FC<HeaderProps> = ({
           <div>
             <div className="flex flex-wrap items-center gap-2.5">
               <h1 className="text-xl lg:text-2xl font-bold text-gray-900 dark:text-white">
-                {t('welcome_back')}, {user.name.split(' ')[0]} 👋
+                {t('welcome_back')}, {user.name.split(' ')[0]} <Hand className="inline-block w-4 h-4 mr-1 align-middle" />
               </h1>
               <span className={`text-[10px] uppercase font-extrabold px-2 py-0.5 rounded-full border shadow-xs tracking-wider shrink-0 ${
                 user.role === 'PRO' 

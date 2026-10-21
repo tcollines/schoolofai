@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../../src/lib/supabaseClient';
-import { Check, ArrowRight, Loader2, Star } from 'lucide-react';
+import { Check, ArrowRight, Loader2, Star, AlertTriangle } from 'lucide-react';
 
 const PaymentPlanSetup: React.FC = () => {
     const navigate = useNavigate();
@@ -48,7 +48,7 @@ const PaymentPlanSetup: React.FC = () => {
 
                 {error && (
                     <div className="max-w-2xl mx-auto bg-red-50 dark:bg-red-950/30 text-red-650 dark:text-red-400 p-4 rounded-xl mb-8 text-sm text-center">
-                        ⚠️ {error}
+                        <AlertTriangle className="inline-block w-4 h-4 mr-1 align-middle" />️ {error}
                     </div>
                 )}
 

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { supabase } from '../src/lib/supabaseClient';
-import { ArrowLeft, Mail, Lock, User, Eye, EyeOff } from 'lucide-react';
+import { ArrowLeft, Mail, Lock, User, Eye, EyeOff, AlertTriangle } from 'lucide-react';
 
 const SignupPage: React.FC = () => {
     const navigate = useNavigate();
@@ -185,7 +185,7 @@ const SignupPage: React.FC = () => {
 
                         {error && (
                             <div className="bg-red-50 dark:bg-red-950/30 text-red-650 dark:text-red-400 p-4 rounded-xl mb-6 text-sm flex items-center border border-red-200 dark:border-red-900/30">
-                                <span className="mr-2">⚠️</span> {error}
+                                <span className="mr-2"><AlertTriangle className="inline-block w-4 h-4 mr-1 align-middle" />️</span> {error}
                             </div>
                         )}
 

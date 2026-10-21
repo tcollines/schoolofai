@@ -32,11 +32,25 @@ export interface CourseModule {
   content?: string;
   quizTimer?: number;
   quizQuestions?: Question[];
+  // Cohort-based additions
+  introVideoUrl?: string;
+  courseOutline?: any[]; // JSON array of topics
+  quizId?: string;
+  // Curriculum Expansion
+  lessonNotesUrl?: string;
+  presentationUrl?: string;
+  classType?: 'online' | 'physical' | 'none';
+  scheduledDate?: string;
+  scheduledStartTime?: string;
+  scheduledEndTime?: string;
+  meetLink?: string;
+  isFinalExam?: boolean;
 }
 
 export interface CourseSection {
   id: string;
   title: string;
+  explainerVideoUrl?: string;
   lessons: CourseModule[];
 }
 
@@ -60,6 +74,26 @@ export interface Quiz {
   isDraft?: boolean;
 }
 
+export interface Tutor {
+  id: string;
+  full_name: string;
+  email: string;
+  avatar?: string;
+  created_at: string;
+}
+
+export interface Partner {
+  id: string;
+  name: string;
+  type: string; // 'University' | 'Company'
+  logo?: string;
+  contact_name?: string;
+  contact_email?: string;
+  contact_phone?: string;
+  address?: string;
+  created_at: string;
+}
+
 export interface Course {
   id: string;
   title: string;
@@ -68,6 +102,7 @@ export interface Course {
   instructorAvatar?: string;
   duration: string;
   category: string;
+  level?: 'Beginner' | 'Intermediate' | 'Advanced' | string;
   rating: number;
   lessonsTotal: number;
   lessonsCompleted: number;
@@ -76,13 +111,16 @@ export interface Course {
   isVerified?: boolean;
   image: string; // Placeholder URL
   price: number;
-  platform: 'Welile' | 'Coursera' | 'Partner';
-  accessTier?: 'FREE' | 'PAID';
+  accessTier?: 'FREE' | 'PAID' | 'CUSTOM' | string;
+  partnerId?: string; // Links to partners table
+  tutorId?: string; // Links to tutors table
   sections?: CourseSection[];
   modules?: CourseModule[]; // legacy support
   quiz?: Quiz;
   description?: string;
   outcomes?: string[];
+  courseIntroVideoUrl?: string;
+  courseNotesUrl?: string;
   imageScale?: number;
   imagePositionX?: number;
   imagePositionY?: number;
@@ -93,6 +131,43 @@ export interface Course {
   examMarksReleased?: boolean;
   quizScore?: number;
   finalScore?: number;
+}
+
+// Cohort-Based LMS Interfaces
+export interface CourseNote {
+  id: string;
+  course_id: string;
+  content: string;
+  created_at: string;
+}
+
+export interface Cohort {
+  id: string;
+  course_id: string;
+  name: string;
+  start_date: string;
+  orientation_end_date: string;
+  created_at: string;
+}
+
+export interface CohortSession {
+  id: string;
+  cohort_id: string;
+  module_id: string;
+  session_date: string;
+  location_link?: string;
+  attendance_code: string;
+  created_at: string;
+}
+
+export interface ModuleCompletion {
+  id: string;
+  user_id: string;
+  cohort_id: string;
+  module_id: string;
+  attendance_code_submitted: boolean;
+  quiz_passed: boolean;
+  created_at: string;
 }
 
 export interface UserProfile {

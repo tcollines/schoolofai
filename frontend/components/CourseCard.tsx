@@ -1,5 +1,5 @@
 import React from 'react';
-import { PlayCircle, Award, Clock, BookOpen, MoreVertical } from 'lucide-react';
+import { PlayCircle, Award, Clock, BookOpen, MoreVertical, Star } from 'lucide-react';
 import { Course, CourseStatus } from '../types';
 
 interface CourseCardProps {
@@ -78,7 +78,7 @@ const CourseCard: React.FC<CourseCardProps> = ({ course, onClick }) => {
         <div className="flex justify-between items-start mb-2">
           <span className="text-xs font-bold text-gray-500 dark:text-slate-400 uppercase tracking-wider">{course.category}</span>
           <div className="flex items-center gap-1 text-amber-400 text-xs font-bold">
-            <span>★</span> <span>{course.rating}</span>
+            <span><Star className="inline-block w-4 h-4 mr-1 align-middle" /></span> <span>{course.rating}</span>
           </div>
         </div>
 

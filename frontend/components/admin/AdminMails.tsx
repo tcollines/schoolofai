@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { supabaseClient } from '../../src/lib/supabaseClient';
-import { Trash2, Mail, MailOpen, Filter, Inbox, Check } from 'lucide-react';
+import { Trash2, Mail, MailOpen, Filter, Inbox, Check, Building } from 'lucide-react';
 
 const AdminMails: React.FC = () => {
     const [mails, setMails] = useState<any[]>([]);
@@ -185,7 +185,7 @@ const AdminMails: React.FC = () => {
                                         </h3>
                                         {m.company_name && (
                                             <p className="text-xs text-indigo-650 dark:text-indigo-400 font-semibold mt-1">
-                                                🏢 Company: {m.company_name}
+                                                <Building className="inline-block w-4 h-4 mr-1 align-middle" /> Company: {m.company_name}
                                             </p>
                                         )}
                                     </div>

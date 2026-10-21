@@ -76,7 +76,10 @@ export interface Course {
   image: string; // Placeholder URL
   price: number;
   platform: 'Welile' | 'Coursera' | 'Partner';
-  accessTier?: 'FREE' | 'PAID';
+  accessTier?: 'FREE' | 'PAID' | 'CUSTOM';
+  tutorId?: string;
+  partnerId?: string;
+  level?: string;
   sections?: CourseSection[];
   modules?: CourseModule[]; // legacy support
   quiz?: Quiz;

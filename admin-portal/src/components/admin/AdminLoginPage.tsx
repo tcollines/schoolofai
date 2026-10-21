@@ -47,7 +47,7 @@ const AdminLoginPage: React.FC<AdminLoginPageProps> = ({ onLoginSuccess, onBackT
 
         // Security passcode check for admin. (Instructor passcode check is performed dynamically below after querying database)
         if (!isInstructor) {
-            const isValidPasscode = passcode === 'admin123' || passcode === 'WELILE_ADMIN_2026';
+            const isValidPasscode = passcode.trim() === 'admin123' || passcode.trim() === 'WELILE_ADMIN_2026';
             if (!isValidPasscode) {
                 setError('Incorrect Security Passcode. Access denied.');
                 setLoading(false);
@@ -109,7 +109,7 @@ const AdminLoginPage: React.FC<AdminLoginPageProps> = ({ onLoginSuccess, onBackT
                 // First check if it's the demo credentials
                 let isAuthenticated = false;
                 const isValidEmail = email.trim().toLowerCase() === 'admin@welile.com' || email.trim().toLowerCase() === 'admin@test.com';
-                const isValidPassword = password === 'adminpassword' || password === 'admin';
+                const isValidPassword = password.trim() === 'adminpassword' || password.trim() === 'admin';
                 if (isValidEmail && isValidPassword) isAuthenticated = true;
 
                 // Fallback to Supabase if not using valid demo credentials

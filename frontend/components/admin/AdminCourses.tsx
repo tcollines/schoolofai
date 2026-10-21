@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useAdmin } from '../../src/hooks/useAdmin';
 import { Course, CourseSection, CourseModule, ModuleType } from '../../types';
-import { Plus, X, ArrowRight, ArrowLeft, Save, Video, FileText, Trash2, GripVertical, Headphones, File, HelpCircle, Wand2, Loader2 } from 'lucide-react';
+import { Plus, X, ArrowRight, ArrowLeft, Save, Video, FileText, Trash2, GripVertical, Headphones, File, HelpCircle, Wand2, Loader2, AlertTriangle, CheckCircle2, Link, Image, Folder, Pin, User, School } from 'lucide-react';
 import { generateCourseThumbnail } from '../../src/lib/gemini';
 import { supabaseClient } from '../../src/lib/supabaseClient';
 
@@ -120,8 +120,8 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({ value, onChange, placeh
     const insertCallout = (type: 'info' | 'warning' | 'success') => {
         const styles: Record<string, {bg: string, border: string, color: string, icon: string}> = {
             info: { bg: '#eff6ff', border: '#3b82f6', color: '#1e40af', icon: 'ℹ️' },
-            warning: { bg: '#fffbeb', border: '#f59e0b', color: '#92400e', icon: '⚠️' },
-            success: { bg: '#ecfdf5', border: '#10b981', color: '#065f46', icon: '✅' }
+            warning: { bg: '#fffbeb', border: '#f59e0b', color: '#92400e', icon: '<AlertTriangle className="inline-block w-4 h-4 mr-1 align-middle" />️' },
+            success: { bg: '#ecfdf5', border: '#10b981', color: '#065f46', icon: '<CheckCircle2 className="inline-block w-4 h-4 mr-1 align-middle" />' }
         };
         const s = styles[type];
         executeCommand('insertHTML', `<div style="border:1px solid ${s.border};border-left:4px solid ${s.border};background:${s.bg};padding:12px 16px;border-radius:0 8px 8px 0;margin:8px 0;color:${s.color};font-size:13px;"><strong>${s.icon} ${type.charAt(0).toUpperCase() + type.slice(1)}</strong><br/>Your note here</div><p><br></p>`);
@@ -246,7 +246,7 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({ value, onChange, placeh
                     const url = prompt('Enter URL:');
                     if (url) executeCommand('createLink', url);
                 }} title="Insert Link">
-                    <span className="text-[10px]">🔗</span>
+                    <span className="text-[10px]"><Link className="inline-block w-4 h-4 mr-1 align-middle" /></span>
                 </ToolButton>
 
                 <Divider />
@@ -259,7 +259,7 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({ value, onChange, placeh
                         className="px-1.5 py-1 hover:bg-gray-200 rounded text-[10px] text-gray-600 cursor-pointer font-semibold flex items-center gap-0.5"
                         title="Insert Image"
                     >
-                        🖼 Image
+                        <Image className="inline-block w-4 h-4 mr-1 align-middle" /> Image
                     </button>
                     {showImageMenu && (
                         <div className="absolute top-full left-0 mt-1 bg-white border border-gray-200 rounded-xl shadow-lg z-50 w-64 p-3" onClick={e => e.stopPropagation()}>
@@ -287,7 +287,7 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({ value, onChange, placeh
                                         onClick={() => fileInputRef.current?.click()}
                                         className="w-full border-2 border-dashed border-gray-300 rounded-lg py-3 text-xs text-gray-500 hover:border-violet-400 hover:text-violet-600 transition-colors cursor-pointer font-medium"
                                     >
-                                        📁 Upload from device
+                                        <Folder className="inline-block w-4 h-4 mr-1 align-middle" /> Upload from device
                                     </button>
                                     <input
                                         ref={fileInputRef}
@@ -350,12 +350,12 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({ value, onChange, placeh
                         className="px-1.5 py-1 hover:bg-gray-200 rounded text-[10px] text-gray-600 cursor-pointer font-semibold"
                         title="Insert Callout"
                     >
-                        📌
+                        <Pin className="inline-block w-4 h-4 mr-1 align-middle" />
                     </button>
                     <div className="hidden group-hover/callout:block absolute top-full left-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-50 py-1 min-w-[110px]">
                         <button type="button" onClick={() => insertCallout('info')} className="w-full text-left px-3 py-1.5 text-xs hover:bg-blue-50 text-blue-700 cursor-pointer">ℹ️ Info</button>
-                        <button type="button" onClick={() => insertCallout('warning')} className="w-full text-left px-3 py-1.5 text-xs hover:bg-amber-50 text-amber-700 cursor-pointer">⚠️ Warning</button>
-                        <button type="button" onClick={() => insertCallout('success')} className="w-full text-left px-3 py-1.5 text-xs hover:bg-emerald-50 text-emerald-700 cursor-pointer">✅ Success</button>
+                        <button type="button" onClick={() => insertCallout('warning')} className="w-full text-left px-3 py-1.5 text-xs hover:bg-amber-50 text-amber-700 cursor-pointer"><AlertTriangle className="inline-block w-4 h-4 mr-1 align-middle" />️ Warning</button>
+                        <button type="button" onClick={() => insertCallout('success')} className="w-full text-left px-3 py-1.5 text-xs hover:bg-emerald-50 text-emerald-700 cursor-pointer"><CheckCircle2 className="inline-block w-4 h-4 mr-1 align-middle" /> Success</button>
                     </div>
                 </div>
 
@@ -854,7 +854,7 @@ const AdminCourses: React.FC = () => {
                                                     value={newCourse.instructorAvatar || ''} 
                                                     onChange={e => setNewCourse({...newCourse, instructorAvatar: e.target.value})} 
                                                     className="flex-1 p-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-violet-500 outline-none transition-all text-sm" 
-                                                    placeholder="Paste Image URL, Emoji (e.g. 👨‍🏫), or upload a file" 
+                                                    placeholder="Paste Image URL or upload a file" 
                                                 />
                                                 <label className="cursor-pointer bg-gray-100 hover:bg-gray-200 text-gray-700 border border-gray-200 text-xs px-4 py-2.5 rounded-xl font-bold flex items-center shrink-0 transition-colors">
                                                     <span>Upload File</span>

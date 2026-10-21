@@ -140,7 +140,7 @@ const SettingsPage: React.FC = () => {
                             </span>
                             {theme === 'light' && (
                                 <span className="w-5 h-5 bg-violet-600 text-white rounded-full flex items-center justify-center text-xs font-bold">
-                                    ✓
+                                    <Check className="inline-block w-4 h-4 mr-1 align-middle" />
                                 </span>
                             )}
                         </div>
@@ -165,7 +165,7 @@ const SettingsPage: React.FC = () => {
                             </span>
                             {theme === 'dark' && (
                                 <span className="w-5 h-5 bg-violet-600 text-white rounded-full flex items-center justify-center text-xs font-bold">
-                                    ✓
+                                    <Check className="inline-block w-4 h-4 mr-1 align-middle" />
                                 </span>
                             )}
                         </div>

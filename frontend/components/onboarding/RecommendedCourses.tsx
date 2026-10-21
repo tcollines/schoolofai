@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../../src/lib/supabaseClient';
-import { ArrowRight, Loader2, Star, BookOpen, Clock } from 'lucide-react';
+import { ArrowRight, Loader2, Star, BookOpen, Clock, AlertTriangle } from 'lucide-react';
 
 const RecommendedCourses: React.FC = () => {
     const navigate = useNavigate();
@@ -68,7 +68,7 @@ const RecommendedCourses: React.FC = () => {
 
                 {error && (
                     <div className="max-w-2xl mx-auto bg-red-50 dark:bg-red-950/30 text-red-650 dark:text-red-400 p-4 rounded-xl mb-8 text-sm text-center">
-                        ⚠️ {error}
+                        <AlertTriangle className="inline-block w-4 h-4 mr-1 align-middle" />️ {error}
                     </div>
                 )}
 

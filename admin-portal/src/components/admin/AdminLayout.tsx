@@ -1,11 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import { Routes, Route, useNavigate, useLocation, Navigate } from 'react-router-dom';
-import { LayoutDashboard, Users, BookOpen, FileQuestion, LogOut, Sun, Moon, Calendar, MessageSquare, ClipboardList, Mail, UserCheck } from 'lucide-react';
+import { 
+    LayoutDashboard, Users, BookOpen, UserCheck, 
+    Settings, LogOut, FileQuestion, Calendar, Mail, CheckCircle, Shield,
+    Bell, Search, Handshake, Sun, Moon, MessageSquare, ClipboardList 
+} from 'lucide-react';
 import { getCurrencyPreference, setCurrencyPreference, CurrencyType } from '../../lib/currency';
 import AdminOverview from './AdminOverview';
 import AdminEnrollments from './AdminEnrollments';
 import AdminCourses from './AdminCourses';
+import AdminCourseSetupWizard from './AdminCourseSetupWizard';
+import CohortScheduler from './CohortScheduler';
 import AdminInstructors from './AdminInstructors';
+import AdminPartners from './AdminPartners';
 import AdminExams from './AdminExams';
 import AdminEvents from './AdminEvents';
 import AdminLoginPage from './AdminLoginPage';
@@ -189,13 +196,16 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ onExit, isInstructor, isAdmin
     const menuItems = isInstructor 
         ? ([
             { id: 'courses', label: 'Course Setup', icon: BookOpen },
+            { id: 'cohorts', label: 'Cohorts', icon: Calendar },
             { id: 'exams', label: 'Exam Setup', icon: FileQuestion },
             { id: 'events', label: 'Ongoing Events', icon: Calendar },
           ] as const)
         : ([
             { id: 'enrollments', label: 'Enrollments', icon: Users },
             { id: 'courses', label: 'Course Setup', icon: BookOpen },
+            { id: 'cohorts', label: 'Cohorts', icon: Calendar },
             { id: 'instructors', label: 'Instructors', icon: UserCheck },
+            { id: 'partners', label: 'Partners', icon: Handshake },
             { id: 'exams', label: 'Exam Setup', icon: FileQuestion },
             { id: 'events', label: 'Ongoing Events', icon: Calendar },
             { id: 'mails', label: 'Mails', icon: Mail },
@@ -207,7 +217,10 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ onExit, isInstructor, isAdmin
                 <Route path="/" element={<Navigate to={isInstructor ? "courses" : "enrollments"} replace />} />
                 {!isInstructor && <Route path="enrollments" element={<AdminEnrollments />} />}
                 <Route path="courses" element={<AdminCourses isInstructor={isInstructor} />} />
+                <Route path="courses/setup" element={<AdminCourseSetupWizard isInstructor={isInstructor} />} />
+                <Route path="cohorts" element={<CohortScheduler />} />
                 {!isInstructor && <Route path="instructors" element={<AdminInstructors />} />}
+                {!isInstructor && <Route path="partners" element={<AdminPartners />} />}
                 <Route path="exams" element={<AdminExams isInstructor={isInstructor} />} />
                 <Route path="events" element={<AdminEvents />} />
                 {!isInstructor && <Route path="mails" element={<AdminMails />} />}

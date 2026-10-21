@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Award, Download, Share2, Calendar } from 'lucide-react';
+import { Award, Download, Share2, Calendar, FileText, PenTool, Trophy } from 'lucide-react';
 import { Course, CourseStatus } from '../types';
 
 interface CertificatesProps {
@@ -132,7 +132,7 @@ const Certificates: React.FC<CertificatesProps> = ({ courses }) => {
                                             <>
                                                 <div className="flex items-center justify-between text-xs font-medium text-gray-600 dark:text-slate-400">
                                                     <div className="flex items-center gap-1.5">
-                                                        <span className="text-sm">📝</span>
+                                                        <span className="text-sm"><FileText className="inline-block w-4 h-4 mr-1 align-middle" /></span>
                                                         <span>Module Quizzes</span>
                                                     </div>
                                                     <span className="text-gray-900 dark:text-white font-bold">
@@ -142,7 +142,7 @@ const Certificates: React.FC<CertificatesProps> = ({ courses }) => {
 
                                                 <div className="flex items-center justify-between text-xs font-medium text-gray-600 dark:text-slate-400">
                                                     <div className="flex items-center gap-1.5">
-                                                        <span className="text-sm">✍️</span>
+                                                        <span className="text-sm"><PenTool className="inline-block w-4 h-4 mr-1 align-middle" />️</span>
                                                         <span>Final Exam</span>
                                                     </div>
                                                     <span className="text-gray-900 dark:text-white font-bold">
@@ -152,7 +152,7 @@ const Certificates: React.FC<CertificatesProps> = ({ courses }) => {
 
                                                 <div className="flex items-center justify-between text-xs font-medium text-gray-650 dark:text-slate-350 bg-gray-50 dark:bg-slate-850 p-2 rounded-lg border border-gray-100 dark:border-slate-800/80 mt-1">
                                                     <div className="flex items-center gap-1.5 font-bold">
-                                                        <span className="text-sm">🏆</span>
+                                                        <span className="text-sm"><Trophy className="inline-block w-4 h-4 mr-1 align-middle" /></span>
                                                         <span>Final Score</span>
                                                     </div>
                                                     <span className="text-violet-700 dark:text-violet-400 font-extrabold text-sm">

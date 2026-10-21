@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useOutletContext } from 'react-router-dom';
 import { useCourses } from '../src/hooks/useCourses';
-import { Send, Users, ShieldAlert, MessageSquare, Bot, User, CheckCircle2, ChevronRight, Trash2, MoreVertical, Copy, Edit2, Plus, X } from 'lucide-react';
+import { Send, Users, ShieldAlert, MessageSquare, Bot, User, CheckCircle2, ChevronRight, Trash2, MoreVertical, Copy, Edit2, Plus, X, AlertTriangle } from 'lucide-react';
 import { Course } from '../types';
 
 interface Message {
@@ -660,7 +660,7 @@ const DiscussionsPage: React.FC = () => {
 
                                 {selectedMembers.length < 6 && (
                                     <p className="text-[10px] text-red-500 font-semibold animate-none">
-                                        ⚠️ You must select more than 5 members (minimum 6) to qualify to create a group.
+                                        <AlertTriangle className="inline-block w-4 h-4 mr-1 align-middle" />️ You must select more than 5 members (minimum 6) to qualify to create a group.
                                     </p>
                                 )}
                             </div>

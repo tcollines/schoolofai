@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, Mail, Lock, User, Loader2 } from 'lucide-react';
+import { X, Mail, Lock, User, Loader2, AlertTriangle } from 'lucide-react';
 import { supabaseClient } from '../src/lib/supabaseClient';
 
 interface AuthModalProps {
@@ -191,7 +191,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onLogin }
 
                 {error && (
                     <div className="bg-red-50 text-red-600 p-4 rounded-xl mb-4 text-sm flex items-center text-left">
-                        <span className="mr-2">⚠️</span> {error}
+                        <span className="mr-2"><AlertTriangle className="inline-block w-4 h-4 mr-1 align-middle" />️</span> {error}
                     </div>
                 )}
 

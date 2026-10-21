@@ -21,6 +21,12 @@ const renderFormattedContent = (content?: string) => {
     return <div dangerouslySetInnerHTML={{ __html: html }} />;
 };
 
+const getYoutubeVideoId = (url?: string) => {
+    if (!url) return null;
+    const match = url.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|shorts\/|live\/|watch\?v=|watch\?.+&v=))([^&?]+)/);
+    return match ? match[1] : null;
+};
+
 const CoursePlayer: React.FC<CoursePlayerProps> = ({ module, courseTitle, onBack, onNext, hasNext }) => {
     const [isVideoComplete, setIsVideoComplete] = useState(false);
     
@@ -657,46 +663,54 @@ const CoursePlayer: React.FC<CoursePlayerProps> = ({ module, courseTitle, onBack
                     <>
                         <div className="flex-[2.5] bg-black flex flex-col relative h-full">
                             <div className="flex-1 flex items-center justify-center p-4">
-                                {module.videoUrl ? (
-                                    <div className="flex flex-col items-center w-full">
-                                        <video 
-                                            ref={videoRef}
-                                            src={module.videoUrl} 
-                                            controls 
-                                            autoPlay 
-                                            onEnded={() => setIsVideoComplete(true)}
-                                            className="w-full max-h-[75vh] rounded-xl shadow-2xl object-contain outline-none bg-black"
-                                        >
-                                            Your browser does not support the video tag.
-                                        </video>
-                                        {/* Playback speed controller */}
-                                        <div className="mt-3 flex items-center gap-3 bg-slate-900/90 px-4 py-2 rounded-full border border-slate-800 text-xs text-white shadow-lg">
-                                            <span className="text-gray-400 font-medium">Playback Speed:</span>
-                                            {[0.5, 1, 1.25, 1.5, 2].map(speed => (
-                                                <button
-                                                    type="button"
-                                                    key={speed}
-                                                    onClick={() => handleSpeedChange(speed)}
-                                                    className={`px-2 py-0.5 rounded-full font-bold transition-all cursor-pointer ${playbackSpeed === speed ? 'bg-purple-650 text-white shadow-sm font-extrabold' : 'text-gray-400 hover:text-white'}`}
+                                {(() => {
+                                    const ytId = getYoutubeVideoId(module.videoUrl) || module.videoId;
+                                    
+                                    if (ytId) {
+                                        return (
+                                            <div className="w-full h-full p-4">
+                                                <iframe
+                                                    src={`https://www.youtube.com/embed/${ytId}?autoplay=1&rel=0`}
+                                                    title={module.title}
+                                                    className="w-full h-full rounded-xl shadow-2xl"
+                                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                                    allowFullScreen
+                                                ></iframe>
+                                            </div>
+                                        );
+                                    } else if (module.videoUrl) {
+                                        return (
+                                            <div className="flex flex-col items-center w-full">
+                                                <video 
+                                                    ref={videoRef}
+                                                    src={module.videoUrl} 
+                                                    controls 
+                                                    autoPlay 
+                                                    onEnded={() => setIsVideoComplete(true)}
+                                                    className="w-full max-h-[75vh] rounded-xl shadow-2xl object-contain outline-none bg-black"
                                                 >
-                                                    {speed}x
-                                                </button>
-                                            ))}
-                                        </div>
-                                    </div>
-                                ) : module.videoId ? (
-                                    <div className="w-full h-full p-4">
-                                        <iframe
-                                            src={`https://www.youtube.com/embed/${module.videoId}?autoplay=1&rel=0`}
-                                            title={module.title}
-                                            className="w-full h-full rounded-xl shadow-2xl"
-                                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                                            allowFullScreen
-                                        ></iframe>
-                                    </div>
-                                ) : (
-                                    <div className="text-gray-500">No video source provided</div>
-                                )}
+                                                    Your browser does not support the video tag.
+                                                </video>
+                                                {/* Playback speed controller */}
+                                                <div className="mt-3 flex items-center gap-3 bg-slate-900/90 px-4 py-2 rounded-full border border-slate-800 text-xs text-white shadow-lg">
+                                                    <span className="text-gray-400 font-medium">Playback Speed:</span>
+                                                    {[0.5, 1, 1.25, 1.5, 2].map(speed => (
+                                                        <button
+                                                            type="button"
+                                                            key={speed}
+                                                            onClick={() => handleSpeedChange(speed)}
+                                                            className={`px-2 py-0.5 rounded-full font-bold transition-all cursor-pointer ${playbackSpeed === speed ? 'bg-purple-650 text-white shadow-sm font-extrabold' : 'text-gray-400 hover:text-white'}`}
+                                                        >
+                                                            {speed}x
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        );
+                                    } else {
+                                        return <div className="text-gray-500">No video source provided</div>;
+                                    }
+                                })()}
                             </div>
                         </div>
                         

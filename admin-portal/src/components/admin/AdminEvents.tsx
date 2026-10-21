@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Calendar, Plus, Trash2, MapPin, Video, Users, Clock, Send, X, Edit, Copy } from 'lucide-react';
+import { Calendar, Plus, Trash2, MapPin, Video, Users, Clock, Send, X, Edit, Copy, GraduationCap, BookOpen, FileText } from 'lucide-react';
 import { useAdmin } from '../../hooks/useAdmin';
 import { supabaseClient } from '../../lib/supabaseClient';
 
@@ -551,9 +551,9 @@ const AdminEvents: React.FC = () => {
                                  </div>
                                 {event.type === 'Lesson' && (
                                     <div className="text-[10px] bg-slate-50 dark:bg-slate-800/60 p-2.5 rounded-xl border border-gray-100 dark:border-slate-800 space-y-1 text-left">
-                                        <p>🎓 <strong className="text-gray-700 dark:text-slate-200">Course:</strong> {courses.find(c => c.id === event.courseId)?.title || 'Unknown Course'}</p>
-                                        <p>📖 <strong className="text-gray-700 dark:text-slate-200">Unit:</strong> {courses.find(c => c.id === event.courseId)?.sections?.find(s => s.id === event.sectionId)?.title || 'Unknown Unit'}</p>
-                                        <p>📝 <strong className="text-gray-700 dark:text-slate-200">Module:</strong> {courses.find(c => c.id === event.courseId)?.sections?.find(s => s.id === event.sectionId)?.lessons?.find(l => l.id === event.moduleId)?.title || 'Unknown Module'}</p>
+                                        <p><GraduationCap className="inline-block w-4 h-4 mr-1 align-middle" /> <strong className="text-gray-700 dark:text-slate-200">Course:</strong> {courses.find(c => c.id === event.courseId)?.title || 'Unknown Course'}</p>
+                                        <p><BookOpen className="inline-block w-4 h-4 mr-1 align-middle" /> <strong className="text-gray-700 dark:text-slate-200">Unit:</strong> {courses.find(c => c.id === event.courseId)?.sections?.find(s => s.id === event.sectionId)?.title || 'Unknown Unit'}</p>
+                                        <p><FileText className="inline-block w-4 h-4 mr-1 align-middle" /> <strong className="text-gray-700 dark:text-slate-200">Module:</strong> {courses.find(c => c.id === event.courseId)?.sections?.find(s => s.id === event.sectionId)?.lessons?.find(l => l.id === event.moduleId)?.title || 'Unknown Module'}</p>
                                     </div>
                                 )}
                             </div>

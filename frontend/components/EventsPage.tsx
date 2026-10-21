@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Calendar, Clock, MapPin, Video, Users, Check, ExternalLink, ArrowRight, Loader, Eye, X } from 'lucide-react';
+import { Calendar, Clock, MapPin, Video, Users, Check, ExternalLink, ArrowRight, Loader, Eye, X, GraduationCap, BookOpen, FileText } from 'lucide-react';
 import { useTranslation } from './translations';
 import { Course, CourseStatus } from '../types';
 import { supabaseClient } from '../src/lib/supabaseClient';
@@ -280,7 +280,7 @@ const EventsPage: React.FC<EventsPageProps> = ({ courses = [] }) => {
             {/* List & Filters Header */}
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-gray-150 dark:border-slate-800 pb-4">
                 <div>
-                    <h3 className="text-xl font-bold text-gray-900 dark:text-white">{t('events') || 'Upcoming Events'}</h3>
+                    <h3 className="text-xl font-bold text-gray-900 dark:text-white">{t('events') || 'Upcoming Classes'}</h3>
                     <p className="text-xs text-gray-500 dark:text-slate-400 mt-1">
                         Dynamic scheduling synced to your enrolled courses and announcements published by WSAI Admin.
                     </p>
@@ -295,8 +295,8 @@ const EventsPage: React.FC<EventsPageProps> = ({ courses = [] }) => {
                         className="px-3 py-1.5 bg-white dark:bg-slate-900 text-gray-800 dark:text-white border border-gray-200 dark:border-slate-800 rounded-xl text-xs font-bold shadow-sm outline-none cursor-pointer"
                     >
                         <option value="all">All Plans</option>
-                        <option value="basic">Basic Plan Events</option>
-                        <option value="pro">Pro Plan Events</option>
+                        <option value="basic">Basic Plan Classes</option>
+                        <option value="pro">Pro Plan Classes</option>
                     </select>
 
                     {/* Filter Tabs */}
@@ -311,7 +311,7 @@ const EventsPage: React.FC<EventsPageProps> = ({ courses = [] }) => {
                                         : 'text-gray-500 dark:text-slate-400 hover:text-gray-900 dark:hover:text-white'
                                 }`}
                             >
-                                {tab === 'All' ? 'All Events' : tab + 's'}
+                                {tab === 'All' ? 'All Classes' : tab + 's'}
                             </button>
                         ))}
                     </div>
@@ -339,7 +339,7 @@ const EventsPage: React.FC<EventsPageProps> = ({ courses = [] }) => {
             {/* Events Grid */}
             {filteredEvents.length === 0 ? (
                 <div className="text-center py-12 bg-white dark:bg-slate-900 rounded-3xl border border-gray-100 dark:border-slate-800/80">
-                    <p className="text-sm text-gray-500 dark:text-slate-400 font-medium">No upcoming events found under this category.</p>
+                    <p className="text-sm text-gray-500 dark:text-slate-400 font-medium">No upcoming classes found under this category.</p>
                 </div>
             ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -418,9 +418,9 @@ const EventsPage: React.FC<EventsPageProps> = ({ courses = [] }) => {
                                         )}
                                         {event.type === 'Lesson' && (
                                             <div className="text-[10px] bg-slate-50 dark:bg-slate-800/60 p-2.5 rounded-xl border border-gray-100 dark:border-slate-800 space-y-1 mt-2 text-left">
-                                                <p>🎓 <strong className="text-gray-700 dark:text-slate-200">Course:</strong> {courseList.find(c => c.id === event.courseId)?.title || 'Unknown Course'}</p>
-                                                <p>📖 <strong className="text-gray-700 dark:text-slate-200">Unit:</strong> {courseList.find(c => c.id === event.courseId)?.sections?.find(s => s.id === event.sectionId)?.title || 'Unknown Unit'}</p>
-                                                <p>📝 <strong className="text-gray-700 dark:text-slate-200">Module:</strong> {courseList.find(c => c.id === event.courseId)?.sections?.find(s => s.id === event.sectionId)?.lessons?.find(l => l.id === event.moduleId)?.title || 'Unknown Module'}</p>
+                                                <p><GraduationCap className="inline-block w-4 h-4 mr-1 align-middle" /> <strong className="text-gray-700 dark:text-slate-200">Course:</strong> {courseList.find(c => c.id === event.courseId)?.title || 'Unknown Course'}</p>
+                                                <p><BookOpen className="inline-block w-4 h-4 mr-1 align-middle" /> <strong className="text-gray-700 dark:text-slate-200">Unit:</strong> {courseList.find(c => c.id === event.courseId)?.sections?.find(s => s.id === event.sectionId)?.title || 'Unknown Unit'}</p>
+                                                <p><FileText className="inline-block w-4 h-4 mr-1 align-middle" /> <strong className="text-gray-700 dark:text-slate-200">Module:</strong> {courseList.find(c => c.id === event.courseId)?.sections?.find(s => s.id === event.sectionId)?.lessons?.find(l => l.id === event.moduleId)?.title || 'Unknown Module'}</p>
                                             </div>
                                         )}
                                         <p className="text-xs text-gray-400 dark:text-slate-500 font-medium">

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useAdmin } from '../../hooks/useAdmin';
 import { Course, Quiz, Question } from '../../types';
-import { Plus, X, ArrowRight, ArrowLeft, Save, AlertTriangle, Edit2, Check, RefreshCw } from 'lucide-react';
+import { Plus, X, ArrowRight, ArrowLeft, Save, AlertTriangle, Edit2, Check, RefreshCw, FileText } from 'lucide-react';
 import { supabaseClient } from '../../lib/supabaseClient';
 
 interface AdminExamsProps {
@@ -657,7 +657,7 @@ const AdminExams: React.FC<AdminExamsProps> = ({ isInstructor = false }) => {
                                                         rel="noreferrer" 
                                                         className="text-purple-650 hover:underline font-semibold flex items-center gap-1"
                                                     >
-                                                        📄 View Issued Certificate
+                                                        <FileText className="inline-block w-4 h-4 mr-1 align-middle" /> View Issued Certificate
                                                     </a>
                                                 ) : (
                                                     <div className="flex flex-col gap-1 w-full max-w-[200px]">
@@ -695,7 +695,7 @@ const AdminExams: React.FC<AdminExamsProps> = ({ isInstructor = false }) => {
                                                 <div className="flex flex-col gap-1.5 items-center justify-center">
                                                     {e.is_certificate_verified ? (
                                                         <span className="text-xs text-green-600 dark:text-green-400 font-bold flex items-center justify-center gap-1">
-                                                            ✓ Verified & Issued
+                                                            <Check className="inline-block w-4 h-4 mr-1 align-middle" /> Verified & Issued
                                                         </span>
                                                     ) : (
                                                         <button

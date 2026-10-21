@@ -45,6 +45,18 @@ const MyCourses: React.FC<MyCoursesProps> = ({ courses }) => {
     const [lessonsViewMode, setLessonsViewMode] = useState<Record<string, 'list' | 'grid'>>({});
     const [reviewsVersion, setReviewsVersion] = useState(0);
 
+    useEffect(() => {
+        const recentId = localStorage.getItem(`recent-tapped-course-id`);
+        if (recentId) {
+            const course = localCourses.find(c => c.id === recentId);
+            if (course) {
+                setSelectedCourse(course);
+            }
+            localStorage.removeItem(`recent-tapped-course-id`);
+        }
+    }, [localCourses]);
+
+
     const getReviews = (courseId: string) => {
         const stored = localStorage.getItem(`course-reviews-${courseId}`);
         if (stored) {
@@ -940,8 +952,7 @@ const MyCourses: React.FC<MyCoursesProps> = ({ courses }) => {
                             key={course.id}
                             course={course}
                             onClick={() => {
-                                const scopeKey = localStorage.getItem('auth_logged_in_email') || 'guest';
-                                localStorage.setItem(`recent-tapped-course-id-${scopeKey}`, course.id);
+                                localStorage.setItem(`recent-tapped-course-id`, course.id);
                                 setSelectedCourse(course);
                             }}
                         />

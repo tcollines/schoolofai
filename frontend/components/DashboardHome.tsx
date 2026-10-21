@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { TrendingUp, CheckCircle, PlayCircle, BookOpen, MessageSquare, Award, Shield } from 'lucide-react';
+import { TrendingUp, CheckCircle, PlayCircle, BookOpen, MessageSquare, Award, Shield, Star, PartyPopper } from 'lucide-react';
 import { Course, CourseStatus } from '../types';
 import { useTranslation } from './translations';
 import { supabaseClient } from '../src/lib/supabaseClient';
@@ -20,6 +20,10 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({ courses, userId }) => {
     const [recentCourse, setRecentCourse] = useState<Course | null>(null);
     const [quizGrades, setQuizGrades] = useState<any[]>([]);
     const [userRole, setUserRole] = useState<string>('INDIVIDUAL');
+
+    // Cohort & Orientation Lock State
+    const [cohort, setCohort] = useState<any>(null);
+    const [isOrientationLocked, setIsOrientationLocked] = useState(false);
 
     // Tap/Click Animation States
     const [particles, setParticles] = useState<{
@@ -109,6 +113,39 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({ courses, userId }) => {
         return () => {
             window.removeEventListener('profile-update', fetchRole);
         };
+    }, [userId]);
+
+    useEffect(() => {
+        const fetchCohort = async () => {
+            if (!userId || userId === 'guest') return;
+            try {
+                // Fetch enrollment with cohort
+                const { data: enrollmentData } = await supabaseClient
+                    .from('enrollments')
+                    .select('cohort_id')
+                    .eq('user_id', userId)
+                    .limit(1)
+                    .single();
+                
+                if (enrollmentData?.cohort_id) {
+                    const { data: cohortData } = await supabaseClient
+                        .from('cohorts')
+                        .select('*')
+                        .eq('id', enrollmentData.cohort_id)
+                        .single();
+                    
+                    if (cohortData) {
+                        setCohort(cohortData);
+                        const now = new Date();
+                        const orientationEnd = new Date(cohortData.orientation_end_date);
+                        setIsOrientationLocked(now < orientationEnd);
+                    }
+                }
+            } catch (e) {
+                console.error("Error fetching cohort", e);
+            }
+        };
+        fetchCohort();
     }, [userId]);
 
     useEffect(() => {
@@ -262,6 +299,22 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({ courses, userId }) => {
                 );
             })}
 
+            {isOrientationLocked && cohort && (
+                <div className="bg-amber-100 border-l-4 border-amber-500 text-amber-800 p-4 mb-6 rounded-r-xl shadow-sm">
+                    <div className="flex items-start">
+                        <div className="flex-shrink-0">
+                            <Shield className="h-5 w-5 text-amber-500" />
+                        </div>
+                        <div className="ml-3">
+                            <h3 className="text-sm font-medium">Orientation Week Locked</h3>
+                            <div className="mt-2 text-sm text-amber-700">
+                                <p>Welcome to {cohort.name}! You are currently in the orientation phase until {new Date(cohort.orientation_end_date).toLocaleDateString()}. Main course modules are locked. Please review the syllabus, intro videos, and join the cohort community chat.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
             {/* Left Column - Main Stats */}
             <div className="lg:col-span-2 space-y-6 lg:space-y-8">
@@ -279,7 +332,11 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({ courses, userId }) => {
                     ) : (
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                             {courses.filter(c => c.status === CourseStatus.NOT_STARTED && !c.isDraft && c.isVerified !== false).slice(0, 3).map((course) => (
-                                <div key={course.id} className={`bg-white dark:bg-slate-900 p-4 rounded-3xl border border-gray-100 dark:border-slate-800 shadow-sm hover:shadow-xl hover:transform hover:-translate-y-1 hover:border-welile-purple dark:hover:border-purple-600 transition-all duration-300 ${course.accessTier === 'PAID' && userRole === 'INDIVIDUAL' ? 'relative' : ''}`}>
+                                <div 
+                                    key={course.id} 
+                                    onClick={() => navigate(`/discover/${course.id}`)}
+                                    className={`bg-white dark:bg-slate-900 p-4 rounded-3xl border border-gray-100 dark:border-slate-800 shadow-sm hover:shadow-xl hover:transform hover:-translate-y-1 hover:border-welile-purple dark:hover:border-purple-600 transition-all duration-300 cursor-pointer ${course.accessTier === 'PAID' && userRole === 'INDIVIDUAL' ? 'relative' : ''}`}
+                                >
                                     {course.accessTier === 'PAID' && userRole === 'INDIVIDUAL' && (
                                         <div className="absolute top-3 right-3 z-10">
                                             <span className="px-2 py-0.5 bg-gradient-to-r from-yellow-400 to-amber-500 text-white rounded-full text-[10px] font-bold shadow-sm flex items-center gap-1">
@@ -299,7 +356,7 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({ courses, userId }) => {
                                     <div className="flex justify-between items-end mt-4">
                                         <div>
                                             <p className="text-xs text-gray-400 dark:text-slate-500">Rate</p>
-                                            <p className="font-bold text-sm text-gray-800 dark:text-slate-200">★ {course.rating}</p>
+                                            <p className="font-bold text-sm text-gray-800 dark:text-slate-200"><Star className="inline-block w-4 h-4 mr-1 align-middle" /> {course.rating}</p>
                                         </div>
                                         <div className="px-3 py-1 bg-gray-50 dark:bg-slate-800 rounded-full text-xs font-medium text-gray-600 dark:text-slate-300">
                                             {course.category}
@@ -425,8 +482,7 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({ courses, userId }) => {
                     <div
                         onClick={() => {
                             if (targetCourse) {
-                                const scopeKey = localStorage.getItem('auth_logged_in_email') || userId;
-                                localStorage.setItem(`recent-tapped-course-id-${scopeKey}`, targetCourse.id);
+                                localStorage.setItem(`recent-tapped-course-id`, targetCourse.id);
                                 window.location.href = `/courses`;
                             } else {
                                 window.location.href = `/discover`;
@@ -452,7 +508,7 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({ courses, userId }) => {
                                 <p className="text-xs text-gray-500 dark:text-slate-400 mt-1">
                                     {targetCourse ? (
                                         targetCourse.lessonsCompleted >= targetCourse.lessonsTotal && targetCourse.lessonsTotal > 0 ? (
-                                            'Course Completed! 🎉'
+                                            'Course Completed! <PartyPopper className="inline-block w-4 h-4 mr-1 align-middle" />'
                                         ) : nextLesson ? (
                                             `Next: ${nextLesson.title} (${nextLesson.duration})`
                                         ) : (

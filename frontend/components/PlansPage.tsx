@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { CheckCircle, Sparkles, X, Loader } from 'lucide-react';
+import { CheckCircle, Sparkles, X, Loader, Star, Smartphone, Landmark } from 'lucide-react';
 import { UserRole } from '../types';
 import { useTranslation } from './translations';
 import { supabaseClient } from '../src/lib/supabaseClient';
@@ -141,7 +141,7 @@ const PlansPage: React.FC<PlansPageProps> = ({ user, currentPlan, onUpgrade, onB
                                             ? "text-yellow-400"
                                             : "text-gray-300 dark:text-slate-700"
                                     }>
-                                        ★
+                                        <Star className="inline-block w-4 h-4 mr-1 align-middle" />
                                     </span>
                                 </button>
                             ))}
@@ -411,7 +411,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({ isOpen, onClose, planName, 
                     {/* Airtel Money */}
                     <div className="p-4 bg-red-50 dark:bg-red-950/20 border border-red-100 dark:border-red-900/50 rounded-2xl">
                         <h4 className="font-bold text-red-600 dark:text-red-400 flex items-center gap-2 mb-2 text-sm">
-                            <span className="text-lg">📱</span> Airtel Money
+                            <span className="text-lg"><Smartphone className="inline-block w-4 h-4 mr-1 align-middle" /></span> Airtel Money
                         </h4>
                         <div className="text-xs space-y-1 text-gray-700 dark:text-slate-355">
                             <p><span className="font-semibold text-gray-900 dark:text-white">Dial:</span> <code className="bg-white dark:bg-slate-850 px-1.5 py-0.5 rounded border dark:border-slate-700 font-mono font-bold">185*9#</code></p>
@@ -422,7 +422,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({ isOpen, onClose, planName, 
                     {/* MTN MoMo */}
                     <div className="p-4 bg-yellow-50 dark:bg-yellow-950/20 border border-yellow-105 dark:border-yellow-900/50 rounded-2xl">
                         <h4 className="font-bold text-yellow-600 dark:text-yellow-400 flex items-center gap-2 mb-2 text-sm">
-                            <span className="text-lg">📱</span> MTN MoMo
+                            <span className="text-lg"><Smartphone className="inline-block w-4 h-4 mr-1 align-middle" /></span> MTN MoMo
                         </h4>
                         <div className="text-xs space-y-1 text-gray-700 dark:text-slate-355">
                             <p><span className="font-semibold text-gray-900 dark:text-white">Instructions:</span> Use MoMo App or dial <code className="bg-white dark:bg-slate-850 px-1.5 py-0.5 rounded border dark:border-slate-700 font-mono font-bold">165*3#</code></p>
@@ -433,7 +433,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({ isOpen, onClose, planName, 
                     {/* Bank Transfer */}
                     <div className="p-4 bg-blue-50 dark:bg-blue-950/20 border border-blue-100 dark:border-blue-900/50 rounded-2xl">
                         <h4 className="font-bold text-blue-600 dark:text-blue-400 flex items-center gap-2 mb-2 text-sm">
-                            <span className="text-lg">🏦</span> Bank Transfer (Equity Bank)
+                            <span className="text-lg"><Landmark className="inline-block w-4 h-4 mr-1 align-middle" /></span> Bank Transfer (Equity Bank)
                         </h4>
                         <div className="text-xs space-y-1 text-gray-700 dark:text-slate-355">
                             <p><span className="font-semibold text-gray-900 dark:text-white">Account Name:</span> Welile Technologies Limited</p>

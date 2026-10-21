@@ -5,7 +5,7 @@ import Header from '../Header';
 import { AuthModal } from '../AuthModal';
 import { useProfile } from '../../src/hooks/useProfile';
 import { UserRole, Course } from '../../types';
-import { CheckCircle, Sparkles, X } from 'lucide-react';
+import { CheckCircle, Sparkles, X, PartyPopper } from 'lucide-react';
 
 interface StudentLayoutProps {
     session: any;
@@ -130,7 +130,7 @@ const StudentLayout: React.FC<StudentLayoutProps> = ({ session, isAuthenticated,
                             <CheckCircle size={36} className="text-green-500" />
                         </div>
 
-                        <h3 className="text-xl font-bold mb-2">Payment Verified Successfully! 🎉</h3>
+                        <h3 className="text-xl font-bold mb-2">Payment Verified Successfully! <PartyPopper className="inline-block w-4 h-4 mr-1 align-middle" /></h3>
                         <p className="text-sm text-gray-600 dark:text-slate-350 mb-6">
                             Thank you for upgrading! Your transaction has been successfully verified. We appreciate your support.
                             <span className="block mt-3 p-3 bg-gray-50 dark:bg-slate-800/50 border border-gray-100 dark:border-slate-800 rounded-2xl text-xs text-gray-700 dark:text-slate-300 font-medium">

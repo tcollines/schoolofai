@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ClipboardList, CheckCircle, Clock, Check, Play, BookOpen, ChevronDown, ChevronUp, Send, FileText, CheckCircle2, PlayCircle, Volume2, Download, ExternalLink, Loader2 } from 'lucide-react';
+import { ClipboardList, CheckCircle, Clock, Check, Play, BookOpen, ChevronDown, ChevronUp, Send, FileText, CheckCircle2, PlayCircle, Volume2, Download, ExternalLink, Loader2, AlertTriangle } from 'lucide-react';
 import { Course, CourseStatus } from '../types';
 
 interface StudentAssignmentsProps {
@@ -600,7 +600,7 @@ export const StudentAssignments: React.FC<StudentAssignmentsProps> = ({ courses,
                                                 ) : isOverdue(asg.dueDate) ? (
                                                     <div className="bg-red-50/50 dark:bg-red-950/15 border border-red-200/50 dark:border-red-900/40 rounded-2xl p-4 text-center space-y-1">
                                                         <p className="text-xs font-bold text-red-650 dark:text-red-400 flex items-center justify-center gap-1.5 animate-none">
-                                                            <span>⚠️ Due Date Passed: Submissions Closed</span>
+                                                            <span><AlertTriangle className="inline-block w-4 h-4 mr-1 align-middle" />️ Due Date Passed: Submissions Closed</span>
                                                         </p>
                                                         <p className="text-[11px] text-gray-500 dark:text-slate-400">
                                                             This task was due on {getFormattedDate(asg.dueDate)} and is no longer accepting answers.

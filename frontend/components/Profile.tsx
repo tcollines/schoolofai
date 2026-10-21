@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useOutletContext, useNavigate } from 'react-router-dom';
-import { User, MapPin, Briefcase, GraduationCap, Save, Camera, FileImage, X, Loader, Trash2, Edit2 } from 'lucide-react';
+import { User, MapPin, Briefcase, GraduationCap, Save, Camera, FileImage, X, Loader, Trash2, Edit2, Check, Star } from 'lucide-react';
 import { UserProfile } from '../types';
 import { useTranslation } from './translations';
 import { supabaseClient } from '../src/lib/supabaseClient';
@@ -207,7 +207,7 @@ const AddEducationModal: React.FC<AddEducationModalProps> = ({ isOpen, onClose, 
                             />
                             {file ? (
                                 <div className="space-y-1">
-                                    <p className="text-xs font-bold text-green-600 dark:text-green-400">✓ Proof Uploaded Successfully</p>
+                                    <p className="text-xs font-bold text-green-600 dark:text-green-400"><Check className="inline-block w-4 h-4 mr-1 align-middle" /> Proof Uploaded Successfully</p>
                                     <p className="text-[10px] text-gray-400 truncate max-w-[200px] mx-auto">{file.name}</p>
                                 </div>
                             ) : (
@@ -1008,7 +1008,7 @@ const Profile: React.FC<ProfileProps> = ({ user, onUpgradeClick }) => {
                         {formData.role === 'PRO' || formData.role === 'ADMIN' ? (
                             <div className="mt-6 pt-6 border-t border-gray-50 dark:border-slate-800 text-center space-y-2">
                                 <div className="text-xs font-bold text-green-650 dark:text-green-400 bg-green-50 dark:bg-green-950/20 border border-green-100 dark:border-green-900/30 px-3 py-2 rounded-xl inline-block w-full">
-                                    ★ Premium Account Active
+                                    <Star className="inline-block w-4 h-4 mr-1 align-middle" /> Premium Account Active
                                 </div>
                                 <p className="text-xs text-gray-500 dark:text-slate-400 leading-relaxed px-2">
                                     You are currently enjoying our premium services. We recommend you explore courses in the <span className="font-semibold text-welile-purple">Discover</span> tab!
@@ -1079,7 +1079,7 @@ const Profile: React.FC<ProfileProps> = ({ user, onUpgradeClick }) => {
                                         <p className="text-xs text-gray-500 dark:text-slate-400">{item.degree} • {item.year}</p>
                                         {item.fileName && (
                                             <p className="text-[10px] text-green-600 dark:text-green-400 font-semibold mt-1 flex items-center gap-1">
-                                                ✓ Verified Proof: {item.fileName}
+                                                <Check className="inline-block w-4 h-4 mr-1 align-middle" /> Verified Proof: {item.fileName}
                                             </p>
                                         )}
                                     </div>

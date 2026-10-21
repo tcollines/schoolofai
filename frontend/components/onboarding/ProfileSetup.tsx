@@ -1,7 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../../src/lib/supabaseClient';
-import { User, Camera, ArrowRight, Loader2 } from 'lucide-react';
+import { User, Camera, ArrowRight, Loader2, AlertTriangle } from 'lucide-react';
 
 const ProfileSetup: React.FC = () => {
     const navigate = useNavigate();
@@ -106,7 +106,7 @@ const ProfileSetup: React.FC = () => {
 
                 {error && (
                     <div className="bg-red-50 dark:bg-red-950/30 text-red-650 dark:text-red-400 p-4 rounded-xl mb-6 text-sm">
-                        ⚠️ {error}
+                        <AlertTriangle className="inline-block w-4 h-4 mr-1 align-middle" />️ {error}
                     </div>
                 )}
 
