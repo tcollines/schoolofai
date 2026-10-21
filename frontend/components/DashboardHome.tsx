@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { TrendingUp, CheckCircle, PlayCircle, BookOpen, MessageSquare, Award, Shield, Star, PartyPopper } from 'lucide-react';
+import { TrendingUp, CheckCircle, PlayCircle, BookOpen, MessageSquare, Award, Shield, Star, PartyPopper, ArrowRight } from 'lucide-react';
 import { Course, CourseStatus } from '../types';
 import { useTranslation } from './translations';
 import { supabaseClient } from '../src/lib/supabaseClient';
+import { getWeeklyLearningActivity, getMonthlyLearningActivity } from '../src/utils/activity';
 
 interface DashboardHomeProps {
     courses: Course[];
@@ -182,16 +183,35 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({ courses, userId }) => {
         }
     }, [courses, userId]);
 
-    // Dynamic stats based on enrolled courses
-    const chartData = [
-        { name: 'Su', hours: enrolledCourses.length > 0 ? 1 : 0 },
-        { name: 'Mo', hours: enrolledCourses.length > 0 ? 2 : 0 },
-        { name: 'Tu', hours: enrolledCourses.length > 0 ? 1.5 : 0 },
-        { name: 'We', hours: enrolledCourses.length > 0 ? 3 : 0 },
-        { name: 'Th', hours: enrolledCourses.length > 0 ? 0.5 : 0 },
-        { name: 'Fr', hours: enrolledCourses.length > 0 ? 2 : 0 },
-        { name: 'Sa', hours: enrolledCourses.length > 0 ? 4 : 0 }
-    ];
+    const [activityTimeframe, setActivityTimeframe] = useState<'Weekly' | 'Monthly'>('Weekly');
+    const [activityVersion, setActivityVersion] = useState(0);
+
+    useEffect(() => {
+        const handleActivityUpdate = () => setActivityVersion(v => v + 1);
+        window.addEventListener('learning-activity-update', handleActivityUpdate);
+        return () => window.removeEventListener('learning-activity-update', handleActivityUpdate);
+    }, []);
+
+    // Total completed lessons across all enrolled courses
+    const totalLessonsCompleted = enrolledCourses.reduce((sum, c) => sum + (c.lessonsCompleted || 0), 0);
+
+    // Live activity metrics (weekly and monthly)
+    const weeklyStats = getWeeklyLearningActivity(userId, enrolledCourses.length, totalLessonsCompleted);
+    const monthlyStats = getMonthlyLearningActivity(userId, enrolledCourses.length, totalLessonsCompleted);
+
+    const activeChartData = activityTimeframe === 'Weekly' ? weeklyStats.weeklyData : monthlyStats.monthlyData;
+    const activePercentChange = activityTimeframe === 'Weekly' ? weeklyStats.percentChange : monthlyStats.percentChange;
+    const isIncrease = activityTimeframe === 'Weekly' ? weeklyStats.isIncrease : monthlyStats.isIncrease;
+
+    // Live available courses from database
+    const availableCourses = courses.filter(c => !c.isDraft && c.isVerified !== false);
+    const sortedAvailableCourses = [...availableCourses].sort((a, b) => {
+        const aEnrolled = a.status !== CourseStatus.NOT_STARTED;
+        const bEnrolled = b.status !== CourseStatus.NOT_STARTED;
+        if (!aEnrolled && bEnrolled) return -1;
+        if (aEnrolled && !bEnrolled) return 1;
+        return 0;
+    });
 
     const schedule = enrolledCourses.slice(0, 3).map((course, idx) => ({
         id: course.id,
@@ -319,51 +339,94 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({ courses, userId }) => {
             {/* Left Column - Main Stats */}
             <div className="lg:col-span-2 space-y-6 lg:space-y-8">
 
-                {/* New Courses / Recommended Row */}
+                {/* Available Courses Section */}
                 <section>
                     <div className="flex justify-between items-center mb-4">
-                        <h3 className="font-bold text-gray-800 dark:text-slate-200">{t('new_courses')}</h3>
+                        <div className="flex items-center gap-2">
+                            <h3 className="font-bold text-gray-800 dark:text-slate-200">Available Courses</h3>
+                            <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-purple-100 text-purple-700 dark:bg-purple-950/40 dark:text-purple-300">
+                                {sortedAvailableCourses.length} Available
+                            </span>
+                        </div>
+                        <button
+                            onClick={() => navigate('/discover')}
+                            className="text-xs font-semibold text-welile-purple hover:text-purple-700 dark:hover:text-purple-300 transition-colors flex items-center gap-1 cursor-pointer"
+                        >
+                            Explore All <ArrowRight size={13} />
+                        </button>
                     </div>
-                    {courses.filter(c => c.status === CourseStatus.NOT_STARTED && !c.isDraft && c.isVerified !== false).length === 0 ? (
+
+                    {sortedAvailableCourses.length === 0 ? (
                         <div className="bg-white dark:bg-slate-900 p-8 rounded-3xl border border-dashed border-gray-200 dark:border-slate-800 text-center">
-                            <p className="text-gray-500 dark:text-slate-400 text-sm mb-2">No new courses available right now.</p>
-                            <p className="text-xs text-gray-400 dark:text-slate-500">Head over to the <span className="font-bold text-welile-purple">Discover</span> tab to find your next adventure!</p>
+                            <p className="text-gray-500 dark:text-slate-400 text-sm mb-2">No courses available right now.</p>
+                            <p className="text-xs text-gray-400 dark:text-slate-500">Head over to the <span className="font-bold text-welile-purple">Discover</span> tab to browse!</p>
                         </div>
                     ) : (
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                            {courses.filter(c => c.status === CourseStatus.NOT_STARTED && !c.isDraft && c.isVerified !== false).slice(0, 3).map((course) => (
-                                <div 
-                                    key={course.id} 
-                                    onClick={() => navigate(`/discover/${course.id}`)}
-                                    className={`bg-white dark:bg-slate-900 p-4 rounded-3xl border border-gray-100 dark:border-slate-800 shadow-sm hover:shadow-xl hover:transform hover:-translate-y-1 hover:border-welile-purple dark:hover:border-purple-600 transition-all duration-300 cursor-pointer ${course.accessTier === 'PAID' && userRole === 'INDIVIDUAL' ? 'relative' : ''}`}
-                                >
-                                    {course.accessTier === 'PAID' && userRole === 'INDIVIDUAL' && (
-                                        <div className="absolute top-3 right-3 z-10">
-                                            <span className="px-2 py-0.5 bg-gradient-to-r from-yellow-400 to-amber-500 text-white rounded-full text-[10px] font-bold shadow-sm flex items-center gap-1">
-                                                <Shield size={9} /> Premium
-                                            </span>
+                            {sortedAvailableCourses.slice(0, 3).map((course) => {
+                                const isEnrolled = course.status !== CourseStatus.NOT_STARTED;
+                                const progressPct = Math.round((course.lessonsTotal > 0 ? (course.lessonsCompleted / course.lessonsTotal) * 60 : 0) + (course.examCompleted ? 40 : 0));
+
+                                return (
+                                    <div 
+                                        key={course.id} 
+                                        onClick={() => isEnrolled ? navigate('/courses') : navigate(`/discover/${course.id}`)}
+                                        className="bg-white dark:bg-slate-900 p-4 rounded-3xl border border-gray-100 dark:border-slate-800 shadow-sm hover:shadow-xl hover:transform hover:-translate-y-1 hover:border-welile-purple dark:hover:border-purple-600 transition-all duration-300 cursor-pointer relative flex flex-col justify-between"
+                                    >
+                                        <div className="absolute top-3 right-3 z-10 flex items-center gap-1">
+                                            {isEnrolled ? (
+                                                <span className="px-2 py-0.5 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 rounded-full text-[10px] font-bold">
+                                                    Enrolled
+                                                </span>
+                                            ) : course.accessTier === 'PAID' && userRole === 'INDIVIDUAL' ? (
+                                                <span className="px-2 py-0.5 bg-gradient-to-r from-yellow-400 to-amber-500 text-white rounded-full text-[10px] font-bold shadow-sm flex items-center gap-1">
+                                                    <Shield size={9} /> Premium
+                                                </span>
+                                            ) : (
+                                                <span className="px-2 py-0.5 bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/20 rounded-full text-[10px] font-bold">
+                                                    Free
+                                                </span>
+                                            )}
                                         </div>
-                                    )}
-                                    <div className="flex gap-3 mb-3">
-                                        <div className="w-10 h-10 rounded-full bg-orange-100 dark:bg-orange-950/20 flex items-center justify-center text-orange-600 dark:text-orange-400 font-bold text-xs shrink-0">
-                                            {course.category.substring(0, 2).toUpperCase()}
-                                        </div>
-                                        <div className="min-w-0">
-                                            <h4 className="font-bold text-gray-900 dark:text-white text-sm truncate">{course.title}</h4>
-                                            <p className="text-xs text-gray-500 dark:text-slate-400">{course.duration}</p>
-                                        </div>
-                                    </div>
-                                    <div className="flex justify-between items-end mt-4">
+
                                         <div>
-                                            <p className="text-xs text-gray-400 dark:text-slate-500">Rate</p>
-                                            <p className="font-bold text-sm text-gray-800 dark:text-slate-200"><Star className="inline-block w-4 h-4 mr-1 align-middle" /> {course.rating}</p>
+                                            <div className="flex gap-3 mb-3 pr-16">
+                                                <div className="w-10 h-10 rounded-full bg-orange-100 dark:bg-orange-950/20 flex items-center justify-center text-orange-600 dark:text-orange-400 font-bold text-xs shrink-0">
+                                                    {course.category ? course.category.substring(0, 2).toUpperCase() : 'AI'}
+                                                </div>
+                                                <div className="min-w-0">
+                                                    <h4 className="font-bold text-gray-900 dark:text-white text-sm line-clamp-2 leading-snug">{course.title}</h4>
+                                                    <p className="text-xs text-gray-500 dark:text-slate-400 mt-0.5">{course.duration} • {course.instructor}</p>
+                                                </div>
+                                            </div>
+
+                                            {isEnrolled && (
+                                                <div className="mt-2 mb-3">
+                                                    <div className="flex justify-between text-[11px] text-gray-500 dark:text-slate-400 mb-1">
+                                                        <span>Progress</span>
+                                                        <span className="font-bold text-welile-purple">{progressPct}%</span>
+                                                    </div>
+                                                    <div className="w-full bg-gray-100 dark:bg-slate-800 h-1.5 rounded-full overflow-hidden">
+                                                        <div className="bg-gradient-to-r from-welile-purple to-purple-600 h-full rounded-full transition-all duration-500" style={{ width: `${progressPct}%` }}></div>
+                                                    </div>
+                                                </div>
+                                            )}
                                         </div>
-                                        <div className="px-3 py-1 bg-gray-50 dark:bg-slate-800 rounded-full text-xs font-medium text-gray-600 dark:text-slate-300">
-                                            {course.category}
+
+                                        <div className="flex justify-between items-end mt-4 pt-2 border-t border-gray-50 dark:border-slate-800/60">
+                                            <div>
+                                                <p className="text-[10px] uppercase tracking-wider text-gray-400 dark:text-slate-500">Rating</p>
+                                                <p className="font-bold text-sm text-gray-800 dark:text-slate-200 flex items-center">
+                                                    <Star className="w-3.5 h-3.5 mr-1 fill-amber-400 text-amber-400" /> {course.rating || '4.8'}
+                                                </p>
+                                            </div>
+                                            <div className="px-2.5 py-1 bg-gray-50 dark:bg-slate-800 rounded-full text-xs font-medium text-gray-600 dark:text-slate-300">
+                                                {course.category}
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
-                            ))}
+                                );
+                            })}
                         </div>
                     )}
                 </section>
@@ -374,31 +437,40 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({ courses, userId }) => {
                         <div>
                             <h3 className="font-bold text-gray-800 dark:text-slate-200">{t('learning_activity')}</h3>
                             <div className="flex items-center gap-2 mt-1">
-                                <TrendingUp size={14} className="text-green-500" />
-                                <p className="text-xs text-gray-500 dark:text-slate-400"><span className="text-green-500 font-bold">+3%</span> increase than last week</p>
+                                <TrendingUp size={14} className={isIncrease ? "text-green-500" : "text-amber-500"} />
+                                <p className="text-xs text-gray-500 dark:text-slate-400">
+                                    <span className={`${isIncrease ? "text-green-500" : "text-amber-500"} font-bold`}>{activePercentChange}</span> than last week
+                                    <span className="ml-1 text-gray-400 dark:text-slate-500">({activityTimeframe === 'Weekly' ? `${weeklyStats.totalThisWeek} hrs studied` : `${monthlyStats.totalThisMonth} hrs total`})</span>
+                                </p>
                             </div>
                         </div>
-                        <select className="text-xs bg-gray-50 dark:bg-slate-800 text-gray-800 dark:text-slate-200 border-none rounded-lg px-2 py-1 outline-none">
-                            <option>Weekly</option>
-                            <option>Monthly</option>
+                        <select 
+                            value={activityTimeframe}
+                            onChange={(e) => setActivityTimeframe(e.target.value as 'Weekly' | 'Monthly')}
+                            className="text-xs bg-gray-50 dark:bg-slate-800 text-gray-800 dark:text-slate-200 border border-gray-200 dark:border-slate-700 rounded-lg px-2.5 py-1.5 outline-none font-medium cursor-pointer"
+                        >
+                            <option value="Weekly">Weekly</option>
+                            <option value="Monthly">Monthly</option>
                         </select>
                     </div>
                     <div className="h-48 w-full">
                         <ResponsiveContainer width="100%" height="100%">
-                            <BarChart data={chartData}>
+                            <BarChart data={activeChartData}>
                                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
                                 <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#9ca3af' }} dy={10} />
                                 <YAxis hide />
                                 <Tooltip
                                     cursor={{ fill: 'transparent' }}
+                                    formatter={(value: any) => [`${value} hrs`, 'Learning Time']}
+                                    labelFormatter={(label) => activityTimeframe === 'Weekly' ? `Day: ${label}` : `Period: ${label}`}
                                     contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
                                 />
                                 <Bar
                                     dataKey="hours"
                                     fill="var(--chart-bar)"
                                     radius={[6, 6, 6, 6]}
-                                    barSize={12}
-                                    activeBar={{ fill: '#a855f7' }} // Purple on hover
+                                    barSize={14}
+                                    activeBar={{ fill: '#a855f7' }}
                                 />
                             </BarChart>
                         </ResponsiveContainer>
