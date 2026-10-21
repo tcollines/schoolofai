@@ -1,9 +1,11 @@
+const BACKEND_URL = (import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000').replace(/\/$/, '');
+
 export async function generateCurriculumFromNotes(file: File) {
     const formData = new FormData();
     formData.append('courseNotes', file);
 
     try {
-        const response = await fetch('http://localhost:3000/api/generate-curriculum', {
+        const response = await fetch(`${BACKEND_URL}/api/generate-curriculum`, {
             method: 'POST',
             body: formData,
         });
