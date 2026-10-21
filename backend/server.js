@@ -4,25 +4,225 @@ const multer = require('multer');
 const pdfParse = require('pdf-parse');
 const axios = require('axios');
 const path = require('path');
-require('dotenv').config({ path: path.join(__dirname, '../.env.local') });
+const { DatabaseAdapter, supabase } = require('./db');
 
 const app = express();
 const port = process.env.PORT || 3000;
 
-// Enable CORS for frontend running on ports 4000/4001
+// Enable CORS
 app.use(cors());
-app.use(express.json());
+app.use(express.json({ limit: '15mb' }));
 
 // Set up multer to store uploaded files in memory
 const upload = multer({ storage: multer.memoryStorage() });
 
+// ----------------------------------------------------
+// Health Check
+// ----------------------------------------------------
+app.get('/api/health', (req, res) => {
+    res.json({
+        status: 'ok',
+        databaseReady: DatabaseAdapter.isReady(),
+        time: new Date().toISOString()
+    });
+});
+
+// ----------------------------------------------------
+// Authentication Routes (/api/auth)
+// ----------------------------------------------------
+app.post('/api/auth/signup', async (req, res) => {
+    try {
+        const { email, password, options } = req.body;
+        if (!supabase) return res.status(500).json({ error: 'Database service not configured' });
+        const { data, error } = await supabase.auth.signUp({ email, password, options });
+        if (error) return res.status(400).json({ error: error.message });
+        res.json(data);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+app.post('/api/auth/login', async (req, res) => {
+    try {
+        const { email, password } = req.body;
+        if (!supabase) return res.status(500).json({ error: 'Database service not configured' });
+        const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+        if (error) return res.status(400).json({ error: error.message });
+        res.json(data);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+app.get('/api/auth/session', async (req, res) => {
+    try {
+        const authHeader = req.headers.authorization;
+        const token = authHeader?.startsWith('Bearer ') ? authHeader.substring(7) : null;
+        if (!token || !supabase) return res.json({ session: null });
+
+        const { data: { user }, error } = await supabase.auth.getUser(token);
+        if (error || !user) return res.json({ session: null });
+        res.json({ session: { user, access_token: token } });
+    } catch (err) {
+        res.json({ session: null });
+    }
+});
+
+app.post('/api/auth/logout', async (req, res) => {
+    res.json({ success: true });
+});
+
+// ----------------------------------------------------
+// Data Access Routes (/api/data/:table)
+// ----------------------------------------------------
+app.get('/api/data/:table', async (req, res) => {
+    try {
+        const { table } = req.params;
+        const { select = '*', order, limit, single, ...filters } = req.query;
+
+        // Parse special query params
+        const cleanFilters = {};
+        for (const [k, v] of Object.entries(filters)) {
+            if (v !== undefined && v !== null && v !== '') {
+                if (typeof v === 'string' && v.startsWith('eq.')) {
+                    cleanFilters[k] = v.substring(3);
+                } else {
+                    cleanFilters[k] = v;
+                }
+            }
+        }
+
+        const result = await DatabaseAdapter.query(table, {
+            select,
+            filters: cleanFilters,
+            order,
+            limit,
+            single: single === 'true' || single === true
+        });
+
+        if (result.error) {
+            return res.status(400).json(result);
+        }
+        res.json(result);
+    } catch (err) {
+        res.status(500).json({ data: null, error: err.message });
+    }
+});
+
+app.post('/api/data/:table', async (req, res) => {
+    try {
+        const { table } = req.params;
+        const isUpsert = req.query.upsert === 'true';
+        const result = isUpsert 
+            ? await DatabaseAdapter.upsert(table, req.body)
+            : await DatabaseAdapter.insert(table, req.body);
+        if (result.error) {
+            return res.status(400).json(result);
+        }
+        res.json(result);
+    } catch (err) {
+        res.status(500).json({ data: null, error: err.message });
+    }
+});
+
+app.patch('/api/data/:table', async (req, res) => {
+    try {
+        const { table } = req.params;
+        const filters = {};
+        for (const [k, v] of Object.entries(req.query)) {
+            if (typeof v === 'string' && v.startsWith('eq.')) {
+                filters[k] = v.substring(3);
+            } else {
+                filters[k] = v;
+            }
+        }
+
+        const result = await DatabaseAdapter.update(table, req.body, filters);
+        if (result.error) {
+            return res.status(400).json(result);
+        }
+        res.json(result);
+    } catch (err) {
+        res.status(500).json({ data: null, error: err.message });
+    }
+});
+
+app.delete('/api/data/:table', async (req, res) => {
+    try {
+        const { table } = req.params;
+        const filters = {};
+        for (const [k, v] of Object.entries(req.query)) {
+            if (typeof v === 'string' && v.startsWith('eq.')) {
+                filters[k] = v.substring(3);
+            } else {
+                filters[k] = v;
+            }
+        }
+
+        const result = await DatabaseAdapter.delete(table, filters);
+        if (result.error) {
+            return res.status(400).json(result);
+        }
+        res.json(result);
+    } catch (err) {
+        res.status(500).json({ data: null, error: err.message });
+    }
+});
+
+// ----------------------------------------------------
+// Storage Routes (/api/storage/:bucket)
+// ----------------------------------------------------
+app.post('/api/storage/:bucket/upload', upload.single('file'), async (req, res) => {
+    try {
+        const { bucket } = req.params;
+        const filePath = req.body.path || `${Date.now()}_${req.file.originalname}`;
+        if (!req.file) return res.status(400).json({ error: 'No file uploaded' });
+
+        const result = await DatabaseAdapter.uploadStorage(bucket, filePath, req.file.buffer, req.file.mimetype);
+        if (result.error) return res.status(400).json(result);
+
+        const publicUrl = DatabaseAdapter.getPublicUrl(bucket, filePath);
+        res.json({ data: { path: filePath, publicUrl }, error: null });
+    } catch (err) {
+        res.status(500).json({ data: null, error: err.message });
+    }
+});
+
+app.get('/api/storage/:bucket/public-url', (req, res) => {
+    try {
+        const { bucket } = req.params;
+        const { path: filePath } = req.query;
+        const publicUrl = DatabaseAdapter.getPublicUrl(bucket, filePath);
+        res.json({ data: { publicUrl }, error: null });
+    } catch (err) {
+        res.status(500).json({ data: null, error: err.message });
+    }
+});
+
+// ----------------------------------------------------
+// Stored Procedures / RPC Routes (/api/rpc/:fn)
+// ----------------------------------------------------
+app.post('/api/rpc/:fn', async (req, res) => {
+    try {
+        const { fn } = req.params;
+        if (!supabase) return res.status(500).json({ error: 'Database service not configured' });
+        const { data, error } = await supabase.rpc(fn, req.body);
+        if (error) return res.status(400).json({ data: null, error: error.message });
+        res.json({ data, error: null });
+    } catch (err) {
+        res.status(500).json({ data: null, error: err.message });
+    }
+});
+
+// ----------------------------------------------------
+// AI Curriculum Generation Endpoint
+// ----------------------------------------------------
 app.post('/api/generate-curriculum', upload.single('courseNotes'), async (req, res) => {
     try {
         if (!req.file) {
             return res.status(400).json({ error: 'No course notes file uploaded.' });
         }
 
-        // Get API Key from environment (.env.local)
         const apiKey = process.env.OPENROUTER;
         if (!apiKey) {
             return res.status(500).json({ error: 'OPENROUTER API key not configured on backend.' });
@@ -88,10 +288,7 @@ Respond STRICTLY in JSON format with the following schema, and no other text:
         });
 
         const text = response.data.choices[0].message.content;
-        
-        // Clean up markdown code blocks if the model wrapped it
         const cleanedText = text.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
-        
         const jsonResult = JSON.parse(cleanedText);
         res.json(jsonResult);
         
