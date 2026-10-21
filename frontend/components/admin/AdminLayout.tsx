@@ -115,9 +115,9 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ onExit, isInstructor, isAdmin
                             window.dispatchEvent(new Event('profile-update'));
                         }
                     } else {
-                        const email = localStorage.getItem('admin-email') || '';
+                        const email = localStorage.getItem('admin-email') || 'admin@welile.com';
                         const cleanEmail = email.trim().toLowerCase();
-                        if (cleanEmail === 'admin@welile.com' || cleanEmail === 'admin@test.com') {
+                        if (cleanEmail === 'admin@welile.com' || cleanEmail === 'admin@test.com' || !cleanEmail) {
                             // Default admin accounts are valid and don't need database profile records
                             return;
                         }

@@ -365,7 +365,6 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({ courses, userId }) => {
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                             {sortedAvailableCourses.slice(0, 3).map((course) => {
                                 const isEnrolled = course.status !== CourseStatus.NOT_STARTED;
-                                const progressPct = Math.round((course.lessonsTotal > 0 ? (course.lessonsCompleted / course.lessonsTotal) * 60 : 0) + (course.examCompleted ? 40 : 0));
 
                                 return (
                                     <div 
@@ -399,18 +398,6 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({ courses, userId }) => {
                                                     <p className="text-xs text-gray-500 dark:text-slate-400 mt-0.5">{course.duration} • {course.instructor}</p>
                                                 </div>
                                             </div>
-
-                                            {isEnrolled && (
-                                                <div className="mt-2 mb-3">
-                                                    <div className="flex justify-between text-[11px] text-gray-500 dark:text-slate-400 mb-1">
-                                                        <span>Progress</span>
-                                                        <span className="font-bold text-welile-purple">{progressPct}%</span>
-                                                    </div>
-                                                    <div className="w-full bg-gray-100 dark:bg-slate-800 h-1.5 rounded-full overflow-hidden">
-                                                        <div className="bg-gradient-to-r from-welile-purple to-purple-600 h-full rounded-full transition-all duration-500" style={{ width: `${progressPct}%` }}></div>
-                                                    </div>
-                                                </div>
-                                            )}
                                         </div>
 
                                         <div className="flex justify-between items-end mt-4 pt-2 border-t border-gray-50 dark:border-slate-800/60">

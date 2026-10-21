@@ -128,6 +128,7 @@ const AdminLoginPage: React.FC<AdminLoginPageProps> = ({ onLoginSuccess, onBackT
 
                 // Success! Store admin-session token separately
                 localStorage.setItem('admin-session', 'true');
+                localStorage.setItem('admin-email', email.trim().toLowerCase());
                 setLoading(false);
                 onLoginSuccess();
             }
