@@ -3,10 +3,11 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "install:all": "npm install && npm install --prefix frontend && npm install --prefix admin-portal",
+    "install:all": "npm install && npm install --prefix frontend && npm install --prefix admin-portal && npm install --prefix backend",
+    "dev:backend": "node backend/server.js",
     "dev:frontend": "npm run dev --prefix frontend",
     "dev:admin": "npm run dev --prefix admin-portal",
-    "dev": "concurrently \"npm run dev:frontend\" \"npm run dev:admin\" \"node dev-proxy.js\""
+    "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\" \"npm run dev:admin\" \"node dev-proxy.js\""
   },
   "devDependencies": {
     "concurrently": "^8.2.2"

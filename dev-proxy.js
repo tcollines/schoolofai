@@ -19,7 +19,10 @@ proxy.on('error', (err, req, res) => {
 const server = http.createServer((req, res) => {
   const host = req.headers.host || '';
   
-  if (host.startsWith('admin.localhost')) {
+  if (req.url && req.url.startsWith('/api')) {
+    // Proxy API requests to Express backend (port 3000)
+    proxy.web(req, res, { target: 'http://localhost:3000' });
+  } else if (host.startsWith('admin.localhost')) {
     // Proxy to Admin Portal (port 4001)
     proxy.web(req, res, { target: 'http://localhost:4001' });
   } else {
