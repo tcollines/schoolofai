@@ -20,7 +20,7 @@ import VerifyEmail from './components/onboarding/VerifyEmail';
 import ProfileSetup from './components/onboarding/ProfileSetup';
 import PaymentPlanSetup from './components/onboarding/PaymentPlanSetup';
 import RecommendedCourses from './components/onboarding/RecommendedCourses';
-import { supabase } from './src/lib/supabaseClient';
+import { supabase, isSupabaseConfigured } from './src/lib/supabaseClient';
 import { useCourses } from './src/hooks/useCourses';
 import { useProfile } from './src/hooks/useProfile';
 import { UserRole } from './types';
@@ -58,11 +58,24 @@ function App() {
   const { courses, loading: coursesLoading } = useCourses(isAuthenticated ? session?.user?.id : undefined);
   const { profile: userProfile } = useProfile(isAuthenticated ? session : null);
 
-
   useEffect(() => {
+    if (!isSupabaseConfigured) {
+      setAuthLoading(false);
+      return;
+    }
+
+    const timer = setTimeout(() => {
+      setAuthLoading(false);
+    }, 2500);
+
     supabase.auth.getSession().then(({ data: { session } }) => {
+      clearTimeout(timer);
       setSession(session);
       setIsAuthenticated(!!session);
+      setAuthLoading(false);
+    }).catch(err => {
+      clearTimeout(timer);
+      console.warn("Could not retrieve session:", err);
       setAuthLoading(false);
     });
 
@@ -135,6 +148,11 @@ function App() {
 
   return (
     <BrowserRouter>
+      {!isSupabaseConfigured && (
+        <div className="bg-amber-500/15 border-b border-amber-500/30 text-amber-900 dark:text-amber-200 px-4 py-2.5 text-xs md:text-sm text-center font-medium z-50 sticky top-0 backdrop-blur-md flex items-center justify-center gap-2">
+          <span>⚠️ <strong>Configuration Notice:</strong> Supabase environment variables (<code>VITE_SUPABASE_URL</code> and <code>VITE_SUPABASE_ANON_KEY</code>) are not set in your Vercel project settings. Authentication and database features will be disabled until added.</span>
+        </div>
+      )}
       <Routes>
         {/* Public Routes */}
         <Route path="/" element={
