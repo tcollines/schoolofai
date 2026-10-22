@@ -1,43 +1,7 @@
 {
-  "courses": [
-    {
-      "id": "id_h60v4xm2",
-      "created_at": "2026-10-22T18:54:51.904Z",
-      "title": "Machine Learning Cohort 2026",
-      "instructor": "Dr. Sarah Jones",
-      "price": 0,
-      "access_tier": "FREE"
-    },
-    {
-      "id": "id_t3408ywt",
-      "created_at": "2026-10-22T18:54:55.987Z",
-      "title": "Intro to AI Systems",
-      "instructor": "Dr. Sarah Jones",
-      "price": 0,
-      "access_tier": "FREE"
-    }
-  ],
-  "cohorts": [
-    {
-      "id": "id_nbk278zt",
-      "created_at": "2026-10-22T18:54:55.991Z",
-      "course_id": "id_t3408ywt",
-      "name": "Cohort 1 (Nov 2026)",
-      "start_date": "2026-11-15",
-      "orientation_end_date": "2026-11-18"
-    }
-  ],
-  "cohort_sessions": [
-    {
-      "id": "id_5mmz1ye3",
-      "created_at": "2026-10-22T18:54:55.992Z",
-      "cohort_id": "id_nbk278zt",
-      "module_id": "mod-1",
-      "session_date": "2026-11-22T18:00:00.000Z",
-      "attendance_code": "WEL-7890",
-      "location_link": "https://meet.google.com/test-meet"
-    }
-  ],
+  "courses": [],
+  "cohorts": [],
+  "cohort_sessions": [],
   "modules": [],
   "module_completions": [],
   "profiles": [
@@ -57,23 +21,8 @@
     }
   ],
   "enrollments": [],
-  "instructors": [
-    {
-      "id": "inst-1",
-      "name": "Dr. Sarah Jones",
-      "email": "sarah@welile.com",
-      "avatar": "",
-      "bio": "AI & Machine Learning Specialist"
-    }
-  ],
-  "partners": [
-    {
-      "id": "part-1",
-      "name": "Makerere University",
-      "type": "University",
-      "contact_email": "info@mak.ac.ug"
-    }
-  ],
+  "instructors": [],
+  "partners": [],
   "events": [],
   "mails": []
 }

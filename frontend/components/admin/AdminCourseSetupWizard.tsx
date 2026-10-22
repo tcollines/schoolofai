@@ -520,6 +520,7 @@ const AdminCourseSetupWizard: React.FC<AdminCourseSetupWizardProps> = ({ isInstr
 
     // Wizard State
     const [step, setStep] = useState(1);
+    const [validationError, setValidationError] = useState<string | null>(null);
     const [courseNotesFile, setCourseNotesFile] = useState<File | null>(null);
     const [isGeneratingAI, setIsGeneratingAI] = useState(false);
     const [expandedQuizIndex, setExpandedQuizIndex] = useState<number | null>(null);
@@ -529,7 +530,7 @@ const AdminCourseSetupWizard: React.FC<AdminCourseSetupWizardProps> = ({ isInstr
         instructor: '',
         instructorEmail: '',
         instructorAvatar: '',
-        duration: '4 Weeks',
+        duration: '',
         category: 'Technology & AI',
         accessTier: 'FREE',
         price: 0,
@@ -546,31 +547,24 @@ const AdminCourseSetupWizard: React.FC<AdminCourseSetupWizardProps> = ({ isInstr
                         duration: '45 mins',
                         type: 'article',
                         classType: 'online'
-                    },
-                    {
-                        id: 'top-1-2',
-                        title: 'Topic 2: Core Concepts & Architecture',
-                        duration: '60 mins',
-                        type: 'article',
-                        classType: 'online'
                     }
                 ]
             }
         ],
         description: '',
-        outcomes: ['Master core live lecture concepts', 'Participate actively in Google Meet sessions'],
+        outcomes: [],
         courseIntroVideoUrl: '',
-        startDate: '2026-11-15',
-        endDate: '2026-12-01',
+        startDate: '',
+        endDate: '',
         lessonDays: ['Monday', 'Wednesday', 'Friday'],
         lessonStartTime: '18:00',
         lessonEndTime: '20:00',
         timezone: 'EAT (UTC+3)',
-        meetingLink: 'https://meet.google.com/wel-live-meet',
-        attendanceCode: 'WEL-8492',
-        cohortName: 'Cohort 1 (Nov 2026)',
-        quizDate: '2026-11-25',
-        examDate: '2026-12-01'
+        meetingLink: '',
+        attendanceCode: '',
+        cohortName: '',
+        quizDate: '',
+        examDate: ''
     });
 
     // Populate for editing if courseId is passed in URL
@@ -620,10 +614,71 @@ const AdminCourseSetupWizard: React.FC<AdminCourseSetupWizardProps> = ({ isInstr
         }
     }, [isWizardOpen, isInstructor, isEditMode]);
 
+    const validateStep = (targetStep: number): { valid: boolean; message?: string } => {
+        if (targetStep === 1) {
+            const missing = [];
+            if (!newCourse.title?.trim()) missing.push('Course Title');
+            if (!newCourse.instructor?.trim()) missing.push('Instructor Name (Select or Add Instructor)');
+            if (!newCourse.description?.trim()) missing.push('Course Description');
+            if (missing.length > 0) {
+                return {
+                    valid: false,
+                    message: `Please complete Step 1 (Basic Information): Missing ${missing.join(', ')}.`
+                };
+            }
+        }
+
+        if (targetStep === 2) {
+            const missing = [];
+            if (!newCourse.category?.trim()) missing.push('Category');
+            if (!newCourse.duration?.trim()) missing.push('Duration (e.g. 4 Weeks, 8 Lessons)');
+            if (!newCourse.image?.trim()) missing.push('Course Cover Image');
+            if (missing.length > 0) {
+                return {
+                    valid: false,
+                    message: `Please complete Step 2 (Details & Categorization): Missing ${missing.join(', ')}.`
+                };
+            }
+        }
+
+        if (targetStep === 4) {
+            if (!newCourse.sections || newCourse.sections.length === 0) {
+                return { valid: false, message: 'Please add at least one Module/Section in Step 4 before publishing.' };
+            }
+            for (let sIdx = 0; sIdx < newCourse.sections.length; sIdx++) {
+                const s = newCourse.sections[sIdx];
+                if (!s.title?.trim()) {
+                    return { valid: false, message: `Module #${sIdx + 1} requires a Title in Step 4.` };
+                }
+                if (!s.lessons || s.lessons.length === 0) {
+                    return { valid: false, message: `Module "${s.title}" needs at least one lesson topic.` };
+                }
+                for (let lIdx = 0; lIdx < s.lessons.length; lIdx++) {
+                    const l = s.lessons[lIdx];
+                    if (!l.title?.trim()) {
+                        return { valid: false, message: `Topic #${lIdx + 1} inside Module "${s.title}" needs a Title.` };
+                    }
+                }
+            }
+        }
+
+        return { valid: true };
+    };
+
     const handleNext = () => {
+        setValidationError(null);
+        const check = validateStep(step);
+        if (!check.valid && step < 5) {
+            setValidationError(check.message || 'Please fill in all required fields before continuing.');
+            return;
+        }
         setStep(s => Math.min(s + 1, 5));
     };
-    const handlePrev = () => setStep(s => Math.max(s - 1, 1));
+
+    const handlePrev = () => {
+        setValidationError(null);
+        setStep(s => Math.max(s - 1, 1));
+    };
     
     const addSection = () => {
         const nextNum = (newCourse.sections?.length || 0) + 1;
@@ -849,42 +904,30 @@ const AdminCourseSetupWizard: React.FC<AdminCourseSetupWizardProps> = ({ isInstr
     };
 
     const handleSave = async (publish: boolean = true) => {
+        setValidationError(null);
         if (publish) {
-            if (!newCourse.title?.trim() || !newCourse.instructor?.trim() || !newCourse.description?.trim()) {
-                alert('Please complete all required fields in Step 1 (Basic Information) before publishing.');
+            // Check Step 1
+            const step1Check = validateStep(1);
+            if (!step1Check.valid) {
+                setValidationError(step1Check.message || 'Please complete Step 1 (Basic Information).');
                 setStep(1);
                 return;
             }
-            if (!newCourse.category?.trim() || !newCourse.duration?.trim() || !newCourse.image?.trim()) {
-                alert('Please complete category, duration, and cover image in Step 2 before publishing.');
+
+            // Check Step 2
+            const step2Check = validateStep(2);
+            if (!step2Check.valid) {
+                setValidationError(step2Check.message || 'Please complete Step 2 (Details & Categorization).');
                 setStep(2);
                 return;
             }
 
-            // Validate Step 4 curriculum
-            if (!newCourse.sections || newCourse.sections.length === 0) {
-                alert('Please add at least one module/section to publish the course.');
+            // Check Step 4
+            const step4Check = validateStep(4);
+            if (!step4Check.valid) {
+                setValidationError(step4Check.message || 'Please complete Step 4 (Curriculum & Schedule).');
                 setStep(4);
                 return;
-            }
-            for (const section of newCourse.sections) {
-                if (!section.title?.trim()) {
-                    alert('Please enter a title for all modules.');
-                    setStep(4);
-                    return;
-                }
-                if (!section.lessons || section.lessons.length === 0) {
-                    alert(`Please add at least one live topic to the module: "${section.title}"`);
-                    setStep(4);
-                    return;
-                }
-                for (const lesson of section.lessons) {
-                    if (!lesson.title?.trim()) {
-                        alert(`Please enter a title for all topics in "${section.title}".`);
-                        setStep(4);
-                        return;
-                    }
-                }
             }
         }
 
@@ -906,15 +949,19 @@ const AdminCourseSetupWizard: React.FC<AdminCourseSetupWizardProps> = ({ isInstr
                 price: newCourse.accessTier === 'FREE' ? 0 : (newCourse.price || 0),
                 platform: newCourse.platform || 'Welile',
                 courseIntroVideoUrl: newCourse.courseIntroVideoUrl || '',
-                startDate: newCourse.startDate || '2026-11-15',
-                endDate: newCourse.endDate || '2026-12-01',
-                lessonDays: newCourse.lessonDays || ['Monday', 'Wednesday', 'Friday'],
+                startDate: newCourse.startDate || new Date().toISOString().split('T')[0],
+                endDate: newCourse.endDate || (() => {
+                    const d = new Date();
+                    d.setDate(d.getDate() + 30);
+                    return d.toISOString().split('T')[0];
+                })(),
+                lessonDays: newCourse.lessonDays && newCourse.lessonDays.length > 0 ? newCourse.lessonDays : ['Monday', 'Wednesday', 'Friday'],
                 lessonStartTime: newCourse.lessonStartTime || '18:00',
                 lessonEndTime: newCourse.lessonEndTime || '20:00',
                 timezone: newCourse.timezone || 'EAT (UTC+3)',
                 meetingLink: newCourse.meetingLink || '',
                 attendanceCode: newCourse.attendanceCode || 'WEL-' + Math.floor(1000 + Math.random() * 9000),
-                cohortName: newCourse.cohortName || 'Cohort 1',
+                cohortName: newCourse.cohortName || `${newCourse.title || 'Course'} Cohort 1`,
                 quizDate: newCourse.quizDate || '',
                 examDate: newCourse.examDate || ''
             };
@@ -934,7 +981,7 @@ const AdminCourseSetupWizard: React.FC<AdminCourseSetupWizardProps> = ({ isInstr
             setStep(1);
             navigate(isInstructor ? '/instructor/courses' : '/courses');
         } catch (e: any) {
-            alert(`Error saving course: ${e?.message || e}`);
+            setValidationError(`Error saving course: ${e?.message || e}`);
             console.error('Save error:', e);
         } finally {
             setIsSaving(false);
@@ -992,6 +1039,23 @@ const AdminCourseSetupWizard: React.FC<AdminCourseSetupWizardProps> = ({ isInstr
                             {isEditMode ? 'Edit Course Setup' : 'New Course Setup'}
                         </h2>
                     </div>
+
+                    {/* Inline Clear Validation Error Banner */}
+                    {validationError && (
+                        <div className="mb-6 p-4 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 rounded-2xl flex items-start justify-between gap-3 text-amber-800 dark:text-amber-200 text-sm shadow-sm animate-in fade-in slide-in-from-top-2">
+                            <div className="flex items-start gap-2.5">
+                                <AlertTriangle className="text-amber-500 shrink-0 mt-0.5" size={18} />
+                                <span className="font-semibold leading-relaxed">{validationError}</span>
+                            </div>
+                            <button 
+                                onClick={() => setValidationError(null)} 
+                                className="text-amber-500 hover:text-amber-700 dark:hover:text-amber-300 p-1 cursor-pointer"
+                                title="Dismiss"
+                            >
+                                <X size={16} />
+                            </button>
+                        </div>
+                    )}
 
                                                             {step === 1 && (
                         <div className="space-y-5 animate-in fade-in slide-in-from-right-4 duration-300 max-w-2xl mx-auto">
