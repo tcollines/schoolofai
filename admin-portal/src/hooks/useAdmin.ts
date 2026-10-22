@@ -50,6 +50,7 @@ export const useAdmin = (isAdmin: boolean) => {
 
             const formattedCourses: Course[] = (coursesData || []).map((c: any) => {
                 const isNewFormat = Array.isArray(c.modules) && c.modules.length > 0 && 'lessons' in c.modules[0];
+                const scheduleData = (c.sections && typeof c.sections === 'object' && !Array.isArray(c.sections)) ? c.sections : {};
                 return {
                     id: c.id,
                     title: c.title,
@@ -78,7 +79,20 @@ export const useAdmin = (isAdmin: boolean) => {
                     outcomes: c.outcomes,
                     imageScale: c.image_scale !== undefined ? Number(c.image_scale) : 1,
                     imagePositionX: c.image_pos_x !== undefined ? Number(c.image_pos_x) : 50,
-                    imagePositionY: c.image_pos_y !== undefined ? Number(c.image_pos_y) : 50
+                    imagePositionY: c.image_pos_y !== undefined ? Number(c.image_pos_y) : 50,
+                    courseIntroVideoUrl: scheduleData.courseIntroVideoUrl || c.course_intro_video_url || '',
+                    startDate: scheduleData.startDate || c.start_date || '',
+                    endDate: scheduleData.endDate || c.end_date || '',
+                    lessonDays: scheduleData.lessonDays || c.lesson_days || ['Monday', 'Wednesday', 'Friday'],
+                    lessonStartTime: scheduleData.lessonStartTime || c.lesson_start_time || '18:00',
+                    lessonEndTime: scheduleData.lessonEndTime || c.lesson_end_time || '20:00',
+                    timezone: scheduleData.timezone || c.timezone || 'EAT (UTC+3)',
+                    meetingLink: scheduleData.meetingLink || c.meeting_link || '',
+                    attendanceCode: scheduleData.attendanceCode || c.attendance_code || '',
+                    cohortName: scheduleData.cohortName || c.cohort_name || 'Cohort 1',
+                    cohorts: scheduleData.cohorts || c.cohorts || [],
+                    quizDate: scheduleData.quizDate || c.quiz_date || '',
+                    examDate: scheduleData.examDate || c.exam_date || ''
                 };
             });
             setCourses(formattedCourses);
@@ -140,7 +154,23 @@ export const useAdmin = (isAdmin: boolean) => {
                     partner_id: courseData.partnerId || null,
                     level: courseData.level,
                     image_url: courseData.image,
-                    modules: courseData.sections, // Save sections to modules JSONB
+                    modules: courseData.sections,
+                    sections: {
+                        courseIntroVideoUrl: courseData.courseIntroVideoUrl || '',
+                        startDate: courseData.startDate || '',
+                        endDate: courseData.endDate || '',
+                        lessonDays: courseData.lessonDays || [],
+                        lessonStartTime: courseData.lessonStartTime || '',
+                        lessonEndTime: courseData.lessonEndTime || '',
+                        timezone: courseData.timezone || 'EAT (UTC+3)',
+                        meetingLink: courseData.meetingLink || '',
+                        attendanceCode: courseData.attendanceCode || '',
+                        cohortName: courseData.cohortName || '',
+                        cohorts: courseData.cohorts || [],
+                        quizDate: courseData.quizDate || '',
+                        examDate: courseData.examDate || '',
+                        sections: courseData.sections || []
+                    },
                     description: courseData.description,
                     outcomes: courseData.outcomes,
                     lessons_total: totalLessons,
@@ -182,6 +212,22 @@ export const useAdmin = (isAdmin: boolean) => {
                     level: courseData.level,
                     image_url: courseData.image,
                     modules: courseData.sections,
+                    sections: {
+                        courseIntroVideoUrl: courseData.courseIntroVideoUrl || '',
+                        startDate: courseData.startDate || '',
+                        endDate: courseData.endDate || '',
+                        lessonDays: courseData.lessonDays || [],
+                        lessonStartTime: courseData.lessonStartTime || '',
+                        lessonEndTime: courseData.lessonEndTime || '',
+                        timezone: courseData.timezone || 'EAT (UTC+3)',
+                        meetingLink: courseData.meetingLink || '',
+                        attendanceCode: courseData.attendanceCode || '',
+                        cohortName: courseData.cohortName || '',
+                        cohorts: courseData.cohorts || [],
+                        quizDate: courseData.quizDate || '',
+                        examDate: courseData.examDate || '',
+                        sections: courseData.sections || []
+                    },
                     description: courseData.description,
                     outcomes: courseData.outcomes,
                     lessons_total: totalLessons,

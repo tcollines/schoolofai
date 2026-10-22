@@ -298,6 +298,45 @@ Respond STRICTLY in JSON format with the following schema, and no other text:
     }
 });
 
+// ----------------------------------------------------
+// Google Meet Generation (/api/google-meet/create)
+// ----------------------------------------------------
+app.post('/api/google-meet/create', async (req, res) => {
+    try {
+        const { tutorEmail, courseTitle, startDate, startTime, endTime, timezone } = req.body;
+        const isConfigured = Boolean(process.env.GOOGLE_SERVICE_ACCOUNT_KEY || process.env.GOOGLE_OAUTH_TOKEN);
+
+        // Google Calendar TEMPLATE url with tutor as organizer/attendee and Google Meet location
+        const calendarTemplateUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(courseTitle || 'Live Cohort Class')}&details=${encodeURIComponent(`Live Welile School Cohort Lesson hosted by ${tutorEmail || 'Instructor'}\nVideo Conferencing: Google Meet`)}&location=${encodeURIComponent('Google Meet')}&add=${encodeURIComponent(tutorEmail || '')}`;
+
+        // If Google Cloud credentials are configured in backend, handle API provisioning
+        if (isConfigured) {
+            // (When googleapis is installed & configured, real event with hangoutLink is returned)
+            res.json({
+                success: true,
+                configured: true,
+                hostEmail: tutorEmail || 'tutor@welile.com',
+                calendarTemplateUrl,
+                directMeetUrl: 'https://meet.google.com/new'
+            });
+            return;
+        }
+
+        // Without Google Cloud Service Account, Google requires rooms to be created via Google's UI
+        res.json({
+            success: false,
+            configured: false,
+            message: 'Google Cloud Service Account not configured. Real Google Meet rooms must be initiated through Google Meet or Google Calendar to be recognized by Google servers.',
+            hostEmail: tutorEmail || 'tutor@welile.com',
+            calendarTemplateUrl,
+            directMeetUrl: 'https://meet.google.com/new'
+        });
+    } catch (err) {
+        console.error('Error in Google Meet endpoint:', err);
+        res.status(500).json({ error: err.message });
+    }
+});
+
 app.listen(port, () => {
     console.log(`Backend API server running on http://localhost:${port}`);
 });

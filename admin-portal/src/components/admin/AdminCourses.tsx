@@ -1,398 +1,86 @@
 import React, { useState, useEffect } from 'react';
 import { useAdmin } from '../../hooks/useAdmin';
 import { useNavigate } from 'react-router-dom';
-import { Course, CourseSection, CourseModule, ModuleType } from '../../types';
-import { Plus, X, ArrowRight, ArrowLeft, Save, Video, FileText, Trash2, GripVertical, Headphones, File, HelpCircle } from 'lucide-react';
+import { Course } from '../../types';
+import { 
+    Plus, X, Edit3, Trash2, Calendar, Clock, Globe, Copy, Send, 
+    Key, ExternalLink, Check, Bell, Radio, CheckCircle2, ShieldCheck, 
+    BookOpen, HelpCircle, Save, Loader2, RefreshCw, Sparkles, Share2, 
+    ArrowRight, MessageSquare
+} from 'lucide-react';
 import { formatAmount, getCurrencyPreference, CurrencyType } from '../../lib/currency';
+import { broadcastLessonNotification } from './AdminCourseSetupWizard';
 
-interface RichTextEditorProps {
-    value: string;
-    onChange: (val: string) => void;
-    placeholder?: string;
-    accentColorClass?: string;
-}
+const DAYS_OF_WEEK = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+const TIMEZONES = ['EAT (UTC+3)', 'UTC+0 (GMT)', 'CAT (UTC+2)', 'WAT (UTC+1)', 'EST (UTC-5)', 'PST (UTC-8)', 'IST (UTC+5:30)'];
 
-const RichTextEditor: React.FC<RichTextEditorProps> = ({ value, onChange, placeholder, accentColorClass = "border-gray-200 dark:border-slate-800 focus-within:border-violet-400" }) => {
-    const editorRef = React.useRef<HTMLDivElement>(null);
-    const fileInputRef = React.useRef<HTMLInputElement>(null);
-    const [showHeadingMenu, setShowHeadingMenu] = useState(false);
-    const [showTableMenu, setShowTableMenu] = useState(false);
-    const [showColorMenu, setShowColorMenu] = useState(false);
-    const [showImageMenu, setShowImageMenu] = useState(false);
-    const [imageUrl, setImageUrl] = useState('');
-    const [tableRows, setTableRows] = useState(3);
-    const [tableCols, setTableCols] = useState(3);
-    const [hoveredCell, setHoveredCell] = useState<{r: number, c: number} | null>(null);
+// Helper to calculate exact calendar date for a scheduled lesson
+export const calculateLessonSchedule = (
+    startDateStr?: string,
+    lessonDays: string[] = ['Monday', 'Wednesday', 'Friday'],
+    lessonIndex: number = 0,
+    startTime: string = '18:00',
+    endTime: string = '20:00',
+    tz: string = 'EAT (UTC+3)'
+): { dateStr: string; timeStr: string } => {
+    if (!startDateStr) {
+        return {
+            dateStr: `Session ${lessonIndex + 1}`,
+            timeStr: `${startTime} - ${endTime} (${tz})`
+        };
+    }
 
-    React.useEffect(() => {
-        if (editorRef.current && editorRef.current.innerHTML !== value) {
-            editorRef.current.innerHTML = value;
-        }
-    }, [value]);
-
-    const handleInput = () => {
-        if (editorRef.current) {
-            onChange(editorRef.current.innerHTML);
-        }
+    const dayNameToNum: Record<string, number> = {
+        Sunday: 0, Monday: 1, Tuesday: 2, Wednesday: 3, Thursday: 4, Friday: 5, Saturday: 6
     };
 
-    const executeCommand = (command: string, arg: string = '') => {
-        document.execCommand(command, false, arg);
-        editorRef.current?.focus();
-        handleInput();
-    };
+    const targetDayNums = (lessonDays && lessonDays.length > 0 ? lessonDays : ['Monday', 'Wednesday', 'Friday'])
+        .map(d => dayNameToNum[d] ?? 1);
 
-    const closeAllMenus = () => {
-        setShowHeadingMenu(false);
-        setShowTableMenu(false);
-        setShowColorMenu(false);
-        setShowImageMenu(false);
-    };
+    const base = new Date(startDateStr);
+    if (isNaN(base.getTime())) {
+        return {
+            dateStr: `Session ${lessonIndex + 1}`,
+            timeStr: `${startTime} - ${endTime} (${tz})`
+        };
+    }
 
-    const insertHeading = (tag: string) => {
-        executeCommand('formatBlock', tag);
-        closeAllMenus();
-    };
+    let current = new Date(base);
+    let matchedCount = 0;
+    let guard = 0;
 
-    const insertTable = (rows: number, cols: number) => {
-        let html = '<table style="width:100%;border-collapse:collapse;margin:8px 0;font-size:13px;">';
-        html += '<thead><tr>';
-        for (let c = 0; c < cols; c++) {
-            html += '<th style="border:1px solid #d1d5db;padding:8px 12px;background:#f3f4f6;font-weight:600;text-align:left;color:#1e293b;">Header ' + (c + 1) + '</th>';
-        }
-        html += '</tr></thead><tbody>';
-        for (let r = 0; r < rows - 1; r++) {
-            const bg = r % 2 === 0 ? '#ffffff' : '#f9fafb';
-            html += '<tr>';
-            for (let c = 0; c < cols; c++) {
-                html += `<td style="border:1px solid #e5e7eb;padding:8px 12px;background:${bg};color:#1e293b;">Cell</td>`;
+    while (guard < 180) {
+        const dayOfWeek = current.getDay();
+        if (targetDayNums.includes(dayOfWeek)) {
+            if (matchedCount === lessonIndex) {
+                break;
             }
-            html += '</tr>';
+            matchedCount++;
         }
-        html += '</tbody></table><p><br></p>';
-        executeCommand('insertHTML', html);
-        closeAllMenus();
+        current.setDate(current.getDate() + 1);
+        guard++;
+    }
+
+    const dateStr = current.toLocaleDateString('en-US', {
+        weekday: 'short',
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric'
+    });
+
+    return {
+        dateStr,
+        timeStr: `${startTime} - ${endTime} (${tz})`
     };
+};
 
-    const insertImageFromUrl = () => {
-        if (!imageUrl.trim()) return;
-        const html = `<figure style="margin:12px 0;text-align:center;"><img src="${imageUrl}" alt="Image" style="max-width:100%;height:auto;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,0.1);" /><figcaption style="font-size:11px;color:#9ca3af;margin-top:4px;">Image</figcaption></figure><p><br></p>`;
-        executeCommand('insertHTML', html);
-        setImageUrl('');
-        closeAllMenus();
-    };
-
-    const handleImageUpload = (file: globalThis.File) => {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-            const dataUrl = e.target?.result as string;
-            const html = `<figure style="margin:12px 0;text-align:center;"><img src="${dataUrl}" alt="${file.name}" style="max-width:100%;height:auto;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,0.1);" /><figcaption style="font-size:11px;color:#9ca3af;margin-top:4px;">${file.name}</figcaption></figure><p><br></p>`;
-            executeCommand('insertHTML', html);
-            closeAllMenus();
-        };
-        reader.readAsDataURL(file);
-    };
-
-    const handleDrop = (e: React.DragEvent) => {
-        e.preventDefault();
-        const files = e.dataTransfer.files;
-        if (files.length > 0 && files[0].type.startsWith('image/')) {
-            handleImageUpload(files[0]);
-        }
-    };
-
-    const handleDragOver = (e: React.DragEvent) => {
-        e.preventDefault();
-    };
-
-    const insertHR = () => {
-        executeCommand('insertHTML', '<hr style="border:none;border-top:2px solid #e5e7eb;margin:16px 0;" /><p><br></p>');
-    };
-
-    const insertCodeBlock = () => {
-        executeCommand('insertHTML', '<pre style="background:#1e1e2e;color:#cdd6f4;padding:16px;border-radius:8px;font-family:monospace;font-size:13px;overflow-x:auto;margin:8px 0;"><code>// your code here</code></pre><p><br></p>');
-    };
-
-    const insertBlockquote = () => {
-        executeCommand('insertHTML', '<blockquote style="border-left:4px solid #a855f7;padding:8px 16px;margin:8px 0;background:#faf5ff;color:#581c87;border-radius:0 8px 8px 0;font-style:italic;">Quote text here</blockquote><p><br></p>');
-    };
-
-    const insertCallout = (type: 'info' | 'warning' | 'success') => {
-        const styles: Record<string, {bg: string, border: string, color: string, icon: string}> = {
-            info: { bg: '#eff6ff', border: '#3b82f6', color: '#1e40af', icon: 'ℹ️' },
-            warning: { bg: '#fffbeb', border: '#f59e0b', color: '#92400e', icon: '⚠️' },
-            success: { bg: '#ecfdf5', border: '#10b981', color: '#065f46', icon: '✅' }
-        };
-        const s = styles[type];
-        executeCommand('insertHTML', `<div style="border:1px solid ${s.border};border-left:4px solid ${s.border};background:${s.bg};padding:12px 16px;border-radius:0 8px 8px 0;margin:8px 0;color:${s.color};font-size:13px;"><strong>${s.icon} ${type.charAt(0).toUpperCase() + type.slice(1)}</strong><br/>Your note here</div><p><br></p>`);
-    };
-
-    const colors = ['#000000', '#374151', '#dc2626', '#ea580c', '#d97706', '#16a34a', '#0891b2', '#2563eb', '#7c3aed', '#db2777'];
-
-    const ToolButton = ({ onClick, title, children, active }: { onClick: () => void; title: string; children: React.ReactNode; active?: boolean }) => (
-        <button
-            type="button"
-            onClick={onClick}
-            className={`p-1 hover:bg-gray-200 dark:hover:bg-slate-800 rounded text-xs w-6 h-6 flex items-center justify-center cursor-pointer transition-colors ${active ? 'bg-violet-100 dark:bg-violet-950 text-violet-700 dark:text-violet-300' : 'text-gray-600 dark:text-slate-400'}`}
-            title={title}
-        >
-            {children}
-        </button>
-    );
-
-    const Divider = () => <div className="w-px h-4 bg-gray-300 dark:bg-slate-700 mx-0.5 shrink-0" />;
-
-    return (
-        <div className={`border rounded-xl overflow-hidden bg-white dark:bg-slate-900 ${accentColorClass}`} onClick={() => closeAllMenus()}>
-            {/* Toolbar */}
-            <div className="bg-gray-50 dark:bg-slate-950 border-b border-gray-150 dark:border-slate-800 p-1.5 flex flex-wrap gap-0.5 items-center relative" onClick={e => e.stopPropagation()}>
-                {/* Heading Dropdown */}
-                <div className="relative">
-                    <button
-                        type="button"
-                        onClick={(e) => { e.stopPropagation(); closeAllMenus(); setShowHeadingMenu(!showHeadingMenu); }}
-                        className="px-2 py-1 hover:bg-gray-200 dark:hover:bg-slate-800 rounded text-[10px] text-gray-600 dark:text-slate-400 cursor-pointer font-semibold flex items-center gap-0.5 min-w-[52px]"
-                        title="Heading"
-                    >
-                        ¶ Text ▾
-                    </button>
-                    {showHeadingMenu && (
-                        <div className="absolute top-full left-0 mt-1 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-lg shadow-lg z-50 min-w-[140px] py-1">
-                            <button type="button" onClick={() => insertHeading('p')} className="w-full text-left px-3 py-1.5 text-xs hover:bg-gray-50 dark:hover:bg-slate-800 text-gray-700 dark:text-slate-350 cursor-pointer bg-transparent">Paragraph</button>
-                            <button type="button" onClick={() => insertHeading('h1')} className="w-full text-left px-3 py-1.5 text-lg font-bold hover:bg-gray-50 dark:hover:bg-slate-800 text-gray-900 dark:text-white cursor-pointer bg-transparent">Heading 1</button>
-                            <button type="button" onClick={() => insertHeading('h2')} className="w-full text-left px-3 py-1.5 text-base font-bold hover:bg-gray-50 dark:hover:bg-slate-800 text-gray-800 dark:text-slate-200 cursor-pointer bg-transparent">Heading 2</button>
-                            <button type="button" onClick={() => insertHeading('h3')} className="w-full text-left px-3 py-1.5 text-sm font-bold hover:bg-gray-50 dark:hover:bg-slate-800 text-gray-700 dark:text-slate-300 cursor-pointer bg-transparent">Heading 3</button>
-                        </div>
-                    )}
-                </div>
-
-                <Divider />
-
-                {/* Text Formatting */}
-                <ToolButton onClick={() => executeCommand('bold')} title="Bold (Ctrl+B)"><span className="font-bold">B</span></ToolButton>
-                <ToolButton onClick={() => executeCommand('italic')} title="Italic (Ctrl+I)"><span className="italic">I</span></ToolButton>
-                <ToolButton onClick={() => executeCommand('underline')} title="Underline (Ctrl+U)"><span className="underline">U</span></ToolButton>
-                <ToolButton onClick={() => executeCommand('strikeThrough')} title="Strikethrough"><span className="line-through">S</span></ToolButton>
-                
-                {/* Text Color */}
-                <div className="relative">
-                    <button
-                        type="button"
-                        onClick={(e) => { e.stopPropagation(); closeAllMenus(); setShowColorMenu(!showColorMenu); }}
-                        className="p-1 hover:bg-gray-200 dark:hover:bg-slate-800 rounded text-xs w-6 h-6 flex items-center justify-center cursor-pointer text-gray-600 dark:text-slate-400"
-                        title="Text Color"
-                    >
-                        <span className="font-bold">A</span>
-                        <span className="absolute bottom-0.5 left-1 right-1 h-0.5 bg-red-500 rounded" />
-                    </button>
-                    {showColorMenu && (
-                        <div className="absolute top-full left-0 mt-1 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-lg shadow-lg z-50 p-2 grid grid-cols-5 gap-1" onClick={e => e.stopPropagation()}>
-                            {colors.map(color => (
-                                <button
-                                    key={color}
-                                    type="button"
-                                    onClick={() => { executeCommand('foreColor', color); closeAllMenus(); }}
-                                    className="w-5 h-5 rounded-full border border-gray-200 dark:border-slate-700 cursor-pointer hover:scale-125 transition-transform"
-                                    style={{ backgroundColor: color }}
-                                    title={color}
-                                />
-                            ))}
-                        </div>
-                    )}
-                </div>
-
-                <ToolButton onClick={() => executeCommand('hiliteColor', '#fef08a')} title="Highlight">
-                    <span className="font-bold bg-yellow-200 px-0.5 rounded text-[9px] text-gray-900">H</span>
-                </ToolButton>
-
-                <Divider />
-
-                {/* Alignment */}
-                <ToolButton onClick={() => executeCommand('justifyLeft')} title="Align Left">
-                    <svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor"><rect x="1" y="2" width="14" height="1.5" rx="0.5"/><rect x="1" y="6" width="10" height="1.5" rx="0.5"/><rect x="1" y="10" width="14" height="1.5" rx="0.5"/><rect x="1" y="14" width="8" height="1.5" rx="0.5"/></svg>
-                </ToolButton>
-                <ToolButton onClick={() => executeCommand('justifyCenter')} title="Align Center">
-                    <svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor"><rect x="1" y="2" width="14" height="1.5" rx="0.5"/><rect x="3" y="6" width="10" height="1.5" rx="0.5"/><rect x="1" y="10" width="14" height="1.5" rx="0.5"/><rect x="4" y="14" width="8" height="1.5" rx="0.5"/></svg>
-                </ToolButton>
-                <ToolButton onClick={() => executeCommand('justifyRight')} title="Align Right">
-                    <svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor"><rect x="1" y="2" width="14" height="1.5" rx="0.5"/><rect x="5" y="6" width="10" height="1.5" rx="0.5"/><rect x="1" y="10" width="14" height="1.5" rx="0.5"/><rect x="7" y="14" width="8" height="1.5" rx="0.5"/></svg>
-                </ToolButton>
-
-                <Divider />
-
-                {/* Lists & Indent */}
-                <ToolButton onClick={() => executeCommand('insertUnorderedList')} title="Bullet List">•</ToolButton>
-                <ToolButton onClick={() => executeCommand('insertOrderedList')} title="Numbered List"><span className="font-bold text-[10px]">1.</span></ToolButton>
-                <ToolButton onClick={() => executeCommand('indent')} title="Indent">
-                    <svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor"><rect x="1" y="2" width="14" height="1.5" rx="0.5"/><rect x="5" y="6" width="10" height="1.5" rx="0.5"/><rect x="5" y="10" width="10" height="1.5" rx="0.5"/><rect x="1" y="14" width="14" height="1.5" rx="0.5"/><path d="M1 6 L3.5 8 L1 10Z" /></svg>
-                </ToolButton>
-                <ToolButton onClick={() => executeCommand('outdent')} title="Outdent">
-                    <svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor"><rect x="1" y="2" width="14" height="1.5" rx="0.5"/><rect x="5" y="6" width="10" height="1.5" rx="0.5"/><rect x="5" y="10" width="10" height="1.5" rx="0.5"/><rect x="1" y="14" width="14" height="1.5" rx="0.5"/><path d="M3.5 6 L1 8 L3.5 10Z" /></svg>
-                </ToolButton>
-
-                <Divider />
-
-                {/* Insert Elements */}
-                <ToolButton onClick={insertBlockquote} title="Blockquote">
-                    <span className="text-[10px] font-bold" style={{ fontFamily: 'Georgia, serif' }}>"</span>
-                </ToolButton>
-                <ToolButton onClick={insertCodeBlock} title="Code Block">
-                    <span className="text-[10px] font-mono font-bold">&lt;/&gt;</span>
-                </ToolButton>
-                <ToolButton onClick={insertHR} title="Horizontal Rule">—</ToolButton>
-
-                {/* Link */}
-                <ToolButton onClick={() => {
-                    const url = prompt('Enter URL:');
-                    if (url) executeCommand('createLink', url);
-                }} title="Insert Link">
-                    <span className="text-[10px]">🔗</span>
-                </ToolButton>
-
-                <Divider />
-
-                {/* Image Insert */}
-                <div className="relative">
-                    <button
-                        type="button"
-                        onClick={(e) => { e.stopPropagation(); closeAllMenus(); setShowImageMenu(!showImageMenu); }}
-                        className="px-1.5 py-1 hover:bg-gray-200 dark:hover:bg-slate-800 rounded text-[10px] text-gray-600 dark:text-slate-400 cursor-pointer font-semibold flex items-center gap-0.5"
-                        title="Insert Image"
-                    >
-                        🖼 Image
-                    </button>
-                    {showImageMenu && (
-                        <div className="absolute top-full left-0 mt-1 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-xl shadow-lg z-50 w-64 p-3" onClick={e => e.stopPropagation()}>
-                            <p className="text-[10px] font-bold text-gray-500 dark:text-slate-400 uppercase mb-2">Insert Image</p>
-                            <div className="space-y-2">
-                                <input
-                                    type="text"
-                                    value={imageUrl}
-                                    onChange={e => setImageUrl(e.target.value)}
-                                    placeholder="Paste image URL..."
-                                    className="w-full border border-gray-200 dark:border-slate-700 bg-transparent rounded-lg px-2 py-1.5 text-xs outline-none focus:border-violet-400 text-gray-900 dark:text-white"
-                                    onKeyDown={e => { if (e.key === 'Enter') insertImageFromUrl(); }}
-                                />
-                                <button
-                                    type="button"
-                                    onClick={insertImageFromUrl}
-                                    className="w-full bg-violet-600 text-white text-xs font-bold py-1.5 rounded-lg hover:bg-violet-700 transition-colors cursor-pointer"
-                                >
-                                    Insert from URL
-                                </button>
-                                <div className="relative">
-                                    <div className="text-center text-[10px] text-gray-400 dark:text-slate-500 font-bold my-1">— OR —</div>
-                                    <button
-                                        type="button"
-                                        onClick={() => fileInputRef.current?.click()}
-                                        className="w-full border-2 border-dashed border-gray-300 dark:border-slate-700 rounded-lg py-3 text-xs text-gray-500 dark:text-slate-400 hover:border-violet-400 hover:text-violet-600 transition-colors cursor-pointer font-medium"
-                                    >
-                                        📁 Upload from device
-                                    </button>
-                                    <input
-                                        ref={fileInputRef}
-                                        type="file"
-                                        accept="image/*"
-                                        className="hidden"
-                                        onChange={e => {
-                                            const file = e.target.files?.[0];
-                                            if (file) handleImageUpload(file);
-                                            e.target.value = '';
-                                        }}
-                                    />
-                                </div>
-                            </div>
-                        </div>
-                    )}
-                </div>
-
-                {/* Table Insert */}
-                <div className="relative">
-                    <button
-                        type="button"
-                        onClick={(e) => { e.stopPropagation(); closeAllMenus(); setShowTableMenu(!showTableMenu); }}
-                        className="px-1.5 py-1 hover:bg-gray-200 dark:hover:bg-slate-800 rounded text-[10px] text-gray-600 dark:text-slate-400 cursor-pointer font-semibold flex items-center gap-0.5"
-                        title="Insert Table"
-                    >
-                        ▦ Table
-                    </button>
-                    {showTableMenu && (
-                        <div className="absolute top-full left-0 mt-1 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-xl shadow-lg z-50 w-48 p-3" onClick={e => e.stopPropagation()}>
-                            <p className="text-[10px] font-bold text-gray-500 dark:text-slate-400 uppercase mb-2">Insert Table</p>
-                            <div className="grid grid-cols-6 gap-0.5 mb-2">
-                                {Array.from({ length: 6 }).map((_, r) =>
-                                    Array.from({ length: 6 }).map((_, c) => (
-                                        <button
-                                            key={`${r}-${c}`}
-                                            type="button"
-                                            onMouseEnter={() => setHoveredCell({ r, c })}
-                                            onClick={() => insertTable(r + 1, c + 1)}
-                                            className={`w-5 h-5 border rounded-sm cursor-pointer transition-colors ${
-                                                hoveredCell && r <= hoveredCell.r && c <= hoveredCell.c
-                                                    ? 'bg-violet-400 border-violet-500'
-                                                    : 'bg-gray-100 dark:bg-slate-800 border-gray-200 dark:border-slate-700 hover:bg-violet-100 dark:hover:bg-violet-950/30'
-                                            }`}
-                                        />
-                                    ))
-                                )}
-                            </div>
-                            <p className="text-[10px] text-center text-gray-500 dark:text-slate-400 font-medium">
-                                {hoveredCell ? `${hoveredCell.r + 1} × ${hoveredCell.c + 1}` : 'Select size'}
-                            </p>
-                        </div>
-                    )}
-                </div>
-
-                {/* Callout */}
-                <div className="relative group/callout">
-                    <button
-                        type="button"
-                        className="px-1.5 py-1 hover:bg-gray-200 dark:hover:bg-slate-800 rounded text-[10px] text-gray-600 dark:text-slate-400 cursor-pointer font-semibold"
-                        title="Insert Callout"
-                    >
-                        📌
-                    </button>
-                    <div className="hidden group-hover/callout:block absolute top-full left-0 mt-1 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-lg shadow-lg z-50 py-1 min-w-[110px]">
-                        <button type="button" onClick={() => insertCallout('info')} className="w-full text-left px-3 py-1.5 text-xs hover:bg-blue-50 dark:hover:bg-slate-800 text-blue-700 dark:text-blue-350 cursor-pointer bg-transparent">ℹ️ Info</button>
-                        <button type="button" onClick={() => insertCallout('warning')} className="w-full text-left px-3 py-1.5 text-xs hover:bg-amber-50 dark:hover:bg-slate-800 text-amber-700 dark:text-amber-350 cursor-pointer bg-transparent">⚠️ Warning</button>
-                        <button type="button" onClick={() => insertCallout('success')} className="w-full text-left px-3 py-1.5 text-xs hover:bg-emerald-50 dark:hover:bg-slate-800 text-emerald-700 dark:text-emerald-350 cursor-pointer bg-transparent">✅ Success</button>
-                    </div>
-                </div>
-
-                <Divider />
-
-                {/* Undo / Redo */}
-                <ToolButton onClick={() => executeCommand('undo')} title="Undo (Ctrl+Z)">↩</ToolButton>
-                <ToolButton onClick={() => executeCommand('redo')} title="Redo (Ctrl+Y)">↪</ToolButton>
-
-                <Divider />
-
-                {/* Clear */}
-                <button
-                    type="button"
-                    onClick={() => executeCommand('removeFormat')}
-                    className="p-1 hover:bg-gray-200 dark:hover:bg-slate-800 rounded text-[10px] text-gray-400 cursor-pointer font-semibold"
-                    title="Clear Formatting"
-                >
-                    Clear
-                </button>
-            </div>
-
-            {/* Editor Area */}
-            <div
-                ref={editorRef}
-                contentEditable
-                onInput={handleInput}
-                onDrop={handleDrop}
-                onDragOver={handleDragOver}
-                className="p-4 min-h-[150px] max-h-[400px] overflow-y-auto text-sm text-gray-900 dark:text-slate-100 outline-none bg-white dark:bg-slate-900 whitespace-normal prose prose-sm dark:prose-invert max-w-none"
-                data-placeholder={placeholder}
-                style={{
-                    lineHeight: '1.7'
-                }}
-            />
-        </div>
-    );
+export const generateRandomPin = (): string => {
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    let code = 'WEL-';
+    for (let i = 0; i < 4; i++) {
+        code += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return code;
 };
 
 interface AdminCoursesProps {
@@ -400,8 +88,7 @@ interface AdminCoursesProps {
 }
 
 const AdminCourses: React.FC<AdminCoursesProps> = ({ isInstructor = false }) => {
-    const { courses, loading, addCourse, updateCourse, deleteCourse } = useAdmin(true);
-
+    const { courses, loading, updateCourse, deleteCourse } = useAdmin(true);
     const navigate = useNavigate();
     const [currency, setCurrency] = useState<CurrencyType>(getCurrencyPreference);
 
@@ -421,382 +108,943 @@ const AdminCourses: React.FC<AdminCoursesProps> = ({ isInstructor = false }) => 
         ? courses.filter(c => c.instructorEmail?.trim().toLowerCase() === instructorEmail.trim().toLowerCase())
         : courses;
 
-    const [isWizardOpen, setIsWizardOpen] = useState(false);
-    const [isEditMode, setIsEditMode] = useState(false);
-    const [editingCourseId, setEditingCourseId] = useState<string | null>(null);
-    const [isAdjustModalOpen, setIsAdjustModalOpen] = useState(false);
-    
-    // Wizard State
-    const [step, setStep] = useState(1);
-    const [newCourse, setNewCourse] = useState<Partial<Course>>({
-        title: '', instructor: '', instructorEmail: '', instructorAvatar: '', duration: '', category: '', accessTier: 'FREE', price: 0, platform: 'Welile', image: '', sections: [], description: '', outcomes: []
-    });
+    // Modals state
+    const [scheduleModalCourse, setScheduleModalCourse] = useState<Course | null>(null);
+    const [scheduleFormData, setScheduleFormData] = useState<Partial<Course>>({});
+    const [isSavingSchedule, setIsSavingSchedule] = useState(false);
+    const [scheduleSaveSuccess, setScheduleSaveSuccess] = useState(false);
 
-    useEffect(() => {
-        if (isWizardOpen && isInstructor && !isEditMode) {
-            const loggedInEmail = localStorage.getItem('instructor-email') || '';
-            const loggedInName = localStorage.getItem('instructor-name') || '';
-            const initials = loggedInName.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
-            setNewCourse(prev => ({
-                ...prev,
-                instructor: loggedInName,
-                instructorEmail: loggedInEmail,
-                instructorAvatar: prev.instructorAvatar || initials || 'inst'
-            }));
-        }
-    }, [isWizardOpen, isInstructor, isEditMode]);
+    // Live Lessons & Attendance Codes Modal State
+    const [liveLessonsModalCourse, setLiveLessonsModalCourse] = useState<Course | null>(null);
+    const [copiedLessonPin, setCopiedLessonPin] = useState<string | null>(null);
+    const [copiedLessonInvite, setCopiedLessonInvite] = useState<string | null>(null);
+    const [regeneratingLessonId, setRegeneratingLessonId] = useState<string | null>(null);
 
-    const handleNext = () => {
-        setStep(s => Math.min(s + 1, 4));
-    };
-    const handlePrev = () => setStep(s => Math.max(s - 1, 1));
-    
-    const addSection = () => {
-        const newSection: CourseSection = {
-            id: Math.random().toString(36).substring(7),
-            title: `Module ${newCourse.sections?.length ? newCourse.sections.length + 1 : 1}`,
-            lessons: []
-        };
-        setNewCourse({ ...newCourse, sections: [...(newCourse.sections || []), newSection] });
-    };
+    // General Alert Modal State
+    const [alertModalCourse, setAlertModalCourse] = useState<Course | null>(null);
+    const [alertNote, setAlertNote] = useState('');
+    const [alertLessonTitle, setAlertLessonTitle] = useState('');
+    const [alertAttendancePin, setAlertAttendancePin] = useState('');
+    const [alertSent, setAlertSent] = useState(false);
+    const [copiedCardMeet, setCopiedCardMeet] = useState<string | null>(null);
 
-    const removeSection = (sectionId: string) => {
-        setNewCourse({ ...newCourse, sections: newCourse.sections?.filter(s => s.id !== sectionId) });
-    };
+    // Helper: Extract all live lesson topics for a course
+    const extractLiveLessons = (course: Course) => {
+        const list: Array<{
+            id: string;
+            sectionId: string;
+            sectionTitle: string;
+            title: string;
+            duration: string;
+            attendanceCode: string;
+            scheduledDate: string;
+            scheduledTime: string;
+            lessonIndex: number;
+        }> = [];
 
-    const updateSectionTitle = (sectionId: string, title: string) => {
-        setNewCourse({
-            ...newCourse,
-            sections: newCourse.sections?.map(s => s.id === sectionId ? { ...s, title } : s)
+        const sections = course.sections || [];
+        let count = 0;
+
+        sections.forEach((sec: any) => {
+            (sec.lessons || []).forEach((les: any) => {
+                if (les.type !== 'quiz') {
+                    count++;
+                    const schedule = calculateLessonSchedule(
+                        course.startDate,
+                        course.lessonDays,
+                        count - 1,
+                        course.lessonStartTime || '18:00',
+                        course.lessonEndTime || '20:00',
+                        course.timezone || 'EAT (UTC+3)'
+                    );
+
+                    list.push({
+                        id: les.id,
+                        sectionId: sec.id,
+                        sectionTitle: sec.title || `Module ${sections.indexOf(sec) + 1}`,
+                        title: les.title || `Live Topic ${count}`,
+                        duration: les.duration || '45 mins',
+                        attendanceCode: les.attendanceCode || les.attendance_code || generateRandomPin(),
+                        scheduledDate: les.scheduledDate || schedule.dateStr,
+                        scheduledTime: schedule.timeStr,
+                        lessonIndex: count
+                    });
+                }
+            });
         });
-    };
 
-    const addLesson = (sectionId: string, type: ModuleType) => {
-        const newLesson: CourseModule = {
-            id: Math.random().toString(36).substring(7),
-            title: type === 'quiz' ? 'Module Quiz' : `New ${type === 'video' ? 'Video' : type === 'audio' ? 'Audio' : type === 'document' ? 'Document' : 'Reading'}`,
-            description: '',
-            type,
-            duration: type === 'quiz' ? '5 mins' : '10 mins',
-            videoUrl: '',
-            audioUrl: '',
-            fileUrl: '',
-            content: '',
-            quizTimer: type === 'quiz' ? 5 : undefined,
-            quizQuestions: type === 'quiz' ? [
-                {
-                    id: Math.random().toString(36).substring(7),
-                    text: 'What is the correct answer to this question?',
-                    options: ['Option A', 'Option B', 'Option C', 'Option D'],
-                    correctAnswer: 0
-                }
-            ] : undefined
-        };
-        setNewCourse({
-            ...newCourse,
-            sections: newCourse.sections?.map(s => {
-                if (s.id === sectionId) {
-                    return { ...s, lessons: [...s.lessons, newLesson] };
-                }
-                return s;
-            })
-        });
-    };
-
-    const removeLesson = (sectionId: string, lessonId: string) => {
-        setNewCourse({
-            ...newCourse,
-            sections: newCourse.sections?.map(s => {
-                if (s.id === sectionId) {
-                    return { ...s, lessons: s.lessons.filter(l => l.id !== lessonId) };
-                }
-                return s;
-            })
-        });
-    };
-
-    const updateLesson = (sectionId: string, lessonId: string, updates: Partial<CourseModule>) => {
-        setNewCourse({
-            ...newCourse,
-            sections: newCourse.sections?.map(s => {
-                if (s.id === sectionId) {
-                    return {
-                        ...s,
-                        lessons: s.lessons.map(l => l.id === lessonId ? { ...l, ...updates } : l)
-                    };
-                }
-                return s;
-            })
-        });
-    };
-
-    const handleSave = async (publish: boolean = true) => {
-        // Validate fields only when publishing
-        if (publish) {
-            // Validate Step 1 & Step 2 fields
-            if (!newCourse.title?.trim() || !newCourse.instructor?.trim() || !newCourse.instructorEmail?.trim() || !newCourse.instructorAvatar?.trim() || !newCourse.description?.trim()) {
-                alert('Please complete all fields in Step 1 (Basic Information) before publishing.');
-                setStep(1);
-                return;
-            }
-            if (!newCourse.category?.trim() || !newCourse.duration?.trim() || !newCourse.image?.trim()) {
-                alert('Please complete all fields in Step 2 (Details & Categorization) before publishing.');
-                setStep(2);
-                return;
-            }
-            const filteredOutcomes = newCourse.outcomes?.filter(o => o.trim() !== '') || [];
-            if (filteredOutcomes.length === 0) {
-                alert('Please complete learning outcomes in Step 2 before publishing.');
-                setStep(2);
-                return;
-            }
-
-            // Validate Step 4 curriculum
-            if (!newCourse.sections || newCourse.sections.length === 0) {
-                alert('Please add at least one module/section to publish the course.');
-                return;
-            }
-            for (const section of newCourse.sections) {
-                if (!section.title.trim()) {
-                    alert('Please enter a title for all modules.');
-                    return;
-                }
-                if (!section.lessons || section.lessons.length === 0) {
-                    alert(`Please add at least one lesson or quiz to the module: "${section.title}"`);
-                    return;
-                }
-                for (const lesson of section.lessons) {
-                    if (!lesson.title.trim()) {
-                        alert(`Please enter a title for all lessons in "${section.title}".`);
-                        return;
-                    }
-                    if (!lesson.duration.trim()) {
-                        alert(`Please specify a duration for the lesson "${lesson.title}".`);
-                        return;
-                    }
-                    if (lesson.type === 'video' && !lesson.videoUrl?.trim()) {
-                        alert(`Please specify a video URL for the lesson "${lesson.title}".`);
-                        return;
-                    }
-                    if (lesson.type === 'audio' && !lesson.audioUrl?.trim()) {
-                        alert(`Please specify an audio URL for the lesson "${lesson.title}".`);
-                        return;
-                    }
-                    if (lesson.type === 'document' && !lesson.content?.trim() && !lesson.fileUrl?.trim()) {
-                        alert(`Please enter document content or upload a document file for "${lesson.title}".`);
-                        return;
-                    }
-                    if (lesson.type === 'article' && !lesson.content?.trim()) {
-                        alert(`Please type the article content for the lesson "${lesson.title}".`);
-                        return;
-                    }
-                    if (lesson.type === 'quiz') {
-                        if (!lesson.quizQuestions || lesson.quizQuestions.length === 0) {
-                            alert(`Please add at least one question to the quiz "${lesson.title}".`);
-                            return;
-                        }
-                        for (const q of lesson.quizQuestions) {
-                            if (!q.text.trim()) {
-                                alert(`Please enter the question text for all questions in the quiz "${lesson.title}".`);
-                                return;
-                            }
-                            if (!q.options || q.options.some((o: string) => !o.trim())) {
-                                alert(`Please fill in all options for the question: "${q.text || 'Untitled'}"`);
-                                return;
-                            }
-                        }
-                    }
-                }
+        // Fallback default sessions if curriculum topics have not been detailed yet
+        if (list.length === 0) {
+            for (let i = 1; i <= 4; i++) {
+                const schedule = calculateLessonSchedule(
+                    course.startDate,
+                    course.lessonDays,
+                    i - 1,
+                    course.lessonStartTime || '18:00',
+                    course.lessonEndTime || '20:00',
+                    course.timezone || 'EAT (UTC+3)'
+                );
+                list.push({
+                    id: `fallback-sess-${i}`,
+                    sectionId: 'sec-main',
+                    sectionTitle: 'Main Curriculum',
+                    title: `Live Session ${i}: Core Concepts & Interactive Discussion`,
+                    duration: '45 mins',
+                    attendanceCode: course.attendanceCode ? `${course.attendanceCode}-${i}` : generateRandomPin(),
+                    scheduledDate: schedule.dateStr,
+                    scheduledTime: schedule.timeStr,
+                    lessonIndex: i
+                });
             }
         }
+
+        return list;
+    };
+
+    // Regenerate auto attendance code for a specific lesson
+    const handleRegenerateLessonPin = async (course: Course, lessonId: string, sectionId: string) => {
+        const newPin = generateRandomPin();
+        setRegeneratingLessonId(lessonId);
+
+        let sectionsUpdated = false;
+        const updatedSections = (course.sections || []).map((sec: any) => {
+            if (sec.id === sectionId) {
+                const updatedLessons = (sec.lessons || []).map((les: any) => {
+                    if (les.id === lessonId) {
+                        sectionsUpdated = true;
+                        return { ...les, attendanceCode: newPin };
+                    }
+                    return les;
+                });
+                return { ...sec, lessons: updatedLessons };
+            }
+            return sec;
+        });
 
         try {
-            const courseData = {
-                ...newCourse,
-                title: newCourse.title?.trim() || 'Untitled Course',
-                instructor: newCourse.instructor?.trim() || 'Unknown Instructor',
-                instructorEmail: newCourse.instructorEmail?.trim() || '',
-                instructorAvatar: newCourse.instructorAvatar?.trim() || '',
-                duration: newCourse.duration?.trim() || '0h',
-                category: newCourse.category?.trim() || 'Uncategorized',
-                image: newCourse.image?.trim() || '',
-                isDraft: !publish,
-                isVerified: isInstructor 
-                    ? (publish ? false : (newCourse.isVerified || false)) 
-                    : (isEditMode ? (newCourse.isVerified !== undefined ? newCourse.isVerified : true) : true),
-                price: newCourse.accessTier === 'FREE' ? 0 : (newCourse.price || 0),
-                platform: newCourse.platform || 'Welile'
+            const updatedCourse: Course = {
+                ...course,
+                attendanceCode: newPin, // Also update fallback
+                sections: sectionsUpdated ? updatedSections : course.sections
             };
-            if (isEditMode && editingCourseId) {
-                await updateCourse(editingCourseId, courseData);
-                alert(publish 
-                    ? (isInstructor ? 'Course submitted for admin verification!' : 'Course updated successfully!') 
-                    : 'Draft changes saved successfully!');
-            } else {
-                await addCourse(courseData);
-                alert(publish 
-                    ? (isInstructor ? 'Course submitted for admin verification!' : 'Course created successfully!') 
-                    : 'Draft course saved successfully!');
-            }
-            setIsWizardOpen(false);
-            setIsEditMode(false);
-            setEditingCourseId(null);
-            setStep(1);
-            setNewCourse({ title: '', instructor: '', instructorEmail: '', instructorAvatar: '', duration: '', category: '', accessTier: 'FREE', price: 0, platform: 'Welile', image: '', sections: [], description: '', outcomes: [] });
-        } catch (e: any) {
-            alert(`Error saving course: ${e?.message || e}`);
-            console.error('Save error:', e);
+            await updateCourse(course.id, updatedCourse);
+            setLiveLessonsModalCourse(updatedCourse);
+        } catch (err) {
+            console.error('Failed to regenerate lesson PIN:', err);
+        } finally {
+            setTimeout(() => setRegeneratingLessonId(null), 300);
         }
     };
 
-    if (loading) return <div>Loading courses...</div>;
+    // Copy formatted invite message for messaging apps
+    const handleCopyLessonInvite = (course: Course, lesson: any) => {
+        const inviteText = `🎓 Welile School Live Class: ${lesson.title}\n📅 Date: ${lesson.scheduledDate} (${lesson.scheduledTime})\n🔗 Google Meet Link: ${course.meetingLink || 'Link to be shared'}\n🔑 Student Attendance PIN: ${lesson.attendanceCode}`;
+        navigator.clipboard.writeText(inviteText);
+        setCopiedLessonInvite(lesson.id);
+        setTimeout(() => setCopiedLessonInvite(null), 1800);
+    };
+
+    // Open Live Schedule Modal
+    const openScheduleModal = (course: Course) => {
+        setScheduleModalCourse(course);
+        setScheduleFormData({
+            cohortName: course.cohortName || 'Cohort 1',
+            startDate: course.startDate || '2026-11-15',
+            endDate: course.endDate || '2026-12-01',
+            lessonDays: course.lessonDays || ['Monday', 'Wednesday', 'Friday'],
+            lessonStartTime: course.lessonStartTime || '18:00',
+            lessonEndTime: course.lessonEndTime || '20:00',
+            timezone: course.timezone || 'EAT (UTC+3)',
+            meetingLink: course.meetingLink || '',
+            attendanceCode: course.attendanceCode || generateRandomPin(),
+            quizDate: course.quizDate || '2026-11-25',
+            examDate: course.examDate || '2026-12-01'
+        });
+        setScheduleSaveSuccess(false);
+    };
+
+    const handleSaveSchedule = async () => {
+        if (!scheduleModalCourse) return;
+        setIsSavingSchedule(true);
+        try {
+            const updated = {
+                ...scheduleModalCourse,
+                ...scheduleFormData
+            };
+            await updateCourse(scheduleModalCourse.id, updated);
+            setScheduleSaveSuccess(true);
+            setTimeout(() => {
+                setScheduleSaveSuccess(false);
+                setScheduleModalCourse(null);
+            }, 1200);
+        } catch (err: any) {
+            alert(`Error updating schedule: ${err.message || err}`);
+        } finally {
+            setIsSavingSchedule(false);
+        }
+    };
+
+    const handleSendAlert = (course: Course, specificLesson?: any) => {
+        setAlertModalCourse(course);
+        setAlertLessonTitle(specificLesson ? specificLesson.title : '');
+        setAlertAttendancePin(specificLesson ? specificLesson.attendanceCode : (course.attendanceCode || 'WEL-8492'));
+        setAlertNote(specificLesson ? `Please join live for ${specificLesson.title}. Class begins on schedule.` : '');
+        setAlertSent(false);
+    };
+
+    const confirmBroadcastAlert = () => {
+        if (!alertModalCourse) return;
+        const ok = broadcastLessonNotification(
+            alertModalCourse.title,
+            alertModalCourse.cohortName || 'Live Cohort',
+            alertModalCourse.meetingLink || '',
+            alertAttendancePin || alertModalCourse.attendanceCode || 'WEL-8492',
+            alertModalCourse.lessonDays || ['Monday', 'Wednesday', 'Friday'],
+            alertModalCourse.lessonStartTime || '18:00',
+            alertModalCourse.lessonEndTime || '20:00',
+            alertModalCourse.timezone || 'EAT (UTC+3)',
+            alertLessonTitle ? `${alertLessonTitle} - ${alertNote}` : alertNote
+        );
+        if (ok) {
+            setAlertSent(true);
+            setTimeout(() => {
+                setAlertSent(false);
+                setAlertModalCourse(null);
+                setAlertNote('');
+                setAlertLessonTitle('');
+                setAlertAttendancePin('');
+            }, 1500);
+        }
+    };
+
+    const toggleScheduleDay = (day: string) => {
+        const currentDays = scheduleFormData.lessonDays || [];
+        const updated = currentDays.includes(day)
+            ? currentDays.filter(d => d !== day)
+            : [...currentDays, day];
+        setScheduleFormData({ ...scheduleFormData, lessonDays: updated });
+    };
+
+    const generateModalPin = () => {
+        setScheduleFormData(prev => ({ ...prev, attendanceCode: generateRandomPin() }));
+    };
+
+    if (loading) return (
+        <div className="p-12 text-center text-gray-500 flex flex-col items-center gap-3">
+            <Loader2 className="animate-spin text-violet-600" size={32} />
+            <p className="font-semibold text-sm">Loading courses and live schedules...</p>
+        </div>
+    );
 
     return (
         <div className="space-y-6">
-            <div className="flex justify-between items-center bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+            {/* Top Bar */}
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center bg-white dark:bg-slate-900 p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-slate-800 gap-4">
                 <div>
-                    <h2 className="text-lg font-semibold text-gray-900">Course Management</h2>
-                    <p className="text-sm text-gray-500">Create and manage your curriculum</p>
+                    <h2 className="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                        <BookOpen className="text-violet-600" size={22} />
+                        {isInstructor ? 'Tutor Dashboard & Live Lessons' : 'Course & Live Cohort Management'}
+                    </h2>
+                    <p className="text-xs text-gray-500 dark:text-slate-400 mt-0.5">
+                        Attendance codes are auto-generated for every live lesson. View, copy, or broadcast session PINs directly to students.
+                    </p>
                 </div>
                 <button 
                     onClick={() => navigate(isInstructor ? '/instructor/courses/setup' : '/courses/setup')}
-                    className="bg-violet-600 hover:bg-violet-700 text-white px-4 py-2 rounded-xl flex items-center gap-2 font-medium transition-colors"
+                    className="bg-violet-600 hover:bg-violet-700 text-white px-4 py-2.5 rounded-xl flex items-center gap-2 font-bold text-sm transition-colors shadow-sm cursor-pointer"
                 >
                     <Plus size={18} /> New Course Wizard
                 </button>
             </div>
 
+            {/* Tutor Live Session Guidance Banner */}
+            <div className="bg-gradient-to-r from-violet-600 to-indigo-700 rounded-2xl p-5 text-white shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+                <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-white/15 backdrop-blur-sm flex items-center justify-center shrink-0">
+                        <Radio className="text-white animate-pulse" size={20} />
+                    </div>
+                    <div>
+                        <h3 className="font-bold text-sm text-white">Live Lesson Attendance Codes Auto-Generated</h3>
+                        <p className="text-xs text-violet-100 mt-0.5">
+                            Every live Google Meet lesson has a unique attendance PIN ready for verification. Click <strong>"Live PINs"</strong> on any course card to manage codes or broadcast them to students.
+                        </p>
+                    </div>
+                </div>
+                <div className="flex items-center gap-2 shrink-0">
+                    <span className="px-3 py-1 bg-white/20 backdrop-blur-sm text-white rounded-lg text-xs font-bold border border-white/20">
+                        ⚡ Active Cohorts: {filteredCourses.length}
+                    </span>
+                </div>
+            </div>
+
+            {/* Courses Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {filteredCourses.length === 0 && (
-                    <div className="col-span-full py-16 text-center text-gray-400 dark:text-slate-500 bg-white dark:bg-slate-900 rounded-3xl border border-dashed border-gray-200 dark:border-slate-800">
-                        {isInstructor ? "You haven't uploaded any courses yet. Click 'New Course Wizard' to add your first course!" : "No courses available."}
+                    <div className="col-span-full py-16 text-center text-gray-400 dark:text-slate-500 bg-white dark:bg-slate-900 rounded-3xl border border-dashed border-gray-200 dark:border-slate-800 space-y-2">
+                        <Radio size={36} className="mx-auto opacity-40 text-violet-500" />
+                        <p className="font-bold text-base text-gray-700 dark:text-slate-300">
+                            {isInstructor ? "You haven't uploaded any courses yet." : "No courses available."}
+                        </p>
+                        <p className="text-xs text-gray-400">
+                            Click "New Course Wizard" above to set up a live cohort course with Google Meet schedule.
+                        </p>
                     </div>
                 )}
-                {filteredCourses.map(c => (
-                    <div key={c.id} className="bg-white dark:bg-slate-900 rounded-2xl overflow-hidden border border-gray-100 dark:border-slate-800 shadow-sm hover:shadow-xl hover:transform hover:-translate-y-1 hover:border-welile-purple dark:hover:border-purple-600 transition-all duration-300">
-                        <div className="h-40 bg-gray-200 relative">
-                            {c.image && (
-                                <img 
-                                    src={c.image} 
-                                    alt={c.title} 
-                                    className="w-full h-full object-cover" 
-                                    style={{
-                                        objectPosition: `${c.imagePositionX ?? 50}% ${c.imagePositionY ?? 50}%`,
-                                        transform: `scale(${c.imageScale ?? 1})`,
-                                        transformOrigin: `${c.imagePositionX ?? 50}% ${c.imagePositionY ?? 50}%`
-                                    }}
-                                />
-                            )}
-                            <div className="absolute top-3 right-3 flex flex-wrap gap-2 justify-end">
-                                {c.isDraft && (
-                                    <span className="px-3 py-1 rounded-full text-xs font-bold shadow-sm bg-gray-150 text-gray-700">
-                                        DRAFT
-                                    </span>
-                                )}
-                                {!c.isDraft && (
-                                    c.isVerified === false ? (
-                                        <span className="px-3 py-1 rounded-full text-xs font-bold shadow-sm bg-amber-100 text-amber-800 border border-amber-200">
-                                            PENDING VERIFICATION
-                                        </span>
-                                    ) : (
-                                        <span className="px-3 py-1 rounded-full text-xs font-bold shadow-sm bg-emerald-100 text-emerald-800 border border-emerald-250">
-                                            VERIFIED
-                                        </span>
-                                    )
-                                )}
-                                <span className={`px-3 py-1 rounded-full text-xs font-bold shadow-sm ${c.accessTier === 'PAID' ? 'bg-amber-100 text-amber-700' : 'bg-emerald-100 text-emerald-700'}`}>
-                                    {c.accessTier || 'FREE'}
-                                </span>
-                            </div>
-                        </div>
-                        <div className="p-5">
-                            <h3 className="font-bold text-gray-900 dark:text-white mb-1 line-clamp-1">{c.title}</h3>
-                            <p className="text-sm text-gray-500 dark:text-slate-400 mb-2">{c.category} • {c.instructor}</p>
-                            <div className="flex gap-2 items-center mb-4 flex-wrap">
-                                <span className="px-2 py-0.5 bg-gray-100 dark:bg-slate-800 text-[11px] font-semibold text-gray-600 dark:text-slate-400 rounded-md">
-                                    Platform: {c.platform || 'Welile'}
-                                </span>
-                                <span className="px-2 py-0.5 bg-gray-100 dark:bg-slate-800 text-[11px] font-semibold text-gray-600 dark:text-slate-400 rounded-md">
-                                    Price: {c.accessTier === 'PAID' ? formatAmount(c.price || 0) : 'Free'}
-                                </span>
-                            </div>
-                            <div className="flex justify-between items-center text-sm">
-                                <span className="font-medium text-gray-700 dark:text-slate-300">{c.duration}</span>
-                                <div className="flex items-center gap-3">
-                                    {!isInstructor && c.isVerified === false && (
-                                        <button 
-                                            onClick={async () => {
-                                                if (window.confirm(`Are you sure you want to verify and publish: "${c.title}"?`)) {
-                                                    try {
-                                                        const updatedData = {
-                                                            ...c,
-                                                            isVerified: true
-                                                        };
-                                                        await updateCourse(c.id, updatedData);
-                                                        alert('Course verified and published successfully!');
-                                                    } catch (err: any) {
-                                                        alert(`Error verifying course: ${err.message || err}`);
-                                                    }
-                                                }
+
+                {filteredCourses.map(c => {
+                    const daysText = c.lessonDays && c.lessonDays.length > 0 ? c.lessonDays.slice(0, 3).join(', ') : 'Live Days';
+                    const hasLiveMeet = Boolean(c.meetingLink);
+                    const liveLessonsList = extractLiveLessons(c);
+
+                    return (
+                        <div key={c.id} className="bg-white dark:bg-slate-900 rounded-2xl overflow-hidden border border-gray-150 dark:border-slate-800 shadow-sm hover:shadow-lg transition-all flex flex-col justify-between">
+                            <div>
+                                {/* Cover Image & Status Badges */}
+                                <div className="h-44 bg-gray-200 dark:bg-slate-800 relative overflow-hidden">
+                                    {c.image ? (
+                                        <img 
+                                            src={c.image} 
+                                            alt={c.title} 
+                                            className="w-full h-full object-cover" 
+                                            style={{
+                                                objectPosition: `${c.imagePositionX ?? 50}% ${c.imagePositionY ?? 50}%`,
+                                                transform: `scale(${c.imageScale ?? 1})`,
+                                                transformOrigin: `${c.imagePositionX ?? 50}% ${c.imagePositionY ?? 50}%`
                                             }}
-                                            className="text-emerald-650 dark:text-emerald-450 font-bold hover:text-emerald-800 dark:hover:text-emerald-300 cursor-pointer text-xs uppercase tracking-wider"
-                                        >
-                                            Approve & Verify
-                                        </button>
+                                        />
+                                    ) : (
+                                        <div className="w-full h-full flex items-center justify-center text-gray-400">
+                                            No Image
+                                        </div>
                                     )}
+
+                                    {/* Cohort Badge */}
+                                    <div className="absolute top-3 left-3 flex flex-wrap gap-1.5">
+                                        <span className="px-2.5 py-1 bg-violet-600/90 text-white text-[11px] font-bold rounded-lg shadow-sm backdrop-blur-sm flex items-center gap-1">
+                                            <Radio size={12} className="animate-pulse" />
+                                            {c.cohortName || 'Live Cohort'}
+                                        </span>
+                                        {c.isDraft ? (
+                                            <span className="px-2 py-0.5 bg-amber-500 text-white text-[10px] font-bold rounded-md shadow-sm">
+                                                Draft
+                                            </span>
+                                        ) : (
+                                            <span className="px-2 py-0.5 bg-emerald-500 text-white text-[10px] font-bold rounded-md shadow-sm flex items-center gap-0.5">
+                                                <CheckCircle2 size={10} /> Published
+                                            </span>
+                                        )}
+                                    </div>
+
+                                    {/* Price Badge */}
+                                    <div className="absolute top-3 right-3 bg-white/90 dark:bg-slate-900/90 backdrop-blur-sm px-2.5 py-1 rounded-lg text-xs font-bold text-violet-600 dark:text-violet-400 shadow-sm border border-violet-100 dark:border-slate-800">
+                                        {c.accessTier === 'FREE' ? 'FREE' : formatAmount(c.price || 0, currency)}
+                                    </div>
+                                </div>
+
+                                {/* Content Details */}
+                                <div className="p-5 space-y-3">
+                                    <div className="flex items-start justify-between gap-2">
+                                        <h3 className="font-bold text-base text-gray-900 dark:text-white line-clamp-1">
+                                            {c.title}
+                                        </h3>
+                                    </div>
+
+                                    {/* Google Meet Link Bar */}
+                                    {hasLiveMeet && (
+                                        <div className="flex items-center justify-between gap-2 bg-emerald-50/70 dark:bg-emerald-950/30 p-2 rounded-xl border border-emerald-100 dark:border-emerald-900/40 text-xs">
+                                            <div className="flex items-center gap-1.5 overflow-hidden">
+                                                <Radio size={13} className="text-emerald-600 shrink-0 animate-pulse" />
+                                                <span className="font-semibold text-emerald-800 dark:text-emerald-300 truncate text-[11px]">
+                                                    {c.meetingLink}
+                                                </span>
+                                            </div>
+                                            <div className="flex items-center gap-1 shrink-0">
+                                                <button
+                                                    type="button"
+                                                    onClick={() => {
+                                                        if (c.meetingLink) {
+                                                            navigator.clipboard.writeText(c.meetingLink);
+                                                            setCopiedCardMeet(c.id);
+                                                            setTimeout(() => setCopiedCardMeet(null), 1500);
+                                                        }
+                                                    }}
+                                                    className="p-1 hover:bg-emerald-100 dark:hover:bg-emerald-900/60 rounded text-emerald-700 dark:text-emerald-300 cursor-pointer"
+                                                    title="Copy Google Meet Link"
+                                                >
+                                                    {copiedCardMeet === c.id ? <Check size={12} className="text-emerald-600" /> : <Copy size={12} />}
+                                                </button>
+                                                <a 
+                                                    href={c.meetingLink} 
+                                                    target="_blank" 
+                                                    rel="noopener noreferrer" 
+                                                    className="p-1 hover:bg-emerald-100 dark:hover:bg-emerald-900/60 rounded text-emerald-700 dark:text-emerald-300"
+                                                    title="Open Google Meet"
+                                                >
+                                                    <ExternalLink size={12} />
+                                                </a>
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {/* Live Schedule Info Box */}
+                                    <div className="bg-gray-50 dark:bg-slate-855 p-3 rounded-xl border border-gray-100 dark:border-slate-800 space-y-2 text-xs">
+                                        <div className="flex items-center justify-between text-gray-700 dark:text-slate-300">
+                                            <span className="flex items-center gap-1 text-[11px] text-gray-500">
+                                                <Calendar size={12} className="text-violet-500" /> Period:
+                                            </span>
+                                            <span className="font-bold">
+                                                {c.startDate || '15 Nov 2026'} - {c.endDate || '01 Dec 2026'}
+                                            </span>
+                                        </div>
+
+                                        <div className="flex items-center justify-between text-gray-700 dark:text-slate-300">
+                                            <span className="flex items-center gap-1 text-[11px] text-gray-500">
+                                                <Clock size={12} className="text-emerald-500" /> Timing:
+                                            </span>
+                                            <span className="font-medium text-[11px]">
+                                                {daysText} @ {c.lessonStartTime || '18:00'} ({c.timezone || 'EAT'})
+                                            </span>
+                                        </div>
+
+                                        {/* Auto Generated Attendance PINs Bar */}
+                                        <div className="pt-2 border-t border-gray-200/60 dark:border-slate-800">
+                                            <button
+                                                type="button"
+                                                onClick={() => setLiveLessonsModalCourse(c)}
+                                                className="w-full py-1.5 px-2.5 bg-violet-50 hover:bg-violet-100 dark:bg-violet-950/40 dark:hover:bg-violet-900/40 text-violet-700 dark:text-violet-300 rounded-lg text-xs font-bold flex items-center justify-between transition-colors cursor-pointer group"
+                                            >
+                                                <div className="flex items-center gap-1.5">
+                                                    <Key size={12} className="text-violet-600 dark:text-violet-400" />
+                                                    <span>Live Lesson Attendance PINs</span>
+                                                </div>
+                                                <div className="flex items-center gap-1 font-mono text-[11px] font-bold text-violet-700 dark:text-violet-300 bg-white dark:bg-slate-900 px-2 py-0.5 rounded border border-violet-200 dark:border-violet-800">
+                                                    <span>{liveLessonsList.length} Lessons</span>
+                                                    <ArrowRight size={10} className="group-hover:translate-x-0.5 transition-transform" />
+                                                </div>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Card Footer Actions */}
+                            <div className="p-4 pt-0 border-t border-gray-100 dark:border-slate-800 mt-2 flex flex-col gap-2">
+                                <div className="grid grid-cols-3 gap-2 pt-2">
+                                    {/* Live PINs Button */}
                                     <button 
-                                        onClick={() => {
-                                            setIsEditMode(true);
-                                            setEditingCourseId(c.id);
-                                            setNewCourse({
-                                                title: c.title,
-                                                instructor: c.instructor,
-                                                duration: c.duration,
-                                                category: c.category,
-                                                accessTier: c.accessTier,
-                                                price: c.price || 0,
-                                                platform: c.platform || 'Welile',
-                                                isVerified: c.isVerified,
-                                                image: c.image,
-                                                sections: c.sections || (c.modules ? [{ id: 's1', title: 'Course Content', lessons: c.modules }] : []),
-                                                description: c.description || '',
-                                                outcomes: c.outcomes || [],
-                                                imageScale: c.imageScale || 1,
-                                                imagePositionX: c.imagePositionX || 50,
-                                                imagePositionY: c.imagePositionY || 50,
-                                                isDraft: c.isDraft,
-                                                instructorEmail: c.instructorEmail || '',
-                                                instructorAvatar: c.instructorAvatar || ''
-                                            });
-                                            setStep(1);
-                                            setIsWizardOpen(true);
-                                        }}
-                                        className="text-violet-600 font-medium hover:text-violet-850 cursor-pointer"
+                                        type="button"
+                                        onClick={() => setLiveLessonsModalCourse(c)}
+                                        className="py-2 bg-purple-50 hover:bg-purple-100 dark:bg-purple-950/40 dark:hover:bg-purple-900/40 text-purple-700 dark:text-purple-300 rounded-xl text-xs font-bold flex items-center justify-center gap-1 transition-colors cursor-pointer"
+                                        title="View auto-generated attendance codes for every live lesson"
                                     >
-                                        Edit
+                                        <Key size={13} /> Live PINs
                                     </button>
+
+                                    {/* Broadcast Alert Button */}
+                                    <button 
+                                        type="button"
+                                        onClick={() => handleSendAlert(c)}
+                                        className="py-2 bg-violet-50 hover:bg-violet-100 dark:bg-violet-950/40 dark:hover:bg-violet-900/40 text-violet-700 dark:text-violet-300 rounded-xl text-xs font-bold flex items-center justify-center gap-1 transition-colors cursor-pointer"
+                                        title="Broadcast Google Meet link & attendance PIN"
+                                    >
+                                        <Bell size={13} /> Send Alert
+                                    </button>
+
+                                    {/* Live Schedule & Exam Dates Settings */}
+                                    <button 
+                                        type="button"
+                                        onClick={() => openScheduleModal(c)}
+                                        className="py-2 bg-gray-100 hover:bg-gray-200 dark:bg-slate-800 dark:hover:bg-slate-750 text-gray-700 dark:text-slate-300 rounded-xl text-xs font-bold flex items-center justify-center gap-1 transition-colors cursor-pointer"
+                                        title="Edit live schedule, Google Meet link, and exam dates"
+                                    >
+                                        <Calendar size={13} /> Live Dates
+                                    </button>
+                                </div>
+
+                                <div className="flex items-center justify-between text-xs pt-1 px-1">
+                                    <button 
+                                        onClick={() => navigate(isInstructor ? `/instructor/courses/setup?courseId=${c.id}` : `/courses/setup?courseId=${c.id}`)}
+                                        className="text-violet-600 dark:text-violet-400 font-bold hover:underline cursor-pointer flex items-center gap-1"
+                                    >
+                                        <Edit3 size={12} /> Edit Syllabus
+                                    </button>
+
                                     <button 
                                         onClick={async () => {
-                                            if (window.confirm(`Are you sure you want to delete the course: "${c.title}"?`)) {
+                                            if (window.confirm(`Are you sure you want to delete "${c.title}"?`)) {
                                                 try {
                                                     await deleteCourse(c.id);
-                                                    alert('Course deleted successfully!');
                                                 } catch (err: any) {
-                                                    alert(`Error deleting course: ${err.message || err}`);
+                                                    alert('Delete error: ' + (err.message || err));
                                                 }
                                             }
                                         }}
-                                        className="text-red-550 font-medium hover:text-red-700 cursor-pointer"
+                                        className="text-red-500 hover:underline cursor-pointer flex items-center gap-1"
                                     >
-                                        Delete
+                                        <Trash2 size={12} /> Delete
                                     </button>
                                 </div>
                             </div>
                         </div>
-                    </div>
-                ))}
+                    );
+                })}
             </div>
 
+            {/* Modal: Live Lessons & Auto-Generated Attendance Codes */}
+            {liveLessonsModalCourse && (
+                <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[150] flex items-center justify-center p-4">
+                    <div className="bg-white dark:bg-slate-900 rounded-3xl w-full max-w-2xl max-h-[90vh] overflow-hidden shadow-2xl border border-gray-150 dark:border-slate-800 flex flex-col animate-in fade-in zoom-in duration-200">
+                        {/* Modal Header */}
+                        <div className="p-6 border-b border-gray-100 dark:border-slate-800 flex items-start justify-between gap-4">
+                            <div>
+                                <div className="flex items-center gap-2 mb-1">
+                                    <span className="px-2.5 py-0.5 bg-violet-100 dark:bg-violet-950/60 text-violet-700 dark:text-violet-300 font-bold text-[11px] rounded-full flex items-center gap-1">
+                                        <Radio size={10} className="animate-pulse" /> {liveLessonsModalCourse.cohortName || 'Live Cohort'}
+                                    </span>
+                                    <span className="text-xs text-gray-400">•</span>
+                                    <span className="text-xs text-gray-500 dark:text-slate-400">
+                                        {liveLessonsModalCourse.startDate} to {liveLessonsModalCourse.endDate}
+                                    </span>
+                                </div>
+                                <h3 className="text-xl font-bold text-gray-900 dark:text-white">
+                                    {liveLessonsModalCourse.title}
+                                </h3>
+                                <p className="text-xs text-gray-500 dark:text-slate-400 mt-1">
+                                    Auto-generated attendance codes for each live lesson. Share codes with students during live Google Meet lectures to verify presence.
+                                </p>
+                            </div>
+                            <button 
+                                onClick={() => setLiveLessonsModalCourse(null)} 
+                                className="text-gray-400 hover:text-gray-600 dark:hover:text-slate-300 p-1 cursor-pointer rounded-lg hover:bg-gray-100 dark:hover:bg-slate-800"
+                            >
+                                <X size={20} />
+                            </button>
+                        </div>
+
+                        {/* Google Meet Info Strip */}
+                        <div className="px-6 py-3 bg-violet-50/50 dark:bg-slate-855 border-b border-gray-100 dark:border-slate-800 flex flex-wrap items-center justify-between gap-3 text-xs">
+                            <div className="flex items-center gap-2 font-medium text-gray-700 dark:text-slate-300">
+                                <Radio size={14} className="text-emerald-500" />
+                                <span>Live Meet:</span>
+                                <span className="font-mono font-semibold text-gray-900 dark:text-white">
+                                    {liveLessonsModalCourse.meetingLink || 'No Meet link configured'}
+                                </span>
+                            </div>
+                            {liveLessonsModalCourse.meetingLink && (
+                                <div className="flex items-center gap-2">
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            navigator.clipboard.writeText(liveLessonsModalCourse.meetingLink || '');
+                                            setCopiedCardMeet('modal-meet');
+                                            setTimeout(() => setCopiedCardMeet(null), 1500);
+                                        }}
+                                        className="px-2.5 py-1 bg-white dark:bg-slate-800 hover:bg-gray-100 dark:hover:bg-slate-700 text-gray-700 dark:text-slate-200 rounded-lg text-[11px] font-bold border border-gray-200 dark:border-slate-700 flex items-center gap-1 cursor-pointer"
+                                    >
+                                        {copiedCardMeet === 'modal-meet' ? <Check size={11} className="text-emerald-500" /> : <Copy size={11} />}
+                                        {copiedCardMeet === 'modal-meet' ? 'Copied' : 'Copy Meet'}
+                                    </button>
+                                    <a
+                                        href={liveLessonsModalCourse.meetingLink}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-[11px] font-bold flex items-center gap-1"
+                                    >
+                                        <ExternalLink size={11} /> Join Call
+                                    </a>
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Lessons List Body */}
+                        <div className="flex-1 overflow-y-auto p-6 space-y-3">
+                            {extractLiveLessons(liveLessonsModalCourse).map((lesson, idx) => {
+                                const isCopiedPin = copiedLessonPin === lesson.id;
+                                const isCopiedInvite = copiedLessonInvite === lesson.id;
+                                const isRegenerating = regeneratingLessonId === lesson.id;
+
+                                return (
+                                    <div 
+                                        key={lesson.id} 
+                                        className="bg-gray-50/70 dark:bg-slate-855 border border-gray-200/80 dark:border-slate-800 rounded-2xl p-4 transition-all hover:border-violet-300 dark:hover:border-violet-700/50 space-y-3"
+                                    >
+                                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                                            {/* Lesson Info */}
+                                            <div className="space-y-1">
+                                                <div className="flex items-center gap-2">
+                                                    <span className="px-2 py-0.5 bg-violet-100 dark:bg-violet-950 text-violet-700 dark:text-violet-300 font-bold text-[11px] rounded-md">
+                                                        Lesson {idx + 1}
+                                                    </span>
+                                                    <span className="text-[11px] text-gray-400 font-medium">
+                                                        {lesson.sectionTitle}
+                                                    </span>
+                                                </div>
+                                                <h4 className="font-bold text-sm text-gray-900 dark:text-white">
+                                                    {lesson.title}
+                                                </h4>
+                                                <div className="flex items-center gap-3 text-xs text-gray-500 dark:text-slate-400">
+                                                    <span className="flex items-center gap-1">
+                                                        <Calendar size={12} className="text-violet-500" />
+                                                        {lesson.scheduledDate}
+                                                    </span>
+                                                    <span>•</span>
+                                                    <span className="flex items-center gap-1">
+                                                        <Clock size={12} className="text-emerald-500" />
+                                                        {lesson.scheduledTime}
+                                                    </span>
+                                                </div>
+                                            </div>
+
+                                            {/* Auto-Generated Attendance Code & Fast Actions */}
+                                            <div className="flex sm:flex-col items-end justify-between sm:justify-center gap-2 pt-2 sm:pt-0 border-t sm:border-t-0 border-gray-200 dark:border-slate-800">
+                                                <div className="flex items-center gap-2">
+                                                    <div className="text-right">
+                                                        <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">
+                                                            Attendance PIN
+                                                        </span>
+                                                        <div className="flex items-center gap-1.5">
+                                                            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                                                            <span className="font-mono text-base font-extrabold text-violet-700 dark:text-violet-300 tracking-wider">
+                                                                {lesson.attendanceCode}
+                                                            </span>
+                                                        </div>
+                                                    </div>
+
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => {
+                                                            navigator.clipboard.writeText(lesson.attendanceCode);
+                                                            setCopiedLessonPin(lesson.id);
+                                                            setTimeout(() => setCopiedLessonPin(null), 1500);
+                                                        }}
+                                                        className="px-2.5 py-1.5 bg-violet-600 hover:bg-violet-700 text-white rounded-xl text-xs font-bold flex items-center gap-1 shadow-sm transition-colors cursor-pointer"
+                                                        title="Copy this lesson's unique attendance code"
+                                                    >
+                                                        {isCopiedPin ? <Check size={12} /> : <Copy size={12} />}
+                                                        {isCopiedPin ? 'Copied!' : 'Copy PIN'}
+                                                    </button>
+                                                </div>
+
+                                                {/* Micro action buttons */}
+                                                <div className="flex items-center gap-1.5">
+                                                    <button
+                                                        type="button"
+                                                        disabled={isRegenerating}
+                                                        onClick={() => handleRegenerateLessonPin(liveLessonsModalCourse, lesson.id, lesson.sectionId)}
+                                                        className="px-2 py-1 bg-gray-100 hover:bg-gray-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-gray-700 dark:text-slate-300 rounded-lg text-[10px] font-semibold flex items-center gap-1 transition-colors cursor-pointer"
+                                                        title="Auto-generate a new unique code for this lesson"
+                                                    >
+                                                        <RefreshCw size={10} className={isRegenerating ? 'animate-spin text-violet-600' : ''} />
+                                                        Regenerate
+                                                    </button>
+
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => handleCopyLessonInvite(liveLessonsModalCourse, lesson)}
+                                                        className="px-2 py-1 bg-gray-100 hover:bg-gray-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-gray-700 dark:text-slate-300 rounded-lg text-[10px] font-semibold flex items-center gap-1 transition-colors cursor-pointer"
+                                                        title="Copy full invitation with Meet link and attendance PIN"
+                                                    >
+                                                        {isCopiedInvite ? <Check size={10} className="text-emerald-500" /> : <Share2 size={10} />}
+                                                        {isCopiedInvite ? 'Invite Copied!' : 'Copy Invite'}
+                                                    </button>
+
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => handleSendAlert(liveLessonsModalCourse, lesson)}
+                                                        className="px-2 py-1 bg-violet-50 hover:bg-violet-100 dark:bg-violet-950/60 dark:hover:bg-violet-900/60 text-violet-700 dark:text-violet-300 rounded-lg text-[10px] font-bold flex items-center gap-1 transition-colors cursor-pointer"
+                                                        title="Broadcast this lesson alert with its auto PIN to student feeds"
+                                                    >
+                                                        <Bell size={10} /> Alert
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
+
+                        {/* Modal Footer */}
+                        <div className="p-4 px-6 border-t border-gray-100 dark:border-slate-800 bg-gray-50/50 dark:bg-slate-900 flex items-center justify-between">
+                            <p className="text-[11px] text-gray-500 dark:text-slate-400">
+                                💡 Students unlock module quizzes immediately upon submitting their live lesson PIN.
+                            </p>
+                            <button
+                                type="button"
+                                onClick={() => setLiveLessonsModalCourse(null)}
+                                className="px-4 py-2 bg-gray-200 hover:bg-gray-300 dark:bg-slate-800 dark:hover:bg-slate-700 text-gray-800 dark:text-slate-200 text-xs font-bold rounded-xl cursor-pointer"
+                            >
+                                Close
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Modal: Live Schedule & Assessment Dates */}
+            {scheduleModalCourse && (
+                <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[150] flex items-center justify-center p-4">
+                    <div className="bg-white dark:bg-slate-900 rounded-3xl w-full max-w-lg overflow-hidden shadow-2xl p-6 border border-gray-150 dark:border-slate-800 space-y-4 animate-in fade-in zoom-in duration-200">
+                        <div className="flex justify-between items-center pb-2 border-b border-gray-100 dark:border-slate-800">
+                            <div>
+                                <h3 className="font-bold text-gray-900 dark:text-white text-base flex items-center gap-2">
+                                    <Calendar className="text-violet-600" size={18} />
+                                    Live Schedule & Assessment Dates
+                                </h3>
+                                <p className="text-xs text-gray-500">{scheduleModalCourse.title}</p>
+                            </div>
+                            <button onClick={() => setScheduleModalCourse(null)} className="text-gray-400 hover:text-gray-600 p-1 cursor-pointer">
+                                <X size={18} />
+                            </button>
+                        </div>
+
+                        {scheduleSaveSuccess ? (
+                            <div className="py-8 text-center space-y-2">
+                                <CheckCircle2 className="mx-auto text-emerald-500 w-12 h-12" />
+                                <h4 className="font-bold text-emerald-800 dark:text-emerald-400 text-base">Live Schedule Updated!</h4>
+                                <p className="text-xs text-gray-500">Google Meet link, schedule, and exam dates saved.</p>
+                            </div>
+                        ) : (
+                            <div className="space-y-4">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                    <div>
+                                        <label className="block text-xs font-bold uppercase text-gray-500 mb-1">Cohort Interval / Name</label>
+                                        <input 
+                                            value={scheduleFormData.cohortName || ''} 
+                                            onChange={e => setScheduleFormData({...scheduleFormData, cohortName: e.target.value})}
+                                            className="w-full p-2.5 text-xs bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl outline-none font-semibold text-gray-900 dark:text-white"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-xs font-bold uppercase text-gray-500 mb-1">Google Meet Link</label>
+                                        <input 
+                                            value={scheduleFormData.meetingLink || ''} 
+                                            onChange={e => setScheduleFormData({...scheduleFormData, meetingLink: e.target.value})}
+                                            placeholder="https://meet.google.com/..."
+                                            className="w-full p-2.5 text-xs bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl outline-none text-gray-900 dark:text-white font-mono"
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                    <div>
+                                        <label className="block text-xs font-bold uppercase text-gray-500 mb-1">Lessons Start Date</label>
+                                        <input 
+                                            type="date" 
+                                            value={scheduleFormData.startDate || ''} 
+                                            onChange={e => setScheduleFormData({...scheduleFormData, startDate: e.target.value})}
+                                            className="w-full p-2.5 text-xs bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl outline-none text-gray-900 dark:text-white font-medium"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-xs font-bold uppercase text-gray-500 mb-1">Lessons End Date</label>
+                                        <input 
+                                            type="date" 
+                                            value={scheduleFormData.endDate || ''} 
+                                            onChange={e => setScheduleFormData({...scheduleFormData, endDate: e.target.value})}
+                                            className="w-full p-2.5 text-xs bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl outline-none text-gray-900 dark:text-white font-medium"
+                                        />
+                                    </div>
+                                </div>
+
+                                {/* Days of the Week */}
+                                <div>
+                                    <label className="block text-xs font-bold uppercase text-gray-500 mb-1.5">Live Lesson Days</label>
+                                    <div className="flex flex-wrap gap-1.5">
+                                        {DAYS_OF_WEEK.map(day => {
+                                            const isSel = (scheduleFormData.lessonDays || []).includes(day);
+                                            return (
+                                                <button
+                                                    key={day}
+                                                    type="button"
+                                                    onClick={() => toggleScheduleDay(day)}
+                                                    className={`px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                                                        isSel ? 'bg-violet-600 text-white' : 'bg-gray-100 dark:bg-slate-800 text-gray-600 dark:text-slate-300'
+                                                    }`}
+                                                >
+                                                    {day}
+                                                </button>
+                                            );
+                                        })}
+                                    </div>
+                                </div>
+
+                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                    <div>
+                                        <label className="block text-xs font-bold uppercase text-gray-500 mb-1">Start Time</label>
+                                        <input 
+                                            type="time" 
+                                            value={scheduleFormData.lessonStartTime || '18:00'} 
+                                            onChange={e => setScheduleFormData({...scheduleFormData, lessonStartTime: e.target.value})}
+                                            className="w-full p-2 text-xs bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl outline-none text-gray-900 dark:text-white font-semibold"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-xs font-bold uppercase text-gray-500 mb-1">End Time</label>
+                                        <input 
+                                            type="time" 
+                                            value={scheduleFormData.lessonEndTime || '20:00'} 
+                                            onChange={e => setScheduleFormData({...scheduleFormData, lessonEndTime: e.target.value})}
+                                            className="w-full p-2 text-xs bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl outline-none text-gray-900 dark:text-white font-semibold"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-xs font-bold uppercase text-gray-500 mb-1">Timezone</label>
+                                        <select 
+                                            value={scheduleFormData.timezone || 'EAT (UTC+3)'} 
+                                            onChange={e => setScheduleFormData({...scheduleFormData, timezone: e.target.value})}
+                                            className="w-full p-2 text-xs bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl outline-none text-gray-900 dark:text-white font-semibold"
+                                        >
+                                            {TIMEZONES.map(tz => (
+                                                <option key={tz} value={tz}>{tz}</option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                </div>
+
+                                {/* Default Attendance Code */}
+                                <div>
+                                    <div className="flex items-center justify-between mb-1">
+                                        <label className="block text-xs font-bold uppercase text-gray-500">Default Cohort Attendance PIN</label>
+                                        <span className="text-[10px] text-gray-400">Fallback code</span>
+                                    </div>
+                                    <div className="flex gap-2">
+                                        <input 
+                                            value={scheduleFormData.attendanceCode || ''} 
+                                            onChange={e => setScheduleFormData({...scheduleFormData, attendanceCode: e.target.value.toUpperCase()})}
+                                            className="flex-1 p-2 text-xs font-mono font-bold uppercase bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl text-purple-600 dark:text-purple-400"
+                                        />
+                                        <button 
+                                            type="button" 
+                                            onClick={generateModalPin}
+                                            className="px-3 py-1.5 bg-purple-100 hover:bg-purple-200 dark:bg-purple-950/60 dark:hover:bg-purple-900 text-purple-700 dark:text-purple-300 rounded-xl text-xs font-bold transition-colors cursor-pointer"
+                                        >
+                                            <Key size={13} className="inline mr-1" /> New Code
+                                        </button>
+                                    </div>
+                                </div>
+
+                                {/* Assessment Dates */}
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-gray-100 dark:border-slate-800">
+                                    <div>
+                                        <label className="block text-xs font-bold uppercase text-gray-500 mb-1 flex items-center gap-1">
+                                            <HelpCircle size={13} className="text-purple-500" /> Module Quiz Date
+                                        </label>
+                                        <input 
+                                            type="date"
+                                            value={scheduleFormData.quizDate || ''} 
+                                            onChange={e => setScheduleFormData({...scheduleFormData, quizDate: e.target.value})}
+                                            className="w-full p-2 text-xs bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl outline-none text-gray-900 dark:text-white font-medium"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-xs font-bold uppercase text-gray-500 mb-1 flex items-center gap-1">
+                                            <Calendar size={13} className="text-emerald-500" /> Final Examination Date
+                                        </label>
+                                        <input 
+                                            type="date" 
+                                            value={scheduleFormData.examDate || ''} 
+                                            onChange={e => setScheduleFormData({...scheduleFormData, examDate: e.target.value})}
+                                            className="w-full p-2 text-xs bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl outline-none text-gray-900 dark:text-white font-medium"
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className="flex justify-end gap-2 pt-3 border-t border-gray-100 dark:border-slate-800">
+                                    <button 
+                                        type="button" 
+                                        onClick={() => setScheduleModalCourse(null)} 
+                                        className="px-4 py-2 text-xs font-semibold text-gray-600 dark:text-slate-300 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-xl cursor-pointer"
+                                    >
+                                        Cancel
+                                    </button>
+                                    <button 
+                                        type="button" 
+                                        onClick={handleSaveSchedule} 
+                                        disabled={isSavingSchedule} 
+                                        className="px-5 py-2 bg-violet-600 hover:bg-violet-700 text-white text-xs font-bold rounded-xl flex items-center gap-1.5 shadow-sm cursor-pointer disabled:opacity-50"
+                                    >
+                                        {isSavingSchedule ? <Loader2 size={13} className="animate-spin" /> : <Save size={13} />}
+                                        {isSavingSchedule ? 'Saving...' : 'Save Live Schedule'}
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            )}
+
+            {/* Modal: Broadcast Lesson Alert */}
+            {alertModalCourse && (
+                <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[150] flex items-center justify-center p-4">
+                    <div className="bg-white dark:bg-slate-900 rounded-3xl w-full max-w-lg overflow-hidden shadow-2xl p-6 border border-gray-100 dark:border-slate-800 space-y-4 animate-in fade-in zoom-in duration-200">
+                        <div className="flex justify-between items-center pb-2 border-b border-gray-100 dark:border-slate-800">
+                            <div className="flex items-center gap-2">
+                                <Bell className="text-violet-600" size={18} />
+                                <h3 className="font-bold text-gray-900 dark:text-white text-base">Broadcast Live Lesson Alert</h3>
+                            </div>
+                            <button onClick={() => setAlertModalCourse(null)} className="text-gray-400 hover:text-gray-600 p-1 cursor-pointer">
+                                <X size={18} />
+                            </button>
+                        </div>
+
+                        {alertSent ? (
+                            <div className="py-8 text-center space-y-2">
+                                <CheckCircle2 className="mx-auto text-emerald-500 w-12 h-12" />
+                                <h4 className="font-bold text-emerald-800 dark:text-emerald-400 text-base">Lesson Alert Sent!</h4>
+                                <p className="text-xs text-gray-500">Google Meet link and attendance PIN broadcasted to students.</p>
+                            </div>
+                        ) : (
+                            <div className="space-y-4">
+                                <div className="bg-gray-50 dark:bg-slate-850 p-4 rounded-xl border border-gray-100 dark:border-slate-800 text-xs space-y-2">
+                                    <div className="flex justify-between font-bold text-gray-800 dark:text-slate-200">
+                                        <span>{alertModalCourse.title}</span>
+                                        <span className="text-violet-600">{alertModalCourse.cohortName || 'Active Cohort'}</span>
+                                    </div>
+                                    {alertLessonTitle && (
+                                        <div className="font-bold text-violet-700 dark:text-violet-300">
+                                            Lesson: {alertLessonTitle}
+                                        </div>
+                                    )}
+                                    <div className="text-gray-600 dark:text-slate-400 font-mono text-[11px] bg-white dark:bg-slate-900 p-2.5 rounded-lg border border-gray-100 dark:border-slate-800 space-y-1">
+                                        <p><strong>🔗 Meet Link:</strong> {alertModalCourse.meetingLink || 'Link not set'}</p>
+                                        <p><strong>🔑 Attendance PIN:</strong> <span className="font-bold text-purple-700 dark:text-purple-300">{alertAttendancePin || alertModalCourse.attendanceCode || 'None'}</span></p>
+                                        <p><strong>⏰ Schedule:</strong> {(alertModalCourse.lessonDays || []).join(', ')} @ {alertModalCourse.lessonStartTime || '18:00'} ({alertModalCourse.timezone || 'EAT'})</p>
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <label className="block text-xs font-bold uppercase text-gray-500 mb-1">Optional Message / Lecture Topic</label>
+                                    <textarea 
+                                        value={alertNote}
+                                        onChange={e => setAlertNote(e.target.value)}
+                                        rows={3}
+                                        className="w-full p-2.5 text-xs bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl text-gray-900 dark:text-white outline-none focus:ring-2 focus:ring-violet-500"
+                                        placeholder="e.g. Live class starts in 15 minutes! Please have your environments open."
+                                    />
+                                </div>
+
+                                <div className="flex justify-end gap-2 pt-2 border-t border-gray-100 dark:border-slate-800">
+                                    <button 
+                                        type="button" 
+                                        onClick={() => setAlertModalCourse(null)} 
+                                        className="px-4 py-2 text-xs font-semibold text-gray-600 dark:text-slate-300 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-xl cursor-pointer"
+                                    >
+                                        Cancel
+                                    </button>
+                                    <button 
+                                        type="button" 
+                                        onClick={confirmBroadcastAlert} 
+                                        className="px-5 py-2 bg-violet-600 hover:bg-violet-700 text-white text-xs font-bold rounded-xl flex items-center gap-1.5 shadow-sm cursor-pointer"
+                                    >
+                                        <Send size={13} /> Send Notification
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

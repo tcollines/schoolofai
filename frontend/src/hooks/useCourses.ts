@@ -40,6 +40,7 @@ export const useCourses = (userId: string | undefined) => {
                 // Merge data
                 const formattedCourses: Course[] = (coursesData || []).map((course: any) => {
                     const isNewFormat = Array.isArray(course.modules) && course.modules.length > 0 && 'lessons' in course.modules[0];
+                    const scheduleData = (course.sections && typeof course.sections === 'object' && !Array.isArray(course.sections)) ? course.sections : {};
                     const lessonsCompleted = enrollmentsMap[course.id]?.progress || 0;
                     const examCompleted = !!enrollmentsMap[course.id]?.exam_completed;
                     const progressPct = Math.round(
@@ -82,14 +83,27 @@ export const useCourses = (userId: string | undefined) => {
                         price: Number(course.price) || 0,
                         platform: course.platform || 'Welile',
                         accessTier: course.accessTier || 'FREE',
-                        sections: isNewFormat ? course.modules : undefined,
+                        sections: isNewFormat ? course.modules : (scheduleData.sections || (Array.isArray(course.sections) ? course.sections : undefined)),
                         modules: !isNewFormat ? course.modules : undefined,
                         quiz: course.quiz,
                         description: course.description,
                         outcomes: course.outcomes,
                         imageScale: course.image_scale !== undefined ? Number(course.image_scale) : 1,
                         imagePositionX: course.image_pos_x !== undefined ? Number(course.image_pos_x) : 50,
-                        imagePositionY: course.image_pos_y !== undefined ? Number(course.image_pos_y) : 50
+                        imagePositionY: course.image_pos_y !== undefined ? Number(course.image_pos_y) : 50,
+                        courseIntroVideoUrl: scheduleData.courseIntroVideoUrl || course.course_intro_video_url || '',
+                        startDate: scheduleData.startDate || course.start_date || '',
+                        endDate: scheduleData.endDate || course.end_date || '',
+                        lessonDays: scheduleData.lessonDays || course.lesson_days || ['Monday', 'Wednesday', 'Friday'],
+                        lessonStartTime: scheduleData.lessonStartTime || course.lesson_start_time || '18:00',
+                        lessonEndTime: scheduleData.lessonEndTime || course.lesson_end_time || '20:00',
+                        timezone: scheduleData.timezone || course.timezone || 'EAT (UTC+3)',
+                        meetingLink: scheduleData.meetingLink || course.meeting_link || '',
+                        attendanceCode: scheduleData.attendanceCode || course.attendance_code || '',
+                        cohortName: scheduleData.cohortName || course.cohort_name || 'Cohort 1',
+                        cohorts: scheduleData.cohorts || course.cohorts || [],
+                        quizDate: scheduleData.quizDate || course.quiz_date || '',
+                        examDate: scheduleData.examDate || course.exam_date || ''
                     };
                 });
 

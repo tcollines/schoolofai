@@ -45,6 +45,7 @@ export interface CourseModule {
   scheduledEndTime?: string;
   meetLink?: string;
   isFinalExam?: boolean;
+  attendanceCode?: string;
 }
 
 export interface CourseSection {
@@ -131,6 +132,18 @@ export interface Course {
   examMarksReleased?: boolean;
   quizScore?: number;
   finalScore?: number;
+  startDate?: string;
+  endDate?: string;
+  lessonDays?: string[];
+  lessonStartTime?: string;
+  lessonEndTime?: string;
+  timezone?: string;
+  meetingLink?: string;
+  attendanceCode?: string;
+  cohortName?: string;
+  cohorts?: { id: string; name: string; startDate: string; endDate: string }[];
+  quizDate?: string;
+  examDate?: string;
 }
 
 // Cohort-Based LMS Interfaces

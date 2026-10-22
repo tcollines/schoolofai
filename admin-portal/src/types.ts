@@ -31,6 +31,8 @@ export interface CourseModule {
   content?: string;
   quizTimer?: number;
   quizQuestions?: Question[];
+  attendanceCode?: string;
+  scheduledDate?: string;
 }
 
 export interface CourseSection {
@@ -95,6 +97,19 @@ export interface Course {
   examMarksReleased?: boolean;
   quizScore?: number;
   finalScore?: number;
+  courseIntroVideoUrl?: string;
+  startDate?: string;
+  endDate?: string;
+  lessonDays?: string[];
+  lessonStartTime?: string;
+  lessonEndTime?: string;
+  timezone?: string;
+  meetingLink?: string;
+  attendanceCode?: string;
+  cohortName?: string;
+  cohorts?: { id: string; name: string; startDate: string; endDate: string }[];
+  quizDate?: string;
+  examDate?: string;
 }
 
 export interface UserProfile {
