@@ -525,6 +525,61 @@ const AdminCourseSetupWizard: React.FC<AdminCourseSetupWizardProps> = ({ isInstr
     const [isGeneratingAI, setIsGeneratingAI] = useState(false);
     const [expandedQuizIndex, setExpandedQuizIndex] = useState<number | null>(null);
 
+    const [successModal, setSuccessModal] = useState<{
+        isOpen: boolean;
+        courseId: string;
+        courseTitle: string;
+        cohortName: string;
+        startDate: string;
+        endDate: string;
+        duration: string;
+        attendanceCode: string;
+        meetingLink: string;
+        image: string;
+        category: string;
+        level: string;
+        isDraft: boolean;
+        isEdit: boolean;
+        countdown: number;
+    } | null>(null);
+    const [copiedSuccessPin, setCopiedSuccessPin] = useState(false);
+
+    const getCoursesRoute = () => {
+        const isUnderAdminPrefix = window.location.pathname.startsWith('/admin');
+        if (isInstructor) return '/instructor/courses';
+        return isUnderAdminPrefix ? '/admin/courses' : '/courses';
+    };
+
+    const handleTriggerImmediateOpen = () => {
+        if (!successModal) return;
+        const targetId = successModal.courseId;
+        const targetUrl = targetId 
+            ? `${getCoursesRoute()}?openCourseId=${targetId}` 
+            : getCoursesRoute();
+        setSuccessModal(null);
+        navigate(targetUrl);
+    };
+
+    const handleTriggerCatalog = () => {
+        setSuccessModal(null);
+        navigate(getCoursesRoute());
+    };
+
+    useEffect(() => {
+        if (!successModal || !successModal.isOpen) return;
+
+        if (successModal.countdown <= 0) {
+            handleTriggerImmediateOpen();
+            return;
+        }
+
+        const timer = setTimeout(() => {
+            setSuccessModal(prev => prev ? { ...prev, countdown: prev.countdown - 1 } : null);
+        }, 1000);
+
+        return () => clearTimeout(timer);
+    }, [successModal?.isOpen, successModal?.countdown]);
+
     const [newCourse, setNewCourse] = useState<Partial<Course>>({
         title: '',
         instructor: '',
@@ -580,8 +635,8 @@ const AdminCourseSetupWizard: React.FC<AdminCourseSetupWizardProps> = ({ isInstr
                     imagePositionX: courseToEdit.imagePositionX || 50,
                     imagePositionY: courseToEdit.imagePositionY || 50,
                     courseIntroVideoUrl: courseToEdit.courseIntroVideoUrl || '',
-                    startDate: courseToEdit.startDate || '2026-11-15',
-                    endDate: courseToEdit.endDate || '2026-12-01',
+                    startDate: courseToEdit.startDate || '',
+                    endDate: courseToEdit.endDate || '',
                     lessonDays: courseToEdit.lessonDays || ['Monday', 'Wednesday', 'Friday'],
                     lessonStartTime: courseToEdit.lessonStartTime || '18:00',
                     lessonEndTime: courseToEdit.lessonEndTime || '20:00',
@@ -590,8 +645,8 @@ const AdminCourseSetupWizard: React.FC<AdminCourseSetupWizardProps> = ({ isInstr
                     attendanceCode: courseToEdit.attendanceCode || 'WEL-' + Math.floor(1000 + Math.random() * 9000),
                     cohortName: courseToEdit.cohortName || 'Cohort 1',
                     cohorts: courseToEdit.cohorts || [],
-                    quizDate: courseToEdit.quizDate || '2026-11-25',
-                    examDate: courseToEdit.examDate || '2026-12-01',
+                    quizDate: courseToEdit.quizDate || '',
+                    examDate: courseToEdit.examDate || '',
                     sections: courseToEdit.sections && courseToEdit.sections.length > 0
                         ? courseToEdit.sections
                         : (courseToEdit.modules ? [{ id: 's1', title: 'Course Modules', lessons: courseToEdit.modules }] : [])
@@ -642,6 +697,11 @@ const AdminCourseSetupWizard: React.FC<AdminCourseSetupWizardProps> = ({ isInstr
         }
 
         if (targetStep === 4) {
+            if (newCourse.startDate && newCourse.endDate) {
+                if (new Date(newCourse.endDate).getTime() < new Date(newCourse.startDate).getTime()) {
+                    return { valid: false, message: 'Step 4 Date Conflict: Lessons End Date cannot be earlier than Lessons Start Date.' };
+                }
+            }
             if (!newCourse.sections || newCourse.sections.length === 0) {
                 return { valid: false, message: 'Please add at least one Module/Section in Step 4 before publishing.' };
             }
@@ -851,7 +911,7 @@ const AdminCourseSetupWizard: React.FC<AdminCourseSetupWizardProps> = ({ isInstr
                 body: JSON.stringify({
                     tutorEmail,
                     courseTitle: newCourse.title || 'Live Cohort Class',
-                    startDate: newCourse.startDate || '2026-11-15',
+                    startDate: newCourse.startDate || new Date().toISOString().split('T')[0],
                     startTime: newCourse.lessonStartTime || '18:00',
                     endTime: newCourse.lessonEndTime || '20:00',
                     timezone: newCourse.timezone || 'EAT (UTC+3)'
@@ -931,6 +991,15 @@ const AdminCourseSetupWizard: React.FC<AdminCourseSetupWizardProps> = ({ isInstr
             }
         }
 
+        // Validate date order if dates are provided
+        if (newCourse.startDate && newCourse.endDate) {
+            if (new Date(newCourse.endDate).getTime() < new Date(newCourse.startDate).getTime()) {
+                setValidationError('Step 4 Date Conflict: Lessons End Date cannot be earlier than Lessons Start Date.');
+                setStep(4);
+                return;
+            }
+        }
+
         try {
             setIsSaving(true);
             const courseData = {
@@ -966,20 +1035,36 @@ const AdminCourseSetupWizard: React.FC<AdminCourseSetupWizardProps> = ({ isInstr
                 examDate: newCourse.examDate || ''
             };
 
+            let savedResult: any = null;
             if (isEditMode && editingCourseId) {
-                await updateCourse(editingCourseId, courseData);
-                alert(publish 
-                    ? (isInstructor ? 'Course submitted for admin verification!' : 'Course updated successfully!') 
-                    : 'Draft changes saved successfully!');
+                savedResult = await updateCourse(editingCourseId, courseData);
             } else {
-                await addCourse(courseData);
-                alert(publish 
-                    ? (isInstructor ? 'Course submitted for admin verification!' : 'Course created successfully!') 
-                    : 'Draft course saved successfully!');
+                savedResult = await addCourse(courseData);
             }
+
+            const targetCourseId = savedResult?.id || editingCourseId || '';
+
+            // Beautiful success modal with automated countdown to open the course
+            setSuccessModal({
+                isOpen: true,
+                courseId: targetCourseId,
+                courseTitle: courseData.title,
+                cohortName: courseData.cohortName,
+                startDate: courseData.startDate,
+                endDate: courseData.endDate,
+                duration: courseData.duration,
+                attendanceCode: courseData.attendanceCode,
+                meetingLink: courseData.meetingLink,
+                image: courseData.image,
+                category: courseData.category,
+                level: courseData.level || 'Beginner',
+                isDraft: !publish,
+                isEdit: Boolean(isEditMode && editingCourseId),
+                countdown: 3
+            });
+
             setEditingCourseId(null);
             setStep(1);
-            navigate(isInstructor ? '/instructor/courses' : '/courses');
         } catch (e: any) {
             setValidationError(`Error saving course: ${e?.message || e}`);
             console.error('Save error:', e);
@@ -1472,7 +1557,20 @@ const AdminCourseSetupWizard: React.FC<AdminCourseSetupWizardProps> = ({ isInstr
                                         <input 
                                             type="date" 
                                             value={newCourse.startDate || ''} 
-                                            onChange={e => setNewCourse({...newCourse, startDate: e.target.value})} 
+                                            max={newCourse.endDate || undefined}
+                                            onChange={e => {
+                                                const val = e.target.value;
+                                                setNewCourse(prev => {
+                                                    const updated = { ...prev, startDate: val };
+                                                    if (updated.endDate && val && val > updated.endDate) {
+                                                        updated.endDate = val;
+                                                    }
+                                                    return updated;
+                                                });
+                                                if (validationError && validationError.includes('Date')) {
+                                                    setValidationError(null);
+                                                }
+                                            }} 
                                             className="w-full p-2.5 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl text-sm font-medium text-gray-900 dark:text-white outline-none focus:ring-2 focus:ring-violet-500" 
                                         />
                                     </div>
@@ -1485,11 +1583,36 @@ const AdminCourseSetupWizard: React.FC<AdminCourseSetupWizardProps> = ({ isInstr
                                         <input 
                                             type="date" 
                                             value={newCourse.endDate || ''} 
-                                            onChange={e => setNewCourse({...newCourse, endDate: e.target.value})} 
+                                            min={newCourse.startDate || undefined}
+                                            onChange={e => {
+                                                const val = e.target.value;
+                                                setNewCourse(prev => {
+                                                    const updated = { ...prev, endDate: val };
+                                                    if (updated.startDate && val && val < updated.startDate) {
+                                                        updated.startDate = val;
+                                                    }
+                                                    return updated;
+                                                });
+                                                if (validationError && validationError.includes('Date')) {
+                                                    setValidationError(null);
+                                                }
+                                            }} 
                                             className="w-full p-2.5 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl text-sm font-medium text-gray-900 dark:text-white outline-none focus:ring-2 focus:ring-violet-500" 
                                         />
                                     </div>
                                 </div>
+
+                                {/* Cohort Duration & Summary Bar */}
+                                {newCourse.startDate && newCourse.endDate && (
+                                    <div className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-violet-50/70 dark:bg-violet-950/30 border border-violet-100 dark:border-violet-900/40 text-violet-700 dark:text-violet-300 text-xs font-medium">
+                                        <Calendar size={13} className="shrink-0 text-violet-600 dark:text-violet-400" />
+                                        <span>
+                                            Cohort Live Duration: <strong>{
+                                                Math.max(1, Math.round((new Date(newCourse.endDate).getTime() - new Date(newCourse.startDate).getTime()) / (1000 * 60 * 60 * 24)))
+                                            } days</strong> ({new Date(newCourse.startDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })} to {new Date(newCourse.endDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })})
+                                        </span>
+                                    </div>
+                                )}
 
                                 {/* Days of the week */}
                                 <div>
@@ -1871,7 +1994,8 @@ const AdminCourseSetupWizard: React.FC<AdminCourseSetupWizardProps> = ({ isInstr
                                         </label>
                                         <input 
                                             type="date" 
-                                            value={newCourse.examDate || '2026-12-01'} 
+                                            value={newCourse.examDate || ''} 
+                                            min={newCourse.startDate || undefined}
                                             onChange={e => setNewCourse({...newCourse, examDate: e.target.value})} 
                                             className="w-full p-2.5 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl text-sm font-semibold text-gray-900 dark:text-white outline-none focus:ring-2 focus:ring-purple-500" 
                                         />
@@ -2403,6 +2527,148 @@ const AdminCourseSetupWizard: React.FC<AdminCourseSetupWizardProps> = ({ isInstr
                         <div className="w-16 h-16 border-4 border-violet-100 border-t-violet-600 rounded-full animate-spin mb-6"></div>
                         <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Publishing Course</h3>
                         <p className="text-gray-500 dark:text-slate-400 text-center text-sm">Please wait while we configure the live Google Meet cohort, modules syllabus, and save the course...</p>
+                    </div>
+                </div>
+            )}
+
+            {/* Beautiful Success Toast / Modal with Automated Course Opening */}
+            {successModal && successModal.isOpen && (
+                <div className="fixed inset-0 bg-black/75 backdrop-blur-md z-[200] flex items-center justify-center p-4 animate-in fade-in duration-200">
+                    <div className="bg-white dark:bg-slate-900 border border-emerald-500/30 dark:border-emerald-600/40 rounded-3xl w-full max-w-lg overflow-hidden shadow-2xl animate-in fade-in zoom-in-95 duration-300 relative">
+                        {/* Top Accent Gradient Bar */}
+                        <div className="h-2.5 bg-gradient-to-r from-emerald-500 via-teal-500 to-violet-600"></div>
+
+                        <div className="p-6 md:p-8 space-y-5">
+                            {/* Header Section */}
+                            <div className="flex items-start gap-4">
+                                <div className="w-12 h-12 rounded-2xl bg-emerald-100 dark:bg-emerald-950/60 border border-emerald-300 dark:border-emerald-700/50 flex items-center justify-center text-emerald-600 dark:text-emerald-400 shrink-0 shadow-md shadow-emerald-500/10">
+                                    <CheckCircle2 size={28} className="animate-bounce" />
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                    <div className="flex items-center gap-2">
+                                        <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold tracking-wide uppercase bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800">
+                                            {successModal.isDraft ? 'Draft Saved' : (successModal.isEdit ? 'Course Updated' : 'Success')}
+                                        </span>
+                                        <span className="text-xs text-amber-600 dark:text-amber-400 font-semibold flex items-center gap-1">
+                                            <Sparkles size={12} /> Cohort Initialized
+                                        </span>
+                                    </div>
+                                    <h2 className="text-xl font-bold text-gray-900 dark:text-white mt-1">
+                                        {successModal.isDraft
+                                            ? 'Draft Saved Successfully!' 
+                                            : (successModal.isEdit ? 'Course Updated Successfully!' : 'Course Created & Published!')}
+                                    </h2>
+                                    <p className="text-xs text-gray-500 dark:text-slate-400 mt-0.5">
+                                        {successModal.isDraft 
+                                            ? 'Course draft has been recorded in database.' 
+                                            : 'Modules, attendance PINs, and relational cohort sessions are synchronized.'}
+                                    </p>
+                                </div>
+                            </div>
+
+                            {/* Course Snapshot Card */}
+                            <div className="bg-gray-50 dark:bg-slate-850 rounded-2xl p-4 border border-gray-150 dark:border-slate-800 space-y-3">
+                                <div className="flex items-center gap-3">
+                                    {successModal.image ? (
+                                        <img src={successModal.image} alt="Course cover" className="w-14 h-14 rounded-xl object-cover shrink-0 border border-gray-200 dark:border-slate-700 shadow-sm" />
+                                    ) : (
+                                        <div className="w-14 h-14 rounded-xl bg-violet-100 dark:bg-violet-950/60 text-violet-600 dark:text-violet-400 flex items-center justify-center shrink-0">
+                                            <BookOpen size={24} />
+                                        </div>
+                                    )}
+                                    <div className="min-w-0 flex-1">
+                                        <h4 className="text-sm font-bold text-gray-900 dark:text-white truncate">
+                                            {successModal.courseTitle}
+                                        </h4>
+                                        <div className="flex flex-wrap items-center gap-2 mt-1 text-[11px] text-gray-500 dark:text-slate-400">
+                                            <span className="px-2 py-0.5 rounded bg-gray-200 dark:bg-slate-750 text-gray-700 dark:text-slate-300 font-medium">
+                                                {successModal.category || 'General'}
+                                            </span>
+                                            <span>•</span>
+                                            <span className="font-semibold text-violet-600 dark:text-violet-400">
+                                                {successModal.duration || '4 Weeks'}
+                                            </span>
+                                            <span>•</span>
+                                            <span>{successModal.level}</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="grid grid-cols-2 gap-2 pt-2 border-t border-gray-200/60 dark:border-slate-750 text-xs">
+                                    <div className="bg-white dark:bg-slate-900 p-2.5 rounded-xl border border-gray-100 dark:border-slate-800">
+                                        <span className="text-[10px] uppercase font-bold text-gray-400 block mb-0.5">Live Cohort</span>
+                                        <span className="font-semibold text-gray-800 dark:text-slate-200 truncate block">
+                                            {successModal.cohortName || 'Cohort 1'}
+                                        </span>
+                                    </div>
+                                    <div className="bg-white dark:bg-slate-900 p-2.5 rounded-xl border border-gray-100 dark:border-slate-800">
+                                        <span className="text-[10px] uppercase font-bold text-gray-400 block mb-0.5">Attendance PIN</span>
+                                        <div className="flex items-center justify-between">
+                                            <span className="font-mono font-bold text-violet-600 dark:text-violet-400">
+                                                {successModal.attendanceCode}
+                                            </span>
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    navigator.clipboard.writeText(successModal.attendanceCode);
+                                                    setCopiedSuccessPin(true);
+                                                    setTimeout(() => setCopiedSuccessPin(false), 1500);
+                                                }}
+                                                className="p-1 hover:bg-gray-100 dark:hover:bg-slate-800 rounded text-gray-400 hover:text-gray-600 cursor-pointer"
+                                                title="Copy Attendance PIN"
+                                            >
+                                                {copiedSuccessPin ? <Check size={12} className="text-emerald-500" /> : <Copy size={12} />}
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {successModal.startDate && (
+                                    <div className="text-[11px] text-gray-500 dark:text-slate-400 flex items-center gap-1.5 px-1 pt-0.5">
+                                        <Calendar size={12} className="text-violet-500 shrink-0" />
+                                        <span>Cohort Dates: <strong>{successModal.startDate}</strong> {successModal.endDate ? `till ${successModal.endDate}` : ''}</span>
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Auto-Open Countdown Progress Banner */}
+                            <div className="space-y-2 bg-emerald-50/70 dark:bg-emerald-950/25 p-3.5 rounded-2xl border border-emerald-100 dark:border-emerald-900/40">
+                                <div className="flex items-center justify-between text-xs">
+                                    <span className="text-emerald-800 dark:text-emerald-300 font-semibold flex items-center gap-1.5">
+                                        <Loader2 size={13} className="animate-spin text-emerald-600" />
+                                        Automatically opening course overview...
+                                    </span>
+                                    <span className="font-bold text-emerald-700 dark:text-emerald-400 font-mono text-xs">
+                                        {successModal.countdown}s
+                                    </span>
+                                </div>
+                                <div className="w-full bg-emerald-200 dark:bg-emerald-900/50 h-1.5 rounded-full overflow-hidden">
+                                    <div 
+                                        className="bg-emerald-500 h-full rounded-full transition-all duration-1000 ease-linear"
+                                        style={{ width: `${Math.max(5, (successModal.countdown / 3) * 100)}%` }}
+                                    />
+                                </div>
+                            </div>
+
+                            {/* Action Buttons */}
+                            <div className="flex flex-col sm:flex-row gap-2.5 pt-1">
+                                <button
+                                    type="button"
+                                    onClick={handleTriggerImmediateOpen}
+                                    className="flex-1 py-3 px-4 bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 text-white font-bold rounded-2xl shadow-lg shadow-violet-500/25 flex items-center justify-center gap-2 text-sm transition-all transform active:scale-95 cursor-pointer"
+                                >
+                                    <span>Open Course Now</span>
+                                    <ArrowRight size={15} />
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={handleTriggerCatalog}
+                                    className="py-3 px-4 bg-gray-100 dark:bg-slate-800 hover:bg-gray-200 dark:hover:bg-slate-750 text-gray-700 dark:text-slate-300 font-semibold rounded-2xl text-xs transition-colors cursor-pointer"
+                                >
+                                    Courses Catalog
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 </div>
             )}
