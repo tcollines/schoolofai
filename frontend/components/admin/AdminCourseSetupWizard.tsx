@@ -69,6 +69,72 @@ export const broadcastLessonNotification = (
     }
 };
 
+export const CADENCE_PRESETS = [
+    { label: 'Weekdays Daily', days: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'] },
+    { label: 'Mon / Wed / Fri', days: ['Monday', 'Wednesday', 'Friday'] },
+    { label: 'Tue / Thu / Sat', days: ['Tuesday', 'Thursday', 'Saturday'] },
+    { label: 'Weekend Cohort', days: ['Saturday', 'Sunday'] },
+    { label: 'Saturday Masterclass', days: ['Saturday'] }
+];
+
+export const calculateLessonSchedule = (
+    startDateStr?: string,
+    lessonDays: string[] = ['Monday', 'Wednesday', 'Friday'],
+    lessonIndex: number = 0,
+    startTime: string = '18:00',
+    endTime: string = '20:00',
+    tz: string = 'EAT (UTC+3)'
+): { dateStr: string; timeStr: string } => {
+    if (!startDateStr) {
+        return {
+            dateStr: `Session ${lessonIndex + 1}`,
+            timeStr: `${startTime} - ${endTime} (${tz})`
+        };
+    }
+
+    const dayNameToNum: Record<string, number> = {
+        Sunday: 0, Monday: 1, Tuesday: 2, Wednesday: 3, Thursday: 4, Friday: 5, Saturday: 6
+    };
+
+    const targetDayNums = (lessonDays && lessonDays.length > 0 ? lessonDays : ['Monday', 'Wednesday', 'Friday'])
+        .map(d => dayNameToNum[d] ?? 1);
+
+    const base = new Date(startDateStr);
+    if (isNaN(base.getTime())) {
+        return {
+            dateStr: `Session ${lessonIndex + 1}`,
+            timeStr: `${startTime} - ${endTime} (${tz})`
+        };
+    }
+
+    let current = new Date(base);
+    let matchedCount = 0;
+    let guard = 0;
+
+    while (guard < 180) {
+        const dayOfWeek = current.getDay();
+        if (targetDayNums.includes(dayOfWeek)) {
+            if (matchedCount === lessonIndex) {
+                break;
+            }
+            matchedCount++;
+        }
+        current.setDate(current.getDate() + 1);
+        guard++;
+    }
+
+    const dateStr = current.toLocaleDateString('en-US', {
+        weekday: 'short',
+        month: 'short',
+        day: 'numeric'
+    });
+
+    return {
+        dateStr,
+        timeStr: `${startTime} - ${endTime} (${tz})`
+    };
+};
+
 const DAYS_OF_WEEK = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 const TIMEZONES = ['EAT (UTC+3)', 'UTC+0 (GMT)', 'CAT (UTC+2)', 'WAT (UTC+1)', 'EST (UTC-5)', 'PST (UTC-8)', 'IST (UTC+5:30)'];
 
@@ -1614,30 +1680,59 @@ const AdminCourseSetupWizard: React.FC<AdminCourseSetupWizardProps> = ({ isInstr
                                     </div>
                                 )}
 
-                                {/* Days of the week */}
-                                <div>
-                                    <div className="flex items-center justify-between mb-2">
-                                        <label className="block text-xs font-bold uppercase text-gray-500">Live Lesson Days of the Week</label>
-                                        <span className="text-[11px] text-gray-400">Click to select active days</span>
+                                {/* Days of the week & Presets */}
+                                <div className="space-y-3">
+                                    <div>
+                                        <div className="flex items-center justify-between mb-1.5">
+                                            <label className="block text-xs font-bold uppercase text-gray-500">Live Cadence Presets</label>
+                                            <span className="text-[11px] text-gray-400">One-click schedule setup</span>
+                                        </div>
+                                        <div className="flex flex-wrap gap-2">
+                                            {CADENCE_PRESETS.map(preset => {
+                                                const isMatch = preset.days.length === (newCourse.lessonDays || []).length &&
+                                                    preset.days.every(d => (newCourse.lessonDays || []).includes(d));
+                                                return (
+                                                    <button
+                                                        key={preset.label}
+                                                        type="button"
+                                                        onClick={() => setNewCourse(prev => ({ ...prev, lessonDays: [...preset.days] }))}
+                                                        className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                                                            isMatch
+                                                                ? 'bg-violet-600 text-white shadow-sm ring-2 ring-violet-400/40'
+                                                                : 'bg-violet-50 dark:bg-violet-950/40 text-violet-700 dark:text-violet-300 hover:bg-violet-100 dark:hover:bg-violet-900/60 border border-violet-100 dark:border-violet-900/40'
+                                                        }`}
+                                                    >
+                                                        {preset.label}
+                                                    </button>
+                                                );
+                                            })}
+                                        </div>
                                     </div>
-                                    <div className="flex flex-wrap gap-2">
-                                        {DAYS_OF_WEEK.map(day => {
-                                            const isSelected = (newCourse.lessonDays || []).includes(day);
-                                            return (
-                                                <button
-                                                    key={day}
-                                                    type="button"
-                                                    onClick={() => toggleDay(day)}
-                                                    className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                                                        isSelected 
-                                                            ? 'bg-violet-600 text-white shadow-sm ring-2 ring-violet-400/30' 
-                                                            : 'bg-gray-100 dark:bg-slate-800 text-gray-600 dark:text-slate-300 hover:bg-gray-200 dark:hover:bg-slate-750'
-                                                    }`}
-                                                >
-                                                    {day}
-                                                </button>
-                                            );
-                                        })}
+
+                                    <div>
+                                        <div className="flex items-center justify-between mb-1.5">
+                                            <label className="block text-xs font-bold uppercase text-gray-500">Active Live Days</label>
+                                            <span className="text-[11px] text-gray-400">Toggle custom days</span>
+                                        </div>
+                                        <div className="flex flex-wrap gap-2">
+                                            {DAYS_OF_WEEK.map(day => {
+                                                const isSelected = (newCourse.lessonDays || []).includes(day);
+                                                return (
+                                                    <button
+                                                        key={day}
+                                                        type="button"
+                                                        onClick={() => toggleDay(day)}
+                                                        className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                                                            isSelected 
+                                                                ? 'bg-violet-600 text-white shadow-sm ring-2 ring-violet-400/30' 
+                                                                : 'bg-gray-100 dark:bg-slate-800 text-gray-600 dark:text-slate-300 hover:bg-gray-200 dark:hover:bg-slate-750'
+                                                        }`}
+                                                    >
+                                                        {day}
+                                                    </button>
+                                                );
+                                            })}
+                                        </div>
                                     </div>
                                 </div>
 
@@ -1897,63 +1992,131 @@ const AdminCourseSetupWizard: React.FC<AdminCourseSetupWizardProps> = ({ isInstr
                                             </div>
 
                                             {/* Topics List for this Module */}
-                                            <div className="p-4 space-y-2.5">
+                                            <div className="p-4 space-y-3">
                                                 {section.lessons.length === 0 && (
-                                                    <p className="text-xs text-gray-400 text-center py-4">No live topics added yet. Click "+ Add Topic" above.</p>
+                                                    <p className="text-xs text-gray-400 text-center py-4">No topics added yet. Click "+ Add Topic" above.</p>
                                                 )}
 
                                                 {section.lessons.map((topic, tIdx) => {
                                                     const isQuiz = topic.type === 'quiz';
+                                                    const isLive = topic.classType !== 'physical' && topic.type !== 'video' && topic.type !== 'document' && !isQuiz;
+                                                    
+                                                    const currentSchedule = isLive ? calculateLessonSchedule(
+                                                        newCourse.startDate,
+                                                        newCourse.lessonDays,
+                                                        tIdx,
+                                                        newCourse.lessonStartTime || '18:00',
+                                                        newCourse.lessonEndTime || '20:00',
+                                                        newCourse.timezone || 'EAT (UTC+3)'
+                                                    ) : null;
+
+                                                    const activeMeetUrl = topic.meetLink || newCourse.meetingLink || '';
+
                                                     return (
                                                         <div 
                                                             key={topic.id} 
-                                                            className={`p-3 rounded-xl border transition-colors flex items-center justify-between gap-3 group ${
+                                                            className={`p-3.5 rounded-2xl border transition-all space-y-2.5 ${
                                                                 isQuiz 
                                                                     ? 'bg-purple-50/40 dark:bg-purple-950/20 border-purple-200 dark:border-purple-900/40' 
-                                                                    : 'bg-white dark:bg-slate-900 border-gray-100 dark:border-slate-800 hover:border-gray-300 dark:hover:border-slate-700'
+                                                                    : isLive
+                                                                        ? 'bg-violet-50/30 dark:bg-slate-900 border-violet-100 dark:border-slate-800 hover:border-violet-300'
+                                                                        : 'bg-white dark:bg-slate-900 border-gray-150 dark:border-slate-800'
                                                             }`}
                                                         >
-                                                            <div className="flex items-center gap-3 flex-1">
-                                                                <span className={`w-6 h-6 rounded-full flex items-center justify-center text-[11px] font-bold shrink-0 ${
-                                                                    isQuiz 
-                                                                        ? 'bg-purple-100 dark:bg-purple-900 text-purple-700 dark:text-purple-300' 
-                                                                        : 'bg-gray-100 dark:bg-slate-800 text-gray-600 dark:text-slate-400'
-                                                                }`}>
-                                                                    {isQuiz ? 'Q' : tIdx + 1}
-                                                                </span>
-
-                                                                <input 
-                                                                    value={topic.title}
-                                                                    onChange={e => updateTopic(section.id, topic.id, { title: e.target.value })}
-                                                                    className="font-medium text-sm text-gray-800 dark:text-slate-100 bg-transparent flex-1 outline-none border-b border-transparent focus:border-violet-400 py-0.5"
-                                                                    placeholder={isQuiz ? "Quiz Title" : "Topic title / live lecture subject"}
-                                                                />
-                                                                {!isQuiz && (
-                                                                    <span className="hidden sm:inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-violet-50 dark:bg-violet-950/50 text-violet-700 dark:text-violet-300 border border-violet-200/60 dark:border-violet-800/60 shrink-0" title="Auto-generated attendance code for this live lesson">
-                                                                        <Key size={10} /> {topic.attendanceCode || 'Auto-PIN'}
+                                                            {/* Top Row: Title, Type Selector, Duration, Delete */}
+                                                            <div className="flex items-center justify-between gap-3">
+                                                                <div className="flex items-center gap-3 flex-1">
+                                                                    <span className={`w-6 h-6 rounded-full flex items-center justify-center text-[11px] font-bold shrink-0 ${
+                                                                        isQuiz 
+                                                                            ? 'bg-purple-100 dark:bg-purple-900 text-purple-700 dark:text-purple-300' 
+                                                                            : isLive
+                                                                                ? 'bg-violet-600 text-white'
+                                                                                : 'bg-gray-100 dark:bg-slate-800 text-gray-600 dark:text-slate-400'
+                                                                    }`}>
+                                                                        {isQuiz ? 'Q' : tIdx + 1}
                                                                     </span>
-                                                                )}
-                                                            </div>
 
-                                                            <div className="flex items-center gap-3 shrink-0">
-                                                                <div className="flex items-center gap-1 text-gray-400 text-xs">
-                                                                    <Clock size={12} />
                                                                     <input 
-                                                                        value={topic.duration || (isQuiz ? '15m' : '45m')}
-                                                                        onChange={e => updateTopic(section.id, topic.id, { duration: e.target.value })}
-                                                                        className="w-16 text-xs p-1 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded text-center text-gray-700 dark:text-slate-300 font-medium outline-none"
-                                                                        placeholder="45m"
+                                                                        value={topic.title}
+                                                                        onChange={e => updateTopic(section.id, topic.id, { title: e.target.value })}
+                                                                        className="font-semibold text-sm text-gray-900 dark:text-slate-100 bg-transparent flex-1 outline-none border-b border-transparent focus:border-violet-400 py-0.5"
+                                                                        placeholder={isQuiz ? "Quiz Title" : "Topic title / live lecture subject"}
                                                                     />
                                                                 </div>
 
-                                                                <button 
-                                                                    onClick={() => removeTopic(section.id, topic.id)} 
-                                                                    className="text-gray-300 hover:text-red-500 opacity-60 group-hover:opacity-100 transition-opacity p-1 cursor-pointer"
-                                                                    title="Delete Topic"
-                                                                >
-                                                                    <Trash2 size={14} />
-                                                                </button>
+                                                                <div className="flex items-center gap-2 shrink-0">
+                                                                    {!isQuiz && (
+                                                                        <button
+                                                                            type="button"
+                                                                            onClick={() => {
+                                                                                const nextType = isLive ? 'video' : 'article';
+                                                                                const nextClassType = isLive ? 'none' : 'online';
+                                                                                updateTopic(section.id, topic.id, { type: nextType, classType: nextClassType });
+                                                                            }}
+                                                                            className={`px-2.5 py-1 rounded-lg text-[10px] font-extrabold uppercase transition-colors cursor-pointer ${
+                                                                                isLive 
+                                                                                    ? 'bg-violet-100 dark:bg-violet-950/60 text-violet-700 dark:text-violet-300 hover:bg-violet-200' 
+                                                                                    : 'bg-gray-100 dark:bg-slate-800 text-gray-600 dark:text-slate-300 hover:bg-gray-200'
+                                                                            }`}
+                                                                            title="Click to toggle between Live Class and Self-Paced"
+                                                                        >
+                                                                            {isLive ? '🎙️ Live Class' : '🎥 Self-Paced'}
+                                                                        </button>
+                                                                    )}
+
+                                                                    <div className="flex items-center gap-1 text-gray-400 text-xs">
+                                                                        <Clock size={12} />
+                                                                        <input 
+                                                                            value={topic.duration || (isQuiz ? '15m' : '45m')}
+                                                                            onChange={e => updateTopic(section.id, topic.id, { duration: e.target.value })}
+                                                                            className="w-14 text-xs p-1 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded text-center text-gray-700 dark:text-slate-300 font-medium outline-none"
+                                                                            placeholder="45m"
+                                                                        />
+                                                                    </div>
+
+                                                                    <button 
+                                                                        onClick={() => removeTopic(section.id, topic.id)} 
+                                                                        className="text-gray-300 hover:text-red-500 transition-colors p-1 cursor-pointer"
+                                                                        title="Delete Topic"
+                                                                    >
+                                                                        <Trash2 size={14} />
+                                                                    </button>
+                                                                </div>
                                                             </div>
+
+                                                            {/* Bottom Row for Live Lesson: Auto-Calculated Date, Attendance PIN, and Direct Join Call Link */}
+                                                            {isLive && (
+                                                                <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-violet-100/70 dark:border-slate-800 text-xs">
+                                                                    <div className="flex flex-wrap items-center gap-2">
+                                                                        {currentSchedule && (
+                                                                            <span className="flex items-center gap-1 text-violet-700 dark:text-violet-300 font-semibold bg-violet-50 dark:bg-violet-950/50 px-2.5 py-1 rounded-lg">
+                                                                                <Calendar size={11} /> {currentSchedule.dateStr} @ {currentSchedule.timeStr}
+                                                                            </span>
+                                                                        )}
+
+                                                                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-mono font-bold bg-white dark:bg-slate-800 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800/60 shadow-2xs">
+                                                                            <Key size={11} /> PIN: {topic.attendanceCode || 'Auto-PIN'}
+                                                                        </span>
+                                                                    </div>
+
+                                                                    {/* Follow Link to Join Call */}
+                                                                    {activeMeetUrl ? (
+                                                                        <a 
+                                                                            href={activeMeetUrl}
+                                                                            target="_blank" 
+                                                                            rel="noopener noreferrer"
+                                                                            className="text-emerald-700 dark:text-emerald-400 font-bold hover:underline flex items-center gap-1.5 text-xs bg-emerald-50 dark:bg-emerald-950/40 px-2.5 py-1 rounded-lg border border-emerald-200 dark:border-emerald-900/50 cursor-pointer"
+                                                                            title="Follow link to join Google Meet call directly"
+                                                                        >
+                                                                            <Radio size={12} className="animate-pulse text-emerald-600" />
+                                                                            <span>Follow link to join call</span>
+                                                                            <ExternalLink size={11} />
+                                                                        </a>
+                                                                    ) : (
+                                                                        <span className="text-gray-400 text-[11px] italic">Inherits cohort Meet link once set</span>
+                                                                    )}
+                                                                </div>
+                                                            )}
                                                         </div>
                                                     );
                                                 })}
@@ -1962,7 +2125,7 @@ const AdminCourseSetupWizard: React.FC<AdminCourseSetupWizardProps> = ({ isInstr
                                                     onClick={() => addTopic(section.id)} 
                                                     className="w-full py-2.5 border border-dashed border-gray-200 dark:border-slate-800 rounded-xl text-xs font-bold text-gray-500 dark:text-slate-400 hover:border-violet-400 hover:text-violet-600 dark:hover:text-violet-400 flex items-center justify-center gap-1.5 transition-colors cursor-pointer mt-2"
                                                 >
-                                                    <Plus size={14} /> Add Another Live Topic
+                                                    <Plus size={14} /> Add Another Topic
                                                 </button>
                                             </div>
                                         </div>

@@ -540,7 +540,7 @@ const AdminCourses: React.FC<AdminCoursesProps> = ({ isInstructor = false }) => 
                                                 <Calendar size={12} className="text-violet-500" /> Period:
                                             </span>
                                             <span className="font-bold">
-                                                {c.startDate || '15 Nov 2026'} - {c.endDate || '01 Dec 2026'}
+                                                {c.startDate ? `${c.startDate} - ${c.endDate || 'Ongoing'}` : 'Schedule to be set'}
                                             </span>
                                         </div>
 
@@ -1330,19 +1330,47 @@ const AdminCourses: React.FC<AdminCoursesProps> = ({ isInstructor = false }) => 
                                                 <span className="text-[11px] text-gray-400 font-normal">{sec.lessons?.length || 0} topics</span>
                                             </div>
                                             <div className="space-y-1 pl-2">
-                                                {(sec.lessons || []).map((les, lIdx) => (
-                                                    <div key={les.id || lIdx} className="flex items-center justify-between text-xs py-1 border-t border-gray-200/50 dark:border-slate-800 text-gray-600 dark:text-slate-400">
-                                                        <span className="truncate pr-2">• {les.title}</span>
-                                                        <div className="flex items-center gap-2 shrink-0">
-                                                            {les.attendanceCode && (
-                                                                <span className="font-mono text-[10px] text-purple-600 dark:text-purple-400 font-bold bg-purple-50 dark:bg-purple-950/50 px-1.5 py-0.5 rounded">
-                                                                    {les.attendanceCode}
-                                                                </span>
-                                                            )}
-                                                            <span className="text-[11px] text-gray-400">{les.duration || '30m'}</span>
+                                                {(sec.lessons || []).map((les, lIdx) => {
+                                                    const isLive = les.classType === 'online' || les.meetLink || Boolean(detailsModalCourse.meetingLink && les.type !== 'quiz');
+                                                    const meetUrl = les.meetLink || detailsModalCourse.meetingLink || '';
+                                                    return (
+                                                        <div key={les.id || lIdx} className="flex items-center justify-between text-xs py-1.5 border-t border-gray-200/50 dark:border-slate-800 text-gray-600 dark:text-slate-400">
+                                                            <div className="flex items-center gap-2 truncate pr-2">
+                                                                {isLive ? (
+                                                                    <Radio size={12} className="text-violet-600 shrink-0 animate-pulse" />
+                                                                ) : (
+                                                                    <span className="w-1.5 h-1.5 rounded-full bg-gray-400 shrink-0"></span>
+                                                                )}
+                                                                <span className="truncate">{les.title}</span>
+                                                                {isLive && (
+                                                                    <span className="px-1.5 py-0.5 rounded text-[9px] font-bold uppercase bg-violet-100 dark:bg-violet-950/60 text-violet-700 dark:text-violet-300 shrink-0">
+                                                                        Live
+                                                                    </span>
+                                                                )}
+                                                            </div>
+                                                            <div className="flex items-center gap-2 shrink-0">
+                                                                {les.attendanceCode && (
+                                                                    <span className="font-mono text-[10px] text-purple-600 dark:text-purple-400 font-bold bg-purple-50 dark:bg-purple-950/50 px-1.5 py-0.5 rounded">
+                                                                        PIN: {les.attendanceCode}
+                                                                    </span>
+                                                                )}
+                                                                {isLive && meetUrl && (
+                                                                    <a 
+                                                                        href={meetUrl} 
+                                                                        target="_blank" 
+                                                                        rel="noopener noreferrer" 
+                                                                        className="px-2.5 py-1 text-[11px] font-bold bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-100 dark:hover:bg-emerald-900/60 rounded-lg border border-emerald-200 dark:border-emerald-900/50 flex items-center gap-1 cursor-pointer transition-colors"
+                                                                        title="Follow link to join live Google Meet call"
+                                                                    >
+                                                                        <span>Join Call</span>
+                                                                        <ExternalLink size={10} />
+                                                                    </a>
+                                                                )}
+                                                                <span className="text-[11px] text-gray-400">{les.duration || '30m'}</span>
+                                                            </div>
                                                         </div>
-                                                    </div>
-                                                ))}
+                                                    );
+                                                })}
                                             </div>
                                         </div>
                                     ))}

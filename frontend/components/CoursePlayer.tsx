@@ -1,5 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowLeft, FileText, CheckCircle, ChevronRight, Headphones, File, Clock, XCircle } from 'lucide-react';
+import { 
+    ArrowLeft, FileText, CheckCircle, ChevronRight, Headphones, File, 
+    Clock, XCircle, Radio, ExternalLink, Copy, Check, Key, Calendar, Sparkles 
+} from 'lucide-react';
 import { CourseModule } from '../types';
 
 interface CoursePlayerProps {
@@ -37,6 +40,40 @@ const CoursePlayer: React.FC<CoursePlayerProps> = ({ module, courseTitle, onBack
     const [timeRemaining, setTimeRemaining] = useState<number>(0);
     const [timerActive, setTimerActive] = useState(false);
     const [quizScore, setQuizScore] = useState<{ score: number; total: number; percentage: number } | null>(null);
+
+    // Live Class & Attendance PIN States
+    const [enteredPin, setEnteredPin] = useState('');
+    const [pinError, setPinError] = useState('');
+    const [pinSuccess, setPinSuccess] = useState(() => {
+        return localStorage.getItem(`attended-${module.id}`) === 'true';
+    });
+    const [copiedPlayerMeet, setCopiedPlayerMeet] = useState(false);
+
+    useEffect(() => {
+        const isAttended = localStorage.getItem(`attended-${module.id}`) === 'true';
+        setPinSuccess(isAttended);
+        if (isAttended) {
+            setIsVideoComplete(true);
+        }
+    }, [module.id]);
+
+    const handleVerifyPin = () => {
+        setPinError('');
+        if (!enteredPin.trim()) {
+            setPinError('Please enter the attendance PIN provided during the live class.');
+            return;
+        }
+        const cleanEntered = enteredPin.trim().toUpperCase();
+        const expected = (module.attendanceCode || '').trim().toUpperCase();
+        // If code matches, or if no specific code is set and length is valid
+        if ((expected && cleanEntered === expected) || (!expected && cleanEntered.length >= 4)) {
+            setPinSuccess(true);
+            setIsVideoComplete(true);
+            localStorage.setItem(`attended-${module.id}`, 'true');
+        } else {
+            setPinError('Invalid attendance PIN. Please check the code announced during class.');
+        }
+    };
 
     // Playback Speed states & ref
     const videoRef = React.useRef<HTMLVideoElement>(null);
@@ -748,6 +785,150 @@ const CoursePlayer: React.FC<CoursePlayerProps> = ({ module, courseTitle, onBack
                         
                         {/* Transcript & Q&A Sidebar */}
                         {renderRightSidebar('text-amber-500', 'prose-amber')}
+                    </>
+                ) : (module.meetLink || module.classType === 'online' || module.attendanceCode) ? (
+                    <>
+                        <div className="flex-1 bg-gray-50 dark:bg-slate-950 overflow-y-auto p-6 md:p-10">
+                            <div className="max-w-4xl mx-auto space-y-6">
+                                {/* Live Class Callout Header */}
+                                <div className="bg-gradient-to-r from-violet-600 via-indigo-600 to-purple-700 rounded-3xl p-6 md:p-8 text-white shadow-xl shadow-violet-500/20 relative overflow-hidden">
+                                    <div className="relative z-10 space-y-4">
+                                        <div className="flex flex-wrap items-center gap-2">
+                                            <span className="px-3 py-1 bg-white/20 backdrop-blur-md rounded-full text-xs font-bold uppercase tracking-wider flex items-center gap-1.5">
+                                                <Radio size={13} className="animate-pulse text-emerald-300" />
+                                                Live Interactive Cohort Class
+                                            </span>
+                                            {module.duration && (
+                                                <span className="px-3 py-1 bg-black/25 backdrop-blur-md rounded-full text-xs font-semibold">
+                                                    {module.duration}
+                                                </span>
+                                            )}
+                                        </div>
+
+                                        <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight">
+                                            {module.title}
+                                        </h1>
+
+                                        <p className="text-violet-100 text-sm md:text-base max-w-2xl leading-relaxed">
+                                            Join your tutor and cohort peers in real-time on Google Meet. Keep your editor or workspace open to code along.
+                                        </p>
+
+                                        {module.scheduledDate && (
+                                            <div className="flex items-center gap-2 text-xs font-semibold text-emerald-300 bg-black/25 backdrop-blur-sm px-3.5 py-2 rounded-xl w-fit">
+                                                <Calendar size={13} />
+                                                <span>Scheduled: {module.scheduledDate}</span>
+                                            </div>
+                                        )}
+
+                                        {/* Google Meet Direct Link & Action */}
+                                        {module.meetLink && (
+                                            <div className="pt-2 flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+                                                <a
+                                                    href={module.meetLink}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="px-7 py-3.5 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-extrabold rounded-2xl shadow-xl shadow-emerald-500/30 flex items-center justify-center gap-2 text-sm transition-all transform hover:scale-105 active:scale-95 cursor-pointer"
+                                                >
+                                                    <Radio size={16} className="animate-pulse" />
+                                                    <span>Join Google Meet Call Now</span>
+                                                    <ExternalLink size={15} />
+                                                </a>
+
+                                                <div className="bg-black/30 backdrop-blur-md px-4 py-2.5 rounded-2xl border border-white/15 flex items-center justify-between gap-3 text-xs">
+                                                    <span className="font-mono text-emerald-300 truncate max-w-xs">{module.meetLink}</span>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => {
+                                                            navigator.clipboard.writeText(module.meetLink || '');
+                                                            setCopiedPlayerMeet(true);
+                                                            setTimeout(() => setCopiedPlayerMeet(false), 1500);
+                                                        }}
+                                                        className="px-2.5 py-1 bg-white/15 hover:bg-white/25 rounded-lg font-semibold flex items-center gap-1 cursor-pointer shrink-0"
+                                                    >
+                                                        {copiedPlayerMeet ? <Check size={12} className="text-emerald-300" /> : <Copy size={12} />}
+                                                        {copiedPlayerMeet ? 'Copied' : 'Copy'}
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+
+                                {/* Attendance PIN Verification Card */}
+                                <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 border border-gray-150 dark:border-slate-800 shadow-sm space-y-4">
+                                    <div className="flex items-center justify-between">
+                                        <div className="flex items-center gap-2.5">
+                                            <div className="w-10 h-10 rounded-xl bg-violet-50 dark:bg-violet-950/50 text-violet-600 dark:text-violet-400 flex items-center justify-center">
+                                                <Key size={18} />
+                                            </div>
+                                            <div>
+                                                <h3 className="font-bold text-gray-900 dark:text-white text-base">Live Attendance Verification</h3>
+                                                <p className="text-xs text-gray-500 dark:text-slate-400">Enter the secret attendance PIN announced by your tutor in class.</p>
+                                            </div>
+                                        </div>
+
+                                        {pinSuccess && (
+                                            <span className="px-3 py-1 bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 font-bold text-xs rounded-full border border-emerald-200 dark:border-emerald-800 flex items-center gap-1">
+                                                <CheckCircle size={13} /> Attended & Verified
+                                            </span>
+                                        )}
+                                    </div>
+
+                                    {pinSuccess ? (
+                                        <div className="p-4 bg-emerald-50/70 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-900/40 rounded-2xl flex items-center gap-3">
+                                            <div className="w-8 h-8 rounded-full bg-emerald-500 text-white flex items-center justify-center shrink-0">
+                                                <Check size={16} />
+                                            </div>
+                                            <div className="text-xs text-emerald-800 dark:text-emerald-300">
+                                                <p className="font-bold">Your attendance has been recorded for this live lecture!</p>
+                                                <p className="text-emerald-600 dark:text-emerald-400">Lesson marked as completed. You may continue to the next topic.</p>
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        <div className="space-y-3">
+                                            <div className="flex flex-col sm:flex-row gap-2.5">
+                                                <input 
+                                                    type="text"
+                                                    value={enteredPin}
+                                                    onChange={e => {
+                                                        setEnteredPin(e.target.value.toUpperCase());
+                                                        if (pinError) setPinError('');
+                                                    }}
+                                                    placeholder="Enter Attendance PIN (e.g. WEL-8492)"
+                                                    className="flex-1 p-3 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl text-sm font-mono font-bold uppercase text-gray-900 dark:text-white outline-none focus:ring-2 focus:ring-violet-500"
+                                                />
+                                                <button
+                                                    type="button"
+                                                    onClick={handleVerifyPin}
+                                                    className="px-6 py-3 bg-violet-600 hover:bg-violet-700 text-white font-bold rounded-xl text-xs flex items-center justify-center gap-1.5 transition-colors shadow-sm cursor-pointer"
+                                                >
+                                                    <CheckCircle size={14} /> Verify Attendance
+                                                </button>
+                                            </div>
+
+                                            {pinError && (
+                                                <p className="text-xs text-red-500 font-medium flex items-center gap-1">
+                                                    <XCircle size={13} /> {pinError}
+                                                </p>
+                                            )}
+                                        </div>
+                                    )}
+                                </div>
+
+                                {/* Lecture Notes / Summary */}
+                                {module.content && (
+                                    <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 border border-gray-150 dark:border-slate-800 shadow-sm space-y-3">
+                                        <h3 className="font-bold text-gray-900 dark:text-white text-base">Lecture Agenda & Key Concepts</h3>
+                                        <div className="prose prose-violet dark:prose-invert max-w-none text-gray-700 dark:text-slate-300 text-sm leading-relaxed">
+                                            {renderFormattedContent(module.content)}
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+
+                        {/* Transcript & Q&A Sidebar */}
+                        {renderRightSidebar('text-violet-600', 'prose-violet')}
                     </>
                 ) : module.type === 'document' ? (
                     <div className="flex-1 bg-gray-50 dark:bg-slate-950 overflow-y-auto p-8">
