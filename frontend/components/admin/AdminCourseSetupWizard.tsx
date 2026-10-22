@@ -1204,7 +1204,7 @@ const AdminCourseSetupWizard: React.FC<AdminCourseSetupWizardProps> = ({ isInstr
                                 </div>
                             </div>
                             
-                            <div className="grid grid-cols-2 gap-4">
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">Category</label>
                                     <select 
@@ -1213,10 +1213,12 @@ const AdminCourseSetupWizard: React.FC<AdminCourseSetupWizardProps> = ({ isInstr
                                         className="w-full p-3 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 text-gray-900 dark:text-white rounded-xl focus:ring-2 focus:ring-violet-500 outline-none transition-all"
                                     >
                                         <option value="" disabled>Select a Category...</option>
+                                        <option value="Technology & AI">Technology & AI</option>
                                         <option value="AI">AI</option>
                                         <option value="Education">Education</option>
                                         <option value="Technology">Technology</option>
                                         <option value="Business">Business</option>
+                                        <option value="Design">Design</option>
                                     </select>
                                 </div>
                                 <div>
@@ -1230,7 +1232,18 @@ const AdminCourseSetupWizard: React.FC<AdminCourseSetupWizardProps> = ({ isInstr
                                         <option value="Beginner">Beginner</option>
                                         <option value="Intermediate">Intermediate</option>
                                         <option value="Advanced">Advanced</option>
+                                        <option value="All Levels">All Levels</option>
                                     </select>
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">Course Duration</label>
+                                    <input 
+                                        type="text"
+                                        value={newCourse.duration || ''} 
+                                        onChange={e => setNewCourse({...newCourse, duration: e.target.value})} 
+                                        className="w-full p-3 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 text-gray-900 dark:text-white rounded-xl focus:ring-2 focus:ring-violet-500 outline-none transition-all"
+                                        placeholder="e.g. 4 Weeks, 8 Lessons"
+                                    />
                                 </div>
                             </div>
                             
