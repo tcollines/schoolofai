@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import LandingPage from './components/LandingPage';
 import LoginPage from './components/LoginPage';
 import SignupPage from './components/SignupPage';
@@ -24,6 +24,52 @@ import { supabase, isSupabaseConfigured } from './src/lib/supabaseClient';
 import { useCourses } from './src/hooks/useCourses';
 import { useProfile } from './src/hooks/useProfile';
 import { UserRole } from './types';
+
+const LandingRoute = ({ isAuthenticated }: { isAuthenticated: boolean }) => {
+  const navigate = useNavigate();
+  if (isAuthenticated) return <Navigate to="/dashboard" replace />;
+  return (
+    <LandingPage 
+      onGetStarted={() => navigate('/signup')}
+      onLoginClick={() => navigate('/login')}
+      onSignupClick={() => navigate('/signup')}
+    />
+  );
+};
+
+const LoginRoute = ({ isAuthenticated }: { isAuthenticated: boolean }) => {
+  const navigate = useNavigate();
+  if (isAuthenticated) return <Navigate to="/dashboard" replace />;
+  return (
+    <LoginPage 
+      onLogin={() => navigate('/dashboard')}
+      onNavigateToSignup={() => navigate('/signup')}
+      onBack={() => navigate('/')}
+    />
+  );
+};
+
+const SignupRoute = ({ isAuthenticated }: { isAuthenticated: boolean }) => {
+  const navigate = useNavigate();
+  if (isAuthenticated) return <Navigate to="/dashboard" replace />;
+  return (
+    <SignupPage 
+      onSignup={() => navigate('/dashboard')}
+      onNavigateToLogin={() => navigate('/login')}
+      onBack={() => navigate('/')}
+    />
+  );
+};
+
+const AdminRoute = () => {
+  const navigate = useNavigate();
+  return <AdminLayout onExit={() => navigate('/')} />;
+};
+
+const InstructorRoute = () => {
+  const navigate = useNavigate();
+  return <AdminLayout onExit={() => navigate('/dashboard')} isInstructor={true} />;
+};
 
 const ProtectedRoute = ({ isAuthenticated, requireOnboarding = false, userProfile, children }: { isAuthenticated: boolean, requireOnboarding?: boolean, userProfile?: any, children: React.ReactNode }) => {
   if (!isAuthenticated) {
@@ -150,45 +196,15 @@ function App() {
     <BrowserRouter>
       <Routes>
         {/* Public Routes */}
-        <Route path="/" element={
-            !isAuthenticated ? (
-                <LandingPage 
-                    onGetStarted={() => window.location.href = '/signup'}
-                    onLoginClick={() => window.location.href = '/login'}
-                    onSignupClick={() => window.location.href = '/signup'}
-                />
-            ) : <Navigate to="/dashboard" replace />
-        } />
-        
-        <Route path="/login" element={
-            !isAuthenticated ? (
-                <LoginPage 
-                    onLogin={() => window.location.href = '/dashboard'}
-                    onNavigateToSignup={() => window.location.href = '/signup'}
-                    onBack={() => window.location.href = '/'}
-                />
-            ) : <Navigate to="/dashboard" replace />
-        } />
-
-        <Route path="/signup" element={
-            !isAuthenticated ? (
-                <SignupPage 
-                    onSignup={() => window.location.href = '/dashboard'}
-                    onNavigateToLogin={() => window.location.href = '/login'}
-                    onBack={() => window.location.href = '/'}
-                />
-            ) : <Navigate to="/dashboard" replace />
-        } />
+        <Route path="/" element={<LandingRoute isAuthenticated={isAuthenticated} />} />
+        <Route path="/login" element={<LoginRoute isAuthenticated={isAuthenticated} />} />
+        <Route path="/signup" element={<SignupRoute isAuthenticated={isAuthenticated} />} />
         
         {/* Admin Route - uses its own authentication via AdminLoginPage */}
-        <Route path="/admin/*" element={
-             <AdminLayout onExit={() => window.location.href = '/'} />
-        } />
+        <Route path="/admin/*" element={<AdminRoute />} />
         
         {/* Instructor Route - uses its own authentication via AdminLoginPage in instructor mode */}
-        <Route path="/instructor/*" element={
-             <AdminLayout onExit={() => window.location.href = '/dashboard'} isInstructor={true} />
-        } />
+        <Route path="/instructor/*" element={<InstructorRoute />} />
 
         {/* Onboarding Routes */}
         <Route path="/onboarding/verify" element={<VerifyEmail />} />
