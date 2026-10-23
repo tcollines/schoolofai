@@ -796,7 +796,7 @@ const CoursePlayer: React.FC<CoursePlayerProps> = ({ module, courseTitle, onBack
                                         <div className="flex flex-wrap items-center gap-2">
                                             <span className="px-3 py-1 bg-white/20 backdrop-blur-md rounded-full text-xs font-bold uppercase tracking-wider flex items-center gap-1.5">
                                                 <Radio size={13} className="animate-pulse text-emerald-300" />
-                                                Live Interactive Cohort Class
+                                                Live Interactive Cohort Class {module.sessionNumber ? `• Session ${module.sessionNumber}` : ''}
                                             </span>
                                             {module.duration && (
                                                 <span className="px-3 py-1 bg-black/25 backdrop-blur-md rounded-full text-xs font-semibold">
@@ -813,10 +813,10 @@ const CoursePlayer: React.FC<CoursePlayerProps> = ({ module, courseTitle, onBack
                                             Join your tutor and cohort peers in real-time on Google Meet. Keep your editor or workspace open to code along.
                                         </p>
 
-                                        {module.scheduledDate && (
+                                        {(module.scheduledDate || module.scheduledTime) && (
                                             <div className="flex items-center gap-2 text-xs font-semibold text-emerald-300 bg-black/25 backdrop-blur-sm px-3.5 py-2 rounded-xl w-fit">
                                                 <Calendar size={13} />
-                                                <span>Scheduled: {module.scheduledDate}</span>
+                                                <span>{module.sessionNumber ? `Session #${module.sessionNumber}: ` : ''}{module.scheduledDate} {module.scheduledTime ? `@ ${module.scheduledTime}` : ''}</span>
                                             </div>
                                         )}
 

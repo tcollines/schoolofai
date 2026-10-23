@@ -397,16 +397,28 @@ const CourseOverview: React.FC<CourseOverviewProps> = ({ courses, onEnroll, onUn
                                                     const meetUrl = lesson.meetLink || course.meetingLink || '';
                                                     
                                                     let scheduleInfo = null;
+                                                    let sessionNumber = null;
                                                     if (isLive) {
-                                                        scheduleInfo = calculateLessonSchedule(
-                                                            course.startDate,
-                                                            course.lessonDays,
-                                                            globalLiveLessonIdx,
-                                                            course.lessonStartTime || '18:00',
-                                                            course.lessonEndTime || '20:00',
-                                                            course.timezone || 'EAT (UTC+3)'
-                                                        );
                                                         globalLiveLessonIdx++;
+                                                        sessionNumber = lesson.sessionNumber || globalLiveLessonIdx;
+                                                        scheduleInfo = {
+                                                            dateStr: lesson.scheduledDate || calculateLessonSchedule(
+                                                                course.startDate,
+                                                                course.lessonDays,
+                                                                sessionNumber - 1,
+                                                                course.lessonStartTime || '18:00',
+                                                                course.lessonEndTime || '20:00',
+                                                                course.timezone || 'EAT (UTC+3)'
+                                                            ).dateStr,
+                                                            timeStr: lesson.scheduledTime || calculateLessonSchedule(
+                                                                course.startDate,
+                                                                course.lessonDays,
+                                                                sessionNumber - 1,
+                                                                course.lessonStartTime || '18:00',
+                                                                course.lessonEndTime || '20:00',
+                                                                course.timezone || 'EAT (UTC+3)'
+                                                            ).timeStr
+                                                        };
                                                     }
 
                                                     return (
@@ -434,7 +446,7 @@ const CourseOverview: React.FC<CourseOverviewProps> = ({ courses, onEnroll, onUn
                                                                         </p>
                                                                         {isLive ? (
                                                                             <span className="px-2 py-0.5 rounded text-[10px] font-extrabold uppercase bg-violet-100 dark:bg-violet-950/60 text-violet-700 dark:text-violet-300 border border-violet-200 dark:border-violet-800">
-                                                                                Live Class
+                                                                                Live Class {sessionNumber ? `• Session ${sessionNumber}` : ''}
                                                                             </span>
                                                                         ) : (
                                                                             <span className="px-2 py-0.5 rounded text-[10px] font-medium bg-gray-100 dark:bg-slate-800 text-gray-500 dark:text-slate-400">
@@ -447,18 +459,16 @@ const CourseOverview: React.FC<CourseOverviewProps> = ({ courses, onEnroll, onUn
                                                                     {isLive && scheduleInfo && (
                                                                         <div className="flex items-center gap-1.5 text-xs text-violet-600 dark:text-violet-400 font-medium">
                                                                             <Calendar size={12} />
-                                                                            <span>{scheduleInfo.dateStr} @ {scheduleInfo.timeStr}</span>
+                                                                            <span>Session #{sessionNumber}: {scheduleInfo.dateStr} @ {scheduleInfo.timeStr}</span>
                                                                         </div>
                                                                     )}
                                                                 </div>
                                                             </div>
 
                                                             <div className="flex items-center gap-2 self-end sm:self-center shrink-0">
-                                                                {lesson.duration && (
-                                                                    <span className="text-xs font-medium text-gray-400 dark:text-slate-500 bg-gray-100 dark:bg-slate-800 px-2.5 py-1 rounded-lg">
-                                                                        {lesson.duration}
-                                                                    </span>
-                                                                )}
+                                                                <span className="text-xs font-medium text-gray-500 dark:text-slate-400 bg-gray-100 dark:bg-slate-800 px-2.5 py-1 rounded-lg">
+                                                                    {lesson.duration || course.defaultLessonDuration || '1 hour'}
+                                                                </span>
 
                                                                 {/* Follow Link to Join Call button */}
                                                                 {isLive && meetUrl && (

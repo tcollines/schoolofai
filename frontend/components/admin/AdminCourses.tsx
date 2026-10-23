@@ -189,11 +189,12 @@ const AdminCourses: React.FC<AdminCoursesProps> = ({ isInstructor = false }) => 
                         sectionId: sec.id,
                         sectionTitle: sec.title || `Module ${sections.indexOf(sec) + 1}`,
                         title: les.title || `Live Topic ${count}`,
-                        duration: les.duration || '45 mins',
+                        duration: les.duration || course.defaultLessonDuration || '1 hour',
                         attendanceCode: les.attendanceCode || les.attendance_code || generateRandomPin(),
                         scheduledDate: les.scheduledDate || schedule.dateStr,
-                        scheduledTime: schedule.timeStr,
-                        lessonIndex: count
+                        scheduledTime: les.scheduledTime || schedule.timeStr,
+                        lessonIndex: count,
+                        sessionNumber: les.sessionNumber || count
                     });
                 }
             });
@@ -1323,57 +1324,72 @@ const AdminCourses: React.FC<AdminCoursesProps> = ({ isInstructor = false }) => 
                                 </div>
 
                                 <div className="space-y-2">
-                                    {(detailsModalCourse.sections || []).map((sec, sIdx) => (
-                                        <div key={sec.id || sIdx} className="bg-gray-50 dark:bg-slate-850 rounded-2xl p-3 border border-gray-100 dark:border-slate-800 space-y-2">
-                                            <div className="flex items-center justify-between text-xs font-bold text-gray-800 dark:text-slate-200">
-                                                <span>{sec.title}</span>
-                                                <span className="text-[11px] text-gray-400 font-normal">{sec.lessons?.length || 0} topics</span>
-                                            </div>
-                                            <div className="space-y-1 pl-2">
-                                                {(sec.lessons || []).map((les, lIdx) => {
-                                                    const isLive = les.classType === 'online' || les.meetLink || Boolean(detailsModalCourse.meetingLink && les.type !== 'quiz');
-                                                    const meetUrl = les.meetLink || detailsModalCourse.meetingLink || '';
-                                                    return (
-                                                        <div key={les.id || lIdx} className="flex items-center justify-between text-xs py-1.5 border-t border-gray-200/50 dark:border-slate-800 text-gray-600 dark:text-slate-400">
-                                                            <div className="flex items-center gap-2 truncate pr-2">
-                                                                {isLive ? (
-                                                                    <Radio size={12} className="text-violet-600 shrink-0 animate-pulse" />
-                                                                ) : (
-                                                                    <span className="w-1.5 h-1.5 rounded-full bg-gray-400 shrink-0"></span>
-                                                                )}
-                                                                <span className="truncate">{les.title}</span>
-                                                                {isLive && (
-                                                                    <span className="px-1.5 py-0.5 rounded text-[9px] font-bold uppercase bg-violet-100 dark:bg-violet-950/60 text-violet-700 dark:text-violet-300 shrink-0">
-                                                                        Live
+                                    {(() => {
+                                        let liveLessonCounter = 0;
+                                        return (detailsModalCourse.sections || []).map((sec, sIdx) => (
+                                            <div key={sec.id || sIdx} className="bg-gray-50 dark:bg-slate-850 rounded-2xl p-3 border border-gray-100 dark:border-slate-800 space-y-2">
+                                                <div className="flex items-center justify-between text-xs font-bold text-gray-800 dark:text-slate-200">
+                                                    <span>{sec.title}</span>
+                                                    <span className="text-[11px] text-gray-400 font-normal">{sec.lessons?.length || 0} topics</span>
+                                                </div>
+                                                <div className="space-y-1 pl-2">
+                                                    {(sec.lessons || []).map((les, lIdx) => {
+                                                        const isLive = les.classType === 'online' || les.meetLink || Boolean(detailsModalCourse.meetingLink && les.type !== 'quiz');
+                                                        const meetUrl = les.meetLink || detailsModalCourse.meetingLink || '';
+                                                        let currentLiveNum = null;
+                                                        if (isLive) {
+                                                            liveLessonCounter++;
+                                                            currentLiveNum = les.sessionNumber || liveLessonCounter;
+                                                        }
+                                                        return (
+                                                            <div key={les.id || lIdx} className="flex items-center justify-between text-xs py-1.5 border-t border-gray-200/50 dark:border-slate-800 text-gray-600 dark:text-slate-400">
+                                                                <div className="flex items-center gap-2 truncate pr-2">
+                                                                    {isLive ? (
+                                                                        <Radio size={12} className="text-violet-600 shrink-0 animate-pulse" />
+                                                                    ) : (
+                                                                        <span className="w-1.5 h-1.5 rounded-full bg-gray-400 shrink-0"></span>
+                                                                    )}
+                                                                    <span className="truncate">{les.title}</span>
+                                                                    {isLive && (
+                                                                        <span className="px-1.5 py-0.5 rounded text-[9px] font-bold uppercase bg-violet-100 dark:bg-violet-950/60 text-violet-700 dark:text-violet-300 shrink-0">
+                                                                            Session #{currentLiveNum}
+                                                                        </span>
+                                                                    )}
+                                                                </div>
+                                                                <div className="flex items-center gap-2 shrink-0">
+                                                                    {les.scheduledDate && (
+                                                                        <span className="text-[10px] text-violet-600 font-medium bg-violet-50 dark:bg-violet-950/40 px-1.5 py-0.5 rounded">
+                                                                            {les.scheduledDate}
+                                                                        </span>
+                                                                    )}
+                                                                    {les.attendanceCode && (
+                                                                        <span className="font-mono text-[10px] text-purple-600 dark:text-purple-400 font-bold bg-purple-50 dark:bg-purple-950/50 px-1.5 py-0.5 rounded">
+                                                                            PIN: {les.attendanceCode}
+                                                                        </span>
+                                                                    )}
+                                                                    {isLive && meetUrl && (
+                                                                        <a 
+                                                                            href={meetUrl} 
+                                                                            target="_blank" 
+                                                                            rel="noopener noreferrer" 
+                                                                            className="px-2.5 py-1 text-[11px] font-bold bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-100 dark:hover:bg-emerald-900/60 rounded-lg border border-emerald-200 dark:border-emerald-900/50 flex items-center gap-1 cursor-pointer transition-colors"
+                                                                            title="Follow link to join live Google Meet call"
+                                                                        >
+                                                                            <span>Join Call</span>
+                                                                            <ExternalLink size={10} />
+                                                                        </a>
+                                                                    )}
+                                                                    <span className="text-[11px] text-gray-400 font-medium">
+                                                                        {les.duration || detailsModalCourse.defaultLessonDuration || '1 hour'}
                                                                     </span>
-                                                                )}
+                                                                </div>
                                                             </div>
-                                                            <div className="flex items-center gap-2 shrink-0">
-                                                                {les.attendanceCode && (
-                                                                    <span className="font-mono text-[10px] text-purple-600 dark:text-purple-400 font-bold bg-purple-50 dark:bg-purple-950/50 px-1.5 py-0.5 rounded">
-                                                                        PIN: {les.attendanceCode}
-                                                                    </span>
-                                                                )}
-                                                                {isLive && meetUrl && (
-                                                                    <a 
-                                                                        href={meetUrl} 
-                                                                        target="_blank" 
-                                                                        rel="noopener noreferrer" 
-                                                                        className="px-2.5 py-1 text-[11px] font-bold bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-100 dark:hover:bg-emerald-900/60 rounded-lg border border-emerald-200 dark:border-emerald-900/50 flex items-center gap-1 cursor-pointer transition-colors"
-                                                                        title="Follow link to join live Google Meet call"
-                                                                    >
-                                                                        <span>Join Call</span>
-                                                                        <ExternalLink size={10} />
-                                                                    </a>
-                                                                )}
-                                                                <span className="text-[11px] text-gray-400">{les.duration || '30m'}</span>
-                                                            </div>
-                                                        </div>
-                                                    );
-                                                })}
+                                                        );
+                                                    })}
+                                                </div>
                                             </div>
-                                        </div>
-                                    ))}
+                                        ));
+                                    })()}
                                 </div>
                             </div>
                         </div>

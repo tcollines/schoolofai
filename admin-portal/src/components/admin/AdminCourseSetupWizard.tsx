@@ -77,6 +77,25 @@ export const CADENCE_PRESETS = [
     { label: 'Saturday Masterclass', days: ['Saturday'] }
 ];
 
+export const computeDurationFromTimes = (startTime: string = '18:00', endTime: string = '20:00'): string => {
+    try {
+        const [startH, startM] = (startTime || '18:00').split(':').map(Number);
+        const [endH, endM] = (endTime || '20:00').split(':').map(Number);
+        if (isNaN(startH) || isNaN(startM) || isNaN(endH) || isNaN(endM)) return '1 hour';
+        
+        let totalMinutes = (endH * 60 + endM) - (startH * 60 + startM);
+        if (totalMinutes <= 0) totalMinutes += 24 * 60; // Overnight wrap
+        
+        if (totalMinutes === 60) return '1 hour';
+        if (totalMinutes === 120) return '2 hours';
+        if (totalMinutes > 60 && totalMinutes % 60 === 0) return `${totalMinutes / 60} hours`;
+        if (totalMinutes > 60) return `${Math.floor(totalMinutes / 60)}h ${totalMinutes % 60}m`;
+        return `${totalMinutes} mins`;
+    } catch {
+        return '1 hour';
+    }
+};
+
 export const calculateLessonSchedule = (
     startDateStr?: string,
     lessonDays: string[] = ['Monday', 'Wednesday', 'Friday'],
@@ -665,7 +684,7 @@ const AdminCourseSetupWizard: React.FC<AdminCourseSetupWizardProps> = ({ isInstr
                     {
                         id: 'top-1-1',
                         title: 'Topic 1: Course Overview & Live Setup',
-                        duration: '45 mins',
+                        duration: '2 hours',
                         type: 'article',
                         classType: 'online'
                     }
@@ -680,6 +699,7 @@ const AdminCourseSetupWizard: React.FC<AdminCourseSetupWizardProps> = ({ isInstr
         lessonDays: ['Monday', 'Wednesday', 'Friday'],
         lessonStartTime: '18:00',
         lessonEndTime: '20:00',
+        defaultLessonDuration: '2 hours',
         timezone: 'EAT (UTC+3)',
         meetingLink: '',
         attendanceCode: '',
@@ -706,6 +726,7 @@ const AdminCourseSetupWizard: React.FC<AdminCourseSetupWizardProps> = ({ isInstr
                     lessonDays: courseToEdit.lessonDays || ['Monday', 'Wednesday', 'Friday'],
                     lessonStartTime: courseToEdit.lessonStartTime || '18:00',
                     lessonEndTime: courseToEdit.lessonEndTime || '20:00',
+                    defaultLessonDuration: courseToEdit.defaultLessonDuration || computeDurationFromTimes(courseToEdit.lessonStartTime, courseToEdit.lessonEndTime),
                     timezone: courseToEdit.timezone || 'EAT (UTC+3)',
                     meetingLink: courseToEdit.meetingLink || '',
                     attendanceCode: courseToEdit.attendanceCode || 'WEL-' + Math.floor(1000 + Math.random() * 9000),
@@ -808,6 +829,8 @@ const AdminCourseSetupWizard: React.FC<AdminCourseSetupWizardProps> = ({ isInstr
     
     const addSection = () => {
         const nextNum = (newCourse.sections?.length || 0) + 1;
+        const effectiveDuration = newCourse.defaultLessonDuration || 
+            computeDurationFromTimes(newCourse.lessonStartTime || '18:00', newCourse.lessonEndTime || '20:00');
         const newSection: CourseSection = {
             id: Math.random().toString(36).substring(7),
             title: `Module ${nextNum}: Live Lecture Topics`,
@@ -815,7 +838,7 @@ const AdminCourseSetupWizard: React.FC<AdminCourseSetupWizardProps> = ({ isInstr
                 {
                     id: Math.random().toString(36).substring(7),
                     title: `Topic ${nextNum}.1: Introduction to Module Concepts`,
-                    duration: '45 mins',
+                    duration: effectiveDuration,
                     type: 'article',
                     classType: 'online',
                     meetLink: newCourse.meetingLink || ''
@@ -831,10 +854,14 @@ const AdminCourseSetupWizard: React.FC<AdminCourseSetupWizardProps> = ({ isInstr
         const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
         let pinCode = 'WEL-';
         for (let i = 0; i < 4; i++) pinCode += chars.charAt(Math.floor(Math.random() * chars.length));
+        
+        const effectiveDuration = newCourse.defaultLessonDuration || 
+            computeDurationFromTimes(newCourse.lessonStartTime || '18:00', newCourse.lessonEndTime || '20:00');
+
         const newTopic: CourseModule = {
             id: Math.random().toString(36).substring(7),
             title: `Topic ${nextTopicNum}: `,
-            duration: '45 mins',
+            duration: effectiveDuration,
             type: 'article',
             classType: 'online',
             meetLink: newCourse.meetingLink || '',
@@ -849,6 +876,20 @@ const AdminCourseSetupWizard: React.FC<AdminCourseSetupWizardProps> = ({ isInstr
                 }
                 return s;
             })
+        });
+    };
+
+    const applyDurationToAllTopics = (dur?: string) => {
+        const targetDur = dur || newCourse.defaultLessonDuration || 
+            computeDurationFromTimes(newCourse.lessonStartTime || '18:00', newCourse.lessonEndTime || '20:00');
+        
+        setNewCourse({
+            ...newCourse,
+            defaultLessonDuration: targetDur,
+            sections: (newCourse.sections || []).map(sec => ({
+                ...sec,
+                lessons: (sec.lessons || []).map(les => les.type === 'quiz' ? les : { ...les, duration: targetDur })
+            }))
         });
     };
 
@@ -1068,8 +1109,46 @@ const AdminCourseSetupWizard: React.FC<AdminCourseSetupWizardProps> = ({ isInstr
 
         try {
             setIsSaving(true);
+            const effectiveDefaultDuration = newCourse.defaultLessonDuration || 
+                computeDurationFromTimes(newCourse.lessonStartTime || '18:00', newCourse.lessonEndTime || '20:00');
+
+            let cumulativeLiveIdx = 0;
+            const enrichedSections = (newCourse.sections || []).map((sec) => ({
+                ...sec,
+                lessons: (sec.lessons || []).map((les) => {
+                    const isQuiz = les.type === 'quiz';
+                    const isLive = les.classType !== 'physical' && les.type !== 'video' && les.type !== 'document' && !isQuiz;
+                    if (isLive) {
+                        const sched = calculateLessonSchedule(
+                            newCourse.startDate,
+                            newCourse.lessonDays,
+                            cumulativeLiveIdx,
+                            newCourse.lessonStartTime || '18:00',
+                            newCourse.lessonEndTime || '20:00',
+                            newCourse.timezone || 'EAT (UTC+3)'
+                        );
+                        cumulativeLiveIdx++;
+                        return {
+                            ...les,
+                            sessionNumber: cumulativeLiveIdx,
+                            scheduledDate: les.scheduledDate || sched.dateStr,
+                            scheduledTime: sched.timeStr,
+                            duration: les.duration || effectiveDefaultDuration,
+                            meetLink: les.meetLink || newCourse.meetingLink || '',
+                            attendanceCode: les.attendanceCode || 'WEL-' + Math.floor(1000 + Math.random() * 9000)
+                        };
+                    }
+                    return {
+                        ...les,
+                        duration: les.duration || (isQuiz ? '15 mins' : effectiveDefaultDuration)
+                    };
+                })
+            }));
+
             const courseData = {
                 ...newCourse,
+                sections: enrichedSections,
+                defaultLessonDuration: effectiveDefaultDuration,
                 title: newCourse.title?.trim() || 'Untitled Course',
                 instructor: newCourse.instructor?.trim() || 'Unknown Instructor',
                 instructorEmail: newCourse.instructorEmail?.trim() || '',
@@ -1776,6 +1855,68 @@ const AdminCourseSetupWizard: React.FC<AdminCourseSetupWizardProps> = ({ isInstr
                                     </div>
                                 </div>
 
+                                {/* Lesson / Topic Duration Controller */}
+                                {(() => {
+                                    const calculatedDuration = computeDurationFromTimes(newCourse.lessonStartTime || '18:00', newCourse.lessonEndTime || '20:00');
+                                    const activeDuration = newCourse.defaultLessonDuration || calculatedDuration;
+
+                                    return (
+                                        <div className="bg-violet-50/50 dark:bg-slate-850 p-4 rounded-xl border border-violet-100 dark:border-slate-800 space-y-2.5">
+                                            <div className="flex flex-wrap items-center justify-between gap-2">
+                                                <div>
+                                                    <label className="text-xs font-bold uppercase text-gray-700 dark:text-slate-300 flex items-center gap-1.5">
+                                                        <Clock size={13} className="text-violet-600 dark:text-violet-400" />
+                                                        <span>Cohort Lesson Duration</span>
+                                                        <span className="text-[11px] font-normal text-gray-500">
+                                                            (Calculated from times: <strong className="text-violet-700 dark:text-violet-300">{calculatedDuration}</strong>)
+                                                        </span>
+                                                    </label>
+                                                    <p className="text-[11px] text-gray-500 dark:text-slate-400 mt-0.5">
+                                                        Default duration assigned to live topics and lessons in this cohort.
+                                                    </p>
+                                                </div>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => applyDurationToAllTopics(activeDuration)}
+                                                    className="text-xs font-bold text-violet-700 dark:text-violet-300 hover:text-violet-900 dark:hover:text-violet-100 bg-white dark:bg-slate-800 px-3 py-1.5 rounded-lg border border-violet-200 dark:border-violet-700 hover:bg-violet-50 dark:hover:bg-slate-700 transition-all cursor-pointer shadow-2xs flex items-center gap-1"
+                                                    title="Apply this duration to all topics across all modules"
+                                                >
+                                                    <span>⚡ Apply "{activeDuration}" to all topics</span>
+                                                </button>
+                                            </div>
+
+                                            <div className="flex flex-wrap items-center gap-2 pt-1">
+                                                {['30 mins', '45 mins', '1 hour', '1.5 hours', '2 hours'].map(preset => (
+                                                    <button
+                                                        key={preset}
+                                                        type="button"
+                                                        onClick={() => {
+                                                            setNewCourse({ ...newCourse, defaultLessonDuration: preset });
+                                                        }}
+                                                        className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                                                            activeDuration === preset
+                                                                ? 'bg-violet-600 text-white shadow-sm ring-2 ring-violet-400/30'
+                                                                : 'bg-white dark:bg-slate-800 text-gray-700 dark:text-slate-300 border border-gray-200 dark:border-slate-700 hover:border-violet-300'
+                                                        }`}
+                                                    >
+                                                        {preset}
+                                                    </button>
+                                                ))}
+                                                <div className="flex items-center gap-1.5 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-lg px-2.5 py-1">
+                                                    <span className="text-gray-400 text-xs font-medium">Custom:</span>
+                                                    <input
+                                                        type="text"
+                                                        value={newCourse.defaultLessonDuration || ''}
+                                                        placeholder={calculatedDuration}
+                                                        onChange={e => setNewCourse({ ...newCourse, defaultLessonDuration: e.target.value })}
+                                                        className="w-24 text-xs font-semibold text-gray-800 dark:text-white bg-transparent outline-none"
+                                                    />
+                                                </div>
+                                            </div>
+                                        </div>
+                                    );
+                                })()}
+
                                 {/* Google Meet Link & Attendance Code */}
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     {/* Google Meet Link */}
@@ -1916,7 +2057,34 @@ const AdminCourseSetupWizard: React.FC<AdminCourseSetupWizardProps> = ({ isInstr
                                 )}
 
                                 <div className="space-y-5">
-                                    {newCourse.sections?.map((section, sIdx) => (
+                                    {(() => {
+                                        // Calculate sequential live lesson index across ALL modules
+                                        let cumulativeLiveIndex = 0;
+                                        const topicScheduleMap = new Map<string, { sessionNum: number; schedule: { dateStr: string; timeStr: string } }>();
+
+                                        (newCourse.sections || []).forEach(sec => {
+                                            (sec.lessons || []).forEach(topic => {
+                                                const isQuiz = topic.type === 'quiz';
+                                                const isLive = topic.classType !== 'physical' && topic.type !== 'video' && topic.type !== 'document' && !isQuiz;
+                                                if (isLive) {
+                                                    const sched = calculateLessonSchedule(
+                                                        newCourse.startDate,
+                                                        newCourse.lessonDays,
+                                                        cumulativeLiveIndex,
+                                                        newCourse.lessonStartTime || '18:00',
+                                                        newCourse.lessonEndTime || '20:00',
+                                                        newCourse.timezone || 'EAT (UTC+3)'
+                                                    );
+                                                    topicScheduleMap.set(topic.id, {
+                                                        sessionNum: cumulativeLiveIndex + 1,
+                                                        schedule: sched
+                                                    });
+                                                    cumulativeLiveIndex++;
+                                                }
+                                            });
+                                        });
+
+                                        return newCourse.sections?.map((section, sIdx) => (
                                         <div key={section.id} className="bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-2xl shadow-sm overflow-hidden transition-all">
                                             {/* Module Header */}
                                             <div className="bg-gray-50 dark:bg-slate-850 p-4 border-b border-gray-200 dark:border-slate-800 space-y-3">
@@ -2001,14 +2169,9 @@ const AdminCourseSetupWizard: React.FC<AdminCourseSetupWizardProps> = ({ isInstr
                                                     const isQuiz = topic.type === 'quiz';
                                                     const isLive = topic.classType !== 'physical' && topic.type !== 'video' && topic.type !== 'document' && !isQuiz;
                                                     
-                                                    const currentSchedule = isLive ? calculateLessonSchedule(
-                                                        newCourse.startDate,
-                                                        newCourse.lessonDays,
-                                                        tIdx,
-                                                        newCourse.lessonStartTime || '18:00',
-                                                        newCourse.lessonEndTime || '20:00',
-                                                        newCourse.timezone || 'EAT (UTC+3)'
-                                                    ) : null;
+                                                    const liveInfo = topicScheduleMap.get(topic.id);
+                                                    const currentSchedule = isLive ? (liveInfo?.schedule || null) : null;
+                                                    const sessionNum = liveInfo?.sessionNum || null;
 
                                                     const activeMeetUrl = topic.meetLink || newCourse.meetingLink || '';
 
@@ -2030,10 +2193,10 @@ const AdminCourseSetupWizard: React.FC<AdminCourseSetupWizardProps> = ({ isInstr
                                                                         isQuiz 
                                                                             ? 'bg-purple-100 dark:bg-purple-900 text-purple-700 dark:text-purple-300' 
                                                                             : isLive
-                                                                                ? 'bg-violet-600 text-white'
+                                                                                ? 'bg-violet-600 text-white shadow-xs'
                                                                                 : 'bg-gray-100 dark:bg-slate-800 text-gray-600 dark:text-slate-400'
                                                                     }`}>
-                                                                        {isQuiz ? 'Q' : tIdx + 1}
+                                                                        {isQuiz ? 'Q' : sessionNum ? `${sessionNum}` : tIdx + 1}
                                                                     </span>
 
                                                                     <input 
@@ -2064,13 +2227,35 @@ const AdminCourseSetupWizard: React.FC<AdminCourseSetupWizardProps> = ({ isInstr
                                                                         </button>
                                                                     )}
 
-                                                                    <div className="flex items-center gap-1 text-gray-400 text-xs">
-                                                                        <Clock size={12} />
+                                                                    {/* Duration Control: Preset selector + custom text */}
+                                                                    <div className="flex items-center gap-1.5 text-gray-400 text-xs">
+                                                                        <Clock size={12} className="text-violet-500" />
+                                                                        {!isQuiz && (
+                                                                            <select
+                                                                                value={['30 mins', '45 mins', '1 hour', '1.5 hours', '2 hours'].includes(topic.duration || '') ? topic.duration : 'custom'}
+                                                                                onChange={e => {
+                                                                                    const val = e.target.value;
+                                                                                    if (val !== 'custom') {
+                                                                                        updateTopic(section.id, topic.id, { duration: val });
+                                                                                    }
+                                                                                }}
+                                                                                className="text-[11px] font-medium bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded px-1.5 py-1 text-gray-700 dark:text-slate-300 outline-none cursor-pointer"
+                                                                                title="Quick duration preset"
+                                                                            >
+                                                                                <option value="30 mins">30m</option>
+                                                                                <option value="45 mins">45m</option>
+                                                                                <option value="1 hour">1h</option>
+                                                                                <option value="1.5 hours">1.5h</option>
+                                                                                <option value="2 hours">2h</option>
+                                                                                <option value="custom">Custom...</option>
+                                                                            </select>
+                                                                        )}
                                                                         <input 
-                                                                            value={topic.duration || (isQuiz ? '15m' : '45m')}
+                                                                            value={topic.duration || (isQuiz ? '15m' : (newCourse.defaultLessonDuration || '2 hours'))}
                                                                             onChange={e => updateTopic(section.id, topic.id, { duration: e.target.value })}
-                                                                            className="w-14 text-xs p-1 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded text-center text-gray-700 dark:text-slate-300 font-medium outline-none"
-                                                                            placeholder="45m"
+                                                                            className="w-16 text-xs p-1 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded text-center text-gray-700 dark:text-slate-300 font-medium outline-none focus:border-violet-500"
+                                                                            placeholder="2 hours"
+                                                                            title="Topic duration"
                                                                         />
                                                                     </div>
 
@@ -2089,8 +2274,10 @@ const AdminCourseSetupWizard: React.FC<AdminCourseSetupWizardProps> = ({ isInstr
                                                                 <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-violet-100/70 dark:border-slate-800 text-xs">
                                                                     <div className="flex flex-wrap items-center gap-2">
                                                                         {currentSchedule && (
-                                                                            <span className="flex items-center gap-1 text-violet-700 dark:text-violet-300 font-semibold bg-violet-50 dark:bg-violet-950/50 px-2.5 py-1 rounded-lg">
-                                                                                <Calendar size={11} /> {currentSchedule.dateStr} @ {currentSchedule.timeStr}
+                                                                            <span className="flex items-center gap-1.5 text-violet-700 dark:text-violet-300 font-semibold bg-violet-50 dark:bg-violet-950/50 px-2.5 py-1 rounded-lg border border-violet-100 dark:border-violet-900/40">
+                                                                                <Calendar size={11} />
+                                                                                <span className="font-bold">Session #{sessionNum}:</span>
+                                                                                <span>{currentSchedule.dateStr} @ {currentSchedule.timeStr}</span>
                                                                             </span>
                                                                         )}
 
@@ -2129,7 +2316,8 @@ const AdminCourseSetupWizard: React.FC<AdminCourseSetupWizardProps> = ({ isInstr
                                                 </button>
                                             </div>
                                         </div>
-                                    ))}
+                                    ));
+                                    })()}
                                 </div>
                             </div>
 
