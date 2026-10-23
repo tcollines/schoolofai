@@ -106,6 +106,7 @@ export interface Course {
   timezone?: string;
   meetingLink?: string;
   attendanceCode?: string;
+  defaultLessonDuration?: string;
   cohortName?: string;
   cohorts?: { id: string; name: string; startDate: string; endDate: string }[];
   quizDate?: string;

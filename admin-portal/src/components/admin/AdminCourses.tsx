@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAdmin } from '../../hooks/useAdmin';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Course } from '../../types';
 import { 
     Plus, X, Edit3, Trash2, Calendar, Clock, Globe, Copy, Send, 
@@ -90,7 +90,33 @@ interface AdminCoursesProps {
 const AdminCourses: React.FC<AdminCoursesProps> = ({ isInstructor = false }) => {
     const { courses, loading, updateCourse, deleteCourse } = useAdmin(true);
     const navigate = useNavigate();
+    const [searchParams, setSearchParams] = useSearchParams();
+    const openCourseId = searchParams.get('openCourseId');
     const [currency, setCurrency] = useState<CurrencyType>(getCurrencyPreference);
+
+    // Course Overview / Preview modal state (auto-opens when openCourseId is in URL)
+    const [detailsModalCourse, setDetailsModalCourse] = useState<Course | null>(null);
+    const [copiedDetailsPin, setCopiedDetailsPin] = useState(false);
+    const [copiedDetailsMeet, setCopiedDetailsMeet] = useState(false);
+
+    // Auto-open created course if openCourseId query param is provided
+    useEffect(() => {
+        if (openCourseId && courses && courses.length > 0) {
+            const match = courses.find(c => c.id === openCourseId);
+            if (match) {
+                setDetailsModalCourse(match);
+            }
+        }
+    }, [openCourseId, courses]);
+
+    const handleCloseDetailsModal = () => {
+        setDetailsModalCourse(null);
+        if (searchParams.has('openCourseId')) {
+            const nextParams = new URLSearchParams(searchParams);
+            nextParams.delete('openCourseId');
+            setSearchParams(nextParams, { replace: true });
+        }
+    };
 
     useEffect(() => {
         const handleCurrencyChange = () => {
@@ -163,11 +189,12 @@ const AdminCourses: React.FC<AdminCoursesProps> = ({ isInstructor = false }) => 
                         sectionId: sec.id,
                         sectionTitle: sec.title || `Module ${sections.indexOf(sec) + 1}`,
                         title: les.title || `Live Topic ${count}`,
-                        duration: les.duration || '45 mins',
+                        duration: les.duration || course.defaultLessonDuration || '1 hour',
                         attendanceCode: les.attendanceCode || les.attendance_code || generateRandomPin(),
                         scheduledDate: les.scheduledDate || schedule.dateStr,
-                        scheduledTime: schedule.timeStr,
-                        lessonIndex: count
+                        scheduledTime: les.scheduledTime || schedule.timeStr,
+                        lessonIndex: count,
+                        sessionNumber: les.sessionNumber || count
                     });
                 }
             });
@@ -249,22 +276,28 @@ const AdminCourses: React.FC<AdminCoursesProps> = ({ isInstructor = false }) => 
         setScheduleModalCourse(course);
         setScheduleFormData({
             cohortName: course.cohortName || 'Cohort 1',
-            startDate: course.startDate || '2026-11-15',
-            endDate: course.endDate || '2026-12-01',
+            startDate: course.startDate || '',
+            endDate: course.endDate || '',
             lessonDays: course.lessonDays || ['Monday', 'Wednesday', 'Friday'],
             lessonStartTime: course.lessonStartTime || '18:00',
             lessonEndTime: course.lessonEndTime || '20:00',
             timezone: course.timezone || 'EAT (UTC+3)',
             meetingLink: course.meetingLink || '',
             attendanceCode: course.attendanceCode || generateRandomPin(),
-            quizDate: course.quizDate || '2026-11-25',
-            examDate: course.examDate || '2026-12-01'
+            quizDate: course.quizDate || '',
+            examDate: course.examDate || ''
         });
         setScheduleSaveSuccess(false);
     };
 
     const handleSaveSchedule = async () => {
         if (!scheduleModalCourse) return;
+        if (scheduleFormData.startDate && scheduleFormData.endDate) {
+            if (new Date(scheduleFormData.endDate).getTime() < new Date(scheduleFormData.startDate).getTime()) {
+                alert('End date cannot be earlier than start date.');
+                return;
+            }
+        }
         setIsSavingSchedule(true);
         try {
             const updated = {
@@ -395,25 +428,36 @@ const AdminCourses: React.FC<AdminCoursesProps> = ({ isInstructor = false }) => 
                     const daysText = c.lessonDays && c.lessonDays.length > 0 ? c.lessonDays.slice(0, 3).join(', ') : 'Live Days';
                     const hasLiveMeet = Boolean(c.meetingLink);
                     const liveLessonsList = extractLiveLessons(c);
+                    const isTargetOpen = c.id === openCourseId;
 
                     return (
-                        <div key={c.id} className="bg-white dark:bg-slate-900 rounded-2xl overflow-hidden border border-gray-150 dark:border-slate-800 shadow-sm hover:shadow-lg transition-all flex flex-col justify-between">
+                        <div 
+                            key={c.id} 
+                            className={`bg-white dark:bg-slate-900 rounded-2xl overflow-hidden border transition-all flex flex-col justify-between ${
+                                isTargetOpen 
+                                    ? 'border-violet-500 ring-2 ring-violet-500 shadow-xl shadow-violet-500/20' 
+                                    : 'border-gray-150 dark:border-slate-800 shadow-sm hover:shadow-lg'
+                            }`}
+                        >
                             <div>
                                 {/* Cover Image & Status Badges */}
-                                <div className="h-44 bg-gray-200 dark:bg-slate-800 relative overflow-hidden">
+                                <div 
+                                    onClick={() => setDetailsModalCourse(c)}
+                                    className="h-44 bg-gray-200 dark:bg-slate-800 relative overflow-hidden cursor-pointer group"
+                                    title="Click to view course overview"
+                                >
                                     {c.image ? (
                                         <img 
                                             src={c.image} 
                                             alt={c.title} 
-                                            className="w-full h-full object-cover" 
+                                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" 
                                             style={{
                                                 objectPosition: `${c.imagePositionX ?? 50}% ${c.imagePositionY ?? 50}%`,
-                                                transform: `scale(${c.imageScale ?? 1})`,
                                                 transformOrigin: `${c.imagePositionX ?? 50}% ${c.imagePositionY ?? 50}%`
                                             }}
                                         />
                                     ) : (
-                                        <div className="w-full h-full flex items-center justify-center text-gray-400">
+                                        <div className="w-full h-full flex items-center justify-center text-gray-400 group-hover:text-gray-600 transition-colors">
                                             No Image
                                         </div>
                                     )}
@@ -444,7 +488,11 @@ const AdminCourses: React.FC<AdminCoursesProps> = ({ isInstructor = false }) => 
                                 {/* Content Details */}
                                 <div className="p-5 space-y-3">
                                     <div className="flex items-start justify-between gap-2">
-                                        <h3 className="font-bold text-base text-gray-900 dark:text-white line-clamp-1">
+                                        <h3 
+                                            onClick={() => setDetailsModalCourse(c)}
+                                            className="font-bold text-base text-gray-900 dark:text-white line-clamp-1 hover:text-violet-600 dark:hover:text-violet-400 cursor-pointer transition-colors"
+                                            title="Click to view course overview"
+                                        >
                                             {c.title}
                                         </h3>
                                     </div>
@@ -493,7 +541,7 @@ const AdminCourses: React.FC<AdminCoursesProps> = ({ isInstructor = false }) => 
                                                 <Calendar size={12} className="text-violet-500" /> Period:
                                             </span>
                                             <span className="font-bold">
-                                                {c.startDate || '15 Nov 2026'} - {c.endDate || '01 Dec 2026'}
+                                                {c.startDate ? `${c.startDate} - ${c.endDate || 'Ongoing'}` : 'Schedule to be set'}
                                             </span>
                                         </div>
 
@@ -562,14 +610,25 @@ const AdminCourses: React.FC<AdminCoursesProps> = ({ isInstructor = false }) => 
                                 </div>
 
                                 <div className="flex items-center justify-between text-xs pt-1 px-1">
-                                    <button 
-                                        onClick={() => navigate(isInstructor ? `/instructor/courses/setup?courseId=${c.id}` : `/courses/setup?courseId=${c.id}`)}
-                                        className="text-violet-600 dark:text-violet-400 font-bold hover:underline cursor-pointer flex items-center gap-1"
-                                    >
-                                        <Edit3 size={12} /> Edit Syllabus
-                                    </button>
+                                    <div className="flex items-center gap-3">
+                                        <button 
+                                            type="button"
+                                            onClick={() => setDetailsModalCourse(c)}
+                                            className="text-gray-700 dark:text-slate-300 font-bold hover:text-violet-600 dark:hover:text-violet-400 cursor-pointer flex items-center gap-1 transition-colors"
+                                        >
+                                            <BookOpen size={12} /> Overview
+                                        </button>
+                                        <button 
+                                            type="button"
+                                            onClick={() => navigate(isInstructor ? `/instructor/courses/setup?courseId=${c.id}` : `/courses/setup?courseId=${c.id}`)}
+                                            className="text-violet-600 dark:text-violet-400 font-bold hover:underline cursor-pointer flex items-center gap-1"
+                                        >
+                                            <Edit3 size={12} /> Edit Syllabus
+                                        </button>
+                                    </div>
 
                                     <button 
+                                        type="button"
                                         onClick={async () => {
                                             if (window.confirm(`Are you sure you want to delete "${c.title}"?`)) {
                                                 try {
@@ -832,7 +891,15 @@ const AdminCourses: React.FC<AdminCoursesProps> = ({ isInstructor = false }) => 
                                         <input 
                                             type="date" 
                                             value={scheduleFormData.startDate || ''} 
-                                            onChange={e => setScheduleFormData({...scheduleFormData, startDate: e.target.value})}
+                                            max={scheduleFormData.endDate || undefined}
+                                            onChange={e => {
+                                                const val = e.target.value;
+                                                setScheduleFormData(prev => ({
+                                                    ...prev,
+                                                    startDate: val,
+                                                    ...(prev.endDate && val && val > prev.endDate ? { endDate: val } : {})
+                                                }));
+                                            }}
                                             className="w-full p-2.5 text-xs bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl outline-none text-gray-900 dark:text-white font-medium"
                                         />
                                     </div>
@@ -841,7 +908,15 @@ const AdminCourses: React.FC<AdminCoursesProps> = ({ isInstructor = false }) => 
                                         <input 
                                             type="date" 
                                             value={scheduleFormData.endDate || ''} 
-                                            onChange={e => setScheduleFormData({...scheduleFormData, endDate: e.target.value})}
+                                            min={scheduleFormData.startDate || undefined}
+                                            onChange={e => {
+                                                const val = e.target.value;
+                                                setScheduleFormData(prev => ({
+                                                    ...prev,
+                                                    endDate: val,
+                                                    ...(prev.startDate && val && val < prev.startDate ? { startDate: val } : {})
+                                                }));
+                                            }}
                                             className="w-full p-2.5 text-xs bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl outline-none text-gray-900 dark:text-white font-medium"
                                         />
                                     </div>
@@ -1042,6 +1117,328 @@ const AdminCourses: React.FC<AdminCoursesProps> = ({ isInstructor = false }) => 
                                 </div>
                             </div>
                         )}
+                    </div>
+                </div>
+            )}
+
+            {/* Modal: Comprehensive Course Overview / Details */}
+            {detailsModalCourse && (
+                <div className="fixed inset-0 bg-black/75 backdrop-blur-md z-[160] flex items-center justify-center p-4 animate-in fade-in duration-200">
+                    <div className="bg-white dark:bg-slate-900 rounded-3xl w-full max-w-3xl max-h-[90vh] overflow-hidden shadow-2xl border border-gray-150 dark:border-slate-800 flex flex-col animate-in zoom-in-95 duration-200">
+                        {/* Header Banner */}
+                        <div className="relative h-44 sm:h-52 bg-slate-950 shrink-0 overflow-hidden">
+                            {detailsModalCourse.image ? (
+                                <img 
+                                    src={detailsModalCourse.image} 
+                                    alt={detailsModalCourse.title} 
+                                    className="w-full h-full object-cover opacity-60"
+                                    style={{
+                                        objectPosition: `${detailsModalCourse.imagePositionX ?? 50}% ${detailsModalCourse.imagePositionY ?? 50}%`,
+                                        transform: `scale(${detailsModalCourse.imageScale ?? 1})`
+                                    }}
+                                />
+                            ) : (
+                                <div className="w-full h-full bg-gradient-to-r from-violet-900 via-indigo-900 to-slate-900 opacity-70 flex items-center justify-center">
+                                    <BookOpen size={48} className="text-white/20" />
+                                </div>
+                            )}
+                            <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/60 to-transparent"></div>
+
+                            {/* Close Button */}
+                            <button 
+                                onClick={handleCloseDetailsModal}
+                                className="absolute top-4 right-4 w-9 h-9 rounded-full bg-black/50 hover:bg-black/80 text-white flex items-center justify-center backdrop-blur-sm transition-all cursor-pointer z-10"
+                            >
+                                <X size={18} />
+                            </button>
+
+                            {/* Badges & Title */}
+                            <div className="absolute bottom-4 left-6 right-6 space-y-2">
+                                <div className="flex flex-wrap items-center gap-2">
+                                    <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-violet-600 text-white shadow-sm flex items-center gap-1">
+                                        <Radio size={11} className="animate-pulse" />
+                                        {detailsModalCourse.cohortName || 'Active Cohort'}
+                                    </span>
+                                    {detailsModalCourse.isDraft ? (
+                                        <span className="px-2 py-0.5 bg-amber-500 text-white text-[11px] font-bold rounded-md shadow-sm">
+                                            Draft
+                                        </span>
+                                    ) : (
+                                        <span className="px-2 py-0.5 bg-emerald-500 text-white text-[11px] font-bold rounded-md shadow-sm flex items-center gap-1">
+                                            <CheckCircle2 size={11} /> Published
+                                        </span>
+                                    )}
+                                    <span className="px-2.5 py-0.5 rounded-md text-[11px] font-bold bg-white/20 text-white backdrop-blur-sm">
+                                        {detailsModalCourse.category || 'General'}
+                                    </span>
+                                    <span className="px-2.5 py-0.5 rounded-md text-[11px] font-bold bg-white/20 text-white backdrop-blur-sm">
+                                        {detailsModalCourse.duration || '4 Weeks'}
+                                    </span>
+                                </div>
+                                <h2 className="text-xl sm:text-2xl font-bold text-white drop-shadow-md line-clamp-2">
+                                    {detailsModalCourse.title}
+                                </h2>
+                            </div>
+                        </div>
+
+                        {/* Modal Body (Scrollable) */}
+                        <div className="flex-1 overflow-y-auto p-6 space-y-6">
+                            {/* Live Cohort & Schedule Card */}
+                            <div className="bg-violet-50/70 dark:bg-violet-950/30 rounded-2xl p-4 border border-violet-100 dark:border-violet-900/40 space-y-3">
+                                <div className="flex items-center justify-between">
+                                    <span className="text-xs font-bold uppercase tracking-wider text-violet-700 dark:text-violet-300 flex items-center gap-1.5">
+                                        <Radio size={14} className="animate-pulse" /> Live Cohort Schedule & Access
+                                    </span>
+                                    <span className="text-xs font-mono font-bold text-violet-600 dark:text-violet-400 bg-white dark:bg-slate-900 px-2.5 py-0.5 rounded-lg border border-violet-200 dark:border-violet-800">
+                                        {detailsModalCourse.timezone || 'EAT (UTC+3)'}
+                                    </span>
+                                </div>
+
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                                    <div className="bg-white dark:bg-slate-900 p-3 rounded-xl border border-violet-100 dark:border-slate-800 space-y-1">
+                                        <span className="text-[10px] font-bold uppercase text-gray-400 block">Class Schedule & Dates</span>
+                                        <p className="font-semibold text-gray-800 dark:text-slate-200">
+                                            {detailsModalCourse.startDate ? `${detailsModalCourse.startDate} → ${detailsModalCourse.endDate || 'Ongoing'}` : 'Dates not specified'}
+                                        </p>
+                                        <p className="text-gray-500 dark:text-slate-400 text-[11px]">
+                                            {(detailsModalCourse.lessonDays || []).join(', ')} @ {detailsModalCourse.lessonStartTime || '18:00'} - {detailsModalCourse.lessonEndTime || '20:00'}
+                                        </p>
+                                    </div>
+
+                                    <div className="bg-white dark:bg-slate-900 p-3 rounded-xl border border-violet-100 dark:border-slate-800 space-y-1">
+                                        <div className="flex items-center justify-between">
+                                            <span className="text-[10px] font-bold uppercase text-gray-400">Default Attendance PIN</span>
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    navigator.clipboard.writeText(detailsModalCourse.attendanceCode || '');
+                                                    setCopiedDetailsPin(true);
+                                                    setTimeout(() => setCopiedDetailsPin(false), 1500);
+                                                }}
+                                                className="text-[11px] font-semibold text-violet-600 dark:text-violet-400 hover:underline flex items-center gap-1 cursor-pointer"
+                                            >
+                                                {copiedDetailsPin ? <Check size={11} className="text-emerald-500" /> : <Copy size={11} />}
+                                                {copiedDetailsPin ? 'Copied' : 'Copy PIN'}
+                                            </button>
+                                        </div>
+                                        <p className="font-mono font-bold text-base text-violet-700 dark:text-violet-300">
+                                            {detailsModalCourse.attendanceCode || 'None'}
+                                        </p>
+                                    </div>
+                                </div>
+
+                                {/* Meet Link Bar */}
+                                {detailsModalCourse.meetingLink ? (
+                                    <div className="bg-white dark:bg-slate-900 p-3 rounded-xl border border-violet-100 dark:border-slate-800 flex items-center justify-between gap-3 text-xs">
+                                        <div className="flex items-center gap-2 overflow-hidden">
+                                            <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0"></span>
+                                            <span className="text-gray-500 dark:text-slate-400 font-medium shrink-0">Meet:</span>
+                                            <a 
+                                                href={detailsModalCourse.meetingLink} 
+                                                target="_blank" 
+                                                rel="noopener noreferrer" 
+                                                className="text-violet-600 dark:text-violet-400 font-semibold hover:underline truncate font-mono text-[11px]"
+                                            >
+                                                {detailsModalCourse.meetingLink}
+                                            </a>
+                                        </div>
+                                        <div className="flex items-center gap-2 shrink-0">
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    navigator.clipboard.writeText(detailsModalCourse.meetingLink || '');
+                                                    setCopiedDetailsMeet(true);
+                                                    setTimeout(() => setCopiedDetailsMeet(false), 1500);
+                                                }}
+                                                className="px-2.5 py-1 text-[11px] font-semibold bg-gray-100 dark:bg-slate-800 hover:bg-gray-200 dark:hover:bg-slate-750 text-gray-700 dark:text-slate-300 rounded-lg flex items-center gap-1 cursor-pointer"
+                                            >
+                                                {copiedDetailsMeet ? <Check size={11} className="text-emerald-500" /> : <Copy size={11} />}
+                                                {copiedDetailsMeet ? 'Copied' : 'Copy'}
+                                            </button>
+                                            <a
+                                                href={detailsModalCourse.meetingLink}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="px-3 py-1 text-[11px] font-bold bg-violet-600 hover:bg-violet-700 text-white rounded-lg flex items-center gap-1 cursor-pointer"
+                                            >
+                                                <ExternalLink size={11} /> Join
+                                            </a>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <p className="text-[11px] text-gray-500 italic">No Google Meet link set yet for this cohort.</p>
+                                )}
+                            </div>
+
+                            {/* Instructor & Outcomes */}
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div className="space-y-1.5">
+                                    <span className="text-xs font-bold uppercase tracking-wider text-gray-400">Instructor</span>
+                                    <div className="flex items-center gap-3 bg-gray-50 dark:bg-slate-850 p-3 rounded-2xl border border-gray-100 dark:border-slate-800">
+                                        <div className="w-10 h-10 rounded-full bg-violet-600 text-white font-bold flex items-center justify-center shrink-0">
+                                            {detailsModalCourse.instructorAvatar || detailsModalCourse.instructor?.slice(0, 2).toUpperCase() || 'IN'}
+                                        </div>
+                                        <div className="min-w-0">
+                                            <p className="text-sm font-bold text-gray-900 dark:text-white truncate">
+                                                {detailsModalCourse.instructor || 'Lead Instructor'}
+                                            </p>
+                                            <p className="text-xs text-gray-500 truncate">
+                                                {detailsModalCourse.instructorEmail || 'No email attached'}
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="space-y-1.5">
+                                    <span className="text-xs font-bold uppercase tracking-wider text-gray-400">Access & Pricing</span>
+                                    <div className="bg-gray-50 dark:bg-slate-850 p-3 rounded-2xl border border-gray-100 dark:border-slate-800 flex items-center justify-between">
+                                        <div>
+                                            <p className="text-sm font-bold text-gray-900 dark:text-white">
+                                                {detailsModalCourse.accessTier === 'FREE' ? 'Free Admission' : formatAmount(detailsModalCourse.price || 0, currency)}
+                                            </p>
+                                            <p className="text-xs text-gray-500 capitalize">{detailsModalCourse.level || 'All levels'} Level</p>
+                                        </div>
+                                        <span className="px-2.5 py-1 rounded-lg text-xs font-bold bg-violet-100 dark:bg-violet-950/60 text-violet-700 dark:text-violet-300">
+                                            {detailsModalCourse.platform || 'Welile'}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Description */}
+                            {detailsModalCourse.description && (
+                                <div className="space-y-1.5">
+                                    <span className="text-xs font-bold uppercase tracking-wider text-gray-400">Description</span>
+                                    <p className="text-xs text-gray-600 dark:text-slate-300 leading-relaxed bg-gray-50 dark:bg-slate-850 p-3.5 rounded-2xl border border-gray-100 dark:border-slate-800">
+                                        {detailsModalCourse.description}
+                                    </p>
+                                </div>
+                            )}
+
+                            {/* Curriculum Outline */}
+                            <div className="space-y-3">
+                                <div className="flex items-center justify-between">
+                                    <span className="text-xs font-bold uppercase tracking-wider text-gray-400 flex items-center gap-1.5">
+                                        <BookOpen size={13} /> Curriculum Syllabus ({detailsModalCourse.sections?.length || 0} Modules)
+                                    </span>
+                                </div>
+
+                                <div className="space-y-2">
+                                    {(() => {
+                                        let liveLessonCounter = 0;
+                                        return (detailsModalCourse.sections || []).map((sec, sIdx) => (
+                                            <div key={sec.id || sIdx} className="bg-gray-50 dark:bg-slate-850 rounded-2xl p-3 border border-gray-100 dark:border-slate-800 space-y-2">
+                                                <div className="flex items-center justify-between text-xs font-bold text-gray-800 dark:text-slate-200">
+                                                    <span>{sec.title}</span>
+                                                    <span className="text-[11px] text-gray-400 font-normal">{sec.lessons?.length || 0} topics</span>
+                                                </div>
+                                                <div className="space-y-1 pl-2">
+                                                    {(sec.lessons || []).map((les, lIdx) => {
+                                                        const isLive = les.classType === 'online' || les.meetLink || Boolean(detailsModalCourse.meetingLink && les.type !== 'quiz');
+                                                        const meetUrl = les.meetLink || detailsModalCourse.meetingLink || '';
+                                                        let currentLiveNum = null;
+                                                        if (isLive) {
+                                                            liveLessonCounter++;
+                                                            currentLiveNum = les.sessionNumber || liveLessonCounter;
+                                                        }
+                                                        return (
+                                                            <div key={les.id || lIdx} className="flex items-center justify-between text-xs py-1.5 border-t border-gray-200/50 dark:border-slate-800 text-gray-600 dark:text-slate-400">
+                                                                <div className="flex items-center gap-2 truncate pr-2">
+                                                                    {isLive ? (
+                                                                        <Radio size={12} className="text-violet-600 shrink-0 animate-pulse" />
+                                                                    ) : (
+                                                                        <span className="w-1.5 h-1.5 rounded-full bg-gray-400 shrink-0"></span>
+                                                                    )}
+                                                                    <span className="truncate">{les.title}</span>
+                                                                    {isLive && (
+                                                                        <span className="px-1.5 py-0.5 rounded text-[9px] font-bold uppercase bg-violet-100 dark:bg-violet-950/60 text-violet-700 dark:text-violet-300 shrink-0">
+                                                                            Session #{currentLiveNum}
+                                                                        </span>
+                                                                    )}
+                                                                </div>
+                                                                <div className="flex items-center gap-2 shrink-0">
+                                                                    {les.scheduledDate && (
+                                                                        <span className="text-[10px] text-violet-600 font-medium bg-violet-50 dark:bg-violet-950/40 px-1.5 py-0.5 rounded">
+                                                                            {les.scheduledDate}
+                                                                        </span>
+                                                                    )}
+                                                                    {les.attendanceCode && (
+                                                                        <span className="font-mono text-[10px] text-purple-600 dark:text-purple-400 font-bold bg-purple-50 dark:bg-purple-950/50 px-1.5 py-0.5 rounded">
+                                                                            PIN: {les.attendanceCode}
+                                                                        </span>
+                                                                    )}
+                                                                    {isLive && meetUrl && (
+                                                                        <a 
+                                                                            href={meetUrl} 
+                                                                            target="_blank" 
+                                                                            rel="noopener noreferrer" 
+                                                                            className="px-2.5 py-1 text-[11px] font-bold bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-100 dark:hover:bg-emerald-900/60 rounded-lg border border-emerald-200 dark:border-emerald-900/50 flex items-center gap-1 cursor-pointer transition-colors"
+                                                                            title="Follow link to join live Google Meet call"
+                                                                        >
+                                                                            <span>Join Call</span>
+                                                                            <ExternalLink size={10} />
+                                                                        </a>
+                                                                    )}
+                                                                    <span className="text-[11px] text-gray-400 font-medium">
+                                                                        {les.duration || detailsModalCourse.defaultLessonDuration || '1 hour'}
+                                                                    </span>
+                                                                </div>
+                                                            </div>
+                                                        );
+                                                    })}
+                                                </div>
+                                            </div>
+                                        ));
+                                    })()}
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Modal Footer Actions */}
+                        <div className="p-4 bg-gray-50 dark:bg-slate-850 border-t border-gray-150 dark:border-slate-800 flex flex-wrap items-center justify-between gap-2 shrink-0">
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    const base = window.location.origin.includes('admin') ? window.location.origin.replace('admin.', '') : window.location.origin;
+                                    window.open(`${base}/discover/${detailsModalCourse.id}`, '_blank');
+                                }}
+                                className="px-4 py-2.5 bg-white dark:bg-slate-800 hover:bg-gray-100 dark:hover:bg-slate-750 text-gray-700 dark:text-slate-200 text-xs font-bold rounded-xl border border-gray-200 dark:border-slate-700 flex items-center gap-1.5 transition-colors cursor-pointer"
+                            >
+                                <ExternalLink size={13} /> View Student Page
+                            </button>
+
+                            <div className="flex items-center gap-2">
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        const c = detailsModalCourse;
+                                        handleCloseDetailsModal();
+                                        handleSendAlert(c);
+                                    }}
+                                    className="px-4 py-2.5 bg-violet-50 hover:bg-violet-100 dark:bg-violet-950/40 dark:hover:bg-violet-900/40 text-violet-700 dark:text-violet-300 text-xs font-bold rounded-xl flex items-center gap-1.5 transition-colors cursor-pointer"
+                                >
+                                    <Bell size={13} /> Broadcast Alert
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        const cId = detailsModalCourse.id;
+                                        handleCloseDetailsModal();
+                                        navigate(isInstructor ? `/instructor/courses/setup?courseId=${cId}` : `/courses/setup?courseId=${cId}`);
+                                    }}
+                                    className="px-4 py-2.5 bg-violet-600 hover:bg-violet-700 text-white text-xs font-bold rounded-xl flex items-center gap-1.5 transition-all shadow-sm cursor-pointer"
+                                >
+                                    <Edit3 size={13} /> Edit Syllabus
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={handleCloseDetailsModal}
+                                    className="px-4 py-2.5 bg-gray-200 dark:bg-slate-750 hover:bg-gray-300 dark:hover:bg-slate-700 text-gray-700 dark:text-slate-200 text-xs font-semibold rounded-xl transition-colors cursor-pointer"
+                                >
+                                    Close
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 </div>
             )}

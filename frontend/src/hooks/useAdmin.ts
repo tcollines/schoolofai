@@ -179,9 +179,56 @@ export const useAdmin = (isAdmin: boolean) => {
             ]).select().single();
 
             if (error) throw new Error(error.message || JSON.stringify(error));
+
+            const savedCourse = data;
+            const courseId = savedCourse?.id;
+
+            // Automatically create relational Cohort and Cohort Sessions in sync with the course
+            if (courseId && (courseData.cohortName || courseData.startDate)) {
+                try {
+                    const cohortStartDate = courseData.startDate || new Date().toISOString().split('T')[0];
+                    const orientationEndDate = courseData.endDate || (() => {
+                        const d = new Date(cohortStartDate);
+                        d.setDate(d.getDate() + 3);
+                        return d.toISOString().split('T')[0];
+                    })();
+
+                    const { data: cohortRes } = await supabaseClient.from('cohorts').insert({
+                        course_id: courseId,
+                        name: courseData.cohortName || 'Cohort 1',
+                        start_date: cohortStartDate,
+                        orientation_end_date: orientationEndDate
+                    }).select().single();
+
+                    const newCohortId = cohortRes?.id;
+                    if (newCohortId && courseData.sections) {
+                        const allLessons = courseData.sections.flatMap((s: any) => s.lessons || []);
+                        const sessionInserts = allLessons.map((les: any, idx: number) => {
+                            const sessDate = new Date(cohortStartDate);
+                            sessDate.setDate(sessDate.getDate() + (idx * 7 + 7));
+                            sessDate.setHours(18, 0, 0, 0);
+
+                            return {
+                                cohort_id: newCohortId,
+                                module_id: les.id,
+                                session_date: sessDate.toISOString(),
+                                location_link: les.meetLink || courseData.meetingLink || '',
+                                attendance_code: les.attendanceCode || courseData.attendanceCode || 'WEL-' + Math.floor(1000 + Math.random() * 9000)
+                            };
+                        });
+
+                        if (sessionInserts.length > 0) {
+                            await supabaseClient.from('cohort_sessions').insert(sessionInserts);
+                        }
+                    }
+                } catch (cohortSyncErr) {
+                    console.warn('Could not auto-generate cohort relation:', cohortSyncErr);
+                }
+            }
+
             await fetchData(true); // Refresh silently
             window.dispatchEvent(new Event('courses-update'));
-            return data;
+            return savedCourse;
         } catch (err: any) {
             console.error('Error adding course:', err);
             throw err;
