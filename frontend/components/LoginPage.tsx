@@ -258,8 +258,20 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onNavigateToSignup, onBa
         }
     };
 
-    const handleGoogleLogin = () => {
-        window.location.href = '/api/auth/google';
+    const handleGoogleLogin = async () => {
+        try {
+            setLoading(true);
+            const { error } = await supabaseClient.auth.signInWithOAuth({
+                provider: 'google',
+                options: {
+                    redirectTo: `${window.location.origin}/dashboard`
+                }
+            });
+            if (error) throw error;
+        } catch (err: any) {
+            setError(err.message || 'Google sign in failed');
+            setLoading(false);
+        }
     };
 
     const handleSelectGoogleAccount = async (selectedEmail: string, name: string) => {
