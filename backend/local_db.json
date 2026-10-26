@@ -23,8 +23,8 @@
               "id": "a7a68b",
               "title": "Topic 1: Introductions",
               "duration": "45 mins",
-              "type": "article",
-              "classType": "online",
+              "type": "video",
+              "classType": "none",
               "meetLink": "meet.google.com/mkp-dcsd-jdd",
               "attendanceCode": "WEL-KWCA",
               "description": "",
@@ -41,7 +41,7 @@
               "meetLink": "meet.google.com/mkp-dcsd-jdd",
               "attendanceCode": "WEL-99ZR",
               "description": "",
-              "sessionNumber": 2,
+              "sessionNumber": 1,
               "scheduledDate": "Wed, Nov 4",
               "scheduledTime": "14:00 - 16:00 (EAT (UTC+3))"
             },
@@ -49,8 +49,8 @@
               "id": "no0dfs",
               "title": "Topic 3: Looks into ai",
               "duration": "45 mins",
-              "type": "article",
-              "classType": "online",
+              "type": "video",
+              "classType": "none",
               "meetLink": "meet.google.com/mkp-dcsd-jdd",
               "attendanceCode": "WEL-KKDJ",
               "description": "",
@@ -67,7 +67,7 @@
               "meetLink": "meet.google.com/mkp-dcsd-jdd",
               "attendanceCode": "WEL-W9P9",
               "description": "",
-              "sessionNumber": 4,
+              "sessionNumber": 2,
               "scheduledDate": "Mon, Nov 9",
               "scheduledTime": "14:00 - 16:00 (EAT (UTC+3))"
             }
@@ -79,9 +79,7 @@
         "startDate": "2026-11-01",
         "endDate": "2026-11-30",
         "lessonDays": [
-          "Monday",
-          "Wednesday",
-          "Friday"
+          "Tuesday"
         ],
         "lessonStartTime": "14:00",
         "lessonEndTime": "16:00",
@@ -101,8 +99,8 @@
                 "id": "a7a68b",
                 "title": "Topic 1: Introductions",
                 "duration": "45 mins",
-                "type": "article",
-                "classType": "online",
+                "type": "video",
+                "classType": "none",
                 "meetLink": "meet.google.com/mkp-dcsd-jdd",
                 "attendanceCode": "WEL-KWCA",
                 "description": "",
@@ -119,7 +117,7 @@
                 "meetLink": "meet.google.com/mkp-dcsd-jdd",
                 "attendanceCode": "WEL-99ZR",
                 "description": "",
-                "sessionNumber": 2,
+                "sessionNumber": 1,
                 "scheduledDate": "Wed, Nov 4",
                 "scheduledTime": "14:00 - 16:00 (EAT (UTC+3))"
               },
@@ -127,8 +125,8 @@
                 "id": "no0dfs",
                 "title": "Topic 3: Looks into ai",
                 "duration": "45 mins",
-                "type": "article",
-                "classType": "online",
+                "type": "video",
+                "classType": "none",
                 "meetLink": "meet.google.com/mkp-dcsd-jdd",
                 "attendanceCode": "WEL-KKDJ",
                 "description": "",
@@ -145,7 +143,7 @@
                 "meetLink": "meet.google.com/mkp-dcsd-jdd",
                 "attendanceCode": "WEL-W9P9",
                 "description": "",
-                "sessionNumber": 4,
+                "sessionNumber": 2,
                 "scheduledDate": "Mon, Nov 9",
                 "scheduledTime": "14:00 - 16:00 (EAT (UTC+3))"
               }
@@ -192,7 +190,12 @@
               "title": "Topic 1: Course Overview & Live Setup",
               "duration": "45 mins",
               "type": "article",
-              "classType": "online"
+              "classType": "online",
+              "sessionNumber": 1,
+              "scheduledDate": "Wed, Nov 4",
+              "scheduledTime": "14:00 - 16:00 (EAT (UTC+3))",
+              "meetLink": "https://meet.google.com/mkp-dcsd-jdd",
+              "attendanceCode": "WEL-6245"
             },
             {
               "id": "2nccj",
@@ -219,8 +222,8 @@
               "id": "4ff5ea",
               "title": "Topic 3: Day two",
               "duration": "45 mins",
-              "type": "article",
-              "classType": "online",
+              "type": "video",
+              "classType": "none",
               "meetLink": "https://meet.google.com/mkp-dcsd-jdd",
               "attendanceCode": "WEL-6KNA",
               "description": ""
@@ -229,8 +232,8 @@
               "id": "pbyj8q",
               "title": "Topic 4: Day three",
               "duration": "45 mins",
-              "type": "article",
-              "classType": "online",
+              "type": "video",
+              "classType": "none",
               "meetLink": "https://meet.google.com/mkp-dcsd-jdd",
               "attendanceCode": "WEL-CLFJ",
               "description": ""
@@ -239,8 +242,8 @@
               "id": "kw2vxr",
               "title": "Topic 5: Day 3",
               "duration": "45 mins",
-              "type": "article",
-              "classType": "online",
+              "type": "video",
+              "classType": "none",
               "meetLink": "https://meet.google.com/mkp-dcsd-jdd",
               "attendanceCode": "WEL-LJ4U",
               "description": ""
@@ -257,14 +260,18 @@
               "duration": "45 mins",
               "type": "article",
               "classType": "online",
-              "meetLink": "https://meet.google.com/mkp-dcsd-jdd"
+              "meetLink": "https://meet.google.com/mkp-dcsd-jdd",
+              "sessionNumber": 2,
+              "scheduledDate": "Wed, Nov 11",
+              "scheduledTime": "14:00 - 16:00 (EAT (UTC+3))",
+              "attendanceCode": "WEL-7035"
             },
             {
               "id": "8mjamc",
               "title": "Topic 2: Day 5",
-              "duration": "45 mins",
-              "type": "article",
-              "classType": "online",
+              "duration": "1 hour",
+              "type": "video",
+              "classType": "none",
               "meetLink": "https://meet.google.com/mkp-dcsd-jdd",
               "attendanceCode": "WEL-HH6E",
               "description": ""
@@ -298,11 +305,7 @@
         "startDate": "2026-11-01",
         "endDate": "2026-11-30",
         "lessonDays": [
-          "Monday",
-          "Tuesday",
-          "Wednesday",
-          "Thursday",
-          "Friday"
+          "Wednesday"
         ],
         "lessonStartTime": "14:00",
         "lessonEndTime": "16:00",
@@ -323,7 +326,12 @@
                 "title": "Topic 1: Course Overview & Live Setup",
                 "duration": "45 mins",
                 "type": "article",
-                "classType": "online"
+                "classType": "online",
+                "sessionNumber": 1,
+                "scheduledDate": "Wed, Nov 4",
+                "scheduledTime": "14:00 - 16:00 (EAT (UTC+3))",
+                "meetLink": "https://meet.google.com/mkp-dcsd-jdd",
+                "attendanceCode": "WEL-6245"
               },
               {
                 "id": "2nccj",
@@ -350,8 +358,8 @@
                 "id": "4ff5ea",
                 "title": "Topic 3: Day two",
                 "duration": "45 mins",
-                "type": "article",
-                "classType": "online",
+                "type": "video",
+                "classType": "none",
                 "meetLink": "https://meet.google.com/mkp-dcsd-jdd",
                 "attendanceCode": "WEL-6KNA",
                 "description": ""
@@ -360,8 +368,8 @@
                 "id": "pbyj8q",
                 "title": "Topic 4: Day three",
                 "duration": "45 mins",
-                "type": "article",
-                "classType": "online",
+                "type": "video",
+                "classType": "none",
                 "meetLink": "https://meet.google.com/mkp-dcsd-jdd",
                 "attendanceCode": "WEL-CLFJ",
                 "description": ""
@@ -370,8 +378,8 @@
                 "id": "kw2vxr",
                 "title": "Topic 5: Day 3",
                 "duration": "45 mins",
-                "type": "article",
-                "classType": "online",
+                "type": "video",
+                "classType": "none",
                 "meetLink": "https://meet.google.com/mkp-dcsd-jdd",
                 "attendanceCode": "WEL-LJ4U",
                 "description": ""
@@ -388,14 +396,18 @@
                 "duration": "45 mins",
                 "type": "article",
                 "classType": "online",
-                "meetLink": "https://meet.google.com/mkp-dcsd-jdd"
+                "meetLink": "https://meet.google.com/mkp-dcsd-jdd",
+                "sessionNumber": 2,
+                "scheduledDate": "Wed, Nov 11",
+                "scheduledTime": "14:00 - 16:00 (EAT (UTC+3))",
+                "attendanceCode": "WEL-7035"
               },
               {
                 "id": "8mjamc",
                 "title": "Topic 2: Day 5",
-                "duration": "45 mins",
-                "type": "article",
-                "classType": "online",
+                "duration": "1 hour",
+                "type": "video",
+                "classType": "none",
                 "meetLink": "https://meet.google.com/mkp-dcsd-jdd",
                 "attendanceCode": "WEL-HH6E",
                 "description": ""
