@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { supabase } from '../src/lib/supabaseClient';
-import { ArrowLeft, Mail, Lock, User, Eye, EyeOff, AlertTriangle } from 'lucide-react';
+import { ArrowLeft, Mail, Lock, User, Eye, EyeOff, AlertTriangle, AlertCircle, LogIn } from 'lucide-react';
 
 const SignupPage: React.FC = () => {
     const navigate = useNavigate();
@@ -28,6 +28,7 @@ const SignupPage: React.FC = () => {
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [existingAccountEmail, setExistingAccountEmail] = useState<string | null>(null);
 
     const handleEmailSignup = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -42,10 +43,13 @@ const SignupPage: React.FC = () => {
 
         setLoading(true);
         setError(null);
+        setExistingAccountEmail(null);
+
+        const cleanEmail = email.trim().toLowerCase();
 
         try {
-            const { error: signUpError } = await supabase.auth.signUp({
-                email,
+            const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+                email: cleanEmail,
                 password,
                 options: {
                     data: {
@@ -54,12 +58,34 @@ const SignupPage: React.FC = () => {
                 }
             });
 
+            // Check if user already exists:
+            // 1. Supabase returns identities: [] when the user already exists (anti-enumeration mode)
+            // 2. Or Supabase throws an error mentioning "already registered" / "already in use"
+            const isAlreadyRegistered =
+                (signUpData?.user && (!signUpData.user.identities || signUpData.user.identities.length === 0)) ||
+                (signUpError && (
+                    signUpError.message?.toLowerCase().includes('already registered') ||
+                    signUpError.message?.toLowerCase().includes('already exists') ||
+                    signUpError.message?.toLowerCase().includes('already in use')
+                ));
+
+            if (isAlreadyRegistered) {
+                setExistingAccountEmail(cleanEmail);
+                return;
+            }
+
             if (signUpError) {
                 throw signUpError;
             }
 
-            // Successfully signed up, go to verify email step
-            navigate('/onboarding/verify', { state: { email } });
+            // If session is already created (e.g. email confirmations disabled)
+            if (signUpData?.session) {
+                navigate('/onboarding/profile');
+                return;
+            }
+
+            // Successfully signed up with new account, go to verify email step
+            navigate('/onboarding/verify', { state: { email: cleanEmail } });
         } catch (err: any) {
             setError(err.message || 'An error occurred during signup.');
         } finally {
@@ -183,7 +209,42 @@ const SignupPage: React.FC = () => {
                             <p className="text-xs text-gray-400 font-semibold uppercase tracking-wider">Create a new account</p>
                         </div>
 
-                        {error && (
+                        {existingAccountEmail && (
+                            <div className="bg-amber-50 dark:bg-amber-950/40 border-2 border-amber-300 dark:border-amber-750/70 rounded-2xl p-5 mb-6 text-left shadow-sm">
+                                <div className="flex items-start gap-3.5">
+                                    <div className="w-10 h-10 rounded-full bg-amber-100 dark:bg-amber-900/50 flex items-center justify-center shrink-0 mt-0.5">
+                                        <AlertCircle className="w-5 h-5 text-amber-600 dark:text-amber-400" />
+                                    </div>
+                                    <div className="flex-1">
+                                        <h4 className="text-sm font-bold text-gray-900 dark:text-white">
+                                            Email Already Registered
+                                        </h4>
+                                        <p className="text-xs text-gray-600 dark:text-slate-300 mt-1 leading-relaxed">
+                                            An account with <span className="font-semibold text-gray-900 dark:text-white underline">{existingAccountEmail}</span> already exists.
+                                        </p>
+                                        <div className="mt-4 flex flex-wrap gap-2.5 items-center">
+                                            <button
+                                                type="button"
+                                                onClick={() => navigate('/login', { state: { email: existingAccountEmail } })}
+                                                className="py-2 px-4 bg-violet-600 hover:bg-violet-700 text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow cursor-pointer"
+                                            >
+                                                <LogIn className="w-3.5 h-3.5" />
+                                                Log In to Your Account
+                                            </button>
+                                            <button
+                                                type="button"
+                                                onClick={() => setExistingAccountEmail(null)}
+                                                className="py-2 px-3 text-xs text-gray-500 dark:text-slate-400 hover:text-gray-700 dark:hover:text-slate-200 hover:underline cursor-pointer"
+                                            >
+                                                Use a different email
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {error && !existingAccountEmail && (
                             <div className="bg-red-50 dark:bg-red-950/30 text-red-650 dark:text-red-400 p-4 rounded-xl mb-6 text-sm flex items-center border border-red-200 dark:border-red-900/30">
                                 <span className="mr-2"><AlertTriangle className="inline-block w-4 h-4 mr-1 align-middle" />️</span> {error}
                             </div>
@@ -212,7 +273,11 @@ const SignupPage: React.FC = () => {
                                     type="email"
                                     required
                                     value={email}
-                                    onChange={(e) => setEmail(e.target.value)}
+                                    onChange={(e) => {
+                                        setEmail(e.target.value);
+                                        if (existingAccountEmail) setExistingAccountEmail(null);
+                                        if (error) setError(null);
+                                    }}
                                     className="block w-full pl-8 pr-3 bg-transparent border-0 outline-none focus:ring-0 text-sm text-gray-900 dark:text-white placeholder-gray-400"
                                     placeholder="Email"
                                 />

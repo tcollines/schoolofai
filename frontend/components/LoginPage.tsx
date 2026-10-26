@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { supabaseClient } from '../src/lib/supabaseClient';
 import { ArrowLeft, Mail, Lock, User, Loader2, X, KeyRound, ShieldCheck, Clock, Eye, EyeOff, Brain, Cpu, Sparkles, AlertTriangle } from 'lucide-react';
 
@@ -10,6 +10,7 @@ interface LoginPageProps {
 }
 
 const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onNavigateToSignup, onBack }) => {
+    const location = useLocation();
     const [isDark, setIsDark] = useState(() => document.documentElement.classList.contains('dark'));
     
     const toggleTheme = () => {
@@ -25,7 +26,13 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onNavigateToSignup, onBa
         window.dispatchEvent(new Event('theme-change'));
     };
 
-    const [email, setEmail] = useState('');
+    const [email, setEmail] = useState(() => (location.state as any)?.email || '');
+
+    useEffect(() => {
+        if ((location.state as any)?.email) {
+            setEmail((location.state as any).email);
+        }
+    }, [location.state]);
     const [password, setPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
     const [loading, setLoading] = useState(false);
