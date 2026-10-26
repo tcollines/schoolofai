@@ -1,8 +1,70 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { BookOpen, Clock, Star, PlayCircle, Video, FileText, CheckCircle, Award, Shield, Headphones, File } from 'lucide-react';
+import { 
+    BookOpen, Clock, Star, PlayCircle, Video, FileText, CheckCircle, 
+    Award, Shield, Headphones, File, Radio, ExternalLink, Copy, Check, Calendar, Sparkles 
+} from 'lucide-react';
 import { Course, CourseStatus, UserRole } from '../types';
 import { formatAmount, getCurrencyPreference, CurrencyType } from '../src/lib/currency';
+
+// Helper to calculate exact calendar date for a scheduled lesson
+const calculateLessonSchedule = (
+    startDateStr?: string,
+    lessonDays: string[] = ['Monday', 'Wednesday', 'Friday'],
+    lessonIndex: number = 0,
+    startTime: string = '18:00',
+    endTime: string = '20:00',
+    tz: string = 'EAT (UTC+3)'
+): { dateStr: string; timeStr: string } => {
+    if (!startDateStr) {
+        return {
+            dateStr: `Session ${lessonIndex + 1}`,
+            timeStr: `${startTime} - ${endTime} (${tz})`
+        };
+    }
+
+    const dayNameToNum: Record<string, number> = {
+        Sunday: 0, Monday: 1, Tuesday: 2, Wednesday: 3, Thursday: 4, Friday: 5, Saturday: 6
+    };
+
+    const targetDayNums = (lessonDays && lessonDays.length > 0 ? lessonDays : ['Monday', 'Wednesday', 'Friday'])
+        .map(d => dayNameToNum[d] ?? 1);
+
+    const base = new Date(startDateStr);
+    if (isNaN(base.getTime())) {
+        return {
+            dateStr: `Session ${lessonIndex + 1}`,
+            timeStr: `${startTime} - ${endTime} (${tz})`
+        };
+    }
+
+    let current = new Date(base);
+    let matchedCount = 0;
+    let guard = 0;
+
+    while (guard < 180) {
+        const dayOfWeek = current.getDay();
+        if (targetDayNums.includes(dayOfWeek)) {
+            if (matchedCount === lessonIndex) {
+                break;
+            }
+            matchedCount++;
+        }
+        current.setDate(current.getDate() + 1);
+        guard++;
+    }
+
+    const dateStr = current.toLocaleDateString('en-US', {
+        weekday: 'short',
+        month: 'short',
+        day: 'numeric'
+    });
+
+    return {
+        dateStr,
+        timeStr: `${startTime} - ${endTime} (${tz})`
+    };
+};
 
 interface CourseOverviewProps {
     courses: Course[];
@@ -20,6 +82,7 @@ const CourseOverview: React.FC<CourseOverviewProps> = ({ courses, onEnroll, onUn
     const navigate = useNavigate();
     const [isBuyModalOpen, setIsBuyModalOpen] = useState(false);
     const [currency, setCurrency] = useState<CurrencyType>(getCurrencyPreference);
+    const [copiedMeet, setCopiedMeet] = useState(false);
 
     useEffect(() => {
         const handleCurrencyChange = () => {
@@ -215,6 +278,94 @@ const CourseOverview: React.FC<CourseOverviewProps> = ({ courses, onEnroll, onUn
                 </div>
             </div>
 
+            {/* Live Interactive Cohort & Google Meet Call Card */}
+            {(course.meetingLink || course.startDate || (course.sections && course.sections.some(s => s.lessons?.some((l: any) => l.meetLink || l.classType === 'online')))) && (
+                <div className="bg-gradient-to-r from-violet-600 via-indigo-600 to-purple-700 rounded-3xl p-6 md:p-8 text-white shadow-xl shadow-violet-500/15 relative overflow-hidden">
+                    <div className="absolute -top-12 -right-12 w-64 h-64 bg-white/10 rounded-full blur-2xl pointer-events-none"></div>
+
+                    <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+                        <div className="space-y-3 max-w-2xl">
+                            <div className="flex flex-wrap items-center gap-2">
+                                <span className="px-3 py-1 bg-white/20 backdrop-blur-md rounded-full text-xs font-bold uppercase tracking-wider flex items-center gap-1.5">
+                                    <Radio size={13} className="animate-pulse text-emerald-300" />
+                                    Live Interactive Cohort
+                                </span>
+                                <span className="px-3 py-1 bg-emerald-500/80 backdrop-blur-md rounded-full text-xs font-bold">
+                                    {course.cohortName || 'Active Cohort'}
+                                </span>
+                                <span className="px-2.5 py-0.5 bg-black/20 rounded-md text-xs font-mono text-violet-200">
+                                    {course.timezone || 'EAT (UTC+3)'}
+                                </span>
+                            </div>
+
+                            <h2 className="text-2xl md:text-3xl font-extrabold tracking-tight">
+                                Live Interactive Google Meet Lectures
+                            </h2>
+
+                            <p className="text-violet-100 text-sm md:text-base leading-relaxed">
+                                Live classes meet <strong>{(course.lessonDays || ['Monday', 'Wednesday', 'Friday']).join(', ')}</strong> at <strong>{course.lessonStartTime || '18:00'} - {course.lessonEndTime || '20:00'}</strong> ({course.timezone || 'EAT (UTC+3)'}).
+                                {course.startDate && (
+                                    <span> Cohort dates: <strong>{course.startDate}</strong> {course.endDate ? `till ${course.endDate}` : ''}.</span>
+                                )}
+                            </p>
+
+                            {/* Google Meet Link Display Box */}
+                            {course.meetingLink && (
+                                <div className="bg-black/30 backdrop-blur-md p-3.5 rounded-2xl border border-white/15 flex flex-wrap items-center justify-between gap-3 text-xs">
+                                    <div className="flex items-center gap-2.5 overflow-hidden">
+                                        <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse shrink-0"></span>
+                                        <span className="text-violet-200 font-semibold shrink-0">Meeting Link:</span>
+                                        <a 
+                                            href={course.meetingLink}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="font-mono text-emerald-300 hover:text-emerald-200 font-bold underline truncate text-xs sm:text-sm"
+                                        >
+                                            {course.meetingLink}
+                                        </a>
+                                    </div>
+
+                                    <div className="flex items-center gap-2 shrink-0">
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                navigator.clipboard.writeText(course.meetingLink || '');
+                                                setCopiedMeet(true);
+                                                setTimeout(() => setCopiedMeet(false), 1800);
+                                            }}
+                                            className="px-3 py-1.5 bg-white/10 hover:bg-white/20 rounded-xl text-xs font-bold transition-colors flex items-center gap-1.5 cursor-pointer backdrop-blur-sm"
+                                        >
+                                            {copiedMeet ? <Check size={13} className="text-emerald-300" /> : <Copy size={13} />}
+                                            {copiedMeet ? 'Copied' : 'Copy Link'}
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Direct Join Button Callout */}
+                        <div className="flex flex-col sm:flex-row lg:flex-col gap-3 shrink-0">
+                            {course.meetingLink ? (
+                                <a
+                                    href={course.meetingLink}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="px-7 py-4 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-extrabold rounded-2xl shadow-xl shadow-emerald-500/30 flex items-center justify-center gap-2 text-base transition-all transform hover:scale-105 active:scale-95 cursor-pointer"
+                                >
+                                    <Radio size={18} className="animate-pulse" />
+                                    <span>Join Live Call Now</span>
+                                    <ExternalLink size={16} />
+                                </a>
+                            ) : (
+                                <div className="px-6 py-3.5 bg-white/10 backdrop-blur-sm rounded-2xl border border-white/10 text-xs text-center text-violet-200">
+                                    Live link will be accessible upon enrollment
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            )}
+
             {/* Course Details Grid */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 {/* Syllabus Column */}
@@ -222,46 +373,125 @@ const CourseOverview: React.FC<CourseOverviewProps> = ({ courses, onEnroll, onUn
                     <div className="bg-white dark:bg-slate-900 p-6 md:p-8 rounded-3xl border border-gray-100 dark:border-slate-800 shadow-sm">
                         <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-2">
                             <BookOpen className="text-welile-purple" size={24} />
-                            Course Syllabus
+                            Course Syllabus & Live Sessions
                         </h2>
                         
                         {syllabus.length === 0 ? (
                             <p className="text-gray-500 dark:text-slate-400 italic">Syllabus is being updated. Check back soon.</p>
                         ) : (
                             <div className="space-y-6">
-                                {syllabus.map((section, idx) => (
-                                    <div key={section.id || idx} className="border border-gray-100 dark:border-slate-800 rounded-2xl overflow-hidden">
-                                        <div className="bg-gray-50 dark:bg-slate-850 p-4 border-b border-gray-100 dark:border-slate-800">
-                                            <h3 className="font-bold text-gray-900 dark:text-white">Module {idx + 1}: {section.title}</h3>
-                                            <p className="text-sm text-gray-500 dark:text-slate-400 mt-1">{section.lessons.length} lessons</p>
-                                        </div>
-                                        <div className="divide-y divide-gray-50 dark:divide-slate-800">
-                                            {section.lessons.map((lesson: any, lIdx: number) => (
-                                                <div key={lesson.id || lIdx} className="p-4 flex items-center justify-between hover:bg-gray-50 dark:hover:bg-slate-800/40 transition-colors group">
-                                                    <div className="flex items-center gap-3">
-                                                         <div className="w-8 h-8 rounded-full bg-purple-50 dark:bg-purple-950/30 text-purple-600 dark:text-purple-400 flex items-center justify-center flex-shrink-0 group-hover:bg-purple-100 dark:group-hover:bg-purple-900/40">
-                                                             {lesson.type === 'video' ? <Video size={14} /> : 
-                                                              lesson.type === 'audio' ? <Headphones size={14} /> :
-                                                              lesson.type === 'document' ? <File size={14} /> :
-                                                              lesson.type === 'quiz' ? <Award size={14} /> : 
-                                                              <FileText size={14} />}
-                                                         </div>
-                                                        <div>
-                                                            <p className="font-medium text-gray-900 dark:text-white text-sm group-hover:text-welile-purple dark:group-hover:text-purple-300 transition-colors">
-                                                                {lIdx + 1}. {lesson.title}
-                                                            </p>
-                                                        </div>
-                                                    </div>
-                                                    {lesson.duration && (
-                                                        <span className="text-xs font-medium text-gray-400 dark:text-slate-500 bg-gray-100 dark:bg-slate-800 px-2 py-1 rounded-md">
-                                                            {lesson.duration}
-                                                        </span>
-                                                    )}
+                                {(() => {
+                                    let globalLiveLessonIdx = 0;
+
+                                    return syllabus.map((section, idx) => (
+                                        <div key={section.id || idx} className="border border-gray-100 dark:border-slate-800 rounded-2xl overflow-hidden">
+                                            <div className="bg-gray-50 dark:bg-slate-850 p-4 border-b border-gray-100 dark:border-slate-800 flex items-center justify-between">
+                                                <div>
+                                                    <h3 className="font-bold text-gray-900 dark:text-white">Module {idx + 1}: {section.title}</h3>
+                                                    <p className="text-sm text-gray-500 dark:text-slate-400 mt-0.5">{section.lessons.length} lessons & activities</p>
                                                 </div>
-                                            ))}
+                                            </div>
+                                            <div className="divide-y divide-gray-50 dark:divide-slate-800">
+                                                {section.lessons.map((lesson: any, lIdx: number) => {
+                                                    const isLive = lesson.meetLink || lesson.classType === 'online' || Boolean(course.meetingLink && lesson.type !== 'quiz');
+                                                    const meetUrl = lesson.meetLink || course.meetingLink || '';
+                                                    
+                                                    let scheduleInfo = null;
+                                                    let sessionNumber = null;
+                                                    if (isLive) {
+                                                        globalLiveLessonIdx++;
+                                                        sessionNumber = lesson.sessionNumber || globalLiveLessonIdx;
+                                                        scheduleInfo = {
+                                                            dateStr: lesson.scheduledDate || calculateLessonSchedule(
+                                                                course.startDate,
+                                                                course.lessonDays,
+                                                                sessionNumber - 1,
+                                                                course.lessonStartTime || '18:00',
+                                                                course.lessonEndTime || '20:00',
+                                                                course.timezone || 'EAT (UTC+3)'
+                                                            ).dateStr,
+                                                            timeStr: lesson.scheduledTime || calculateLessonSchedule(
+                                                                course.startDate,
+                                                                course.lessonDays,
+                                                                sessionNumber - 1,
+                                                                course.lessonStartTime || '18:00',
+                                                                course.lessonEndTime || '20:00',
+                                                                course.timezone || 'EAT (UTC+3)'
+                                                            ).timeStr
+                                                        };
+                                                    }
+
+                                                    return (
+                                                        <div key={lesson.id || lIdx} className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-gray-50 dark:hover:bg-slate-800/40 transition-colors group">
+                                                            <div className="flex items-start gap-3">
+                                                                <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 mt-0.5 ${
+                                                                    isLive 
+                                                                        ? 'bg-violet-100 dark:bg-violet-950/60 text-violet-600 dark:text-violet-400' 
+                                                                        : lesson.type === 'video' ? 'bg-blue-50 dark:bg-blue-950/30 text-blue-600'
+                                                                        : lesson.type === 'quiz' ? 'bg-amber-50 dark:bg-amber-950/30 text-amber-600'
+                                                                        : 'bg-gray-100 dark:bg-slate-800 text-gray-600 dark:text-slate-400'
+                                                                }`}>
+                                                                    {isLive ? <Radio size={16} className="animate-pulse" /> :
+                                                                     lesson.type === 'video' ? <Video size={16} /> : 
+                                                                     lesson.type === 'audio' ? <Headphones size={16} /> :
+                                                                     lesson.type === 'document' ? <File size={16} /> :
+                                                                     lesson.type === 'quiz' ? <Award size={16} /> : 
+                                                                     <FileText size={16} />}
+                                                                </div>
+
+                                                                <div className="space-y-1">
+                                                                    <div className="flex flex-wrap items-center gap-2">
+                                                                        <p className="font-semibold text-gray-900 dark:text-white text-sm group-hover:text-welile-purple dark:group-hover:text-purple-300 transition-colors">
+                                                                            {lIdx + 1}. {lesson.title}
+                                                                        </p>
+                                                                        {isLive ? (
+                                                                            <span className="px-2 py-0.5 rounded text-[10px] font-extrabold uppercase bg-violet-100 dark:bg-violet-950/60 text-violet-700 dark:text-violet-300 border border-violet-200 dark:border-violet-800">
+                                                                                Live Class {sessionNumber ? `• Session ${sessionNumber}` : ''}
+                                                                            </span>
+                                                                        ) : (
+                                                                            <span className="px-2 py-0.5 rounded text-[10px] font-medium bg-gray-100 dark:bg-slate-800 text-gray-500 dark:text-slate-400">
+                                                                                Self-Paced
+                                                                            </span>
+                                                                        )}
+                                                                    </div>
+
+                                                                    {/* Scheduled live date/time */}
+                                                                    {isLive && scheduleInfo && (
+                                                                        <div className="flex items-center gap-1.5 text-xs text-violet-600 dark:text-violet-400 font-medium">
+                                                                            <Calendar size={12} />
+                                                                            <span>Session #{sessionNumber}: {scheduleInfo.dateStr} @ {scheduleInfo.timeStr}</span>
+                                                                        </div>
+                                                                    )}
+                                                                </div>
+                                                            </div>
+
+                                                            <div className="flex items-center gap-2 self-end sm:self-center shrink-0">
+                                                                <span className="text-xs font-medium text-gray-500 dark:text-slate-400 bg-gray-100 dark:bg-slate-800 px-2.5 py-1 rounded-lg">
+                                                                    {lesson.duration || course.defaultLessonDuration || '1 hour'}
+                                                                </span>
+
+                                                                {/* Follow Link to Join Call button */}
+                                                                {isLive && meetUrl && (
+                                                                    <a
+                                                                        href={meetUrl}
+                                                                        target="_blank"
+                                                                        rel="noopener noreferrer"
+                                                                        className="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all shadow-sm cursor-pointer"
+                                                                        title="Follow link to join live Google Meet lecture"
+                                                                    >
+                                                                        <Radio size={12} className="animate-pulse" />
+                                                                        <span>Join Call</span>
+                                                                        <ExternalLink size={12} />
+                                                                    </a>
+                                                                )}
+                                                            </div>
+                                                        </div>
+                                                    );
+                                                })}
+                                            </div>
                                         </div>
-                                    </div>
-                                ))}
+                                    ));
+                                })()}
                             </div>
                         )}
                     </div>
