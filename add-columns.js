@@ -1,7 +1,9 @@
 const fs = require('fs');
+const path = require('path');
+require('dotenv').config({ path: path.join(__dirname, '.env.local') });
 
 async function runSQL(query) {
-    const token = 'YOUR_SUPABASE_TOKEN';
+    const token = process.env.ACCESS_TOKEN || 'YOUR_SUPABASE_TOKEN';
     const projectRef = 'rlwpdknwyeuprqcymhuu';
     
     try {
@@ -23,9 +25,15 @@ async function runSQL(query) {
 }
 
 const query = `
+ALTER TABLE IF EXISTS profiles ADD COLUMN IF NOT EXISTS date_of_birth DATE;
+ALTER TABLE IF EXISTS profiles ADD COLUMN IF NOT EXISTS nationality TEXT;
 ALTER TABLE IF EXISTS profiles ADD COLUMN IF NOT EXISTS bio TEXT;
 ALTER TABLE IF EXISTS profiles ADD COLUMN IF NOT EXISTS interests TEXT;
--- We need to notify PostgREST to reload the schema cache so it picks up the new columns immediately
+ALTER TABLE IF EXISTS profiles ADD COLUMN IF NOT EXISTS phone TEXT;
+ALTER TABLE IF EXISTS profiles ADD COLUMN IF NOT EXISTS gender TEXT;
+ALTER TABLE IF EXISTS profiles ADD COLUMN IF NOT EXISTS location TEXT;
+
+-- Notify PostgREST to reload the schema cache so it picks up the new columns immediately
 NOTIFY pgrst, 'reload schema';
 `;
 

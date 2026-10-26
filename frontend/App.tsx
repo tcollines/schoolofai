@@ -227,7 +227,7 @@ function App() {
                     if (!session?.user?.id) return;
                     // Block enrollment for basic users on premium courses
                     const course = courses.find(c => c.id === courseId);
-                    if (course?.accessTier === 'PAID' && userProfile?.role !== UserRole.PRO && userProfile?.role !== UserRole.SPONSORED && userProfile?.role !== UserRole.ADMIN) {
+                    if (course?.accessTier === 'PAID' && userProfile?.role !== UserRole.PRO && userProfile?.role !== UserRole.PREMIUM && userProfile?.role !== UserRole.SPONSORED && userProfile?.role !== UserRole.ADMIN) {
                       window.location.href = '/plans';
                       return;
                     }
@@ -254,7 +254,7 @@ function App() {
                     if (!session?.user?.id) return;
                     // Block enrollment for basic users on premium courses
                     const course = courses.find(c => c.id === courseId);
-                    if (course?.accessTier === 'PAID' && userProfile?.role !== UserRole.PRO && userProfile?.role !== UserRole.SPONSORED && userProfile?.role !== UserRole.ADMIN) {
+                    if (course?.accessTier === 'PAID' && userProfile?.role !== UserRole.PRO && userProfile?.role !== UserRole.PREMIUM && userProfile?.role !== UserRole.SPONSORED && userProfile?.role !== UserRole.ADMIN) {
                       window.location.href = '/plans';
                       return;
                     }

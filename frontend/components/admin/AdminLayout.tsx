@@ -3,11 +3,12 @@ import { Routes, Route, useNavigate, useLocation, Navigate } from 'react-router-
 import { 
     LayoutDashboard, Users, BookOpen, UserCheck, 
     Settings, LogOut, FileQuestion, Calendar, Mail, CheckCircle, Shield,
-    Bell, Search, Handshake, Sun, Moon, MessageSquare, ClipboardList 
+    Bell, Search, Handshake, Sun, Moon, MessageSquare, ClipboardList, Wallet
 } from 'lucide-react';
 import { getCurrencyPreference, setCurrencyPreference, CurrencyType } from '../../src/lib/currency';
 import AdminOverview from './AdminOverview';
 import AdminEnrollments from './AdminEnrollments';
+import AdminWallet from './AdminWallet';
 import AdminCourses from './AdminCourses';
 import AdminCourseSetupWizard from './AdminCourseSetupWizard';
 import AdminInstructors from './AdminInstructors';
@@ -204,6 +205,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ onExit, isInstructor, isAdmin
           ] as const)
         : ([
             { id: 'enrollments', label: 'Enrollments', icon: Users },
+            { id: 'wallet', label: 'Wallet & Ledger', icon: Wallet },
             { id: 'courses', label: 'Course Setup', icon: BookOpen },
             { id: 'instructors', label: 'Instructors', icon: UserCheck },
             { id: 'partners', label: 'Partners', icon: Handshake },
@@ -217,6 +219,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ onExit, isInstructor, isAdmin
             <Routes>
                 <Route path="/" element={<Navigate to={isInstructor ? "courses" : "enrollments"} replace />} />
                 {!isInstructor && <Route path="enrollments" element={<AdminEnrollments />} />}
+                {!isInstructor && <Route path="wallet" element={<AdminWallet />} />}
                 <Route path="courses" element={<AdminCourses isInstructor={isInstructor} />} />
                 <Route path="courses/setup" element={<AdminCourseSetupWizard isInstructor={isInstructor} />} />
                 {!isInstructor && <Route path="instructors" element={<AdminInstructors />} />}

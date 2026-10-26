@@ -337,6 +337,270 @@ app.post('/api/google-meet/create', async (req, res) => {
     }
 });
 
+// ----------------------------------------------------
+// Live Currency Rate Routes (/api/currency/*)
+// ----------------------------------------------------
+const currencyService = require('./services/currency');
+
+app.get('/api/currency/rate', async (req, res) => {
+    try {
+        const rateInfo = await currencyService.getLiveUsdToUgxRate();
+        res.json({
+            success: true,
+            ...rateInfo
+        });
+    } catch (err) {
+        console.error('[Currency] Error fetching live rate:', err.message);
+        res.status(500).json({ error: err.message });
+    }
+});
+
+app.get('/api/currency/convert', async (req, res) => {
+    try {
+        const usd = parseFloat(req.query.usd) || 0;
+        const rateInfo = await currencyService.getLiveUsdToUgxRate();
+        const ugx = Math.round(usd * rateInfo.effectiveRate);
+        res.json({
+            usd,
+            ugx,
+            rate: rateInfo.effectiveRate,
+            baseRate: rateInfo.baseRate,
+            markup: rateInfo.markup
+        });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// ----------------------------------------------------
+// MarzPay Payment Routes (/api/payments/marzpay/*)
+// ----------------------------------------------------
+const marzpayService = require('./services/marzpay');
+
+// Helper to upgrade user role upon confirmed payment
+async function upgradeUserRole(userId, plan, txRef = '') {
+    if (!userId || !supabase) return;
+    const targetRole = plan.toUpperCase() === 'PREMIUM' ? 'PREMIUM' : 'PRO';
+
+    try {
+        console.log(`[MarzPay] Upgrading user ${userId} to role ${targetRole} (txRef: ${txRef})`);
+        const { error: profileErr } = await supabase
+            .from('profiles')
+            .update({
+                role: targetRole,
+                pending_role: null,
+                pending_txid: txRef || null
+            })
+            .eq('id', userId);
+
+        if (profileErr) {
+            console.warn('[MarzPay] Profile update error:', profileErr.message);
+        } else {
+            console.log(`[MarzPay] Successfully upgraded user ${userId} profile to ${targetRole}`);
+        }
+
+        // Sync to Auth metadata if admin is available
+        if (supabase.auth?.admin?.updateUserById) {
+            await supabase.auth.admin.updateUserById(userId, {
+                user_metadata: { role: targetRole, plan: plan.toLowerCase() }
+            });
+        }
+    } catch (e) {
+        console.warn('[MarzPay] Error updating user role:', e.message);
+    }
+}
+
+app.post('/api/payments/marzpay/initiate', async (req, res) => {
+    try {
+        const {
+            plan = 'pro',
+            amount,
+            usdAmount,
+            currency = 'UGX',
+            country = 'UG',
+            method = 'mobile_money',
+            phoneNumber = '',
+            userId = '',
+            userEmail = '',
+            userName = ''
+        } = req.body;
+
+        if (!plan) {
+            return res.status(400).json({ error: 'Plan is required (pro or premium).' });
+        }
+
+        // Host origin for callback URL
+        const protocol = req.headers['x-forwarded-proto'] || req.protocol || 'http';
+        const host = req.headers['x-forwarded-host'] || req.get('host');
+        const defaultCallback = `${protocol}://${host}/api/payments/marzpay/webhook`;
+        const callbackUrl = process.env.MARZPAY_CALLBACK_URL || defaultCallback;
+
+        const result = await marzpayService.initiateCollection({
+            plan,
+            amount,
+            usdAmount,
+            currency,
+            country,
+            method,
+            phoneNumber,
+            userId,
+            userEmail,
+            userName,
+            callbackUrl
+        });
+
+        // If transaction completed immediately (e.g. Sandbox mode), upgrade user right away
+        if (result.status === 'completed' && userId) {
+            await upgradeUserRole(userId, plan, result.reference);
+        }
+
+        res.json({
+            success: true,
+            data: result
+        });
+    } catch (err) {
+        console.error('[MarzPay] Initiate error:', err.message);
+        res.status(400).json({ error: err.message });
+    }
+});
+
+app.get('/api/payments/marzpay/status/:referenceOrUuid', async (req, res) => {
+    try {
+        const { referenceOrUuid } = req.params;
+        const result = await marzpayService.checkStatus(referenceOrUuid);
+
+        if (result.isCompleted && result.record?.userId && result.record?.plan) {
+            await upgradeUserRole(result.record.userId, result.record.plan, result.record.reference || referenceOrUuid);
+        }
+
+        res.json({
+            success: true,
+            status: result.status,
+            isCompleted: result.isCompleted,
+            isFailed: result.isFailed,
+            providerTransactionId: result.providerTransactionId,
+            record: result.record
+        });
+    } catch (err) {
+        console.error('[MarzPay] Status check error:', err.message);
+        res.status(500).json({ error: err.message });
+    }
+});
+
+app.post('/api/payments/marzpay/webhook', async (req, res) => {
+    try {
+        const body = req.body || {};
+        console.log('[MarzPay] Received webhook payload:', JSON.stringify(body).substring(0, 500));
+
+        // Follow SKILL.md: handle both direct callback and dashboard { data: ... } wrapper
+        const payload = body.data?.transaction ? body.data : body;
+        const eventType = payload.event_type || body.event_type || '';
+        const reference = payload.transaction?.reference || payload.reference;
+        const status = payload.transaction?.status || payload.status;
+        const providerTxId = payload.collection?.provider_transaction_id || payload.provider_transaction_id;
+
+        // Extract metadata
+        const metadataArray = payload.metadata || body.metadata || [];
+        let plan = '';
+        let userId = '';
+        if (Array.isArray(metadataArray)) {
+            for (const item of metadataArray) {
+                if (item.plan) plan = item.plan;
+                if (item.userId) userId = item.userId;
+            }
+        }
+
+        const isSuccess = eventType === 'collection.completed' || status === 'completed' || status === 'successful' || status === 'sandbox';
+
+        if (reference) {
+            const store = marzpayService.getStoredTransactions();
+            const existing = store[reference];
+            if (existing) {
+                existing.status = isSuccess ? 'completed' : (status || 'failed');
+                if (providerTxId) existing.providerTransactionId = providerTxId;
+                marzpayService.saveTransaction(existing);
+                if (!userId && existing.userId) userId = existing.userId;
+                if (!plan && existing.plan) plan = existing.plan;
+            }
+        }
+
+        if (isSuccess && userId && plan) {
+            await upgradeUserRole(userId, plan, providerTxId || reference);
+        }
+
+        // Return HTTP 200 quickly per webhook conventions
+        res.status(200).json({ received: true });
+    } catch (err) {
+        console.error('[MarzPay] Webhook error:', err.message);
+        res.status(200).json({ received: true, error: err.message });
+    }
+});
+
+// ----------------------------------------------------
+// Admin Wallet & Ledger Routes (/api/admin/wallet/*)
+// ----------------------------------------------------
+app.get('/api/admin/wallet/ledger', (req, res) => {
+    try {
+        const data = marzpayService.getWalletLedger();
+        res.json({
+            success: true,
+            ...data
+        });
+    } catch (err) {
+        console.error('[Admin Wallet] Error reading ledger:', err.message);
+        res.status(500).json({ error: err.message });
+    }
+});
+
+app.post('/api/admin/wallet/transaction', (req, res) => {
+    try {
+        const { type, amount, usdAmount, description, method, category, recipient, sender, notes } = req.body;
+        if (!amount || isNaN(Number(amount))) {
+            return res.status(400).json({ error: 'Valid amount is required.' });
+        }
+
+        const entry = marzpayService.recordManualTransaction({
+            type,
+            amount,
+            usdAmount,
+            description,
+            method,
+            category,
+            recipient,
+            sender,
+            notes
+        });
+
+        res.json({
+            success: true,
+            data: entry
+        });
+    } catch (err) {
+        console.error('[Admin Wallet] Error recording transaction:', err.message);
+        res.status(500).json({ error: err.message });
+    }
+});
+
+app.get('/api/admin/wallet/mode', (req, res) => {
+    res.json({
+        sandboxMode: marzpayService.isSandboxMode()
+    });
+});
+
+app.post('/api/admin/wallet/mode', (req, res) => {
+    try {
+        const { sandboxMode } = req.body;
+        const config = marzpayService.setSandboxMode(sandboxMode);
+        res.json({
+            success: true,
+            sandboxMode: config.sandboxMode
+        });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
 app.listen(port, () => {
     console.log(`Backend API server running on http://localhost:${port}`);
 });
+

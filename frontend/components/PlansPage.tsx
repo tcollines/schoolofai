@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { CheckCircle, Sparkles, X, Loader, Star, Smartphone, Landmark } from 'lucide-react';
+import { CheckCircle, Sparkles, X, Loader, Star, Smartphone, Landmark, TrendingUp } from 'lucide-react';
 import { UserRole } from '../types';
 import { useTranslation } from './translations';
 import { supabaseClient } from '../src/lib/supabaseClient';
-import { formatAmount, getCurrencyPreference, CurrencyType } from '../src/lib/currency';
+import { formatAmount, getCurrencyPreference, CurrencyType, getExchangeRate } from '../src/lib/currency';
+import MarzPayCheckoutModal from './payments/MarzPayCheckoutModal';
 
 interface PlansPageProps {
     user?: any;
@@ -28,7 +29,7 @@ const PlansPage: React.FC<PlansPageProps> = ({ user, currentPlan, onUpgrade, onB
         };
     }, []);
 
-    const [selectedPlanName, setSelectedPlanName] = useState<'PLUS' | 'PRO' | null>(null);
+    const [selectedPlanName, setSelectedPlanName] = useState<'PLUS' | 'PRO' | 'PREMIUM' | null>(null);
     const [hoveredStar, setHoveredStar] = useState(0);
     const [rating, setRating] = useState(() => {
         const stored = localStorage.getItem(`schoolofai-rating-${user?.id || 'guest'}`);
@@ -97,7 +98,13 @@ const PlansPage: React.FC<PlansPageProps> = ({ user, currentPlan, onUpgrade, onB
         <div className="max-w-6xl mx-auto">
             <div className="flex items-center justify-between mb-8">
                 <div>
-                    <h2 className="text-3xl font-bold text-gray-900 dark:text-white">{t('subscription_plans')}</h2>
+                    <div className="flex items-center gap-3">
+                        <h2 className="text-3xl font-bold text-gray-900 dark:text-white">{t('subscription_plans')}</h2>
+                        <span className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1 bg-violet-50 dark:bg-violet-950/40 border border-violet-200 dark:border-violet-900/50 rounded-full text-xs font-bold text-violet-700 dark:text-violet-300">
+                            <TrendingUp size={13} />
+                            Live Rate: $1 USD = {getExchangeRate().toLocaleString()} UGX
+                        </span>
+                    </div>
                     <p className="text-gray-500 dark:text-slate-400 mt-2">{t('choose_plan')}</p>
                 </div>
                 <button
@@ -149,7 +156,7 @@ const PlansPage: React.FC<PlansPageProps> = ({ user, currentPlan, onUpgrade, onB
                     </div>
                 </div>
             ) : (
-                <div className="grid lg:grid-cols-3 md:grid-cols-2 grid-cols-1 gap-8 max-w-6xl mx-auto px-4">
+                <div className="grid xl:grid-cols-4 lg:grid-cols-2 grid-cols-1 gap-6 max-w-7xl mx-auto px-4">
                 <div className={`p-8 rounded-2xl bg-white dark:bg-gray-900 border ${currentPlan === 'INDIVIDUAL' ? 'border-gray-200 dark:border-gray-800' : 'border-gray-150 dark:border-gray-800/60'} shadow-xl relative group hover:border-welile-purple dark:hover:border-purple-600 hover:transform hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between`}>
                     <div className="absolute top-0 right-0 w-32 h-32 bg-purple-500 blur-3xl opacity-20 -mr-16 -mt-16"></div>
                     <div className="absolute top-0 right-0 bg-violet-600 text-white text-xs font-bold px-3 py-1 rounded-bl-xl rounded-tr-xl">FREE</div>
@@ -187,16 +194,18 @@ const PlansPage: React.FC<PlansPageProps> = ({ user, currentPlan, onUpgrade, onB
                     </div>
                 </div>
 
-                <div className="p-8 rounded-2xl bg-white dark:bg-gray-900 border border-purple-200 dark:border-violet-600 text-gray-900 dark:text-white relative overflow-hidden hover:transform hover:-translate-y-1 hover:border-welile-purple dark:hover:border-purple-600 transition-all duration-300 shadow-xl flex flex-col justify-between">
+                <div className="p-8 rounded-2xl bg-white dark:bg-gray-900 border-2 border-violet-500 text-gray-900 dark:text-white relative overflow-hidden hover:transform hover:-translate-y-1 transition-all duration-300 shadow-xl flex flex-col justify-between">
                     <div className="absolute top-0 right-0 w-32 h-32 bg-purple-500 blur-3xl opacity-20 -mr-16 -mt-16"></div>
-                    <div className="absolute top-0 right-0 bg-welile-purple text-white text-xs font-bold px-3 py-1 rounded-bl-xl rounded-tr-xl">POPULAR</div>
+                    <div className="absolute top-0 right-0 bg-gradient-to-l from-orange-400 to-amber-400 text-white text-xs font-bold px-3 py-1 rounded-bl-xl rounded-tr-xl flex items-center gap-1">
+                        <Star className="w-3 h-3 fill-current" /> MOST POPULAR
+                    </div>
                     <div>
                         <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Pro</h3>
-                        <div className="text-4xl font-bold text-gray-900 dark:text-white mb-6">{formatAmount(100)}<span className="text-lg text-gray-500 dark:text-slate-400 font-normal"> one-time</span></div>
-                        <p className="text-gray-600 dark:text-slate-400 mb-8 text-sm">Master every subject with unlimited access to everything.</p>
+                        <div className="text-4xl font-bold text-gray-900 dark:text-white mb-6">{formatAmount(25)}<span className="text-lg text-gray-500 dark:text-slate-400 font-normal"> /month</span></div>
+                        <p className="text-gray-600 dark:text-slate-400 mb-8 text-sm">Full monthly access for dedicated learners.</p>
 
                         <div className="mb-8">
-                            {((currentPlan as string) === 'SPONSORED') ? (
+                            {((currentPlan as string) === 'PRO') ? (
                                 <div className="w-full py-3 rounded-xl bg-gray-100 dark:bg-slate-800 text-gray-500 dark:text-slate-400 font-bold text-center border border-gray-200 dark:border-slate-700">
                                     Current Plan
                                 </div>
@@ -213,19 +222,66 @@ const PlansPage: React.FC<PlansPageProps> = ({ user, currentPlan, onUpgrade, onB
                         <ul className="space-y-4 text-sm text-gray-700 dark:text-gray-300">
                             <li className="flex items-center gap-3">
                                 <CheckCircle size={18} className="text-purple-500 dark:text-purple-400 flex-shrink-0" />
-                                <span>{"Access to "}<strong>Introduction</strong>{" modules"}</span>
+                                <span>{"Full access to all "}<strong>Pro courses</strong>{" (excl. custom-priced)"}</span>
                             </li>
                             <li className="flex items-center gap-3">
                                 <CheckCircle size={18} className="text-purple-500 dark:text-purple-400 flex-shrink-0" />
-                                <span>{"Access to "}<strong>Fundamentals</strong>{" modules"}</span>
+                                <span>{"Full access to all "}<strong>free courses</strong></span>
                             </li>
                             <li className="flex items-center gap-3">
                                 <CheckCircle size={18} className="text-purple-500 dark:text-purple-400 flex-shrink-0" />
-                                <span>{"Access to "}<strong>All</strong>{" modules"}</span>
+                                <span>Downloadable resources & exercises</span>
                             </li>
                             <li className="flex items-center gap-3 text-amber-500 dark:text-amber-400 font-bold">
                                 <Sparkles size={18} className="text-yellow-500 dark:text-yellow-400 flex-shrink-0" />
-                                <span>Unlimited AI Tutor Support</span>
+                                <span>AI Tutor Support</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+                {/* Premium Plan */}
+                <div className="p-8 rounded-2xl bg-gradient-to-br from-violet-600 to-indigo-900 text-white relative overflow-hidden hover:transform hover:-translate-y-1 transition-all duration-300 shadow-2xl flex flex-col justify-between border border-violet-400/30">
+                    <div className="absolute top-0 right-0 w-32 h-32 bg-white blur-3xl opacity-10 -mr-16 -mt-16"></div>
+                    <div className="absolute top-0 right-0 bg-white/20 text-white text-xs font-bold px-3 py-1 rounded-bl-xl rounded-tr-xl flex items-center gap-1 backdrop-blur-sm">
+                        <Sparkles className="w-3 h-3 fill-current" /> LIFETIME ACCESS
+                    </div>
+                    <div>
+                        <h3 className="text-2xl font-bold text-white mb-2">Premium</h3>
+                        <div className="text-4xl font-bold text-white mb-6">{formatAmount(150)}<span className="text-lg text-violet-200 font-normal"> one-time</span></div>
+                        <p className="text-violet-100 mb-8 text-sm">One-time payment • Lifetime access to all Pro & free courses.</p>
+
+                        <div className="mb-8">
+                            {((currentPlan as string) === 'PREMIUM' || (currentPlan as string) === 'SPONSORED') ? (
+                                <div className="w-full py-3 rounded-xl bg-white/20 text-white font-bold text-center border border-white/30">
+                                    Current Plan
+                                </div>
+                            ) : (
+                                <button
+                                    onClick={() => setSelectedPlanName('PREMIUM')}
+                                    className="w-full py-3 rounded-xl bg-white text-violet-900 font-bold hover:bg-gray-100 hover:shadow-lg transition-all cursor-pointer"
+                                >
+                                    Upgrade to Premium
+                                </button>
+                            )}
+                        </div>
+
+                        <ul className="space-y-4 text-sm text-white">
+                            <li className="flex items-center gap-3">
+                                <CheckCircle size={18} className="text-white flex-shrink-0" />
+                                <span><strong>One-time access</strong> to all Pro & free courses</span>
+                            </li>
+                            <li className="flex items-center gap-3">
+                                <CheckCircle size={18} className="text-white flex-shrink-0" />
+                                <span><strong>Lifetime access</strong> — no renewals</span>
+                            </li>
+                            <li className="flex items-center gap-3">
+                                <CheckCircle size={18} className="text-white flex-shrink-0" />
+                                <span>1-on-1 Mentorship & Live Q&A</span>
+                            </li>
+                            <li className="flex items-center gap-3 text-amber-300 font-bold">
+                                <Sparkles size={18} className="text-amber-300 flex-shrink-0" />
+                                <span>Portfolio Review & Career Guidance</span>
                             </li>
                         </ul>
                     </div>
@@ -295,12 +351,15 @@ const PlansPage: React.FC<PlansPageProps> = ({ user, currentPlan, onUpgrade, onB
             )}
 
             {selectedPlanName && (
-                <PaymentModal 
+                <MarzPayCheckoutModal 
                     isOpen={!!selectedPlanName}
                     onClose={() => setSelectedPlanName(null)}
-                    planName={selectedPlanName}
-                    amount={selectedPlanName === 'PLUS' ? formatAmount(19) : formatAmount(100)}
-                    userId={user?.id}
+                    plan={selectedPlanName === 'PREMIUM' ? 'premium' : 'pro'}
+                    user={user}
+                    onSuccess={() => {
+                        setSelectedPlanName(null);
+                        onUpgrade(selectedPlanName);
+                    }}
                 />
             )}
         </div>
@@ -310,7 +369,7 @@ const PlansPage: React.FC<PlansPageProps> = ({ user, currentPlan, onUpgrade, onB
 interface PaymentModalProps {
     isOpen: boolean;
     onClose: () => void;
-    planName: 'PLUS' | 'PRO';
+    planName: 'PLUS' | 'PRO' | 'PREMIUM';
     amount: string;
     userId?: string;
 }

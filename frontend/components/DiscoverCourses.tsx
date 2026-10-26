@@ -105,7 +105,7 @@ const DiscoverCourses: React.FC<DiscoverCoursesProps> = ({ courses, onEnroll, is
             ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
                     {filteredCourses.map((course) => {
-                        const isPremiumLocked = course.accessTier === 'PAID' && userRole !== UserRole.PRO && userRole !== UserRole.SPONSORED && userRole !== UserRole.ADMIN;
+                        const isPremiumLocked = course.accessTier === 'PAID' && userRole !== UserRole.PRO && userRole !== UserRole.PREMIUM && userRole !== UserRole.SPONSORED && userRole !== UserRole.ADMIN;
                         
                         return (
                         <div 

@@ -151,7 +151,7 @@ const CourseOverview: React.FC<CourseOverviewProps> = ({ courses, onEnroll, onUn
                         </div>
                         
                         <div className="flex flex-col md:flex-row gap-3 w-full md:w-auto">
-                            {!isEnrolled && course.accessTier === 'PAID' && userRole !== UserRole.PRO && userRole !== UserRole.SPONSORED && userRole !== UserRole.ADMIN && (
+                            {!isEnrolled && course.accessTier === 'PAID' && userRole !== UserRole.PRO && userRole !== UserRole.PREMIUM && userRole !== UserRole.SPONSORED && userRole !== UserRole.ADMIN && (
                                 <button
                                     onClick={() => {
                                         if (!isAuthenticated) {
@@ -172,7 +172,7 @@ const CourseOverview: React.FC<CourseOverviewProps> = ({ courses, onEnroll, onUn
                                             onLoginClick();
                                             return;
                                         }
-                                        if (course.accessTier === 'PAID' && userRole !== UserRole.PRO && userRole !== UserRole.SPONSORED && userRole !== UserRole.ADMIN) {
+                                        if (course.accessTier === 'PAID' && userRole !== UserRole.PRO && userRole !== UserRole.PREMIUM && userRole !== UserRole.SPONSORED && userRole !== UserRole.ADMIN) {
                                             navigate('/plans');
                                             return;
                                         }
@@ -184,15 +184,15 @@ const CourseOverview: React.FC<CourseOverviewProps> = ({ courses, onEnroll, onUn
                                 className={`w-full md:w-auto px-6 py-3.5 rounded-xl text-base font-bold transition-colors flex items-center justify-center gap-2 shadow-sm cursor-pointer ${
                                     isEnrolled 
                                         ? 'bg-emerald-100 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-200 dark:hover:bg-emerald-900/50'
-                                        : (!isEnrolled && course.accessTier === 'PAID' && userRole !== UserRole.PRO && userRole !== UserRole.SPONSORED && userRole !== UserRole.ADMIN)
+                                        : (!isEnrolled && course.accessTier === 'PAID' && userRole !== UserRole.PRO && userRole !== UserRole.PREMIUM && userRole !== UserRole.SPONSORED && userRole !== UserRole.ADMIN)
                                             ? 'bg-amber-500 hover:bg-amber-600 text-white'
                                             : 'bg-gray-900 dark:bg-slate-100 hover:bg-welile-purple text-white dark:text-gray-900 dark:hover:text-white shadow-lg shadow-gray-900/20 dark:shadow-none'
                                 }`}
                             >
                                 {isEnrolled ? (
                                     <><CheckCircle size={20} /> Continue Learning</>
-                                ) : (!isEnrolled && course.accessTier === 'PAID' && userRole !== UserRole.PRO && userRole !== UserRole.SPONSORED && userRole !== UserRole.ADMIN) ? (
-                                    <><Shield size={20} /> Upgrade to Pro</>
+                                ) : (!isEnrolled && course.accessTier === 'PAID' && userRole !== UserRole.PRO && userRole !== UserRole.PREMIUM && userRole !== UserRole.SPONSORED && userRole !== UserRole.ADMIN) ? (
+                                    <><Shield size={20} /> Upgrade Plan</>
                                 ) : (
                                     <><PlayCircle size={20} /> Enroll Now</>
                                 )}

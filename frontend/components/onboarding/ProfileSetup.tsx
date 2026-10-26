@@ -65,6 +65,22 @@ const ProfileSetup: React.FC = () => {
             const { data: { user } } = await supabase.auth.getUser();
             if (!user) throw new Error("No user found. Please sign in again.");
 
+            // 1. Always sync profile fields to user metadata in Supabase Auth (reliable, independent of schema cache)
+            try {
+                await supabase.auth.updateUser({
+                    data: {
+                        full_name: user.user_metadata?.full_name || '',
+                        bio: bio.trim(),
+                        interests: interests.trim(),
+                        nationality: nationality,
+                        date_of_birth: dateOfBirth,
+                        ...(avatarUrl ? { avatar_url: avatarUrl } : {})
+                    }
+                });
+            } catch (metaErr) {
+                console.warn('Could not update auth user metadata:', metaErr);
+            }
+
             const updates: any = { 
                 bio: bio.trim(),
                 interests: interests.trim(),
@@ -75,7 +91,7 @@ const ProfileSetup: React.FC = () => {
                 updates.avatar_url = avatarUrl;
             }
 
-            const { error: updateError } = await supabase
+            let { error: updateError } = await supabase
                 .from('profiles')
                 .upsert({
                     id: user.id,
@@ -83,6 +99,26 @@ const ProfileSetup: React.FC = () => {
                     full_name: user.user_metadata?.full_name || '',
                     ...updates
                 });
+
+            // If Postgres schema cache errors because date_of_birth or nationality columns don't exist yet
+            if (updateError && (updateError.message?.includes('column') || updateError.code === 'PGRST204')) {
+                console.warn('Profiles table missing extra columns, falling back to base columns:', updateError.message);
+                const safeUpdates: any = {
+                    bio: bio.trim(),
+                    interests: interests.trim()
+                };
+                if (avatarUrl) safeUpdates.avatar_url = avatarUrl;
+
+                const retry = await supabase
+                    .from('profiles')
+                    .upsert({
+                        id: user.id,
+                        email: user.email,
+                        full_name: user.user_metadata?.full_name || '',
+                        ...safeUpdates
+                    });
+                updateError = retry.error;
+            }
 
             if (updateError) throw updateError;
 

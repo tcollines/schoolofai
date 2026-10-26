@@ -1,0 +1,173 @@
+{
+  "962d9b36-c25a-4edc-ba2c-74d0b40e9767": {
+    "uuid": "8627f2fb-7c09-4a63-9ae4-f18c47703fb0",
+    "reference": "962d9b36-c25a-4edc-ba2c-74d0b40e9767",
+    "plan": "pro",
+    "userId": "",
+    "userEmail": "student@example.com",
+    "userName": "Test Student",
+    "amount": 92500,
+    "usdAmount": 25,
+    "currency": "UGX",
+    "country": "UG",
+    "method": "mobile_money",
+    "phoneNumber": "+256772123456",
+    "status": "failed",
+    "isSandbox": false,
+    "redirectUrl": null,
+    "rawResponse": {
+      "status": "success",
+      "message": "Collection initiated successfully.",
+      "data": {
+        "transaction": {
+          "uuid": "8627f2fb-7c09-4a63-9ae4-f18c47703fb0",
+          "reference": "962d9b36-c25a-4edc-ba2c-74d0b40e9767",
+          "status": "processing",
+          "provider_reference": null
+        },
+        "collection": {
+          "amount": {
+            "formatted": "92,500.00",
+            "raw": 92500,
+            "currency": "UGX"
+          },
+          "provider": "mtn",
+          "phone_number": "+256772123456",
+          "mode": "mtnuganda",
+          "metadata": [
+            {
+              "plan": "pro"
+            },
+            {
+              "orderId": "ORDER-1793011173589"
+            },
+            {
+              "customerEmail": "student@example.com",
+              "isPII": true
+            },
+            {
+              "customerName": "Test Student",
+              "isPII": true
+            }
+          ]
+        },
+        "timeline": {
+          "initiated_at": "2026-10-26 13:39:37",
+          "estimated_settlement": "2026-10-26 13:44:37"
+        },
+        "metadata": {
+          "response_timestamp": "2026-10-26 13:39:37",
+          "sandbox_mode": false
+        }
+      }
+    },
+    "createdAt": "2026-10-26T10:39:35.729Z",
+    "updatedAt": "2026-10-26T10:39:45.655Z"
+  },
+  "0440230c-89c7-4aa2-9ca1-d1cc3fb1672a": {
+    "uuid": "2dd0f839-5dd4-4ede-8fec-2b9aae0d62e1",
+    "reference": "0440230c-89c7-4aa2-9ca1-d1cc3fb1672a",
+    "plan": "pro",
+    "userId": "baa665b0-9c35-4cda-97c0-c9cc659dfcf6",
+    "userEmail": "brandagl9@gmail.com",
+    "userName": "Test Learner",
+    "amount": 92500,
+    "usdAmount": 25,
+    "currency": "UGX",
+    "country": "UG",
+    "method": "mobile_money",
+    "phoneNumber": "+256770000001",
+    "status": "processing",
+    "isSandbox": false,
+    "redirectUrl": null,
+    "rawResponse": {
+      "status": "success",
+      "message": "Collection initiated successfully.",
+      "data": {
+        "transaction": {
+          "uuid": "2dd0f839-5dd4-4ede-8fec-2b9aae0d62e1",
+          "reference": "0440230c-89c7-4aa2-9ca1-d1cc3fb1672a",
+          "status": "processing",
+          "provider_reference": null
+        },
+        "collection": {
+          "amount": {
+            "formatted": "92,500.00",
+            "raw": 92500,
+            "currency": "UGX"
+          },
+          "provider": "mtn",
+          "phone_number": "+256770000001",
+          "mode": "mtnuganda",
+          "metadata": [
+            {
+              "plan": "pro"
+            },
+            {
+              "orderId": "ORDER-1793011829626"
+            },
+            {
+              "userId": "baa665b0-9c35-4cda-97c0-c9cc659dfcf6"
+            },
+            {
+              "customerEmail": "brandagl9@gmail.com",
+              "isPII": true
+            },
+            {
+              "customerName": "Test Learner",
+              "isPII": true
+            }
+          ]
+        },
+        "timeline": {
+          "initiated_at": "2026-10-26 13:50:33",
+          "estimated_settlement": "2026-10-26 13:55:33"
+        },
+        "metadata": {
+          "response_timestamp": "2026-10-26 13:50:33",
+          "sandbox_mode": false
+        }
+      }
+    },
+    "createdAt": "2026-10-26T10:50:31.320Z",
+    "updatedAt": "2026-10-26T10:50:31.596Z"
+  },
+  "7486ef21-bb92-4a61-9b7d-0dd29f9742fe": {
+    "uuid": "7486ef21-bb92-4a61-9b7d-0dd29f9742fe",
+    "reference": "7486ef21-bb92-4a61-9b7d-0dd29f9742fe",
+    "type": "deposit",
+    "amount": 555000,
+    "usdAmount": 121,
+    "currency": "UGX",
+    "description": "Corporate Sponsorship Deposit - MTN Foundation",
+    "method": "bank_transfer",
+    "category": "Sponsorship",
+    "recipient": "School Wallet",
+    "sender": "MTN Foundation",
+    "status": "completed",
+    "isSandbox": true,
+    "isManual": true,
+    "notes": "",
+    "createdAt": "2026-10-26T11:05:23.006Z",
+    "updatedAt": "2026-10-26T11:05:23.007Z"
+  },
+  "5ab3c08f-ba53-40fc-96e4-f88361a96123": {
+    "uuid": "5ab3c08f-ba53-40fc-96e4-f88361a96123",
+    "reference": "5ab3c08f-ba53-40fc-96e4-f88361a96123",
+    "type": "withdrawal",
+    "amount": 150000,
+    "usdAmount": 33,
+    "currency": "UGX",
+    "description": "Tutor Honorarium Payout - AI Ethics Module",
+    "method": "mobile_money",
+    "category": "Tutor Payout",
+    "recipient": "Dr. Jane Okello (+256772111222)",
+    "sender": "School Wallet",
+    "status": "completed",
+    "isSandbox": true,
+    "isManual": true,
+    "notes": "",
+    "createdAt": "2026-10-26T11:05:23.037Z",
+    "updatedAt": "2026-10-26T11:05:23.037Z"
+  }
+}

@@ -904,7 +904,20 @@ const Profile: React.FC<ProfileProps> = ({ user, onUpgradeClick }) => {
     const handleSaveProfile = async (newName: string, newNationality: string, newDateOfBirth: string) => {
         if (!formData) return;
         try {
-            const { error } = await supabaseClient
+            // Update auth metadata
+            try {
+                await supabaseClient.auth.updateUser({
+                    data: {
+                        full_name: newName,
+                        nationality: newNationality,
+                        date_of_birth: newDateOfBirth
+                    }
+                });
+            } catch (metaErr) {
+                console.warn('Could not update auth user metadata:', metaErr);
+            }
+
+            let { error } = await supabaseClient
                 .from('profiles')
                 .update({
                     full_name: newName,
@@ -912,6 +925,15 @@ const Profile: React.FC<ProfileProps> = ({ user, onUpgradeClick }) => {
                     date_of_birth: newDateOfBirth
                 })
                 .eq('id', formData.id);
+
+            if (error && (error.message?.includes('column') || error.code === 'PGRST204')) {
+                console.warn('Profiles table missing columns, falling back to full_name update:', error.message);
+                const retry = await supabaseClient
+                    .from('profiles')
+                    .update({ full_name: newName })
+                    .eq('id', formData.id);
+                error = retry.error;
+            }
 
             if (error) throw error;
 
