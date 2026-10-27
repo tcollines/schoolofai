@@ -117,37 +117,26 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({ courses, userId }) => {
     }, [userId]);
 
     useEffect(() => {
-        const fetchCohort = async () => {
-            if (!userId || userId === 'guest') return;
-            try {
-                // Fetch enrollment with cohort
-                const { data: enrollmentData } = await supabaseClient
-                    .from('enrollments')
-                    .select('cohort_id')
-                    .eq('user_id', userId)
-                    .limit(1)
-                    .single();
-                
-                if (enrollmentData?.cohort_id) {
-                    const { data: cohortData } = await supabaseClient
-                        .from('cohorts')
-                        .select('*')
-                        .eq('id', enrollmentData.cohort_id)
-                        .single();
-                    
-                    if (cohortData) {
-                        setCohort(cohortData);
-                        const now = new Date();
-                        const orientationEnd = new Date(cohortData.orientation_end_date);
-                        setIsOrientationLocked(now < orientationEnd);
-                    }
-                }
-            } catch (e) {
-                console.error("Error fetching cohort", e);
+        if (!userId || userId === 'guest') return;
+        const enrolledCourseWithCohort = courses.find(
+            c => (c.status === CourseStatus.IN_PROGRESS || c.status === CourseStatus.COMPLETED) && (c.startDate || c.cohortName)
+        );
+        if (enrolledCourseWithCohort && enrolledCourseWithCohort.startDate) {
+            const startD = new Date(enrolledCourseWithCohort.startDate);
+            if (!isNaN(startD.getTime())) {
+                const orientEnd = new Date(startD);
+                orientEnd.setDate(orientEnd.getDate() + 3);
+                setCohort({
+                    id: `cohort-${enrolledCourseWithCohort.id}`,
+                    course_id: enrolledCourseWithCohort.id,
+                    name: enrolledCourseWithCohort.cohortName || 'Cohort 1',
+                    start_date: enrolledCourseWithCohort.startDate,
+                    orientation_end_date: orientEnd.toISOString().split('T')[0]
+                });
+                setIsOrientationLocked(false);
             }
-        };
-        fetchCohort();
-    }, [userId]);
+        }
+    }, [userId, courses]);
 
     useEffect(() => {
         if (!userId || userId === 'guest') return;
@@ -363,7 +352,7 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({ courses, userId }) => {
                         </div>
                     ) : (
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                            {sortedAvailableCourses.slice(0, 3).map((course) => {
+                            {sortedAvailableCourses.slice(0, 6).map((course) => {
                                 const isEnrolled = course.status !== CourseStatus.NOT_STARTED;
 
                                 return (
@@ -490,7 +479,9 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({ courses, userId }) => {
                                 <h4 className="font-bold text-gray-900 dark:text-white">{activeCourse.title}</h4>
                                 <p className="text-xs text-gray-500 dark:text-slate-400 mb-2">{activeCourse.instructor}</p>
                                 <div className="flex items-center gap-4 text-xs text-gray-400 dark:text-slate-500">
-                                    <span>Remaining: 8h 45min</span>
+                                    <span>
+                                        {activeCourse.duration ? `Duration: ${activeCourse.duration}` : `${activeCourse.lessonsTotal || 0} Lessons`} • {Math.max(0, (activeCourse.lessonsTotal || 0) - (activeCourse.lessonsCompleted || 0))} lessons remaining
+                                    </span>
                                 </div>
                             </div>
                             <div className="w-full sm:w-auto text-right">
@@ -567,7 +558,7 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({ courses, userId }) => {
                                 <p className="text-xs text-gray-500 dark:text-slate-400 mt-1">
                                     {targetCourse ? (
                                         targetCourse.lessonsCompleted >= targetCourse.lessonsTotal && targetCourse.lessonsTotal > 0 ? (
-                                            'Course Completed! <PartyPopper className="inline-block w-4 h-4 mr-1 align-middle" />'
+                                            <span className="inline-flex items-center gap-1">Course Completed! <PartyPopper className="inline-block w-4 h-4 text-amber-500" /></span>
                                         ) : nextLesson ? (
                                             `Next: ${nextLesson.title} (${nextLesson.duration})`
                                         ) : (

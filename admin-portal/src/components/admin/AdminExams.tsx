@@ -57,15 +57,32 @@ const AdminExams: React.FC<AdminExamsProps> = ({ isInstructor = false }) => {
         if (!editingScores) return;
         try {
             const finalScore = Math.round((editingScores.quizScore * 0.3) + (editingScores.examScore * 0.7));
+            const { data: courseRow } = await supabaseClient
+                .from('courses')
+                .select('quiz')
+                .eq('id', editingScores.courseId)
+                .single();
+
+            const existingQuiz = courseRow?.quiz || {};
+            const existingSubs = existingQuiz.submissions || {};
+            const updatedQuiz = {
+                ...existingQuiz,
+                submissions: {
+                    ...existingSubs,
+                    [editingScores.userId]: {
+                        ...(existingSubs[editingScores.userId] || {}),
+                        examCompleted: true,
+                        quizScore: editingScores.quizScore,
+                        examScore: editingScores.examScore,
+                        finalScore: finalScore
+                    }
+                }
+            };
+
             const { error } = await supabaseClient
-                .from('enrollments')
-                .update({
-                    quiz_score: editingScores.quizScore,
-                    exam_score: editingScores.examScore,
-                    final_score: finalScore
-                })
-                .eq('user_id', editingScores.userId)
-                .eq('course_id', editingScores.courseId);
+                .from('courses')
+                .update({ quiz: updatedQuiz })
+                .eq('id', editingScores.courseId);
 
             if (error) throw error;
             alert("Scores successfully updated and graded!");

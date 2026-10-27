@@ -133,29 +133,13 @@ const CoursePlayer: React.FC<CoursePlayerProps> = ({ module, courseTitle, onBack
     useEffect(() => {
         const stored = localStorage.getItem(`module-qa-${module.id}`);
         if (stored) {
-            setQuestionsList(JSON.parse(stored));
+            try {
+                setQuestionsList(JSON.parse(stored));
+            } catch {
+                setQuestionsList([]);
+            }
         } else {
-            // Default mock questions for the demo
-            const mockQs = [
-                {
-                    id: 'q-1',
-                    author: 'John Doe',
-                    avatarUrl: 'https://api.dicebear.com/7.x/initials/svg?seed=John+Doe',
-                    text: 'Does this module cover the latest GPT-4o architecture changes?',
-                    timestamp: new Date(Date.now() - 3600000 * 2).toISOString(),
-                    replies: [
-                        {
-                            id: 'r-1',
-                            author: 'Abraham Chemayek',
-                            avatarUrl: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&q=80&w=150',
-                            text: 'Yes! Slide 4 has some high-level architecture details.',
-                            timestamp: new Date(Date.now() - 3600000).toISOString()
-                        }
-                    ]
-                }
-            ];
-            setQuestionsList(mockQs);
-            localStorage.setItem(`module-qa-${module.id}`, JSON.stringify(mockQs));
+            setQuestionsList([]);
         }
     }, [module.id]);
 

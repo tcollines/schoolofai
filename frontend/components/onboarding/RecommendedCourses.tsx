@@ -90,15 +90,15 @@ const RecommendedCourses: React.FC = () => {
                                     )}
                                     <div className="absolute top-4 right-4 bg-white/90 backdrop-blur text-gray-900 text-xs font-bold px-3 py-1.5 rounded-full flex items-center gap-1">
                                         <Star className="w-3 h-3 text-amber-500 fill-amber-500" />
-                                        4.9
+                                        {Number(course.rating) > 0 ? Number(course.rating).toFixed(1) : 'New'}
                                     </div>
                                 </div>
                                 <div className="p-6 flex flex-col flex-1">
                                     <h3 className="font-bold text-gray-900 dark:text-white mb-2 line-clamp-2">{course.title}</h3>
                                     <p className="text-sm text-gray-500 dark:text-slate-400 mb-4 line-clamp-2">{course.description || 'Learn the essentials in this comprehensive course.'}</p>
                                     <div className="mt-auto flex items-center gap-4 text-xs font-semibold text-gray-400 dark:text-slate-500">
-                                        <div className="flex items-center gap-1"><Clock className="w-4 h-4" /> 4h 30m</div>
-                                        <div className="flex items-center gap-1"><BookOpen className="w-4 h-4" /> {course.level || 'Beginner'}</div>
+                                        <div className="flex items-center gap-1"><Clock className="w-4 h-4" /> {course.duration || `${course.lessons_total || 0} Lessons`}</div>
+                                        <div className="flex items-center gap-1"><BookOpen className="w-4 h-4" /> {(course.sections && !Array.isArray(course.sections) && course.sections.level) || course.level || 'Beginner'}</div>
                                     </div>
                                 </div>
                             </div>

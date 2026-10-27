@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import CourseCard from './CourseCard';
 import { Course, CourseStatus, CourseModule, CourseSection } from '../types';
-import { Search, Filter, Clock, ArrowLeft, PlayCircle, Youtube, BookOpen, FileText, ChevronDown, Headphones, File, LayoutGrid, LayoutList, Lock, HelpCircle } from 'lucide-react';
+import { Search, Filter, Clock, ArrowLeft, PlayCircle, Youtube, BookOpen, FileText, ChevronDown, Headphones, File, LayoutGrid, LayoutList, Lock, HelpCircle, Video, Calendar, ExternalLink } from 'lucide-react';
 import CoursePlayer from './CoursePlayer';
 import ExamPlayer from './ExamPlayer';
 import RatingModal from './RatingModal';
@@ -72,10 +72,30 @@ const MyCourses: React.FC<MyCoursesProps> = ({ courses }) => {
         return [];
     };
 
-    // Sync localCourses with props changes
+    // Sync localCourses with props changes and keep selectedCourse updated with live DB changes
     useEffect(() => {
         setLocalCourses(courses);
+        setSelectedCourse(prev => {
+            if (!prev) return null;
+            const refreshed = courses.find(c => c.id === prev.id);
+            return refreshed || prev;
+        });
     }, [courses]);
+
+    // Auto-expand modules when a student opens a course in MyCourses
+    useEffect(() => {
+        if (selectedCourse?.sections && selectedCourse.sections.length > 0) {
+            setExpandedSections(prev => {
+                const next: Record<string, boolean> = { ...prev };
+                selectedCourse.sections!.forEach((sec) => {
+                    if (next[sec.id] === undefined) {
+                        next[sec.id] = true;
+                    }
+                });
+                return next;
+            });
+        }
+    }, [selectedCourse?.id, selectedCourse?.sections?.length]);
 
     useEffect(() => {
         const handleReviewsUpdate = () => {
@@ -241,20 +261,38 @@ const MyCourses: React.FC<MyCoursesProps> = ({ courses }) => {
                                 : 0;
                             const finalScore = Math.round((quizScore * 0.3) + (score * 0.7));
 
+                            // Update enrollment status on live enrollments table
                             const { error } = await supabaseClient
                                 .from('enrollments')
                                 .update({ 
-                                    exam_completed: true,
-                                    exam_score: score,
-                                    quiz_score: quizScore,
-                                    final_score: finalScore,
-                                    exam_marks_released: false,
                                     status: CourseStatus.COMPLETED
                                 })
                                 .eq('user_id', session.user.id)
                                 .eq('course_id', selectedCourse.id);
                             
                             if (error) throw error;
+
+                            // Persist exam submission inside courses.quiz.submissions JSONB on live Supabase
+                            const existingQuiz: any = selectedCourse.quiz || {};
+                            const existingSubs = existingQuiz.submissions || {};
+                            const updatedQuiz = {
+                                ...existingQuiz,
+                                submissions: {
+                                    ...existingSubs,
+                                    [session.user.id]: {
+                                        examCompleted: true,
+                                        examScore: score,
+                                        quizScore,
+                                        finalScore,
+                                        examMarksReleased: false,
+                                        submittedAt: new Date().toISOString()
+                                    }
+                                }
+                            };
+                            await supabaseClient
+                                .from('courses')
+                                .update({ quiz: updatedQuiz })
+                                .eq('id', selectedCourse.id);
 
                             const updatedCourse = {
                                 ...selectedCourse,
@@ -343,6 +381,22 @@ const MyCourses: React.FC<MyCoursesProps> = ({ courses }) => {
                                 <Clock size={18} className="text-welile-purple" />
                                 <span className="font-medium">{selectedCourse.duration}</span>
                             </div>
+                            {selectedCourse.cohortName && (
+                                <div className="flex items-center gap-2 text-xs font-bold text-welile-purple bg-purple-50 dark:bg-purple-950/30 px-3 py-1 rounded-full border border-purple-200 dark:border-purple-800/50">
+                                    <Calendar size={14} />
+                                    <span>{selectedCourse.cohortName}</span>
+                                </div>
+                            )}
+                            {selectedCourse.meetingLink && (
+                                <a
+                                    href={selectedCourse.meetingLink.startsWith('http') ? selectedCourse.meetingLink : `https://${selectedCourse.meetingLink}`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="inline-flex items-center gap-1.5 text-xs font-bold bg-red-600 hover:bg-red-700 text-white px-3.5 py-1.5 rounded-xl shadow-sm transition-colors"
+                                >
+                                    <Video size={14} /> Join Live Class Meet <ExternalLink size={12} />
+                                </a>
+                            )}
                         </div>
 
                         <div className="mb-6">
@@ -552,14 +606,36 @@ const MyCourses: React.FC<MyCoursesProps> = ({ courses }) => {
                                                                           <FileText size={24} />}
                                                                      </div>
                                                                     <div className="flex-1">
-                                                                        <h5 className="font-bold text-gray-905 dark:text-white group-hover:text-violet-900 dark:group-hover:text-violet-300 transition-colors flex items-center gap-2">
+                                                                        <h5 className="font-bold text-gray-905 dark:text-white group-hover:text-violet-900 dark:group-hover:text-violet-300 transition-colors flex flex-wrap items-center gap-2">
                                                                             {lesson.title}
+                                                                            {lesson.isLive && (
+                                                                                <span className="bg-red-100 dark:bg-red-950/50 text-red-600 dark:text-red-400 text-[9px] px-2 py-0.5 rounded-full font-black uppercase flex items-center gap-1">
+                                                                                    <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-ping" /> LIVE
+                                                                                </span>
+                                                                            )}
                                                                             {lesson.type === 'quiz' && <span className="bg-purple-100 dark:bg-purple-950/40 text-purple-700 dark:text-purple-300 text-[9px] px-1.5 py-0.5 rounded font-bold uppercase">Quiz</span>}
                                                                         </h5>
                                                                         <div className="flex flex-wrap items-center gap-4 text-xs text-gray-500 dark:text-slate-400 mt-2">
                                                                             <div className="flex items-center gap-1">
                                                                                 <Clock size={12} /> <span>{lesson.duration}</span>
                                                                             </div>
+                                                                            {lesson.scheduledDate && (
+                                                                                <div className="flex items-center gap-1 text-violet-600 dark:text-violet-400 font-semibold">
+                                                                                    <Calendar size={12} />
+                                                                                    <span>{lesson.scheduledDate}{lesson.scheduledTime ? ` • ${lesson.scheduledTime}` : ''}</span>
+                                                                                </div>
+                                                                            )}
+                                                                            {lesson.isLive && (lesson.liveUrl || selectedCourse.meetingLink) && (
+                                                                                <a
+                                                                                    href={((lesson.liveUrl || selectedCourse.meetingLink || '').startsWith('http') ? (lesson.liveUrl || selectedCourse.meetingLink) : `https://${lesson.liveUrl || selectedCourse.meetingLink}`)}
+                                                                                    target="_blank"
+                                                                                    rel="noopener noreferrer"
+                                                                                    onClick={(e) => e.stopPropagation()}
+                                                                                    className="inline-flex items-center gap-1 text-[11px] font-bold text-red-600 dark:text-red-400 hover:underline"
+                                                                                >
+                                                                                    <Video size={12} /> Join Google Meet <ExternalLink size={10} />
+                                                                                </a>
+                                                                            )}
                                                                         </div>
                                                                     </div>
                                                                     <div className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center p-2 text-violet-600 bg-white dark:bg-slate-900 rounded-full shadow-sm">

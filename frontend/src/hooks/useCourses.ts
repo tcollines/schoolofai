@@ -41,14 +41,26 @@ export const useCourses = (userId: string | undefined) => {
                 const formattedCourses: Course[] = (coursesData || []).map((course: any) => {
                     const isNewFormat = Array.isArray(course.modules) && course.modules.length > 0 && 'lessons' in course.modules[0];
                     const scheduleData = (course.sections && typeof course.sections === 'object' && !Array.isArray(course.sections)) ? course.sections : {};
-                    const lessonsCompleted = enrollmentsMap[course.id]?.progress || 0;
-                    const examCompleted = !!enrollmentsMap[course.id]?.exam_completed;
+                    const resolvedSections = isNewFormat
+                        ? course.modules
+                        : (Array.isArray(scheduleData.sections) && scheduleData.sections.length > 0
+                            ? scheduleData.sections
+                            : (Array.isArray(course.sections) ? course.sections : undefined));
+                    const enrollment = enrollmentsMap[course.id];
+                    const quizSub = (userId && course.quiz && course.quiz.submissions) ? course.quiz.submissions[userId] : undefined;
+                    const lessonsCompleted = enrollment?.progress || 0;
+                    const examCompleted = !!(enrollment?.exam_completed ?? quizSub?.examCompleted);
+                    const examMarksReleased = !!(enrollment?.exam_marks_released ?? quizSub?.examMarksReleased);
+                    const rawExamScore = enrollment?.exam_score !== undefined ? enrollment.exam_score : quizSub?.examScore;
+                    const rawQuizScore = enrollment?.quiz_score !== undefined ? enrollment.quiz_score : quizSub?.quizScore;
+                    const rawFinalScore = enrollment?.final_score !== undefined ? enrollment.final_score : quizSub?.finalScore;
+
                     const progressPct = Math.round(
                         (course.lessons_total > 0 ? (lessonsCompleted / course.lessons_total) * 60 : 0) +
                         (examCompleted ? 40 : 0)
                     );
-                    let mappedStatus = enrollmentsMap[course.id]?.status as CourseStatus || CourseStatus.NOT_STARTED;
-                    if (mappedStatus === CourseStatus.COMPLETED && progressPct < 100) {
+                    let mappedStatus = enrollment?.status as CourseStatus || CourseStatus.NOT_STARTED;
+                    if (mappedStatus === CourseStatus.COMPLETED && progressPct < 100 && course.quiz && !course.quiz.isDraft) {
                         mappedStatus = CourseStatus.IN_PROGRESS;
                     }
 
@@ -65,25 +77,29 @@ export const useCourses = (userId: string | undefined) => {
                         lessonsCompleted: lessonsCompleted,
                         status: mappedStatus,
                         examCompleted: examCompleted,
-                        examScore: enrollmentsMap[course.id]?.exam_marks_released && enrollmentsMap[course.id]?.exam_score !== undefined 
-                            ? Number(enrollmentsMap[course.id]?.exam_score) 
+                        examScore: examMarksReleased && rawExamScore !== undefined 
+                            ? Number(rawExamScore) 
                             : undefined,
-                        quizScore: enrollmentsMap[course.id]?.exam_marks_released && enrollmentsMap[course.id]?.quiz_score !== undefined 
-                            ? Number(enrollmentsMap[course.id]?.quiz_score) 
+                        quizScore: examMarksReleased && rawQuizScore !== undefined 
+                            ? Number(rawQuizScore) 
                             : undefined,
-                        finalScore: enrollmentsMap[course.id]?.exam_marks_released && enrollmentsMap[course.id]?.final_score !== undefined 
-                            ? Number(enrollmentsMap[course.id]?.final_score) 
+                        finalScore: examMarksReleased && rawFinalScore !== undefined 
+                            ? Number(rawFinalScore) 
                             : undefined,
-                        certificateUrl: enrollmentsMap[course.id]?.certificate_url || '',
-                        isCertificateVerified: !!enrollmentsMap[course.id]?.is_certificate_verified,
-                        examMarksReleased: !!enrollmentsMap[course.id]?.exam_marks_released,
+                        certificateUrl: enrollment?.certificate_url || '',
+                        isCertificateVerified: !!enrollment?.is_certificate_verified,
+                        examMarksReleased: examMarksReleased,
                         isDraft: course.is_draft || false,
                         isVerified: course.is_verified !== undefined ? !!course.is_verified : true,
                         image: course.image || course.imageUrl || course.image_url || 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=800&auto=format&fit=crop&q=60',
                         price: Number(course.price) || 0,
                         platform: course.platform || 'Welile',
-                        accessTier: course.accessTier || 'FREE',
-                        sections: isNewFormat ? course.modules : (scheduleData.sections || (Array.isArray(course.sections) ? course.sections : undefined)),
+                        accessTier: course.accessTier || course.access_tier || 'FREE',
+                        partnerId: scheduleData.partnerId || course.partner_id || '',
+                        tutorId: scheduleData.tutorId || course.tutor_id || '',
+                        level: scheduleData.level || course.level || 'Beginner',
+                        defaultLessonDuration: scheduleData.defaultLessonDuration || '1 hour',
+                        sections: resolvedSections,
                         modules: !isNewFormat ? course.modules : undefined,
                         quiz: course.quiz,
                         description: course.description,
@@ -124,10 +140,24 @@ export const useCourses = (userId: string | undefined) => {
 
         fetchCourses();
         window.addEventListener('courses-update', fetchCourses);
+        window.addEventListener('focus', fetchCourses);
         window.addEventListener('storage', handleStorageChange);
+
+        const realtimeChannel = supabaseClient
+            .channel(`student-courses-sync-${userId || 'anon'}`)
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'courses' }, () => {
+                fetchCourses();
+            })
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'enrollments' }, () => {
+                fetchCourses();
+            })
+            .subscribe();
+
         return () => {
             window.removeEventListener('courses-update', fetchCourses);
+            window.removeEventListener('focus', fetchCourses);
             window.removeEventListener('storage', handleStorageChange);
+            supabaseClient.removeChannel(realtimeChannel);
         };
     }, [userId]);
 

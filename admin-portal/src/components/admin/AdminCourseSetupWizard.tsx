@@ -559,10 +559,51 @@ const AdminCourseSetupWizard: React.FC<AdminCourseSetupWizardProps> = ({ isInstr
     useEffect(() => {
         const loadAux = async () => {
             try {
-                const { data: pData } = await supabaseClient.from('partners').select('*');
+                const [{ data: pData }, { data: tData }, { data: profData }, { data: courseInstData }] = await Promise.all([
+                    supabaseClient.from('partners').select('*'),
+                    supabaseClient.from('instructors').select('*'),
+                    supabaseClient.from('profiles').select('id, full_name, email, role, avatar_url, bio'),
+                    supabaseClient.from('courses').select('id, instructor, instructor_email, instructor_avatar')
+                ]);
                 if (pData) setPartners(pData);
-                const { data: tData } = await supabaseClient.from('instructors').select('*');
-                if (tData) setTutors(tData);
+
+                const mergedTutors = new Map<string, any>();
+                (profData || []).forEach((p: any) => {
+                    const emailKey = (p.email || '').trim().toLowerCase();
+                    if (!emailKey) return;
+                    if (p.role === 'INSTRUCTOR' || p.role === 'ADMIN') {
+                        mergedTutors.set(emailKey, {
+                            id: p.id,
+                            name: p.full_name || emailKey.split('@')[0],
+                            email: p.email,
+                            avatar: p.avatar_url || '',
+                            bio: p.bio || ''
+                        });
+                    }
+                });
+                (tData || []).forEach((t: any) => {
+                    const emailKey = (t.email || '').trim().toLowerCase();
+                    if (!emailKey) return;
+                    mergedTutors.set(emailKey, {
+                        id: t.id,
+                        name: t.name || emailKey.split('@')[0],
+                        email: t.email,
+                        avatar: t.avatar || '',
+                        bio: t.bio || ''
+                    });
+                });
+                (courseInstData || []).forEach((c: any) => {
+                    const emailKey = (c.instructor_email || '').trim().toLowerCase();
+                    if (emailKey && !mergedTutors.has(emailKey)) {
+                        mergedTutors.set(emailKey, {
+                            id: `tutor-${c.id}`,
+                            name: c.instructor || emailKey.split('@')[0],
+                            email: c.instructor_email,
+                            avatar: c.instructor_avatar || ''
+                        });
+                    }
+                });
+                setTutors(Array.from(mergedTutors.values()));
             } catch (err) {
                 console.error('Error loading partners/tutors:', err);
             }
@@ -1157,8 +1198,8 @@ const AdminCourseSetupWizard: React.FC<AdminCourseSetupWizardProps> = ({ isInstr
                 category: newCourse.category?.trim() || 'General',
                 image: newCourse.image?.trim() || '',
                 isDraft: !publish,
-                isVerified: isInstructor 
-                    ? (publish ? false : (newCourse.isVerified || false)) 
+                isVerified: publish
+                    ? true
                     : (isEditMode ? (newCourse.isVerified !== undefined ? newCourse.isVerified : true) : true),
                 price: newCourse.accessTier === 'FREE' ? 0 : (newCourse.price || 0),
                 platform: newCourse.platform || 'Welile',

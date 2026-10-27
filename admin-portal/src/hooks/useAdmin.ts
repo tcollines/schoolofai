@@ -51,6 +51,11 @@ export const useAdmin = (isAdmin: boolean) => {
             const formattedCourses: Course[] = (coursesData || []).map((c: any) => {
                 const isNewFormat = Array.isArray(c.modules) && c.modules.length > 0 && 'lessons' in c.modules[0];
                 const scheduleData = (c.sections && typeof c.sections === 'object' && !Array.isArray(c.sections)) ? c.sections : {};
+                const resolvedSections = isNewFormat
+                    ? c.modules
+                    : (Array.isArray(scheduleData.sections) && scheduleData.sections.length > 0
+                        ? scheduleData.sections
+                        : (Array.isArray(c.sections) ? c.sections : undefined));
                 return {
                     id: c.id,
                     title: c.title,
@@ -65,14 +70,15 @@ export const useAdmin = (isAdmin: boolean) => {
                     status: c.status,
                     isDraft: c.is_draft || false,
                     isVerified: c.is_verified !== undefined ? !!c.is_verified : true,
-                    image: c.image_url || 'https://picsum.photos/400/300',
+                    image: c.image || c.imageUrl || c.image_url || 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=800&auto=format&fit=crop&q=60',
                     price: Number(c.price) || 0,
                     platform: c.platform || 'Welile',
                     accessTier: c.accessTier || c.access_tier || 'FREE',
-                    partnerId: c.partner_id || '',
-                    tutorId: c.tutor_id || '',
-                    level: c.level || '',
-                    sections: isNewFormat ? c.modules : undefined,
+                    partnerId: scheduleData.partnerId || c.partner_id || '',
+                    tutorId: scheduleData.tutorId || c.tutor_id || '',
+                    level: scheduleData.level || c.level || 'Beginner',
+                    defaultLessonDuration: scheduleData.defaultLessonDuration || '1 hour',
+                    sections: resolvedSections,
                     modules: !isNewFormat ? c.modules : undefined,
                     quiz: c.quiz,
                     description: c.description,
@@ -103,7 +109,21 @@ export const useAdmin = (isAdmin: boolean) => {
                 .select('*');
 
             if (enrollmentsError) throw enrollmentsError;
-            setEnrollments(enrollmentsData || []);
+            const courseQuizById = new Map<string, any>((coursesData || []).map((c: any) => [c.id, c.quiz]));
+            const enrichedEnrollments = (enrollmentsData || []).map((e: any) => {
+                const quizObj = courseQuizById.get(e.course_id);
+                const sub = quizObj?.submissions?.[e.user_id];
+                if (!sub) return e;
+                return {
+                    ...e,
+                    exam_completed: e.exam_completed ?? sub.examCompleted ?? false,
+                    exam_score: e.exam_score ?? sub.examScore,
+                    quiz_score: e.quiz_score ?? sub.quizScore,
+                    final_score: e.final_score ?? sub.finalScore,
+                    exam_marks_released: e.exam_marks_released ?? sub.examMarksReleased ?? false
+                };
+            });
+            setEnrollments(enrichedEnrollments);
 
         } catch (err: any) {
             console.error('Error in useAdmin:', err);
@@ -129,12 +149,23 @@ export const useAdmin = (isAdmin: boolean) => {
         window.addEventListener('courses-update', handleUpdate);
         window.addEventListener('admin-events-update', handleUpdate);
         window.addEventListener('profile-update', handleUpdate);
+        window.addEventListener('focus', handleUpdate);
         window.addEventListener('storage', handleStorage);
+
+        const adminChannel = supabaseClient
+            .channel('admin-portal-live-db-sync')
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'courses' }, handleUpdate)
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'enrollments' }, handleUpdate)
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'profiles' }, handleUpdate)
+            .subscribe();
+
         return () => {
             window.removeEventListener('courses-update', handleUpdate);
             window.removeEventListener('admin-events-update', handleUpdate);
             window.removeEventListener('profile-update', handleUpdate);
+            window.removeEventListener('focus', handleUpdate);
             window.removeEventListener('storage', handleStorage);
+            supabaseClient.removeChannel(adminChannel);
         };
     }, [isAdmin]);
 
@@ -149,12 +180,9 @@ export const useAdmin = (isAdmin: boolean) => {
                     instructor_avatar: courseData.instructorAvatar,
                     duration: courseData.duration,
                     category: courseData.category,
-                    access_tier: courseData.accessTier,
-                    tutor_id: courseData.tutorId || null,
-                    partner_id: courseData.partnerId || null,
-                    level: courseData.level,
+                    accessTier: courseData.accessTier || 'FREE',
                     image_url: courseData.image,
-                    modules: courseData.sections,
+                    modules: courseData.sections || [],
                     sections: {
                         courseIntroVideoUrl: courseData.courseIntroVideoUrl || '',
                         startDate: courseData.startDate || '',
@@ -162,6 +190,7 @@ export const useAdmin = (isAdmin: boolean) => {
                         lessonDays: courseData.lessonDays || [],
                         lessonStartTime: courseData.lessonStartTime || '',
                         lessonEndTime: courseData.lessonEndTime || '',
+                        defaultLessonDuration: courseData.defaultLessonDuration || '1 hour',
                         timezone: courseData.timezone || 'EAT (UTC+3)',
                         meetingLink: courseData.meetingLink || '',
                         attendanceCode: courseData.attendanceCode || '',
@@ -169,6 +198,9 @@ export const useAdmin = (isAdmin: boolean) => {
                         cohorts: courseData.cohorts || [],
                         quizDate: courseData.quizDate || '',
                         examDate: courseData.examDate || '',
+                        level: courseData.level || 'Beginner',
+                        tutorId: courseData.tutorId || '',
+                        partnerId: courseData.partnerId || '',
                         sections: courseData.sections || []
                     },
                     description: courseData.description,
@@ -187,51 +219,6 @@ export const useAdmin = (isAdmin: boolean) => {
             if (error) throw new Error(error.message || JSON.stringify(error));
 
             const savedCourse = data;
-            const courseId = savedCourse?.id;
-
-            // Automatically create relational Cohort and Cohort Sessions in sync with the course
-            if (courseId && (courseData.cohortName || courseData.startDate)) {
-                try {
-                    const cohortStartDate = courseData.startDate || new Date().toISOString().split('T')[0];
-                    const orientationEndDate = courseData.endDate || (() => {
-                        const d = new Date(cohortStartDate);
-                        d.setDate(d.getDate() + 3);
-                        return d.toISOString().split('T')[0];
-                    })();
-
-                    const { data: cohortRes } = await supabaseClient.from('cohorts').insert({
-                        course_id: courseId,
-                        name: courseData.cohortName || 'Cohort 1',
-                        start_date: cohortStartDate,
-                        orientation_end_date: orientationEndDate
-                    }).select().single();
-
-                    const newCohortId = cohortRes?.id;
-                    if (newCohortId && courseData.sections) {
-                        const allLessons = courseData.sections.flatMap((s: any) => s.lessons || []);
-                        const sessionInserts = allLessons.map((les: any, idx: number) => {
-                            const sessDate = new Date(cohortStartDate);
-                            sessDate.setDate(sessDate.getDate() + (idx * 7 + 7));
-                            sessDate.setHours(18, 0, 0, 0);
-
-                            return {
-                                cohort_id: newCohortId,
-                                module_id: les.id,
-                                session_date: sessDate.toISOString(),
-                                location_link: les.meetLink || courseData.meetingLink || '',
-                                attendance_code: les.attendanceCode || courseData.attendanceCode || 'WEL-' + Math.floor(1000 + Math.random() * 9000)
-                            };
-                        });
-
-                        if (sessionInserts.length > 0) {
-                            await supabaseClient.from('cohort_sessions').insert(sessionInserts);
-                        }
-                    }
-                } catch (cohortSyncErr) {
-                    console.warn('Could not auto-generate cohort relation:', cohortSyncErr);
-                }
-            }
-
             await fetchData(true); // Refresh silently
             window.dispatchEvent(new Event('courses-update'));
             return savedCourse;
@@ -253,12 +240,9 @@ export const useAdmin = (isAdmin: boolean) => {
                     instructor_avatar: courseData.instructorAvatar,
                     duration: courseData.duration,
                     category: courseData.category,
-                    access_tier: courseData.accessTier,
-                    tutor_id: courseData.tutorId || null,
-                    partner_id: courseData.partnerId || null,
-                    level: courseData.level,
+                    accessTier: courseData.accessTier || 'FREE',
                     image_url: courseData.image,
-                    modules: courseData.sections,
+                    modules: courseData.sections || [],
                     sections: {
                         courseIntroVideoUrl: courseData.courseIntroVideoUrl || '',
                         startDate: courseData.startDate || '',
@@ -266,6 +250,7 @@ export const useAdmin = (isAdmin: boolean) => {
                         lessonDays: courseData.lessonDays || [],
                         lessonStartTime: courseData.lessonStartTime || '',
                         lessonEndTime: courseData.lessonEndTime || '',
+                        defaultLessonDuration: courseData.defaultLessonDuration || '1 hour',
                         timezone: courseData.timezone || 'EAT (UTC+3)',
                         meetingLink: courseData.meetingLink || '',
                         attendanceCode: courseData.attendanceCode || '',
@@ -273,6 +258,9 @@ export const useAdmin = (isAdmin: boolean) => {
                         cohorts: courseData.cohorts || [],
                         quizDate: courseData.quizDate || '',
                         examDate: courseData.examDate || '',
+                        level: courseData.level || 'Beginner',
+                        tutorId: courseData.tutorId || '',
+                        partnerId: courseData.partnerId || '',
                         sections: courseData.sections || []
                     },
                     description: courseData.description,
@@ -475,16 +463,35 @@ export const useAdmin = (isAdmin: boolean) => {
 
     const releaseExamMarks = async (userId: string, courseId: string) => {
         try {
-            const { error } = await supabaseClient
-                .from('enrollments')
-                .update({ 
-                    exam_marks_released: true
-                })
-                .eq('user_id', userId)
-                .eq('course_id', courseId);
+            const { data: courseRow } = await supabaseClient
+                .from('courses')
+                .select('quiz')
+                .eq('id', courseId)
+                .single();
 
-            if (error) throw error;
+            const existingQuiz = courseRow?.quiz || {};
+            const existingSubs = existingQuiz.submissions || {};
+            const updatedQuiz = {
+                ...existingQuiz,
+                submissions: {
+                    ...existingSubs,
+                    [userId]: {
+                        ...(existingSubs[userId] || {}),
+                        examCompleted: true,
+                        examMarksReleased: true
+                    }
+                }
+            };
+
+            const { error: courseErr } = await supabaseClient
+                .from('courses')
+                .update({ quiz: updatedQuiz })
+                .eq('id', courseId);
+
+            if (courseErr) throw courseErr;
+
             await fetchData(true); // Refresh silently
+            window.dispatchEvent(new Event('courses-update'));
             window.dispatchEvent(new Event('profile-update'));
         } catch (err: any) {
             console.error('Error releasing exam marks:', err);

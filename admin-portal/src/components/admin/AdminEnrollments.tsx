@@ -567,40 +567,46 @@ const AdminEnrollments: React.FC = () => {
                                         return;
                                     }
                                     try {
-                                        // 1. Check if instructor already exists in database
+                                        const cleanEmail = selectedUpgradeUser.email.trim().toLowerCase();
+                                        // 1. Update bio and role on live profiles table
+                                        const { error: profErr } = await supabaseClient
+                                            .from('profiles')
+                                            .update({
+                                                bio: instBio,
+                                                role: UserRole.ADMIN
+                                            })
+                                            .eq('id', selectedUpgradeUser.id);
+                                        if (profErr) throw profErr;
+
+                                        // 2. Best-effort sync to instructors table if present
                                         const { data: existing } = await supabaseClient
                                             .from('instructors')
                                             .select('id')
-                                            .eq('email', selectedUpgradeUser.email.trim().toLowerCase());
+                                            .eq('email', cleanEmail);
 
                                         if (existing && existing.length > 0) {
-                                            // Update
-                                            const { error: updErr } = await supabaseClient
+                                            await supabaseClient
                                                 .from('instructors')
                                                 .update({
                                                     name: selectedUpgradeUser.name,
                                                     bio: instBio,
                                                     password: instPassword
                                                 })
-                                                .eq('email', selectedUpgradeUser.email.trim().toLowerCase());
-                                            if (updErr) throw updErr;
+                                                .eq('email', cleanEmail);
                                         } else {
-                                            // Insert
-                                            const { error: insErr } = await supabaseClient
+                                            await supabaseClient
                                                 .from('instructors')
                                                 .insert({
                                                     id: 'inst-' + Math.random().toString(36).substr(2, 9),
                                                     name: selectedUpgradeUser.name,
-                                                    email: selectedUpgradeUser.email.trim().toLowerCase(),
+                                                    email: cleanEmail,
                                                     bio: instBio,
                                                     avatar: selectedUpgradeUser.name.split(' ').map((n: string) => n[0]).join('').toUpperCase(),
                                                     courses_count: 0,
                                                     password: instPassword
                                                 });
-                                            if (insErr) throw insErr;
                                         }
 
-                                        // 2. Update user profile role in profiles table to ADMIN
                                         await updateUserRole(selectedUpgradeUser.id, UserRole.ADMIN);
                                         
                                         alert(`Instructor setup initialized successfully for ${selectedUpgradeUser.name}!`);
