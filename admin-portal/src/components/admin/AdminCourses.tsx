@@ -200,31 +200,6 @@ const AdminCourses: React.FC<AdminCoursesProps> = ({ isInstructor = false }) => 
             });
         });
 
-        // Fallback default sessions if curriculum topics have not been detailed yet
-        if (list.length === 0) {
-            for (let i = 1; i <= 4; i++) {
-                const schedule = calculateLessonSchedule(
-                    course.startDate,
-                    course.lessonDays,
-                    i - 1,
-                    course.lessonStartTime || '18:00',
-                    course.lessonEndTime || '20:00',
-                    course.timezone || 'EAT (UTC+3)'
-                );
-                list.push({
-                    id: `fallback-sess-${i}`,
-                    sectionId: 'sec-main',
-                    sectionTitle: 'Main Curriculum',
-                    title: `Live Session ${i}: Core Concepts & Interactive Discussion`,
-                    duration: '45 mins',
-                    attendanceCode: course.attendanceCode ? `${course.attendanceCode}-${i}` : generateRandomPin(),
-                    scheduledDate: schedule.dateStr,
-                    scheduledTime: schedule.timeStr,
-                    lessonIndex: i
-                });
-            }
-        }
-
         return list;
     };
 

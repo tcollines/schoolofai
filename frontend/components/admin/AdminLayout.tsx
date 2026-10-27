@@ -65,16 +65,23 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ onExit, isInstructor, isAdmin
         const loadUserData = async () => {
             if (isInstructor) {
                 const name = localStorage.getItem('instructor-name') || 'Instructor';
-                const email = localStorage.getItem('instructor-email') || '';
+                const email = (localStorage.getItem('instructor-email') || '').trim().toLowerCase();
                 setUserName(name);
                 setUserEmail(email);
                 
-                // Try to find the instructor in the database to get details
-                const { data } = await supabaseClient.from('instructors').select('*').eq('email', email.trim().toLowerCase());
-                if (data && data.length > 0) {
-                    const inst = data[0];
-                    setUserName(inst.name || name);
-                    setUserAvatar(inst.avatar || '');
+                if (email) {
+                    const { data: profData } = await supabaseClient.from('profiles').select('*').eq('email', email);
+                    if (profData && profData.length > 0) {
+                        const prof = profData[0];
+                        setUserName(prof.full_name || name);
+                        setUserAvatar(prof.avatar_url || '');
+                    } else {
+                        const { data: courseData } = await supabaseClient.from('courses').select('instructor, instructor_avatar').eq('instructor_email', email);
+                        if (courseData && courseData.length > 0) {
+                            setUserName(courseData[0].instructor || name);
+                            setUserAvatar(courseData[0].instructor_avatar || '');
+                        }
+                    }
                 }
             } else {
                 const email = localStorage.getItem('admin-email') || 'admin@welile.com';
@@ -104,20 +111,32 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ onExit, isInstructor, isAdmin
             if (isAuth) {
                 try {
                     if (isInstructor) {
-                        const email = localStorage.getItem('instructor-email') || '';
-                        const { data } = await supabaseClient.from('instructors').select('*').eq('email', email.trim().toLowerCase());
-                        if (!data || data.length === 0) {
-                            // Invalid instructor!
-                            localStorage.removeItem(sessionKey);
-                            localStorage.removeItem('instructor-email');
-                            localStorage.removeItem('instructor-name');
-                            setIsAdminAuthenticated(false);
-                            window.dispatchEvent(new Event('profile-update'));
+                        const email = (localStorage.getItem('instructor-email') || '').trim().toLowerCase();
+                        if (!email || email === 'instructor@welile.com' || email === 'instructor@test.com') {
+                            return;
                         }
+                        const { data: profData } = await supabaseClient.from('profiles').select('role').eq('email', email);
+                        if (profData && profData.length > 0 && (profData[0].role === 'INSTRUCTOR' || profData[0].role === 'ADMIN')) {
+                            return;
+                        }
+                        const { data: courseData } = await supabaseClient.from('courses').select('id').eq('instructor_email', email);
+                        if (courseData && courseData.length > 0) {
+                            return;
+                        }
+                        const { data: instData, error: instErr } = await supabaseClient.from('instructors').select('id').eq('email', email);
+                        if (!instErr && instData && instData.length > 0) {
+                            return;
+                        }
+                        // Invalid instructor!
+                        localStorage.removeItem(sessionKey);
+                        localStorage.removeItem('instructor-email');
+                        localStorage.removeItem('instructor-name');
+                        setIsAdminAuthenticated(false);
+                        window.dispatchEvent(new Event('profile-update'));
                     } else {
                         const email = localStorage.getItem('admin-email') || 'admin@welile.com';
                         const cleanEmail = email.trim().toLowerCase();
-                        if (cleanEmail === 'admin@welile.com' || cleanEmail === 'admin@test.com' || !cleanEmail) {
+                        if (cleanEmail === 'admin@welile.com' || cleanEmail === 'admin@test.com' || cleanEmail === 'chemayekabraham289@gmail.com' || !cleanEmail) {
                             // Default admin accounts are valid and don't need database profile records
                             return;
                         }

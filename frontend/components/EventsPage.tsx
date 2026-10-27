@@ -57,14 +57,71 @@ const EventsPage: React.FC<EventsPageProps> = ({ courses = [] }) => {
         fetchUserRole();
     }, []);
 
-    // Filter enrolled courses
-    const enrolledCourses = useMemo(() => 
-        courses.filter(c => c.status === CourseStatus.IN_PROGRESS || c.status === CourseStatus.COMPLETED),
-        [courses]
-    );
+    // Generate live lesson events dynamically from live database courses
+    const courseLessonEvents = useMemo<EventItem[]>(() => {
+        const generated: EventItem[] = [];
+        const dayNameToNum: Record<string, number> = {
+            Sunday: 0, Monday: 1, Tuesday: 2, Wednesday: 3, Thursday: 4, Friday: 5, Saturday: 6
+        };
 
-    const adminEventsList = adminEvents;
-    const allEvents = useMemo(() => adminEventsList, [adminEventsList]);
+        const computeSessionIsoDate = (startDateStr?: string, lessonDays: string[] = ['Monday', 'Wednesday', 'Friday'], sessionIdx: number = 0): string => {
+            const base = startDateStr ? new Date(startDateStr) : new Date();
+            if (isNaN(base.getTime())) return new Date().toISOString().split('T')[0];
+            const targetDays = (lessonDays && lessonDays.length > 0 ? lessonDays : ['Monday', 'Wednesday', 'Friday'])
+                .map(d => dayNameToNum[d] ?? 1);
+            const cur = new Date(base);
+            let matched = 0;
+            let guard = 0;
+            while (guard < 180) {
+                if (targetDays.includes(cur.getDay())) {
+                    if (matched === sessionIdx) break;
+                    matched++;
+                }
+                cur.setDate(cur.getDate() + 1);
+                guard++;
+            }
+            return cur.toISOString().split('T')[0];
+        };
+
+        courses
+            .filter(c => !c.isDraft && c.isVerified !== false)
+            .forEach(course => {
+                const sections = course.sections || [];
+                let liveCounter = 0;
+                sections.forEach((sec: any) => {
+                    (sec.lessons || []).forEach((les: any) => {
+                        const isLive = les.deliveryMode === 'live' || les.type === 'live' || (!les.videoUrl && (les.meetLink || course.meetingLink));
+                        if (isLive) {
+                            const isoDate = computeSessionIsoDate(course.startDate, course.lessonDays, liveCounter);
+                            liveCounter++;
+                            generated.push({
+                                id: `live-lesson-${course.id}-${les.id}`,
+                                title: `${course.title}: ${les.title || `Live Session ${liveCounter}`}`,
+                                description: les.textContent
+                                    ? les.textContent.replace(/<[^>]*>?/gm, '').slice(0, 220)
+                                    : (course.description || `Live interactive class session for ${course.title} (${sec.title || 'Curriculum'}).`),
+                                date: isoDate,
+                                time: `${course.lessonStartTime || '18:00'} (${course.timezone || 'EAT'})`,
+                                type: 'Lesson',
+                                speaker: course.instructor || 'Course Instructor',
+                                tags: [course.category || 'Course', sec.title || 'Live Session', course.cohortName || 'Live Cohort'].filter(Boolean),
+                                courseId: course.id,
+                                sectionId: sec.id,
+                                moduleId: les.id,
+                                attendeeCount: 25,
+                                meetLink: les.meetLink || course.meetingLink || '',
+                                medium: 'Online',
+                                visibility: course.accessTier === 'PRO' ? 'pro' : 'basic'
+                            });
+                        }
+                    });
+                });
+            });
+
+        return generated;
+    }, [courses]);
+
+    const allEvents = useMemo(() => [...adminEvents, ...courseLessonEvents], [adminEvents, courseLessonEvents]);
 
     const getMsToEvent = (event: EventItem) => {
         try {

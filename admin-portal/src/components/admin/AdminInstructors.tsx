@@ -39,34 +39,74 @@ const AdminInstructors: React.FC = () => {
     const fetchInstructors = async () => {
         setLoading(true);
         try {
-            const { data: instData, error: instError } = await supabaseClient.from('instructors').select('*');
-            if (instError) throw instError;
+            const [{ data: profilesData }, { data: coursesData }, { data: instData }] = await Promise.all([
+                supabaseClient.from('profiles').select('*'),
+                supabaseClient.from('courses').select('id, instructor, instructor_email, instructor_avatar'),
+                supabaseClient.from('instructors').select('*')
+            ]);
 
-            const { data: profilesData, error: profilesError } = await supabaseClient.from('profiles').select('email, role');
-            if (profilesError) throw profilesError;
-
-            const adminEmails = new Set(
-                (profilesData || [])
-                    .filter(p => p.role === 'ADMIN')
-                    .map(p => p.email?.trim().toLowerCase())
-            );
-
-            const validInstructors = (instData || []).filter(inst => {
-                const isEmailValid = adminEmails.has(inst.email?.trim().toLowerCase());
-                if (!isEmailValid) {
-                    supabaseClient
-                        .from('instructors')
-                        .delete()
-                        .eq('id', inst.id)
-                        .then(({ error }) => {
-                            if (error) console.error('Failed to cleanup orphaned instructor:', error);
-                        });
-                    return false;
+            const courseCountByEmail = new Map<string, number>();
+            (coursesData || []).forEach((c: any) => {
+                const emailKey = (c.instructor_email || '').trim().toLowerCase();
+                if (emailKey) {
+                    courseCountByEmail.set(emailKey, (courseCountByEmail.get(emailKey) || 0) + 1);
                 }
-                return true;
             });
 
-            setInstructors(validInstructors);
+            const mergedByEmail = new Map<string, Instructor>();
+
+            // 1. Add profiles with role INSTRUCTOR or ADMIN (or assigned to courses)
+            (profilesData || []).forEach((p: any) => {
+                const emailKey = (p.email || '').trim().toLowerCase();
+                if (!emailKey) return;
+                if (p.role === 'INSTRUCTOR' || p.role === 'ADMIN' || courseCountByEmail.has(emailKey)) {
+                    const nameStr = p.full_name || p.fullName || emailKey.split('@')[0];
+                    mergedByEmail.set(emailKey, {
+                        id: p.id,
+                        name: nameStr,
+                        email: p.email,
+                        bio: p.bio || '',
+                        avatar: p.avatar_url || p.avatarUrl || nameStr.split(' ').map((n: string) => n[0]).join('').toUpperCase(),
+                        courses_count: courseCountByEmail.get(emailKey) || 0,
+                        password: p.password || 'instructor'
+                    });
+                }
+            });
+
+            // 2. Merge any records from instructors table if available
+            (instData || []).forEach((inst: any) => {
+                const emailKey = (inst.email || '').trim().toLowerCase();
+                if (!emailKey) return;
+                const existing = mergedByEmail.get(emailKey);
+                mergedByEmail.set(emailKey, {
+                    id: existing?.id || inst.id,
+                    name: inst.name || existing?.name || emailKey.split('@')[0],
+                    email: inst.email,
+                    bio: inst.bio || existing?.bio || '',
+                    avatar: inst.avatar || existing?.avatar || 'IN',
+                    courses_count: courseCountByEmail.get(emailKey) ?? inst.courses_count ?? 0,
+                    password: inst.password || existing?.password || 'instructor'
+                });
+            });
+
+            // 3. Also include any instructors referenced directly on courses
+            (coursesData || []).forEach((c: any) => {
+                const emailKey = (c.instructor_email || '').trim().toLowerCase();
+                if (emailKey && !mergedByEmail.has(emailKey)) {
+                    const nameStr = c.instructor || emailKey.split('@')[0];
+                    mergedByEmail.set(emailKey, {
+                        id: `course-inst-${c.id}`,
+                        name: nameStr,
+                        email: c.instructor_email,
+                        bio: 'Course Instructor',
+                        avatar: c.instructor_avatar || nameStr.split(' ').map((n: string) => n[0]).join('').toUpperCase(),
+                        courses_count: courseCountByEmail.get(emailKey) || 1,
+                        password: 'instructor'
+                    });
+                }
+            });
+
+            setInstructors(Array.from(mergedByEmail.values()));
         } catch (err) {
             console.error('Error fetching instructors:', err);
         } finally {
@@ -99,10 +139,16 @@ const AdminInstructors: React.FC = () => {
     };
 
     const handleDelete = async (id: string) => {
-        if (!confirm('Are you sure you want to delete this instructor?')) return;
+        if (!confirm('Are you sure you want to remove this instructor?')) return;
         try {
-            const { error } = await supabaseClient.from('instructors').delete().eq('id', id);
-            if (error) throw error;
+            const target = instructors.find(i => i.id === id);
+            await supabaseClient.from('instructors').delete().eq('id', id);
+            if (target?.email) {
+                await supabaseClient
+                    .from('profiles')
+                    .update({ role: 'INDIVIDUAL' })
+                    .eq('email', target.email.trim().toLowerCase());
+            }
             fetchInstructors();
         } catch (err) {
             console.error('Error deleting instructor:', err);
@@ -114,32 +160,60 @@ const AdminInstructors: React.FC = () => {
         if (!name || !email) return;
 
         setIsSubmitting(true);
+        const cleanEmail = email.trim().toLowerCase();
+        const computedAvatar = avatar || name.split(' ').map(n => n[0]).join('').toUpperCase();
         try {
+            // Update in profiles table if profile exists
+            const { data: existingProf } = await supabaseClient
+                .from('profiles')
+                .select('id, role')
+                .eq('email', cleanEmail);
+
+            if (existingProf && existingProf.length > 0) {
+                await supabaseClient
+                    .from('profiles')
+                    .update({
+                        full_name: name,
+                        bio,
+                        avatar_url: computedAvatar,
+                        role: existingProf[0].role === 'ADMIN' ? 'ADMIN' : 'INSTRUCTOR'
+                    })
+                    .eq('id', existingProf[0].id);
+            }
+
+            // Also sync instructor details on any courses assigned to this email
+            await supabaseClient
+                .from('courses')
+                .update({
+                    instructor: name,
+                    instructor_avatar: computedAvatar
+                })
+                .eq('instructor_email', cleanEmail);
+
+            // Best-effort sync with instructors table if present
             if (editingInstructor) {
-                const { error } = await supabaseClient
+                await supabaseClient
                     .from('instructors')
                     .update({
                         name,
-                        email,
+                        email: cleanEmail,
                         bio,
-                        avatar: avatar || name.split(' ').map(n => n[0]).join('').toUpperCase(),
+                        avatar: computedAvatar,
                         password: password || 'instructor'
                     })
                     .eq('id', editingInstructor.id);
-                if (error) throw error;
             } else {
-                const { error } = await supabaseClient
+                await supabaseClient
                     .from('instructors')
                     .insert({
                         id: 'inst-' + Math.random().toString(36).substr(2, 9),
                         name,
-                        email,
+                        email: cleanEmail,
                         bio,
-                        avatar: avatar || name.split(' ').map(n => n[0]).join('').toUpperCase(),
+                        avatar: computedAvatar,
                         courses_count: 0,
                         password: password || 'instructor'
                     });
-                if (error) throw error;
             }
             setIsOpen(false);
             fetchInstructors();

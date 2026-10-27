@@ -27,7 +27,22 @@ export default function CohortScheduler() {
         setLoading(true);
         const { data } = await supabaseClient.from('courses').select('*');
         if (data) {
-            setCourses(data as Course[]);
+            const formatted = data.map((c: any) => {
+                const isNewFormat = Array.isArray(c.modules) && c.modules.length > 0 && 'lessons' in c.modules[0];
+                const scheduleData = (c.sections && typeof c.sections === 'object' && !Array.isArray(c.sections)) ? c.sections : {};
+                const resolvedSections = isNewFormat
+                    ? c.modules
+                    : (Array.isArray(scheduleData.sections) && scheduleData.sections.length > 0
+                        ? scheduleData.sections
+                        : (Array.isArray(c.sections) ? c.sections : undefined));
+                return {
+                    ...c,
+                    sections: resolvedSections,
+                    modules: !isNewFormat ? c.modules : undefined,
+                    scheduleData
+                };
+            });
+            setCourses(formatted as any[]);
         }
         setLoading(false);
     };
@@ -118,36 +133,55 @@ export default function CohortScheduler() {
 
         setSaving(true);
         try {
-            // Insert Cohort
-            const { data: cohortData, error: cohortError } = await supabaseClient
-                .from('cohorts')
-                .insert({
-                    course_id: selectedCourseId,
-                    name: cohortName,
-                    start_date: startDate,
-                    orientation_end_date: orientationEndDate
+            const targetCourse: any = courses.find(c => c.id === selectedCourseId);
+            const existingSchedule = (targetCourse?.scheduleData && typeof targetCourse.scheduleData === 'object')
+                ? targetCourse.scheduleData
+                : {};
+            const existingCohorts = Array.isArray(existingSchedule.cohorts) ? existingSchedule.cohorts : [];
+            const newCohortEntry = {
+                id: 'cohort-' + Date.now(),
+                name: cohortName,
+                startDate: startDate,
+                endDate: orientationEndDate,
+                lessonDays: existingSchedule.lessonDays || ['Monday', 'Wednesday', 'Friday'],
+                lessonStartTime: existingSchedule.lessonStartTime || '18:00',
+                lessonEndTime: existingSchedule.lessonEndTime || '20:00',
+                timezone: existingSchedule.timezone || 'EAT (UTC+3)',
+                meetingLink: sessions[0]?.location_link || existingSchedule.meetingLink || '',
+                attendanceCode: sessions[0]?.attendance_code || existingSchedule.attendanceCode || ''
+            };
+
+            const sessionByModuleId = new Map(sessions.map(s => [s.module_id, s]));
+            const updatedSections = (targetCourse?.sections || []).map((sec: any) => ({
+                ...sec,
+                lessons: (sec.lessons || []).map((les: any) => {
+                    const matchedSession = sessionByModuleId.get(les.id);
+                    if (!matchedSession) return les;
+                    return {
+                        ...les,
+                        meetLink: matchedSession.location_link || les.meetLink || '',
+                        attendanceCode: matchedSession.attendance_code || les.attendanceCode || ''
+                    };
                 })
-                .select()
-                .single();
-
-            if (cohortError) throw cohortError;
-            
-            const cohortId = cohortData.id;
-
-            // Insert Sessions
-            const sessionsToInsert = sessions.map(s => ({
-                cohort_id: cohortId,
-                module_id: s.module_id,
-                session_date: s.session_date ? new Date(s.session_date).toISOString() : new Date().toISOString(),
-                location_link: s.location_link,
-                attendance_code: s.attendance_code
             }));
 
-            const { error: sessionsError } = await supabaseClient
-                .from('cohort_sessions')
-                .insert(sessionsToInsert);
+            const { error: updateErr } = await supabaseClient
+                .from('courses')
+                .update({
+                    modules: updatedSections,
+                    sections: {
+                        ...existingSchedule,
+                        cohortName,
+                        startDate,
+                        endDate: orientationEndDate,
+                        cohorts: [...existingCohorts, newCohortEntry],
+                        sections: updatedSections
+                    }
+                })
+                .eq('id', selectedCourseId);
 
-            if (sessionsError) throw sessionsError;
+            if (updateErr) throw updateErr;
+            window.dispatchEvent(new Event('courses-update'));
 
             setSuccess(true);
             setTimeout(() => {
