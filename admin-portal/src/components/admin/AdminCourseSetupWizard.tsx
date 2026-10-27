@@ -69,6 +69,91 @@ export const broadcastLessonNotification = (
     }
 };
 
+export const CADENCE_PRESETS = [
+    { label: 'Weekdays Daily', days: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'] },
+    { label: 'Mon / Wed / Fri', days: ['Monday', 'Wednesday', 'Friday'] },
+    { label: 'Tue / Thu / Sat', days: ['Tuesday', 'Thursday', 'Saturday'] },
+    { label: 'Weekend Cohort', days: ['Saturday', 'Sunday'] },
+    { label: 'Saturday Masterclass', days: ['Saturday'] }
+];
+
+export const computeDurationFromTimes = (startTime: string = '18:00', endTime: string = '20:00'): string => {
+    try {
+        const [startH, startM] = (startTime || '18:00').split(':').map(Number);
+        const [endH, endM] = (endTime || '20:00').split(':').map(Number);
+        if (isNaN(startH) || isNaN(startM) || isNaN(endH) || isNaN(endM)) return '1 hour';
+        
+        let totalMinutes = (endH * 60 + endM) - (startH * 60 + startM);
+        if (totalMinutes <= 0) totalMinutes += 24 * 60; // Overnight wrap
+        
+        if (totalMinutes === 60) return '1 hour';
+        if (totalMinutes === 120) return '2 hours';
+        if (totalMinutes > 60 && totalMinutes % 60 === 0) return `${totalMinutes / 60} hours`;
+        if (totalMinutes > 60) return `${Math.floor(totalMinutes / 60)}h ${totalMinutes % 60}m`;
+        return `${totalMinutes} mins`;
+    } catch {
+        return '1 hour';
+    }
+};
+
+export const calculateLessonSchedule = (
+    startDateStr?: string,
+    lessonDays: string[] = ['Monday', 'Wednesday', 'Friday'],
+    lessonIndex: number = 0,
+    startTime: string = '18:00',
+    endTime: string = '20:00',
+    tz: string = 'EAT (UTC+3)'
+): { dateStr: string; timeStr: string } => {
+    if (!startDateStr) {
+        return {
+            dateStr: `Session ${lessonIndex + 1}`,
+            timeStr: `${startTime} - ${endTime} (${tz})`
+        };
+    }
+
+    const dayNameToNum: Record<string, number> = {
+        Sunday: 0, Monday: 1, Tuesday: 2, Wednesday: 3, Thursday: 4, Friday: 5, Saturday: 6
+    };
+
+    const targetDayNums = (lessonDays && lessonDays.length > 0 ? lessonDays : ['Monday', 'Wednesday', 'Friday'])
+        .map(d => dayNameToNum[d] ?? 1);
+
+    const base = new Date(startDateStr);
+    if (isNaN(base.getTime())) {
+        return {
+            dateStr: `Session ${lessonIndex + 1}`,
+            timeStr: `${startTime} - ${endTime} (${tz})`
+        };
+    }
+
+    let current = new Date(base);
+    let matchedCount = 0;
+    let guard = 0;
+
+    while (guard < 180) {
+        const dayOfWeek = current.getDay();
+        if (targetDayNums.includes(dayOfWeek)) {
+            if (matchedCount === lessonIndex) {
+                break;
+            }
+            matchedCount++;
+        }
+        current.setDate(current.getDate() + 1);
+        guard++;
+    }
+
+    const dateStr = current.toLocaleDateString('en-US', {
+        weekday: 'short',
+        month: 'short',
+        day: 'numeric'
+    });
+
+    return {
+        dateStr,
+        timeStr: `${startTime} - ${endTime} (${tz})`
+    };
+};
+
 const DAYS_OF_WEEK = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 const TIMEZONES = ['EAT (UTC+3)', 'UTC+0 (GMT)', 'CAT (UTC+2)', 'WAT (UTC+1)', 'EST (UTC-5)', 'PST (UTC-8)', 'IST (UTC+5:30)'];
 
@@ -520,16 +605,72 @@ const AdminCourseSetupWizard: React.FC<AdminCourseSetupWizardProps> = ({ isInstr
 
     // Wizard State
     const [step, setStep] = useState(1);
+    const [validationError, setValidationError] = useState<string | null>(null);
     const [courseNotesFile, setCourseNotesFile] = useState<File | null>(null);
     const [isGeneratingAI, setIsGeneratingAI] = useState(false);
     const [expandedQuizIndex, setExpandedQuizIndex] = useState<number | null>(null);
+
+    const [successModal, setSuccessModal] = useState<{
+        isOpen: boolean;
+        courseId: string;
+        courseTitle: string;
+        cohortName: string;
+        startDate: string;
+        endDate: string;
+        duration: string;
+        attendanceCode: string;
+        meetingLink: string;
+        image: string;
+        category: string;
+        level: string;
+        isDraft: boolean;
+        isEdit: boolean;
+        countdown: number;
+    } | null>(null);
+    const [copiedSuccessPin, setCopiedSuccessPin] = useState(false);
+
+    const getCoursesRoute = () => {
+        const isUnderAdminPrefix = window.location.pathname.startsWith('/admin');
+        if (isInstructor) return '/instructor/courses';
+        return isUnderAdminPrefix ? '/admin/courses' : '/courses';
+    };
+
+    const handleTriggerImmediateOpen = () => {
+        if (!successModal) return;
+        const targetId = successModal.courseId;
+        const targetUrl = targetId 
+            ? `${getCoursesRoute()}?openCourseId=${targetId}` 
+            : getCoursesRoute();
+        setSuccessModal(null);
+        navigate(targetUrl);
+    };
+
+    const handleTriggerCatalog = () => {
+        setSuccessModal(null);
+        navigate(getCoursesRoute());
+    };
+
+    useEffect(() => {
+        if (!successModal || !successModal.isOpen) return;
+
+        if (successModal.countdown <= 0) {
+            handleTriggerImmediateOpen();
+            return;
+        }
+
+        const timer = setTimeout(() => {
+            setSuccessModal(prev => prev ? { ...prev, countdown: prev.countdown - 1 } : null);
+        }, 1000);
+
+        return () => clearTimeout(timer);
+    }, [successModal?.isOpen, successModal?.countdown]);
 
     const [newCourse, setNewCourse] = useState<Partial<Course>>({
         title: '',
         instructor: '',
         instructorEmail: '',
         instructorAvatar: '',
-        duration: '4 Weeks',
+        duration: '',
         category: 'Technology & AI',
         accessTier: 'FREE',
         price: 0,
@@ -543,14 +684,7 @@ const AdminCourseSetupWizard: React.FC<AdminCourseSetupWizardProps> = ({ isInstr
                     {
                         id: 'top-1-1',
                         title: 'Topic 1: Course Overview & Live Setup',
-                        duration: '45 mins',
-                        type: 'article',
-                        classType: 'online'
-                    },
-                    {
-                        id: 'top-1-2',
-                        title: 'Topic 2: Core Concepts & Architecture',
-                        duration: '60 mins',
+                        duration: '2 hours',
                         type: 'article',
                         classType: 'online'
                     }
@@ -558,19 +692,20 @@ const AdminCourseSetupWizard: React.FC<AdminCourseSetupWizardProps> = ({ isInstr
             }
         ],
         description: '',
-        outcomes: ['Master core live lecture concepts', 'Participate actively in Google Meet sessions'],
+        outcomes: [],
         courseIntroVideoUrl: '',
-        startDate: '2026-11-15',
-        endDate: '2026-12-01',
+        startDate: '',
+        endDate: '',
         lessonDays: ['Monday', 'Wednesday', 'Friday'],
         lessonStartTime: '18:00',
         lessonEndTime: '20:00',
+        defaultLessonDuration: '2 hours',
         timezone: 'EAT (UTC+3)',
-        meetingLink: 'https://meet.google.com/wel-live-meet',
-        attendanceCode: 'WEL-8492',
-        cohortName: 'Cohort 1 (Nov 2026)',
-        quizDate: '2026-11-25',
-        examDate: '2026-12-01'
+        meetingLink: '',
+        attendanceCode: '',
+        cohortName: '',
+        quizDate: '',
+        examDate: ''
     });
 
     // Populate for editing if courseId is passed in URL
@@ -586,18 +721,19 @@ const AdminCourseSetupWizard: React.FC<AdminCourseSetupWizardProps> = ({ isInstr
                     imagePositionX: courseToEdit.imagePositionX || 50,
                     imagePositionY: courseToEdit.imagePositionY || 50,
                     courseIntroVideoUrl: courseToEdit.courseIntroVideoUrl || '',
-                    startDate: courseToEdit.startDate || '2026-11-15',
-                    endDate: courseToEdit.endDate || '2026-12-01',
+                    startDate: courseToEdit.startDate || '',
+                    endDate: courseToEdit.endDate || '',
                     lessonDays: courseToEdit.lessonDays || ['Monday', 'Wednesday', 'Friday'],
                     lessonStartTime: courseToEdit.lessonStartTime || '18:00',
                     lessonEndTime: courseToEdit.lessonEndTime || '20:00',
+                    defaultLessonDuration: courseToEdit.defaultLessonDuration || computeDurationFromTimes(courseToEdit.lessonStartTime, courseToEdit.lessonEndTime),
                     timezone: courseToEdit.timezone || 'EAT (UTC+3)',
                     meetingLink: courseToEdit.meetingLink || '',
                     attendanceCode: courseToEdit.attendanceCode || 'WEL-' + Math.floor(1000 + Math.random() * 9000),
                     cohortName: courseToEdit.cohortName || 'Cohort 1',
                     cohorts: courseToEdit.cohorts || [],
-                    quizDate: courseToEdit.quizDate || '2026-11-25',
-                    examDate: courseToEdit.examDate || '2026-12-01',
+                    quizDate: courseToEdit.quizDate || '',
+                    examDate: courseToEdit.examDate || '',
                     sections: courseToEdit.sections && courseToEdit.sections.length > 0
                         ? courseToEdit.sections
                         : (courseToEdit.modules ? [{ id: 's1', title: 'Course Modules', lessons: courseToEdit.modules }] : [])
@@ -620,13 +756,81 @@ const AdminCourseSetupWizard: React.FC<AdminCourseSetupWizardProps> = ({ isInstr
         }
     }, [isWizardOpen, isInstructor, isEditMode]);
 
+    const validateStep = (targetStep: number): { valid: boolean; message?: string } => {
+        if (targetStep === 1) {
+            const missing = [];
+            if (!newCourse.title?.trim()) missing.push('Course Title');
+            if (!newCourse.instructor?.trim()) missing.push('Instructor Name (Select or Add Instructor)');
+            if (!newCourse.description?.trim()) missing.push('Course Description');
+            if (missing.length > 0) {
+                return {
+                    valid: false,
+                    message: `Please complete Step 1 (Basic Information): Missing ${missing.join(', ')}.`
+                };
+            }
+        }
+
+        if (targetStep === 2) {
+            const missing = [];
+            if (!newCourse.category?.trim()) missing.push('Category');
+            if (!newCourse.duration?.trim()) missing.push('Duration (e.g. 4 Weeks, 8 Lessons)');
+            if (!newCourse.image?.trim()) missing.push('Course Cover Image');
+            if (missing.length > 0) {
+                return {
+                    valid: false,
+                    message: `Please complete Step 2 (Details & Categorization): Missing ${missing.join(', ')}.`
+                };
+            }
+        }
+
+        if (targetStep === 4) {
+            if (newCourse.startDate && newCourse.endDate) {
+                if (new Date(newCourse.endDate).getTime() < new Date(newCourse.startDate).getTime()) {
+                    return { valid: false, message: 'Step 4 Date Conflict: Lessons End Date cannot be earlier than Lessons Start Date.' };
+                }
+            }
+            if (!newCourse.sections || newCourse.sections.length === 0) {
+                return { valid: false, message: 'Please add at least one Module/Section in Step 4 before publishing.' };
+            }
+            for (let sIdx = 0; sIdx < newCourse.sections.length; sIdx++) {
+                const s = newCourse.sections[sIdx];
+                if (!s.title?.trim()) {
+                    return { valid: false, message: `Module #${sIdx + 1} requires a Title in Step 4.` };
+                }
+                if (!s.lessons || s.lessons.length === 0) {
+                    return { valid: false, message: `Module "${s.title}" needs at least one lesson topic.` };
+                }
+                for (let lIdx = 0; lIdx < s.lessons.length; lIdx++) {
+                    const l = s.lessons[lIdx];
+                    if (!l.title?.trim()) {
+                        return { valid: false, message: `Topic #${lIdx + 1} inside Module "${s.title}" needs a Title.` };
+                    }
+                }
+            }
+        }
+
+        return { valid: true };
+    };
+
     const handleNext = () => {
+        setValidationError(null);
+        const check = validateStep(step);
+        if (!check.valid && step < 5) {
+            setValidationError(check.message || 'Please fill in all required fields before continuing.');
+            return;
+        }
         setStep(s => Math.min(s + 1, 5));
     };
-    const handlePrev = () => setStep(s => Math.max(s - 1, 1));
+
+    const handlePrev = () => {
+        setValidationError(null);
+        setStep(s => Math.max(s - 1, 1));
+    };
     
     const addSection = () => {
         const nextNum = (newCourse.sections?.length || 0) + 1;
+        const effectiveDuration = newCourse.defaultLessonDuration || 
+            computeDurationFromTimes(newCourse.lessonStartTime || '18:00', newCourse.lessonEndTime || '20:00');
         const newSection: CourseSection = {
             id: Math.random().toString(36).substring(7),
             title: `Module ${nextNum}: Live Lecture Topics`,
@@ -634,7 +838,7 @@ const AdminCourseSetupWizard: React.FC<AdminCourseSetupWizardProps> = ({ isInstr
                 {
                     id: Math.random().toString(36).substring(7),
                     title: `Topic ${nextNum}.1: Introduction to Module Concepts`,
-                    duration: '45 mins',
+                    duration: effectiveDuration,
                     type: 'article',
                     classType: 'online',
                     meetLink: newCourse.meetingLink || ''
@@ -650,10 +854,14 @@ const AdminCourseSetupWizard: React.FC<AdminCourseSetupWizardProps> = ({ isInstr
         const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
         let pinCode = 'WEL-';
         for (let i = 0; i < 4; i++) pinCode += chars.charAt(Math.floor(Math.random() * chars.length));
+        
+        const effectiveDuration = newCourse.defaultLessonDuration || 
+            computeDurationFromTimes(newCourse.lessonStartTime || '18:00', newCourse.lessonEndTime || '20:00');
+
         const newTopic: CourseModule = {
             id: Math.random().toString(36).substring(7),
             title: `Topic ${nextTopicNum}: `,
-            duration: '45 mins',
+            duration: effectiveDuration,
             type: 'article',
             classType: 'online',
             meetLink: newCourse.meetingLink || '',
@@ -668,6 +876,20 @@ const AdminCourseSetupWizard: React.FC<AdminCourseSetupWizardProps> = ({ isInstr
                 }
                 return s;
             })
+        });
+    };
+
+    const applyDurationToAllTopics = (dur?: string) => {
+        const targetDur = dur || newCourse.defaultLessonDuration || 
+            computeDurationFromTimes(newCourse.lessonStartTime || '18:00', newCourse.lessonEndTime || '20:00');
+        
+        setNewCourse({
+            ...newCourse,
+            defaultLessonDuration: targetDur,
+            sections: (newCourse.sections || []).map(sec => ({
+                ...sec,
+                lessons: (sec.lessons || []).map(les => les.type === 'quiz' ? les : { ...les, duration: targetDur })
+            }))
         });
     };
 
@@ -796,7 +1018,7 @@ const AdminCourseSetupWizard: React.FC<AdminCourseSetupWizardProps> = ({ isInstr
                 body: JSON.stringify({
                     tutorEmail,
                     courseTitle: newCourse.title || 'Live Cohort Class',
-                    startDate: newCourse.startDate || '2026-11-15',
+                    startDate: newCourse.startDate || new Date().toISOString().split('T')[0],
                     startTime: newCourse.lessonStartTime || '18:00',
                     endTime: newCourse.lessonEndTime || '20:00',
                     timezone: newCourse.timezone || 'EAT (UTC+3)'
@@ -849,49 +1071,84 @@ const AdminCourseSetupWizard: React.FC<AdminCourseSetupWizardProps> = ({ isInstr
     };
 
     const handleSave = async (publish: boolean = true) => {
+        setValidationError(null);
         if (publish) {
-            if (!newCourse.title?.trim() || !newCourse.instructor?.trim() || !newCourse.description?.trim()) {
-                alert('Please complete all required fields in Step 1 (Basic Information) before publishing.');
+            // Check Step 1
+            const step1Check = validateStep(1);
+            if (!step1Check.valid) {
+                setValidationError(step1Check.message || 'Please complete Step 1 (Basic Information).');
                 setStep(1);
                 return;
             }
-            if (!newCourse.category?.trim() || !newCourse.duration?.trim() || !newCourse.image?.trim()) {
-                alert('Please complete category, duration, and cover image in Step 2 before publishing.');
+
+            // Check Step 2
+            const step2Check = validateStep(2);
+            if (!step2Check.valid) {
+                setValidationError(step2Check.message || 'Please complete Step 2 (Details & Categorization).');
                 setStep(2);
                 return;
             }
 
-            // Validate Step 4 curriculum
-            if (!newCourse.sections || newCourse.sections.length === 0) {
-                alert('Please add at least one module/section to publish the course.');
+            // Check Step 4
+            const step4Check = validateStep(4);
+            if (!step4Check.valid) {
+                setValidationError(step4Check.message || 'Please complete Step 4 (Curriculum & Schedule).');
                 setStep(4);
                 return;
             }
-            for (const section of newCourse.sections) {
-                if (!section.title?.trim()) {
-                    alert('Please enter a title for all modules.');
-                    setStep(4);
-                    return;
-                }
-                if (!section.lessons || section.lessons.length === 0) {
-                    alert(`Please add at least one live topic to the module: "${section.title}"`);
-                    setStep(4);
-                    return;
-                }
-                for (const lesson of section.lessons) {
-                    if (!lesson.title?.trim()) {
-                        alert(`Please enter a title for all topics in "${section.title}".`);
-                        setStep(4);
-                        return;
-                    }
-                }
+        }
+
+        // Validate date order if dates are provided
+        if (newCourse.startDate && newCourse.endDate) {
+            if (new Date(newCourse.endDate).getTime() < new Date(newCourse.startDate).getTime()) {
+                setValidationError('Step 4 Date Conflict: Lessons End Date cannot be earlier than Lessons Start Date.');
+                setStep(4);
+                return;
             }
         }
 
         try {
             setIsSaving(true);
+            const effectiveDefaultDuration = newCourse.defaultLessonDuration || 
+                computeDurationFromTimes(newCourse.lessonStartTime || '18:00', newCourse.lessonEndTime || '20:00');
+
+            let cumulativeLiveIdx = 0;
+            const enrichedSections = (newCourse.sections || []).map((sec) => ({
+                ...sec,
+                lessons: (sec.lessons || []).map((les) => {
+                    const isQuiz = les.type === 'quiz';
+                    const isLive = les.classType !== 'physical' && les.type !== 'video' && les.type !== 'document' && !isQuiz;
+                    if (isLive) {
+                        const sched = calculateLessonSchedule(
+                            newCourse.startDate,
+                            newCourse.lessonDays,
+                            cumulativeLiveIdx,
+                            newCourse.lessonStartTime || '18:00',
+                            newCourse.lessonEndTime || '20:00',
+                            newCourse.timezone || 'EAT (UTC+3)'
+                        );
+                        cumulativeLiveIdx++;
+                        return {
+                            ...les,
+                            sessionNumber: cumulativeLiveIdx,
+                            scheduledDate: les.scheduledDate || sched.dateStr,
+                            scheduledTime: sched.timeStr,
+                            duration: les.duration || effectiveDefaultDuration,
+                            meetLink: les.meetLink || newCourse.meetingLink || '',
+                            attendanceCode: les.attendanceCode || 'WEL-' + Math.floor(1000 + Math.random() * 9000)
+                        };
+                    }
+                    return {
+                        ...les,
+                        duration: les.duration || (isQuiz ? '15 mins' : effectiveDefaultDuration)
+                    };
+                })
+            }));
+
             const courseData = {
                 ...newCourse,
+                sections: enrichedSections,
+                defaultLessonDuration: effectiveDefaultDuration,
                 title: newCourse.title?.trim() || 'Untitled Course',
                 instructor: newCourse.instructor?.trim() || 'Unknown Instructor',
                 instructorEmail: newCourse.instructorEmail?.trim() || '',
@@ -906,35 +1163,55 @@ const AdminCourseSetupWizard: React.FC<AdminCourseSetupWizardProps> = ({ isInstr
                 price: newCourse.accessTier === 'FREE' ? 0 : (newCourse.price || 0),
                 platform: newCourse.platform || 'Welile',
                 courseIntroVideoUrl: newCourse.courseIntroVideoUrl || '',
-                startDate: newCourse.startDate || '2026-11-15',
-                endDate: newCourse.endDate || '2026-12-01',
-                lessonDays: newCourse.lessonDays || ['Monday', 'Wednesday', 'Friday'],
+                startDate: newCourse.startDate || new Date().toISOString().split('T')[0],
+                endDate: newCourse.endDate || (() => {
+                    const d = new Date();
+                    d.setDate(d.getDate() + 30);
+                    return d.toISOString().split('T')[0];
+                })(),
+                lessonDays: newCourse.lessonDays && newCourse.lessonDays.length > 0 ? newCourse.lessonDays : ['Monday', 'Wednesday', 'Friday'],
                 lessonStartTime: newCourse.lessonStartTime || '18:00',
                 lessonEndTime: newCourse.lessonEndTime || '20:00',
                 timezone: newCourse.timezone || 'EAT (UTC+3)',
                 meetingLink: newCourse.meetingLink || '',
                 attendanceCode: newCourse.attendanceCode || 'WEL-' + Math.floor(1000 + Math.random() * 9000),
-                cohortName: newCourse.cohortName || 'Cohort 1',
+                cohortName: newCourse.cohortName || `${newCourse.title || 'Course'} Cohort 1`,
                 quizDate: newCourse.quizDate || '',
                 examDate: newCourse.examDate || ''
             };
 
+            let savedResult: any = null;
             if (isEditMode && editingCourseId) {
-                await updateCourse(editingCourseId, courseData);
-                alert(publish 
-                    ? (isInstructor ? 'Course submitted for admin verification!' : 'Course updated successfully!') 
-                    : 'Draft changes saved successfully!');
+                savedResult = await updateCourse(editingCourseId, courseData);
             } else {
-                await addCourse(courseData);
-                alert(publish 
-                    ? (isInstructor ? 'Course submitted for admin verification!' : 'Course created successfully!') 
-                    : 'Draft course saved successfully!');
+                savedResult = await addCourse(courseData);
             }
+
+            const targetCourseId = savedResult?.id || editingCourseId || '';
+
+            // Beautiful success modal with automated countdown to open the course
+            setSuccessModal({
+                isOpen: true,
+                courseId: targetCourseId,
+                courseTitle: courseData.title,
+                cohortName: courseData.cohortName,
+                startDate: courseData.startDate,
+                endDate: courseData.endDate,
+                duration: courseData.duration,
+                attendanceCode: courseData.attendanceCode,
+                meetingLink: courseData.meetingLink,
+                image: courseData.image,
+                category: courseData.category,
+                level: courseData.level || 'Beginner',
+                isDraft: !publish,
+                isEdit: Boolean(isEditMode && editingCourseId),
+                countdown: 3
+            });
+
             setEditingCourseId(null);
             setStep(1);
-            navigate(isInstructor ? '/instructor/courses' : '/courses');
         } catch (e: any) {
-            alert(`Error saving course: ${e?.message || e}`);
+            setValidationError(`Error saving course: ${e?.message || e}`);
             console.error('Save error:', e);
         } finally {
             setIsSaving(false);
@@ -992,6 +1269,23 @@ const AdminCourseSetupWizard: React.FC<AdminCourseSetupWizardProps> = ({ isInstr
                             {isEditMode ? 'Edit Course Setup' : 'New Course Setup'}
                         </h2>
                     </div>
+
+                    {/* Inline Clear Validation Error Banner */}
+                    {validationError && (
+                        <div className="mb-6 p-4 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 rounded-2xl flex items-start justify-between gap-3 text-amber-800 dark:text-amber-200 text-sm shadow-sm animate-in fade-in slide-in-from-top-2">
+                            <div className="flex items-start gap-2.5">
+                                <AlertTriangle className="text-amber-500 shrink-0 mt-0.5" size={18} />
+                                <span className="font-semibold leading-relaxed">{validationError}</span>
+                            </div>
+                            <button 
+                                onClick={() => setValidationError(null)} 
+                                className="text-amber-500 hover:text-amber-700 dark:hover:text-amber-300 p-1 cursor-pointer"
+                                title="Dismiss"
+                            >
+                                <X size={16} />
+                            </button>
+                        </div>
+                    )}
 
                                                             {step === 1 && (
                         <div className="space-y-5 animate-in fade-in slide-in-from-right-4 duration-300 max-w-2xl mx-auto">
@@ -1140,7 +1434,7 @@ const AdminCourseSetupWizard: React.FC<AdminCourseSetupWizardProps> = ({ isInstr
                                 </div>
                             </div>
                             
-                            <div className="grid grid-cols-2 gap-4">
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">Category</label>
                                     <select 
@@ -1149,10 +1443,12 @@ const AdminCourseSetupWizard: React.FC<AdminCourseSetupWizardProps> = ({ isInstr
                                         className="w-full p-3 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 text-gray-900 dark:text-white rounded-xl focus:ring-2 focus:ring-violet-500 outline-none transition-all"
                                     >
                                         <option value="" disabled>Select a Category...</option>
+                                        <option value="Technology & AI">Technology & AI</option>
                                         <option value="AI">AI</option>
                                         <option value="Education">Education</option>
                                         <option value="Technology">Technology</option>
                                         <option value="Business">Business</option>
+                                        <option value="Design">Design</option>
                                     </select>
                                 </div>
                                 <div>
@@ -1166,7 +1462,18 @@ const AdminCourseSetupWizard: React.FC<AdminCourseSetupWizardProps> = ({ isInstr
                                         <option value="Beginner">Beginner</option>
                                         <option value="Intermediate">Intermediate</option>
                                         <option value="Advanced">Advanced</option>
+                                        <option value="All Levels">All Levels</option>
                                     </select>
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">Course Duration</label>
+                                    <input 
+                                        type="text"
+                                        value={newCourse.duration || ''} 
+                                        onChange={e => setNewCourse({...newCourse, duration: e.target.value})} 
+                                        className="w-full p-3 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 text-gray-900 dark:text-white rounded-xl focus:ring-2 focus:ring-violet-500 outline-none transition-all"
+                                        placeholder="e.g. 4 Weeks, 8 Lessons"
+                                    />
                                 </div>
                             </div>
                             
@@ -1395,7 +1702,20 @@ const AdminCourseSetupWizard: React.FC<AdminCourseSetupWizardProps> = ({ isInstr
                                         <input 
                                             type="date" 
                                             value={newCourse.startDate || ''} 
-                                            onChange={e => setNewCourse({...newCourse, startDate: e.target.value})} 
+                                            max={newCourse.endDate || undefined}
+                                            onChange={e => {
+                                                const val = e.target.value;
+                                                setNewCourse(prev => {
+                                                    const updated = { ...prev, startDate: val };
+                                                    if (updated.endDate && val && val > updated.endDate) {
+                                                        updated.endDate = val;
+                                                    }
+                                                    return updated;
+                                                });
+                                                if (validationError && validationError.includes('Date')) {
+                                                    setValidationError(null);
+                                                }
+                                            }} 
                                             className="w-full p-2.5 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl text-sm font-medium text-gray-900 dark:text-white outline-none focus:ring-2 focus:ring-violet-500" 
                                         />
                                     </div>
@@ -1408,36 +1728,90 @@ const AdminCourseSetupWizard: React.FC<AdminCourseSetupWizardProps> = ({ isInstr
                                         <input 
                                             type="date" 
                                             value={newCourse.endDate || ''} 
-                                            onChange={e => setNewCourse({...newCourse, endDate: e.target.value})} 
+                                            min={newCourse.startDate || undefined}
+                                            onChange={e => {
+                                                const val = e.target.value;
+                                                setNewCourse(prev => {
+                                                    const updated = { ...prev, endDate: val };
+                                                    if (updated.startDate && val && val < updated.startDate) {
+                                                        updated.startDate = val;
+                                                    }
+                                                    return updated;
+                                                });
+                                                if (validationError && validationError.includes('Date')) {
+                                                    setValidationError(null);
+                                                }
+                                            }} 
                                             className="w-full p-2.5 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl text-sm font-medium text-gray-900 dark:text-white outline-none focus:ring-2 focus:ring-violet-500" 
                                         />
                                     </div>
                                 </div>
 
-                                {/* Days of the week */}
-                                <div>
-                                    <div className="flex items-center justify-between mb-2">
-                                        <label className="block text-xs font-bold uppercase text-gray-500">Live Lesson Days of the Week</label>
-                                        <span className="text-[11px] text-gray-400">Click to select active days</span>
+                                {/* Cohort Duration & Summary Bar */}
+                                {newCourse.startDate && newCourse.endDate && (
+                                    <div className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-violet-50/70 dark:bg-violet-950/30 border border-violet-100 dark:border-violet-900/40 text-violet-700 dark:text-violet-300 text-xs font-medium">
+                                        <Calendar size={13} className="shrink-0 text-violet-600 dark:text-violet-400" />
+                                        <span>
+                                            Cohort Live Duration: <strong>{
+                                                Math.max(1, Math.round((new Date(newCourse.endDate).getTime() - new Date(newCourse.startDate).getTime()) / (1000 * 60 * 60 * 24)))
+                                            } days</strong> ({new Date(newCourse.startDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })} to {new Date(newCourse.endDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })})
+                                        </span>
                                     </div>
-                                    <div className="flex flex-wrap gap-2">
-                                        {DAYS_OF_WEEK.map(day => {
-                                            const isSelected = (newCourse.lessonDays || []).includes(day);
-                                            return (
-                                                <button
-                                                    key={day}
-                                                    type="button"
-                                                    onClick={() => toggleDay(day)}
-                                                    className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                                                        isSelected 
-                                                            ? 'bg-violet-600 text-white shadow-sm ring-2 ring-violet-400/30' 
-                                                            : 'bg-gray-100 dark:bg-slate-800 text-gray-600 dark:text-slate-300 hover:bg-gray-200 dark:hover:bg-slate-750'
-                                                    }`}
-                                                >
-                                                    {day}
-                                                </button>
-                                            );
-                                        })}
+                                )}
+
+                                {/* Days of the week & Presets */}
+                                <div className="space-y-3">
+                                    <div>
+                                        <div className="flex items-center justify-between mb-1.5">
+                                            <label className="block text-xs font-bold uppercase text-gray-500">Live Cadence Presets</label>
+                                            <span className="text-[11px] text-gray-400">One-click schedule setup</span>
+                                        </div>
+                                        <div className="flex flex-wrap gap-2">
+                                            {CADENCE_PRESETS.map(preset => {
+                                                const isMatch = preset.days.length === (newCourse.lessonDays || []).length &&
+                                                    preset.days.every(d => (newCourse.lessonDays || []).includes(d));
+                                                return (
+                                                    <button
+                                                        key={preset.label}
+                                                        type="button"
+                                                        onClick={() => setNewCourse(prev => ({ ...prev, lessonDays: [...preset.days] }))}
+                                                        className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                                                            isMatch
+                                                                ? 'bg-violet-600 text-white shadow-sm ring-2 ring-violet-400/40'
+                                                                : 'bg-violet-50 dark:bg-violet-950/40 text-violet-700 dark:text-violet-300 hover:bg-violet-100 dark:hover:bg-violet-900/60 border border-violet-100 dark:border-violet-900/40'
+                                                        }`}
+                                                    >
+                                                        {preset.label}
+                                                    </button>
+                                                );
+                                            })}
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <div className="flex items-center justify-between mb-1.5">
+                                            <label className="block text-xs font-bold uppercase text-gray-500">Active Live Days</label>
+                                            <span className="text-[11px] text-gray-400">Toggle custom days</span>
+                                        </div>
+                                        <div className="flex flex-wrap gap-2">
+                                            {DAYS_OF_WEEK.map(day => {
+                                                const isSelected = (newCourse.lessonDays || []).includes(day);
+                                                return (
+                                                    <button
+                                                        key={day}
+                                                        type="button"
+                                                        onClick={() => toggleDay(day)}
+                                                        className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                                                            isSelected 
+                                                                ? 'bg-violet-600 text-white shadow-sm ring-2 ring-violet-400/30' 
+                                                                : 'bg-gray-100 dark:bg-slate-800 text-gray-600 dark:text-slate-300 hover:bg-gray-200 dark:hover:bg-slate-750'
+                                                        }`}
+                                                    >
+                                                        {day}
+                                                    </button>
+                                                );
+                                            })}
+                                        </div>
                                     </div>
                                 </div>
 
@@ -1480,6 +1854,68 @@ const AdminCourseSetupWizard: React.FC<AdminCourseSetupWizardProps> = ({ isInstr
                                         </select>
                                     </div>
                                 </div>
+
+                                {/* Lesson / Topic Duration Controller */}
+                                {(() => {
+                                    const calculatedDuration = computeDurationFromTimes(newCourse.lessonStartTime || '18:00', newCourse.lessonEndTime || '20:00');
+                                    const activeDuration = newCourse.defaultLessonDuration || calculatedDuration;
+
+                                    return (
+                                        <div className="bg-violet-50/50 dark:bg-slate-850 p-4 rounded-xl border border-violet-100 dark:border-slate-800 space-y-2.5">
+                                            <div className="flex flex-wrap items-center justify-between gap-2">
+                                                <div>
+                                                    <label className="text-xs font-bold uppercase text-gray-700 dark:text-slate-300 flex items-center gap-1.5">
+                                                        <Clock size={13} className="text-violet-600 dark:text-violet-400" />
+                                                        <span>Cohort Lesson Duration</span>
+                                                        <span className="text-[11px] font-normal text-gray-500">
+                                                            (Calculated from times: <strong className="text-violet-700 dark:text-violet-300">{calculatedDuration}</strong>)
+                                                        </span>
+                                                    </label>
+                                                    <p className="text-[11px] text-gray-500 dark:text-slate-400 mt-0.5">
+                                                        Default duration assigned to live topics and lessons in this cohort.
+                                                    </p>
+                                                </div>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => applyDurationToAllTopics(activeDuration)}
+                                                    className="text-xs font-bold text-violet-700 dark:text-violet-300 hover:text-violet-900 dark:hover:text-violet-100 bg-white dark:bg-slate-800 px-3 py-1.5 rounded-lg border border-violet-200 dark:border-violet-700 hover:bg-violet-50 dark:hover:bg-slate-700 transition-all cursor-pointer shadow-2xs flex items-center gap-1"
+                                                    title="Apply this duration to all topics across all modules"
+                                                >
+                                                    <span>⚡ Apply "{activeDuration}" to all topics</span>
+                                                </button>
+                                            </div>
+
+                                            <div className="flex flex-wrap items-center gap-2 pt-1">
+                                                {['30 mins', '45 mins', '1 hour', '1.5 hours', '2 hours'].map(preset => (
+                                                    <button
+                                                        key={preset}
+                                                        type="button"
+                                                        onClick={() => {
+                                                            setNewCourse({ ...newCourse, defaultLessonDuration: preset });
+                                                        }}
+                                                        className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                                                            activeDuration === preset
+                                                                ? 'bg-violet-600 text-white shadow-sm ring-2 ring-violet-400/30'
+                                                                : 'bg-white dark:bg-slate-800 text-gray-700 dark:text-slate-300 border border-gray-200 dark:border-slate-700 hover:border-violet-300'
+                                                        }`}
+                                                    >
+                                                        {preset}
+                                                    </button>
+                                                ))}
+                                                <div className="flex items-center gap-1.5 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-lg px-2.5 py-1">
+                                                    <span className="text-gray-400 text-xs font-medium">Custom:</span>
+                                                    <input
+                                                        type="text"
+                                                        value={newCourse.defaultLessonDuration || ''}
+                                                        placeholder={calculatedDuration}
+                                                        onChange={e => setNewCourse({ ...newCourse, defaultLessonDuration: e.target.value })}
+                                                        className="w-24 text-xs font-semibold text-gray-800 dark:text-white bg-transparent outline-none"
+                                                    />
+                                                </div>
+                                            </div>
+                                        </div>
+                                    );
+                                })()}
 
                                 {/* Google Meet Link & Attendance Code */}
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -1621,7 +2057,34 @@ const AdminCourseSetupWizard: React.FC<AdminCourseSetupWizardProps> = ({ isInstr
                                 )}
 
                                 <div className="space-y-5">
-                                    {newCourse.sections?.map((section, sIdx) => (
+                                    {(() => {
+                                        // Calculate sequential live lesson index across ALL modules
+                                        let cumulativeLiveIndex = 0;
+                                        const topicScheduleMap = new Map<string, { sessionNum: number; schedule: { dateStr: string; timeStr: string } }>();
+
+                                        (newCourse.sections || []).forEach(sec => {
+                                            (sec.lessons || []).forEach(topic => {
+                                                const isQuiz = topic.type === 'quiz';
+                                                const isLive = topic.classType !== 'physical' && topic.type !== 'video' && topic.type !== 'document' && !isQuiz;
+                                                if (isLive) {
+                                                    const sched = calculateLessonSchedule(
+                                                        newCourse.startDate,
+                                                        newCourse.lessonDays,
+                                                        cumulativeLiveIndex,
+                                                        newCourse.lessonStartTime || '18:00',
+                                                        newCourse.lessonEndTime || '20:00',
+                                                        newCourse.timezone || 'EAT (UTC+3)'
+                                                    );
+                                                    topicScheduleMap.set(topic.id, {
+                                                        sessionNum: cumulativeLiveIndex + 1,
+                                                        schedule: sched
+                                                    });
+                                                    cumulativeLiveIndex++;
+                                                }
+                                            });
+                                        });
+
+                                        return newCourse.sections?.map((section, sIdx) => (
                                         <div key={section.id} className="bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-2xl shadow-sm overflow-hidden transition-all">
                                             {/* Module Header */}
                                             <div className="bg-gray-50 dark:bg-slate-850 p-4 border-b border-gray-200 dark:border-slate-800 space-y-3">
@@ -1697,63 +2160,150 @@ const AdminCourseSetupWizard: React.FC<AdminCourseSetupWizardProps> = ({ isInstr
                                             </div>
 
                                             {/* Topics List for this Module */}
-                                            <div className="p-4 space-y-2.5">
+                                            <div className="p-4 space-y-3">
                                                 {section.lessons.length === 0 && (
-                                                    <p className="text-xs text-gray-400 text-center py-4">No live topics added yet. Click "+ Add Topic" above.</p>
+                                                    <p className="text-xs text-gray-400 text-center py-4">No topics added yet. Click "+ Add Topic" above.</p>
                                                 )}
 
                                                 {section.lessons.map((topic, tIdx) => {
                                                     const isQuiz = topic.type === 'quiz';
+                                                    const isLive = topic.classType !== 'physical' && topic.type !== 'video' && topic.type !== 'document' && !isQuiz;
+                                                    
+                                                    const liveInfo = topicScheduleMap.get(topic.id);
+                                                    const currentSchedule = isLive ? (liveInfo?.schedule || null) : null;
+                                                    const sessionNum = liveInfo?.sessionNum || null;
+
+                                                    const activeMeetUrl = topic.meetLink || newCourse.meetingLink || '';
+
                                                     return (
                                                         <div 
                                                             key={topic.id} 
-                                                            className={`p-3 rounded-xl border transition-colors flex items-center justify-between gap-3 group ${
+                                                            className={`p-3.5 rounded-2xl border transition-all space-y-2.5 ${
                                                                 isQuiz 
                                                                     ? 'bg-purple-50/40 dark:bg-purple-950/20 border-purple-200 dark:border-purple-900/40' 
-                                                                    : 'bg-white dark:bg-slate-900 border-gray-100 dark:border-slate-800 hover:border-gray-300 dark:hover:border-slate-700'
+                                                                    : isLive
+                                                                        ? 'bg-violet-50/30 dark:bg-slate-900 border-violet-100 dark:border-slate-800 hover:border-violet-300'
+                                                                        : 'bg-white dark:bg-slate-900 border-gray-150 dark:border-slate-800'
                                                             }`}
                                                         >
-                                                            <div className="flex items-center gap-3 flex-1">
-                                                                <span className={`w-6 h-6 rounded-full flex items-center justify-center text-[11px] font-bold shrink-0 ${
-                                                                    isQuiz 
-                                                                        ? 'bg-purple-100 dark:bg-purple-900 text-purple-700 dark:text-purple-300' 
-                                                                        : 'bg-gray-100 dark:bg-slate-800 text-gray-600 dark:text-slate-400'
-                                                                }`}>
-                                                                    {isQuiz ? 'Q' : tIdx + 1}
-                                                                </span>
-
-                                                                <input 
-                                                                    value={topic.title}
-                                                                    onChange={e => updateTopic(section.id, topic.id, { title: e.target.value })}
-                                                                    className="font-medium text-sm text-gray-800 dark:text-slate-100 bg-transparent flex-1 outline-none border-b border-transparent focus:border-violet-400 py-0.5"
-                                                                    placeholder={isQuiz ? "Quiz Title" : "Topic title / live lecture subject"}
-                                                                />
-                                                                {!isQuiz && (
-                                                                    <span className="hidden sm:inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-violet-50 dark:bg-violet-950/50 text-violet-700 dark:text-violet-300 border border-violet-200/60 dark:border-violet-800/60 shrink-0" title="Auto-generated attendance code for this live lesson">
-                                                                        <Key size={10} /> {topic.attendanceCode || 'Auto-PIN'}
+                                                            {/* Top Row: Title, Type Selector, Duration, Delete */}
+                                                            <div className="flex items-center justify-between gap-3">
+                                                                <div className="flex items-center gap-3 flex-1">
+                                                                    <span className={`w-6 h-6 rounded-full flex items-center justify-center text-[11px] font-bold shrink-0 ${
+                                                                        isQuiz 
+                                                                            ? 'bg-purple-100 dark:bg-purple-900 text-purple-700 dark:text-purple-300' 
+                                                                            : isLive
+                                                                                ? 'bg-violet-600 text-white shadow-xs'
+                                                                                : 'bg-gray-100 dark:bg-slate-800 text-gray-600 dark:text-slate-400'
+                                                                    }`}>
+                                                                        {isQuiz ? 'Q' : sessionNum ? `${sessionNum}` : tIdx + 1}
                                                                     </span>
-                                                                )}
-                                                            </div>
 
-                                                            <div className="flex items-center gap-3 shrink-0">
-                                                                <div className="flex items-center gap-1 text-gray-400 text-xs">
-                                                                    <Clock size={12} />
                                                                     <input 
-                                                                        value={topic.duration || (isQuiz ? '15m' : '45m')}
-                                                                        onChange={e => updateTopic(section.id, topic.id, { duration: e.target.value })}
-                                                                        className="w-16 text-xs p-1 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded text-center text-gray-700 dark:text-slate-300 font-medium outline-none"
-                                                                        placeholder="45m"
+                                                                        value={topic.title}
+                                                                        onChange={e => updateTopic(section.id, topic.id, { title: e.target.value })}
+                                                                        className="font-semibold text-sm text-gray-900 dark:text-slate-100 bg-transparent flex-1 outline-none border-b border-transparent focus:border-violet-400 py-0.5"
+                                                                        placeholder={isQuiz ? "Quiz Title" : "Topic title / live lecture subject"}
                                                                     />
                                                                 </div>
 
-                                                                <button 
-                                                                    onClick={() => removeTopic(section.id, topic.id)} 
-                                                                    className="text-gray-300 hover:text-red-500 opacity-60 group-hover:opacity-100 transition-opacity p-1 cursor-pointer"
-                                                                    title="Delete Topic"
-                                                                >
-                                                                    <Trash2 size={14} />
-                                                                </button>
+                                                                <div className="flex items-center gap-2 shrink-0">
+                                                                    {!isQuiz && (
+                                                                        <button
+                                                                            type="button"
+                                                                            onClick={() => {
+                                                                                const nextType = isLive ? 'video' : 'article';
+                                                                                const nextClassType = isLive ? 'none' : 'online';
+                                                                                updateTopic(section.id, topic.id, { type: nextType, classType: nextClassType });
+                                                                            }}
+                                                                            className={`px-2.5 py-1 rounded-lg text-[10px] font-extrabold uppercase transition-colors cursor-pointer ${
+                                                                                isLive 
+                                                                                    ? 'bg-violet-100 dark:bg-violet-950/60 text-violet-700 dark:text-violet-300 hover:bg-violet-200' 
+                                                                                    : 'bg-gray-100 dark:bg-slate-800 text-gray-600 dark:text-slate-300 hover:bg-gray-200'
+                                                                            }`}
+                                                                            title="Click to toggle between Live Class and Self-Paced"
+                                                                        >
+                                                                            {isLive ? '🎙️ Live Class' : '🎥 Self-Paced'}
+                                                                        </button>
+                                                                    )}
+
+                                                                    {/* Duration Control: Preset selector + custom text */}
+                                                                    <div className="flex items-center gap-1.5 text-gray-400 text-xs">
+                                                                        <Clock size={12} className="text-violet-500" />
+                                                                        {!isQuiz && (
+                                                                            <select
+                                                                                value={['30 mins', '45 mins', '1 hour', '1.5 hours', '2 hours'].includes(topic.duration || '') ? topic.duration : 'custom'}
+                                                                                onChange={e => {
+                                                                                    const val = e.target.value;
+                                                                                    if (val !== 'custom') {
+                                                                                        updateTopic(section.id, topic.id, { duration: val });
+                                                                                    }
+                                                                                }}
+                                                                                className="text-[11px] font-medium bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded px-1.5 py-1 text-gray-700 dark:text-slate-300 outline-none cursor-pointer"
+                                                                                title="Quick duration preset"
+                                                                            >
+                                                                                <option value="30 mins">30m</option>
+                                                                                <option value="45 mins">45m</option>
+                                                                                <option value="1 hour">1h</option>
+                                                                                <option value="1.5 hours">1.5h</option>
+                                                                                <option value="2 hours">2h</option>
+                                                                                <option value="custom">Custom...</option>
+                                                                            </select>
+                                                                        )}
+                                                                        <input 
+                                                                            value={topic.duration || (isQuiz ? '15m' : (newCourse.defaultLessonDuration || '2 hours'))}
+                                                                            onChange={e => updateTopic(section.id, topic.id, { duration: e.target.value })}
+                                                                            className="w-16 text-xs p-1 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded text-center text-gray-700 dark:text-slate-300 font-medium outline-none focus:border-violet-500"
+                                                                            placeholder="2 hours"
+                                                                            title="Topic duration"
+                                                                        />
+                                                                    </div>
+
+                                                                    <button 
+                                                                        onClick={() => removeTopic(section.id, topic.id)} 
+                                                                        className="text-gray-300 hover:text-red-500 transition-colors p-1 cursor-pointer"
+                                                                        title="Delete Topic"
+                                                                    >
+                                                                        <Trash2 size={14} />
+                                                                    </button>
+                                                                </div>
                                                             </div>
+
+                                                            {/* Bottom Row for Live Lesson: Auto-Calculated Date, Attendance PIN, and Direct Join Call Link */}
+                                                            {isLive && (
+                                                                <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-violet-100/70 dark:border-slate-800 text-xs">
+                                                                    <div className="flex flex-wrap items-center gap-2">
+                                                                        {currentSchedule && (
+                                                                            <span className="flex items-center gap-1.5 text-violet-700 dark:text-violet-300 font-semibold bg-violet-50 dark:bg-violet-950/50 px-2.5 py-1 rounded-lg border border-violet-100 dark:border-violet-900/40">
+                                                                                <Calendar size={11} />
+                                                                                <span className="font-bold">Session #{sessionNum}:</span>
+                                                                                <span>{currentSchedule.dateStr} @ {currentSchedule.timeStr}</span>
+                                                                            </span>
+                                                                        )}
+
+                                                                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-mono font-bold bg-white dark:bg-slate-800 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800/60 shadow-2xs">
+                                                                            <Key size={11} /> PIN: {topic.attendanceCode || 'Auto-PIN'}
+                                                                        </span>
+                                                                    </div>
+
+                                                                    {/* Follow Link to Join Call */}
+                                                                    {activeMeetUrl ? (
+                                                                        <a 
+                                                                            href={activeMeetUrl}
+                                                                            target="_blank" 
+                                                                            rel="noopener noreferrer"
+                                                                            className="text-emerald-700 dark:text-emerald-400 font-bold hover:underline flex items-center gap-1.5 text-xs bg-emerald-50 dark:bg-emerald-950/40 px-2.5 py-1 rounded-lg border border-emerald-200 dark:border-emerald-900/50 cursor-pointer"
+                                                                            title="Follow link to join Google Meet call directly"
+                                                                        >
+                                                                            <Radio size={12} className="animate-pulse text-emerald-600" />
+                                                                            <span>Follow link to join call</span>
+                                                                            <ExternalLink size={11} />
+                                                                        </a>
+                                                                    ) : (
+                                                                        <span className="text-gray-400 text-[11px] italic">Inherits cohort Meet link once set</span>
+                                                                    )}
+                                                                </div>
+                                                            )}
                                                         </div>
                                                     );
                                                 })}
@@ -1762,11 +2312,12 @@ const AdminCourseSetupWizard: React.FC<AdminCourseSetupWizardProps> = ({ isInstr
                                                     onClick={() => addTopic(section.id)} 
                                                     className="w-full py-2.5 border border-dashed border-gray-200 dark:border-slate-800 rounded-xl text-xs font-bold text-gray-500 dark:text-slate-400 hover:border-violet-400 hover:text-violet-600 dark:hover:text-violet-400 flex items-center justify-center gap-1.5 transition-colors cursor-pointer mt-2"
                                                 >
-                                                    <Plus size={14} /> Add Another Live Topic
+                                                    <Plus size={14} /> Add Another Topic
                                                 </button>
                                             </div>
                                         </div>
-                                    ))}
+                                    ));
+                                    })()}
                                 </div>
                             </div>
 
@@ -1794,7 +2345,8 @@ const AdminCourseSetupWizard: React.FC<AdminCourseSetupWizardProps> = ({ isInstr
                                         </label>
                                         <input 
                                             type="date" 
-                                            value={newCourse.examDate || '2026-12-01'} 
+                                            value={newCourse.examDate || ''} 
+                                            min={newCourse.startDate || undefined}
                                             onChange={e => setNewCourse({...newCourse, examDate: e.target.value})} 
                                             className="w-full p-2.5 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl text-sm font-semibold text-gray-900 dark:text-white outline-none focus:ring-2 focus:ring-purple-500" 
                                         />
@@ -2326,6 +2878,148 @@ const AdminCourseSetupWizard: React.FC<AdminCourseSetupWizardProps> = ({ isInstr
                         <div className="w-16 h-16 border-4 border-violet-100 border-t-violet-600 rounded-full animate-spin mb-6"></div>
                         <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Publishing Course</h3>
                         <p className="text-gray-500 dark:text-slate-400 text-center text-sm">Please wait while we configure the live Google Meet cohort, modules syllabus, and save the course...</p>
+                    </div>
+                </div>
+            )}
+
+            {/* Beautiful Success Toast / Modal with Automated Course Opening */}
+            {successModal && successModal.isOpen && (
+                <div className="fixed inset-0 bg-black/75 backdrop-blur-md z-[200] flex items-center justify-center p-4 animate-in fade-in duration-200">
+                    <div className="bg-white dark:bg-slate-900 border border-emerald-500/30 dark:border-emerald-600/40 rounded-3xl w-full max-w-lg overflow-hidden shadow-2xl animate-in fade-in zoom-in-95 duration-300 relative">
+                        {/* Top Accent Gradient Bar */}
+                        <div className="h-2.5 bg-gradient-to-r from-emerald-500 via-teal-500 to-violet-600"></div>
+
+                        <div className="p-6 md:p-8 space-y-5">
+                            {/* Header Section */}
+                            <div className="flex items-start gap-4">
+                                <div className="w-12 h-12 rounded-2xl bg-emerald-100 dark:bg-emerald-950/60 border border-emerald-300 dark:border-emerald-700/50 flex items-center justify-center text-emerald-600 dark:text-emerald-400 shrink-0 shadow-md shadow-emerald-500/10">
+                                    <CheckCircle2 size={28} className="animate-bounce" />
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                    <div className="flex items-center gap-2">
+                                        <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold tracking-wide uppercase bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800">
+                                            {successModal.isDraft ? 'Draft Saved' : (successModal.isEdit ? 'Course Updated' : 'Success')}
+                                        </span>
+                                        <span className="text-xs text-amber-600 dark:text-amber-400 font-semibold flex items-center gap-1">
+                                            <Sparkles size={12} /> Cohort Initialized
+                                        </span>
+                                    </div>
+                                    <h2 className="text-xl font-bold text-gray-900 dark:text-white mt-1">
+                                        {successModal.isDraft
+                                            ? 'Draft Saved Successfully!' 
+                                            : (successModal.isEdit ? 'Course Updated Successfully!' : 'Course Created & Published!')}
+                                    </h2>
+                                    <p className="text-xs text-gray-500 dark:text-slate-400 mt-0.5">
+                                        {successModal.isDraft 
+                                            ? 'Course draft has been recorded in database.' 
+                                            : 'Modules, attendance PINs, and relational cohort sessions are synchronized.'}
+                                    </p>
+                                </div>
+                            </div>
+
+                            {/* Course Snapshot Card */}
+                            <div className="bg-gray-50 dark:bg-slate-850 rounded-2xl p-4 border border-gray-150 dark:border-slate-800 space-y-3">
+                                <div className="flex items-center gap-3">
+                                    {successModal.image ? (
+                                        <img src={successModal.image} alt="Course cover" className="w-14 h-14 rounded-xl object-cover shrink-0 border border-gray-200 dark:border-slate-700 shadow-sm" />
+                                    ) : (
+                                        <div className="w-14 h-14 rounded-xl bg-violet-100 dark:bg-violet-950/60 text-violet-600 dark:text-violet-400 flex items-center justify-center shrink-0">
+                                            <BookOpen size={24} />
+                                        </div>
+                                    )}
+                                    <div className="min-w-0 flex-1">
+                                        <h4 className="text-sm font-bold text-gray-900 dark:text-white truncate">
+                                            {successModal.courseTitle}
+                                        </h4>
+                                        <div className="flex flex-wrap items-center gap-2 mt-1 text-[11px] text-gray-500 dark:text-slate-400">
+                                            <span className="px-2 py-0.5 rounded bg-gray-200 dark:bg-slate-750 text-gray-700 dark:text-slate-300 font-medium">
+                                                {successModal.category || 'General'}
+                                            </span>
+                                            <span>•</span>
+                                            <span className="font-semibold text-violet-600 dark:text-violet-400">
+                                                {successModal.duration || '4 Weeks'}
+                                            </span>
+                                            <span>•</span>
+                                            <span>{successModal.level}</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="grid grid-cols-2 gap-2 pt-2 border-t border-gray-200/60 dark:border-slate-750 text-xs">
+                                    <div className="bg-white dark:bg-slate-900 p-2.5 rounded-xl border border-gray-100 dark:border-slate-800">
+                                        <span className="text-[10px] uppercase font-bold text-gray-400 block mb-0.5">Live Cohort</span>
+                                        <span className="font-semibold text-gray-800 dark:text-slate-200 truncate block">
+                                            {successModal.cohortName || 'Cohort 1'}
+                                        </span>
+                                    </div>
+                                    <div className="bg-white dark:bg-slate-900 p-2.5 rounded-xl border border-gray-100 dark:border-slate-800">
+                                        <span className="text-[10px] uppercase font-bold text-gray-400 block mb-0.5">Attendance PIN</span>
+                                        <div className="flex items-center justify-between">
+                                            <span className="font-mono font-bold text-violet-600 dark:text-violet-400">
+                                                {successModal.attendanceCode}
+                                            </span>
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    navigator.clipboard.writeText(successModal.attendanceCode);
+                                                    setCopiedSuccessPin(true);
+                                                    setTimeout(() => setCopiedSuccessPin(false), 1500);
+                                                }}
+                                                className="p-1 hover:bg-gray-100 dark:hover:bg-slate-800 rounded text-gray-400 hover:text-gray-600 cursor-pointer"
+                                                title="Copy Attendance PIN"
+                                            >
+                                                {copiedSuccessPin ? <Check size={12} className="text-emerald-500" /> : <Copy size={12} />}
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {successModal.startDate && (
+                                    <div className="text-[11px] text-gray-500 dark:text-slate-400 flex items-center gap-1.5 px-1 pt-0.5">
+                                        <Calendar size={12} className="text-violet-500 shrink-0" />
+                                        <span>Cohort Dates: <strong>{successModal.startDate}</strong> {successModal.endDate ? `till ${successModal.endDate}` : ''}</span>
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Auto-Open Countdown Progress Banner */}
+                            <div className="space-y-2 bg-emerald-50/70 dark:bg-emerald-950/25 p-3.5 rounded-2xl border border-emerald-100 dark:border-emerald-900/40">
+                                <div className="flex items-center justify-between text-xs">
+                                    <span className="text-emerald-800 dark:text-emerald-300 font-semibold flex items-center gap-1.5">
+                                        <Loader2 size={13} className="animate-spin text-emerald-600" />
+                                        Automatically opening course overview...
+                                    </span>
+                                    <span className="font-bold text-emerald-700 dark:text-emerald-400 font-mono text-xs">
+                                        {successModal.countdown}s
+                                    </span>
+                                </div>
+                                <div className="w-full bg-emerald-200 dark:bg-emerald-900/50 h-1.5 rounded-full overflow-hidden">
+                                    <div 
+                                        className="bg-emerald-500 h-full rounded-full transition-all duration-1000 ease-linear"
+                                        style={{ width: `${Math.max(5, (successModal.countdown / 3) * 100)}%` }}
+                                    />
+                                </div>
+                            </div>
+
+                            {/* Action Buttons */}
+                            <div className="flex flex-col sm:flex-row gap-2.5 pt-1">
+                                <button
+                                    type="button"
+                                    onClick={handleTriggerImmediateOpen}
+                                    className="flex-1 py-3 px-4 bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 text-white font-bold rounded-2xl shadow-lg shadow-violet-500/25 flex items-center justify-center gap-2 text-sm transition-all transform active:scale-95 cursor-pointer"
+                                >
+                                    <span>Open Course Now</span>
+                                    <ArrowRight size={15} />
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={handleTriggerCatalog}
+                                    className="py-3 px-4 bg-gray-100 dark:bg-slate-800 hover:bg-gray-200 dark:hover:bg-slate-750 text-gray-700 dark:text-slate-300 font-semibold rounded-2xl text-xs transition-colors cursor-pointer"
+                                >
+                                    Courses Catalog
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 </div>
             )}

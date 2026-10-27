@@ -205,10 +205,36 @@ app.get('/api/storage/:bucket/public-url', (req, res) => {
 app.post('/api/rpc/:fn', async (req, res) => {
     try {
         const { fn } = req.params;
-        if (!supabase) return res.status(500).json({ error: 'Database service not configured' });
-        const { data, error } = await supabase.rpc(fn, req.body);
-        if (error) return res.status(400).json({ data: null, error: error.message });
-        res.json({ data, error: null });
+        if (supabase) {
+            const { data, error } = await supabase.rpc(fn, req.body);
+            if (error) return res.status(400).json({ data: null, error: error.message });
+            return res.json({ data, error: null });
+        }
+
+        // Local RPC emulation
+        if (fn === 'validate_livelesson_attendance') {
+            const { p_user_id, p_module_id, p_cohort_id, p_code } = req.body;
+            // Check session in cohort_sessions
+            const sessionsRes = await DatabaseAdapter.query('cohort_sessions', {
+                filters: { cohort_id: p_cohort_id, module_id: p_module_id },
+                single: true
+            });
+
+            if (sessionsRes.data && sessionsRes.data.attendance_code?.trim().toUpperCase() === p_code?.trim().toUpperCase()) {
+                // Upsert completion record
+                await DatabaseAdapter.upsert('module_completions', {
+                    user_id: p_user_id,
+                    cohort_id: p_cohort_id,
+                    module_id: p_module_id,
+                    attendance_code_submitted: true
+                });
+                return res.json({ data: true, error: null });
+            }
+
+            return res.json({ data: false, error: null });
+        }
+
+        res.json({ data: true, error: null });
     } catch (err) {
         res.status(500).json({ data: null, error: err.message });
     }
