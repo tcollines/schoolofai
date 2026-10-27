@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Smartphone, CreditCard, ShieldCheck, CheckCircle2, AlertCircle, Loader2, Sparkles, ArrowRight, RefreshCw, TrendingUp } from 'lucide-react';
+import { X, Smartphone, CreditCard, ShieldCheck, CheckCircle2, AlertCircle, Loader2, Sparkles, ArrowRight, RefreshCw, TrendingUp, Tag } from 'lucide-react';
 import { formatAmount, getExchangeRate, getBaseExchangeRate, getMarkup, fetchLiveExchangeRate } from '../../src/lib/currency';
 import { supabaseClient } from '../../src/lib/supabaseClient';
 
@@ -38,6 +38,12 @@ export const MarzPayCheckoutModal: React.FC<MarzPayCheckoutModalProps> = ({
     const [transactionData, setTransactionData] = useState<any>(null);
     const [countdown, setCountdown] = useState(120);
 
+    // Promo Code state
+    const [promoCodeInput, setPromoCodeInput] = useState('');
+    const [appliedPromo, setAppliedPromo] = useState<string | null>(null);
+    const [promoError, setPromoError] = useState<string | null>(null);
+    const [promoSuccess, setPromoSuccess] = useState<string | null>(null);
+
     const isPro = plan === 'pro';
     const isCorp = plan === 'corporate';
     const numSeats = seats || 10;
@@ -57,6 +63,11 @@ export const MarzPayCheckoutModal: React.FC<MarzPayCheckoutModalProps> = ({
         : (isPro 
             ? Math.round(usdPrice * effectiveRate)
             : (premiumOption === 'installment' ? Math.round((usdPrice * effectiveRate) / 3) : Math.round(usdPrice * effectiveRate)));
+
+    // Promo discount calculations: TEST1000 reduces pro plan to 1000 UGX
+    const isPromoApplied = appliedPromo?.toUpperCase() === 'TEST1000' && isPro;
+    const finalPayableUgx = isPromoApplied ? 1000 : baseUgxAmount;
+    const discountUgx = isPromoApplied ? Math.max(0, baseUgxAmount - 1000) : 0;
 
     useEffect(() => {
         fetchLiveExchangeRate().then((r) => {
@@ -128,11 +139,43 @@ export const MarzPayCheckoutModal: React.FC<MarzPayCheckoutModalProps> = ({
             setPaymentStatus('idle');
             setTransactionData(null);
             setCountdown(120);
+            setAppliedPromo(null);
+            setPromoCodeInput('');
+            setPromoError(null);
+            setPromoSuccess(null);
             if (user?.phone) {
                 setPhoneNumber(user.phone);
             }
         }
     }, [isOpen, plan, user]);
+
+    const handleApplyPromo = () => {
+        setPromoError(null);
+        setPromoSuccess(null);
+        const code = promoCodeInput.trim().toUpperCase();
+        if (!code) {
+            setPromoError('Please enter a promo code.');
+            return;
+        }
+
+        if (code === 'TEST1000') {
+            if (!isPro) {
+                setPromoError("Promo code 'TEST1000' is only applicable to the Pro Subscription plan.");
+                return;
+            }
+            setAppliedPromo('TEST1000');
+            setPromoSuccess("🎉 Promo code 'TEST1000' applied: Pro Plan discounted to UGX 1,000!");
+        } else {
+            setPromoError("Invalid promo code. Please check and try again.");
+        }
+    };
+
+    const handleRemovePromo = () => {
+        setAppliedPromo(null);
+        setPromoCodeInput('');
+        setPromoSuccess(null);
+        setPromoError(null);
+    };
 
     const activatePaidRole = async (targetPlan: 'pro' | 'premium' | 'corporate', txRef?: string) => {
         const targetRole = targetPlan === 'corporate' ? 'SPONSORED' : (targetPlan === 'premium' ? 'PREMIUM' : 'PRO');
@@ -166,7 +209,7 @@ export const MarzPayCheckoutModal: React.FC<MarzPayCheckoutModalProps> = ({
             const newItem = {
                 id: 'notif-' + Date.now(),
                 title: `${targetPlan.toUpperCase()} Plan Activated!`,
-                description: `Your MarzPay payment of UGX ${baseUgxAmount.toLocaleString()} was successful. ${targetPlan === 'corporate' ? `${numSeats} Corporate learning seats are now active.` : 'You now have full access.'}`,
+                description: `Your MarzPay payment of UGX ${finalPayableUgx.toLocaleString()} was successful. ${targetPlan === 'corporate' ? `${numSeats} Corporate learning seats are now active.` : 'You now have full access.'}`,
                 timestamp: new Date().toISOString(),
                 read: false,
                 type: 'payment'
@@ -255,15 +298,16 @@ export const MarzPayCheckoutModal: React.FC<MarzPayCheckoutModalProps> = ({
             const bodyPayload = {
                 plan,
                 seats: isCorp ? numSeats : undefined,
-                amount: baseUgxAmount,
-                usdAmount: usdPrice,
+                amount: finalPayableUgx,
+                usdAmount: isPromoApplied ? Math.max(1, Math.round(1000 / effectiveRate)) : usdPrice,
                 currency: 'UGX',
                 country,
                 method,
                 phoneNumber: formattedPhone,
                 userId: user?.id || '',
                 userEmail: user?.email || '',
-                userName: user?.name || user?.full_name || ''
+                userName: user?.name || user?.full_name || '',
+                promoCode: appliedPromo || undefined
             };
 
             const response = await fetch(`${API_BASE}/api/payments/marzpay/initiate`, {
@@ -371,7 +415,9 @@ export const MarzPayCheckoutModal: React.FC<MarzPayCheckoutModalProps> = ({
                             </div>
                             <div className="flex justify-between">
                                 <span className="text-gray-500">Amount Paid</span>
-                                <span className="font-bold text-emerald-600 dark:text-emerald-400">UGX {baseUgxAmount.toLocaleString()} (${usdPrice} USD)</span>
+                                <span className="font-bold text-emerald-600 dark:text-emerald-400">
+                                    UGX {finalPayableUgx.toLocaleString()}{isPromoApplied ? ' (TEST1000 Promo)' : ` ($${usdPrice} USD)`}
+                                </span>
                             </div>
                             <div className="flex justify-between">
                                 <span className="text-gray-500">Transaction Ref</span>
@@ -401,7 +447,7 @@ export const MarzPayCheckoutModal: React.FC<MarzPayCheckoutModalProps> = ({
                                 Check Your Phone
                             </h3>
                             <p className="text-sm text-gray-500 dark:text-slate-400 mt-2 max-w-sm mx-auto">
-                                A MarzPay payment prompt of <strong className="text-violet-600 dark:text-violet-400">UGX {baseUgxAmount.toLocaleString()}</strong> has been sent to <strong className="text-gray-900 dark:text-white">{formatFullInternationalPhone(phoneNumber, country)}</strong>.
+                                A MarzPay payment prompt of <strong className="text-violet-600 dark:text-violet-400">UGX {finalPayableUgx.toLocaleString()}</strong> has been sent to <strong className="text-gray-900 dark:text-white">{formatFullInternationalPhone(phoneNumber, country)}</strong>.
                             </p>
                         </div>
 
@@ -448,12 +494,26 @@ export const MarzPayCheckoutModal: React.FC<MarzPayCheckoutModalProps> = ({
                                 </h3>
                             </div>
                             <div className="text-right">
-                                <div className="text-xl sm:text-2xl font-black text-gray-900 dark:text-white">
-                                    ${usdPrice}
-                                </div>
-                                <div className="text-xs font-semibold text-violet-600 dark:text-violet-400">
-                                    ≈ UGX {baseUgxAmount.toLocaleString()}
-                                </div>
+                                {isPromoApplied ? (
+                                    <>
+                                        <div className="flex items-center gap-1.5 justify-end">
+                                            <span className="text-xs line-through text-gray-400 dark:text-slate-500">${usdPrice}</span>
+                                            <span className="text-xl sm:text-2xl font-black text-emerald-600 dark:text-emerald-400">UGX 1,000</span>
+                                        </div>
+                                        <div className="text-[10px] font-black uppercase tracking-wider text-emerald-600 dark:text-emerald-400 flex items-center justify-end gap-1">
+                                            <Sparkles size={11} /> Promo Active
+                                        </div>
+                                    </>
+                                ) : (
+                                    <>
+                                        <div className="text-xl sm:text-2xl font-black text-gray-900 dark:text-white">
+                                            ${usdPrice}
+                                        </div>
+                                        <div className="text-xs font-semibold text-violet-600 dark:text-violet-400">
+                                            ≈ UGX {baseUgxAmount.toLocaleString()}
+                                        </div>
+                                    </>
+                                )}
                             </div>
                         </div>
 
@@ -616,13 +676,104 @@ export const MarzPayCheckoutModal: React.FC<MarzPayCheckoutModalProps> = ({
                             </div>
                         )}
 
+                        {/* Promo Code Section */}
+                        <div className="p-3.5 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-200 dark:border-slate-700/80 space-y-2.5">
+                            <div className="flex items-center justify-between">
+                                <label className="text-xs font-bold text-gray-700 dark:text-slate-300 flex items-center gap-1.5">
+                                    <Tag size={13} className="text-violet-600 dark:text-violet-400" />
+                                    Have a Promo Code?
+                                </label>
+                                {appliedPromo && (
+                                    <span className="text-[10px] font-black uppercase bg-emerald-100 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-300 px-2 py-0.5 rounded-full border border-emerald-300 dark:border-emerald-800 flex items-center gap-1">
+                                        <CheckCircle2 size={10} /> {appliedPromo} Applied
+                                    </span>
+                                )}
+                            </div>
+
+                            {appliedPromo ? (
+                                <div className="flex items-center justify-between p-2.5 bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-900/50 rounded-xl text-xs">
+                                    <div className="flex items-center gap-2">
+                                        <Sparkles size={15} className="text-emerald-600 dark:text-emerald-400 shrink-0" />
+                                        <div>
+                                            <div className="font-bold text-emerald-800 dark:text-emerald-300">
+                                                Code '{appliedPromo}' Active
+                                            </div>
+                                            <div className="text-[11px] text-emerald-600 dark:text-emerald-400">
+                                                Pro Plan reduced to <strong className="font-bold">UGX 1,000</strong> (Saved UGX {discountUgx.toLocaleString()})
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <button
+                                        type="button"
+                                        onClick={handleRemovePromo}
+                                        className="text-[11px] text-red-600 dark:text-red-400 hover:underline font-bold px-2 py-1 rounded cursor-pointer"
+                                    >
+                                        Remove
+                                    </button>
+                                </div>
+                            ) : (
+                                <div className="flex gap-2">
+                                    <input
+                                        type="text"
+                                        value={promoCodeInput}
+                                        onChange={(e) => {
+                                            setPromoCodeInput(e.target.value.toUpperCase());
+                                            if (promoError) setPromoError(null);
+                                        }}
+                                        onKeyDown={(e) => {
+                                            if (e.key === 'Enter') {
+                                                e.preventDefault();
+                                                handleApplyPromo();
+                                            }
+                                        }}
+                                        placeholder="Enter promo code (e.g. TEST1000)"
+                                        className="flex-1 p-2.5 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-xl text-xs font-bold uppercase tracking-wider text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-slate-500 outline-none focus:ring-2 focus:ring-violet-500/20"
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={handleApplyPromo}
+                                        className="px-4 py-2.5 bg-violet-600 hover:bg-violet-700 text-white rounded-xl text-xs font-bold transition-colors cursor-pointer shrink-0"
+                                    >
+                                        Apply
+                                    </button>
+                                </div>
+                            )}
+
+                            {promoError && (
+                                <div className="text-[11px] font-medium text-red-600 dark:text-red-400 flex items-center gap-1.5">
+                                    <AlertCircle size={12} className="shrink-0" />
+                                    <span>{promoError}</span>
+                                </div>
+                            )}
+                            {promoSuccess && !appliedPromo && (
+                                <div className="text-[11px] font-medium text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5">
+                                    <CheckCircle2 size={12} className="shrink-0" />
+                                    <span>{promoSuccess}</span>
+                                </div>
+                            )}
+                        </div>
+
                         {/* Summary & Submit */}
                         <div className="pt-4 border-t border-gray-150 dark:border-slate-800 space-y-3">
-                            <div className="flex items-center justify-between text-xs font-semibold text-gray-600 dark:text-slate-400">
-                                <span>Total Payable</span>
-                                <span className="text-sm font-black text-gray-900 dark:text-white">
-                                    UGX {baseUgxAmount.toLocaleString()}
-                                </span>
+                            <div className="space-y-1.5">
+                                {isPromoApplied && (
+                                    <>
+                                        <div className="flex items-center justify-between text-xs font-medium text-gray-500 dark:text-slate-400">
+                                            <span>Original Price</span>
+                                            <span className="line-through">UGX {baseUgxAmount.toLocaleString()}</span>
+                                        </div>
+                                        <div className="flex items-center justify-between text-xs font-bold text-emerald-600 dark:text-emerald-400">
+                                            <span>Promo Discount ({appliedPromo})</span>
+                                            <span>- UGX {discountUgx.toLocaleString()}</span>
+                                        </div>
+                                    </>
+                                )}
+                                <div className="flex items-center justify-between text-xs font-semibold text-gray-600 dark:text-slate-400">
+                                    <span>Total Payable</span>
+                                    <span className="text-base font-black text-gray-900 dark:text-white">
+                                        UGX {finalPayableUgx.toLocaleString()}
+                                    </span>
+                                </div>
                             </div>
 
                             <button
@@ -638,7 +789,7 @@ export const MarzPayCheckoutModal: React.FC<MarzPayCheckoutModalProps> = ({
                                     </>
                                 ) : (
                                     <>
-                                        Pay UGX {baseUgxAmount.toLocaleString()} with {method === 'mobile_money' ? 'Mobile Money' : 'Card'}
+                                        Pay UGX {finalPayableUgx.toLocaleString()} with {method === 'mobile_money' ? 'Mobile Money' : 'Card'}
                                     </>
                                 )}
                             </button>

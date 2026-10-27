@@ -461,11 +461,18 @@ app.post('/api/payments/marzpay/initiate', async (req, res) => {
             phoneNumber = '',
             userId = '',
             userEmail = '',
-            userName = ''
+            userName = '',
+            promoCode = ''
         } = req.body;
 
         if (!plan) {
             return res.status(400).json({ error: 'Plan is required (pro, premium, or corporate).' });
+        }
+
+        let effectiveAmount = amount;
+        const normalizedPromo = (promoCode || '').trim().toUpperCase();
+        if (normalizedPromo === 'TEST1000' && (plan || '').toLowerCase() === 'pro') {
+            effectiveAmount = 1000;
         }
 
         // Host origin for callback URL
@@ -477,7 +484,7 @@ app.post('/api/payments/marzpay/initiate', async (req, res) => {
         const result = await marzpayService.initiateCollection({
             plan,
             seats,
-            amount,
+            amount: effectiveAmount,
             usdAmount,
             currency,
             country,
@@ -486,6 +493,7 @@ app.post('/api/payments/marzpay/initiate', async (req, res) => {
             userId,
             userEmail,
             userName,
+            promoCode: normalizedPromo,
             callbackUrl
         });
 

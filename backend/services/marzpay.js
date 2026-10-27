@@ -232,6 +232,7 @@ async function initiateCollection({
     userId = '',
     userEmail = '',
     userName = '',
+    promoCode = '',
     callbackUrl = process.env.MARZPAY_CALLBACK_URL || ''
 }) {
     const reference = crypto.randomUUID();
@@ -278,6 +279,7 @@ async function initiateCollection({
         metadata: [
             { plan: normalizedPlan },
             { orderId: `ORDER-${Date.now()}` },
+            ...(promoCode ? [{ promoCode: String(promoCode).toUpperCase() }] : []),
             ...(userId ? [{ userId, isPII: false }] : []),
             ...(userEmail ? [{ customerEmail: userEmail, isPII: true }] : []),
             ...(userName ? [{ customerName: userName, isPII: true }] : [])
@@ -324,6 +326,7 @@ async function initiateCollection({
             userId,
             userEmail,
             userName,
+            promoCode: promoCode ? String(promoCode).toUpperCase() : null,
             amount: finalAmount,
             usdAmount: finalUsd,
             currency,
