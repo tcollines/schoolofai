@@ -76,7 +76,7 @@ MARZPAY_CALLBACK_URL=https://your-app.com/webhooks/marzpay
 ### Authentication header
 
 ```http
-Authorization: Basic bXlfa2V5Om15X3NlY3JldA==
+Authorization: Basic <base64_encoded_api_key:api_secret>
 Accept: application/json
 Content-Type: application/json
 ```
