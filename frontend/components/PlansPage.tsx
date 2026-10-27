@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { CheckCircle, Sparkles, X, Loader, Star, Smartphone, Landmark, TrendingUp } from 'lucide-react';
+import { CheckCircle, Sparkles, X, Loader, Star, Smartphone, Landmark, TrendingUp, Users, Building2, Minus, Plus, ArrowRight, ShieldCheck } from 'lucide-react';
 import { UserRole } from '../types';
 import { useTranslation } from './translations';
 import { supabaseClient } from '../src/lib/supabaseClient';
@@ -29,7 +29,8 @@ const PlansPage: React.FC<PlansPageProps> = ({ user, currentPlan, onUpgrade, onB
         };
     }, []);
 
-    const [selectedPlanName, setSelectedPlanName] = useState<'PLUS' | 'PRO' | 'PREMIUM' | null>(null);
+    const [selectedPlanName, setSelectedPlanName] = useState<'PLUS' | 'PRO' | 'PREMIUM' | 'CORPORATE' | null>(null);
+    const [corporateSeats, setCorporateSeats] = useState<number>(10);
     const [hoveredStar, setHoveredStar] = useState(0);
     const [rating, setRating] = useState(() => {
         const stored = localStorage.getItem(`schoolofai-rating-${user?.id || 'guest'}`);
@@ -156,198 +157,239 @@ const PlansPage: React.FC<PlansPageProps> = ({ user, currentPlan, onUpgrade, onB
                     </div>
                 </div>
             ) : (
-                <div className="grid xl:grid-cols-4 lg:grid-cols-2 grid-cols-1 gap-6 max-w-7xl mx-auto px-4">
-                <div className={`p-8 rounded-2xl bg-white dark:bg-gray-900 border ${currentPlan === 'INDIVIDUAL' ? 'border-gray-200 dark:border-gray-800' : 'border-gray-150 dark:border-gray-800/60'} shadow-xl relative group hover:border-welile-purple dark:hover:border-purple-600 hover:transform hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between`}>
-                    <div className="absolute top-0 right-0 w-32 h-32 bg-purple-500 blur-3xl opacity-20 -mr-16 -mt-16"></div>
-                    <div className="absolute top-0 right-0 bg-violet-600 text-white text-xs font-bold px-3 py-1 rounded-bl-xl rounded-tr-xl">FREE</div>
-                    <div>
-                        <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Basic</h3>
-                        <div className="text-4xl font-bold text-gray-900 dark:text-white mb-6">Free<span className="text-lg text-gray-500 dark:text-slate-400 font-normal">/forever</span></div>
-                        <p className="text-gray-600 dark:text-slate-400 mb-8 text-sm">Perfect for exploring new topics and getting started.</p>
+                <div className="grid xl:grid-cols-4 lg:grid-cols-2 grid-cols-1 gap-6 max-w-7xl mx-auto px-4 items-stretch">
+                    {/* Basic Plan */}
+                    <div className="p-7 rounded-3xl bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 shadow-xl hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between relative group">
+                        <div>
+                            <div className="flex items-center justify-between mb-4">
+                                <span className="text-[11px] font-black tracking-wider uppercase px-3 py-1 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
+                                    Free
+                                </span>
+                            </div>
+                            <h3 className="text-2xl font-black text-gray-900 dark:text-white mb-1">Basic</h3>
+                            <div className="flex items-baseline gap-1 mb-2">
+                                <span className="text-4xl font-black text-gray-900 dark:text-white">Free</span>
+                                <span className="text-sm font-medium text-gray-500 dark:text-slate-400">/ forever</span>
+                            </div>
+                            <p className="text-xs text-gray-500 dark:text-slate-400 mb-6 min-h-[32px]">
+                                Perfect for exploring introductory courses and getting started.
+                            </p>
 
-                        <div className="mb-8">
-                            {currentPlan === 'INDIVIDUAL' ? (
-                                <div className="w-full py-3 rounded-xl bg-gray-100 dark:bg-slate-800 text-gray-500 dark:text-slate-400 font-bold text-center">
-                                    {t('current_plan')}
-                                </div>
-                            ) : (
-                                <button className="w-full py-3 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 text-white font-bold hover:shadow-lg transition-all hover:opacity-90 cursor-pointer">
-                                    Downgrade
-                                </button>
-                            )}
+                            <div className="mb-6">
+                                {currentPlan === 'INDIVIDUAL' ? (
+                                    <div className="w-full py-2.5 rounded-xl bg-gray-100 dark:bg-slate-800 text-gray-500 dark:text-slate-400 font-bold text-xs text-center border border-gray-200 dark:border-slate-700">
+                                        {t('current_plan')}
+                                    </div>
+                                ) : (
+                                    <button 
+                                        onClick={() => {}}
+                                        className="w-full py-2.5 rounded-xl bg-gray-100 hover:bg-gray-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-gray-900 dark:text-white font-bold text-xs transition-colors cursor-pointer"
+                                    >
+                                        Downgrade to Free
+                                    </button>
+                                )}
+                            </div>
+
+                            <div className="border-t border-gray-100 dark:border-slate-800/80 pt-5">
+                                <p className="text-[11px] font-bold text-gray-400 dark:text-slate-500 uppercase tracking-wider mb-3">Included Benefits</p>
+                                <ul className="space-y-3 text-xs text-gray-600 dark:text-slate-300">
+                                    <li className="flex items-center gap-2.5">
+                                        <CheckCircle size={16} className="text-emerald-500 shrink-0" />
+                                        <span>Access to <strong>Introduction modules</strong></span>
+                                    </li>
+                                    <li className="flex items-center gap-2.5">
+                                        <CheckCircle size={16} className="text-emerald-500 shrink-0" />
+                                        <span>Free community forums & discussions</span>
+                                    </li>
+                                    <li className="flex items-center gap-2.5">
+                                        <CheckCircle size={16} className="text-emerald-500 shrink-0" />
+                                        <span>Standard course progress tracking</span>
+                                    </li>
+                                    <li className="flex items-center gap-2.5 text-gray-400 dark:text-slate-600">
+                                        <X size={16} className="text-gray-300 dark:text-slate-700 shrink-0" />
+                                        <span>Pro & Premium course library</span>
+                                    </li>
+                                </ul>
+                            </div>
                         </div>
-
-                        <ul className="space-y-4 text-sm text-gray-700 dark:text-slate-300">
-                            <li className="flex items-center gap-3">
-                                <CheckCircle size={18} className="text-purple-500 dark:text-purple-400 flex-shrink-0" />
-                                <span>{"Access to "}<strong>Introduction</strong>{" modules"}</span>
-                            </li>
-                            <li className="flex items-center gap-3 text-gray-700 dark:text-slate-300">
-                                <span className="w-4 h-4 rounded-full border border-gray-450 dark:border-slate-650 flex-shrink-0"></span>
-                                <span>Fundamentals modules</span>
-                            </li>
-                            <li className="flex items-center gap-3 text-gray-700 dark:text-slate-300">
-                                <span className="w-4 h-4 rounded-full border border-gray-450 dark:border-slate-650 flex-shrink-0"></span>
-                                <span>Advanced Application modules</span>
-                            </li>
-                        </ul>
                     </div>
-                </div>
 
-                <div className="p-8 rounded-2xl bg-white dark:bg-gray-900 border-2 border-violet-500 text-gray-900 dark:text-white relative overflow-hidden hover:transform hover:-translate-y-1 transition-all duration-300 shadow-xl flex flex-col justify-between">
-                    <div className="absolute top-0 right-0 w-32 h-32 bg-purple-500 blur-3xl opacity-20 -mr-16 -mt-16"></div>
-                    <div className="absolute top-0 right-0 bg-gradient-to-l from-orange-400 to-amber-400 text-white text-xs font-bold px-3 py-1 rounded-bl-xl rounded-tr-xl flex items-center gap-1">
-                        <Star className="w-3 h-3 fill-current" /> MOST POPULAR
+                    {/* Pro Plan ($25 / month) */}
+                    <div className="p-7 rounded-3xl bg-white dark:bg-slate-900 border-2 border-violet-500 shadow-xl shadow-violet-500/10 hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between relative overflow-hidden group">
+                        <div className="absolute top-0 right-0 w-28 h-28 bg-violet-500 blur-3xl opacity-20 -mr-14 -mt-14 pointer-events-none"></div>
+                        <div>
+                            <div className="flex items-center justify-between mb-4">
+                                <span className="text-[11px] font-black tracking-wider uppercase px-3 py-1 rounded-full bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-sm flex items-center gap-1">
+                                    <Star size={12} className="fill-current" /> Most Popular
+                                </span>
+                            </div>
+                            <h3 className="text-2xl font-black text-gray-900 dark:text-white mb-1">Pro</h3>
+                            <div className="flex items-baseline gap-1 mb-2">
+                                <span className="text-4xl font-black text-gray-900 dark:text-white">{formatAmount(25)}</span>
+                                <span className="text-sm font-medium text-gray-500 dark:text-slate-400">/ month</span>
+                            </div>
+                            <p className="text-xs text-gray-500 dark:text-slate-400 mb-6 min-h-[32px]">
+                                Full monthly access for dedicated self-paced learners.
+                            </p>
+
+                            <div className="mb-6">
+                                {((currentPlan as string) === 'PRO') ? (
+                                    <div className="w-full py-2.5 rounded-xl bg-violet-50 dark:bg-violet-950/40 text-violet-700 dark:text-violet-300 font-bold text-xs text-center border border-violet-200 dark:border-violet-900/60">
+                                        Current Plan
+                                    </div>
+                                ) : (
+                                    <button
+                                        onClick={() => setSelectedPlanName('PRO')}
+                                        className="w-full py-2.5 rounded-xl bg-violet-600 hover:bg-violet-700 text-white font-bold text-xs shadow-md shadow-violet-500/25 transition-all cursor-pointer flex items-center justify-center gap-1.5"
+                                    >
+                                        <span>Upgrade to Pro</span>
+                                        <ArrowRight size={14} />
+                                    </button>
+                                )}
+                            </div>
+
+                            <div className="border-t border-gray-100 dark:border-slate-800/80 pt-5">
+                                <p className="text-[11px] font-bold text-gray-400 dark:text-slate-500 uppercase tracking-wider mb-3">Included Benefits</p>
+                                <ul className="space-y-3 text-xs text-gray-600 dark:text-slate-300">
+                                    <li className="flex items-center gap-2.5">
+                                        <CheckCircle size={16} className="text-violet-600 dark:text-violet-400 shrink-0" />
+                                        <span><strong>All Pro & Free courses</strong> unlocked</span>
+                                    </li>
+                                    <li className="flex items-center gap-2.5">
+                                        <CheckCircle size={16} className="text-violet-600 dark:text-violet-400 shrink-0" />
+                                        <span><strong>24/7 AI Tutor</strong> support</span>
+                                    </li>
+                                    <li className="flex items-center gap-2.5">
+                                        <CheckCircle size={16} className="text-violet-600 dark:text-violet-400 shrink-0" />
+                                        <span>Downloadable resources & exercises</span>
+                                    </li>
+                                    <li className="flex items-center gap-2.5">
+                                        <CheckCircle size={16} className="text-violet-600 dark:text-violet-400 shrink-0" />
+                                        <span>Verified course completion certificates</span>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
                     </div>
-                    <div>
-                        <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Pro</h3>
-                        <div className="text-4xl font-bold text-gray-900 dark:text-white mb-6">{formatAmount(25)}<span className="text-lg text-gray-500 dark:text-slate-400 font-normal"> /month</span></div>
-                        <p className="text-gray-600 dark:text-slate-400 mb-8 text-sm">Full monthly access for dedicated learners.</p>
 
-                        <div className="mb-8">
-                            {((currentPlan as string) === 'PRO') ? (
-                                <div className="w-full py-3 rounded-xl bg-gray-100 dark:bg-slate-800 text-gray-500 dark:text-slate-400 font-bold text-center border border-gray-200 dark:border-slate-700">
-                                    Current Plan
-                                </div>
-                            ) : (
+                    {/* Premium Plan ($150 one-time) */}
+                    <div className="p-7 rounded-3xl bg-gradient-to-br from-violet-600 via-indigo-700 to-indigo-900 text-white border border-violet-400/40 shadow-xl shadow-indigo-950/20 hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between relative overflow-hidden group">
+                        <div className="absolute top-0 right-0 w-32 h-32 bg-white blur-3xl opacity-15 -mr-16 -mt-16 pointer-events-none"></div>
+                        <div>
+                            <div className="flex items-center justify-between mb-4">
+                                <span className="text-[11px] font-black tracking-wider uppercase px-3 py-1 rounded-full bg-white/20 backdrop-blur-sm text-white border border-white/25 flex items-center gap-1">
+                                    <Sparkles size={12} className="fill-current" /> Lifetime Access
+                                </span>
+                            </div>
+                            <h3 className="text-2xl font-black text-white mb-1">Premium</h3>
+                            <div className="flex items-baseline gap-1 mb-2">
+                                <span className="text-4xl font-black text-white">{formatAmount(150)}</span>
+                                <span className="text-sm font-medium text-violet-200">one-time</span>
+                            </div>
+                            <p className="text-xs text-violet-100/90 mb-6 min-h-[32px]">
+                                One-time payment • Lifetime access to all Pro & free courses.
+                            </p>
+
+                            <div className="mb-6">
+                                {((currentPlan as string) === 'PREMIUM' || (currentPlan as string) === 'SPONSORED') ? (
+                                    <div className="w-full py-2.5 rounded-xl bg-white/20 text-white font-bold text-xs text-center border border-white/30 backdrop-blur-sm">
+                                        Current Plan
+                                    </div>
+                                ) : (
+                                    <button
+                                        onClick={() => setSelectedPlanName('PREMIUM')}
+                                        className="w-full py-2.5 rounded-xl bg-white hover:bg-violet-50 text-indigo-900 font-bold text-xs shadow-md transition-all cursor-pointer flex items-center justify-center gap-1.5"
+                                    >
+                                        <span>Upgrade to Premium</span>
+                                        <ArrowRight size={14} />
+                                    </button>
+                                )}
+                            </div>
+
+                            <div className="border-t border-white/15 pt-5">
+                                <p className="text-[11px] font-bold text-violet-200 uppercase tracking-wider mb-3">Included Benefits</p>
+                                <ul className="space-y-3 text-xs text-violet-50">
+                                    <li className="flex items-center gap-2.5">
+                                        <CheckCircle size={16} className="text-amber-300 shrink-0" />
+                                        <span><strong>Lifetime access</strong> — zero renewals</span>
+                                    </li>
+                                    <li className="flex items-center gap-2.5">
+                                        <CheckCircle size={16} className="text-amber-300 shrink-0" />
+                                        <span>All current & future Pro courses</span>
+                                    </li>
+                                    <li className="flex items-center gap-2.5">
+                                        <CheckCircle size={16} className="text-amber-300 shrink-0" />
+                                        <span><strong>1-on-1 Mentorship</strong> & Live Q&A</span>
+                                    </li>
+                                    <li className="flex items-center gap-2.5">
+                                        <CheckCircle size={16} className="text-amber-300 shrink-0" />
+                                        <span>Portfolio review & career guidance</span>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Corporate Plan - Only Benefits & Straight to the Point */}
+                    <div className="p-7 rounded-3xl bg-white dark:bg-slate-900 border border-violet-300/80 dark:border-violet-900/60 shadow-xl hover:shadow-2xl hover:border-violet-500 hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between relative overflow-hidden group">
+                        <div className="absolute top-0 right-0 w-28 h-28 bg-violet-500 blur-3xl opacity-15 -mr-14 -mt-14 pointer-events-none"></div>
+                        <div>
+                            <div className="flex items-center justify-between mb-4">
+                                <span className="text-[11px] font-black tracking-wider uppercase px-3 py-1 rounded-full bg-violet-100 dark:bg-violet-950/70 text-violet-700 dark:text-violet-300 flex items-center gap-1 border border-violet-200 dark:border-violet-900/60">
+                                    <Building2 size={12} /> Corporate
+                                </span>
+                            </div>
+                            <h3 className="text-2xl font-black text-gray-900 dark:text-white mb-1">Corporate</h3>
+                            <div className="flex items-baseline gap-1 mb-2">
+                                <span className="text-xs font-semibold text-gray-400">From</span>
+                                <span className="text-4xl font-black text-gray-900 dark:text-white">{formatAmount(15)}</span>
+                                <span className="text-sm font-medium text-gray-500 dark:text-slate-400">/ seat</span>
+                            </div>
+                            <p className="text-xs text-gray-500 dark:text-slate-400 mb-6 min-h-[32px]">
+                                10–49 seats: $20/seat • 50+ seats: $15/seat.
+                            </p>
+
+                            <div className="mb-6 space-y-2">
                                 <button
-                                    onClick={() => setSelectedPlanName('PRO')}
-                                    className="w-full py-3 rounded-xl bg-gradient-to-r from-purple-500 to-blue-500 text-white font-bold hover:shadow-lg transition-all hover:opacity-90 cursor-pointer"
+                                    onClick={() => navigate('/corporate/setup')}
+                                    className="w-full py-2.5 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 hover:opacity-95 text-white font-bold text-xs shadow-md shadow-violet-500/25 transition-all cursor-pointer flex items-center justify-center gap-1.5"
                                 >
-                                    Upgrade to Pro
+                                    <span>Setup Corporate Plan</span>
+                                    <ArrowRight size={14} />
                                 </button>
-                            )}
-                        </div>
-
-                        <ul className="space-y-4 text-sm text-gray-700 dark:text-gray-300">
-                            <li className="flex items-center gap-3">
-                                <CheckCircle size={18} className="text-purple-500 dark:text-purple-400 flex-shrink-0" />
-                                <span>{"Full access to all "}<strong>Pro courses</strong>{" (excl. custom-priced)"}</span>
-                            </li>
-                            <li className="flex items-center gap-3">
-                                <CheckCircle size={18} className="text-purple-500 dark:text-purple-400 flex-shrink-0" />
-                                <span>{"Full access to all "}<strong>free courses</strong></span>
-                            </li>
-                            <li className="flex items-center gap-3">
-                                <CheckCircle size={18} className="text-purple-500 dark:text-purple-400 flex-shrink-0" />
-                                <span>Downloadable resources & exercises</span>
-                            </li>
-                            <li className="flex items-center gap-3 text-amber-500 dark:text-amber-400 font-bold">
-                                <Sparkles size={18} className="text-yellow-500 dark:text-yellow-400 flex-shrink-0" />
-                                <span>AI Tutor Support</span>
-                            </li>
-                        </ul>
-                    </div>
-                </div>
-
-                {/* Premium Plan */}
-                <div className="p-8 rounded-2xl bg-gradient-to-br from-violet-600 to-indigo-900 text-white relative overflow-hidden hover:transform hover:-translate-y-1 transition-all duration-300 shadow-2xl flex flex-col justify-between border border-violet-400/30">
-                    <div className="absolute top-0 right-0 w-32 h-32 bg-white blur-3xl opacity-10 -mr-16 -mt-16"></div>
-                    <div className="absolute top-0 right-0 bg-white/20 text-white text-xs font-bold px-3 py-1 rounded-bl-xl rounded-tr-xl flex items-center gap-1 backdrop-blur-sm">
-                        <Sparkles className="w-3 h-3 fill-current" /> LIFETIME ACCESS
-                    </div>
-                    <div>
-                        <h3 className="text-2xl font-bold text-white mb-2">Premium</h3>
-                        <div className="text-4xl font-bold text-white mb-6">{formatAmount(150)}<span className="text-lg text-violet-200 font-normal"> one-time</span></div>
-                        <p className="text-violet-100 mb-8 text-sm">One-time payment • Lifetime access to all Pro & free courses.</p>
-
-                        <div className="mb-8">
-                            {((currentPlan as string) === 'PREMIUM' || (currentPlan as string) === 'SPONSORED') ? (
-                                <div className="w-full py-3 rounded-xl bg-white/20 text-white font-bold text-center border border-white/30">
-                                    Current Plan
-                                </div>
-                            ) : (
                                 <button
-                                    onClick={() => setSelectedPlanName('PREMIUM')}
-                                    className="w-full py-3 rounded-xl bg-white text-violet-900 font-bold hover:bg-gray-100 hover:shadow-lg transition-all cursor-pointer"
+                                    onClick={() => navigate('/corporate')}
+                                    className="w-full py-1 text-center text-[11px] font-semibold text-violet-600 dark:text-violet-400 hover:underline flex items-center justify-center gap-1 cursor-pointer"
                                 >
-                                    Upgrade to Premium
+                                    <Building2 size={12} />
+                                    <span>Open Corporate Dashboard →</span>
                                 </button>
-                            )}
-                        </div>
+                            </div>
 
-                        <ul className="space-y-4 text-sm text-white">
-                            <li className="flex items-center gap-3">
-                                <CheckCircle size={18} className="text-white flex-shrink-0" />
-                                <span><strong>One-time access</strong> to all Pro & free courses</span>
-                            </li>
-                            <li className="flex items-center gap-3">
-                                <CheckCircle size={18} className="text-white flex-shrink-0" />
-                                <span><strong>Lifetime access</strong> — no renewals</span>
-                            </li>
-                            <li className="flex items-center gap-3">
-                                <CheckCircle size={18} className="text-white flex-shrink-0" />
-                                <span>1-on-1 Mentorship & Live Q&A</span>
-                            </li>
-                            <li className="flex items-center gap-3 text-amber-300 font-bold">
-                                <Sparkles size={18} className="text-amber-300 flex-shrink-0" />
-                                <span>Portfolio Review & Career Guidance</span>
-                            </li>
-                        </ul>
+                            <div className="border-t border-gray-100 dark:border-slate-800/80 pt-5">
+                                <p className="text-[11px] font-bold text-gray-400 dark:text-slate-500 uppercase tracking-wider mb-3">Corporate Benefits</p>
+                                <ul className="space-y-3 text-xs text-gray-600 dark:text-slate-300">
+                                    <li className="flex items-center gap-2.5">
+                                        <CheckCircle size={16} className="text-violet-600 dark:text-violet-400 shrink-0" />
+                                        <span><strong>Dedicated team seats</strong> (10+ learners)</span>
+                                    </li>
+                                    <li className="flex items-center gap-2.5">
+                                        <CheckCircle size={16} className="text-violet-600 dark:text-violet-400 shrink-0" />
+                                        <span>Custom <strong>Company branding & logo</strong></span>
+                                    </li>
+                                    <li className="flex items-center gap-2.5">
+                                        <CheckCircle size={16} className="text-violet-600 dark:text-violet-400 shrink-0" />
+                                        <span><strong>Email invitations</strong> & seat management</span>
+                                    </li>
+                                    <li className="flex items-center gap-2.5">
+                                        <CheckCircle size={16} className="text-violet-600 dark:text-violet-400 shrink-0" />
+                                        <span>Live <strong>team progress & analytics</strong></span>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
                     </div>
                 </div>
-
-                {/* Business Plan - Corporate */}
-                <div className="p-8 rounded-2xl bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 text-gray-900 dark:text-white relative overflow-hidden hover:transform hover:-translate-y-1 hover:border-welile-purple dark:hover:border-purple-600 transition-all duration-300 shadow-xl flex flex-col justify-between">
-                    <div className="absolute top-0 right-0 w-32 h-32 bg-purple-500 blur-3xl opacity-20 -mr-16 -mt-16"></div>
-                    <div className="absolute top-0 right-0 bg-violet-600 text-white text-xs font-bold px-3 py-1 rounded-bl-xl rounded-tr-xl">BUSINESS</div>
-                    <div>
-                        <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-1">Corporate</h3>
-                        <p className="text-xs text-violet-600 dark:text-violet-400 font-semibold mb-6">
-                            Upskill your team
-                        </p>
-                        
-                        <div className="text-4xl font-bold text-gray-900 dark:text-white mb-6">
-                            Custom Plan
-                        </div>
-                        <p className="text-gray-600 dark:text-gray-400 mb-8 text-sm leading-relaxed">
-                            Tailormade enrollment and reporting packages for your organization.
-                        </p>
-
-                        <div className="mb-6">
-                            {user?.pending_role === 'SPONSORED' ? (
-                                <div className="w-full py-3 rounded-xl bg-slate-800 text-yellow-500 font-bold text-xs text-center border border-slate-700">
-                                    Request Pending Approval
-                                </div>
-                            ) : (
-                                <button
-                                    onClick={handleRequestBusinessPlan}
-                                    disabled={isSubmittingBusiness}
-                                    className="w-full py-3 rounded-xl bg-violet-600 hover:bg-violet-700 text-white font-bold text-sm hover:shadow-lg transition-all cursor-pointer flex items-center justify-center gap-2"
-                                >
-                                    {isSubmittingBusiness ? (
-                                        <>
-                                            <Loader size={14} className="animate-spin" />
-                                            Submitting...
-                                        </>
-                                    ) : (
-                                        'Request Corporate Enrollment'
-                                    )}
-                                </button>
-                            )}
-                        </div>
-
-                        <ul className="space-y-4 text-sm text-gray-700 dark:text-gray-300">
-                            <li className="flex items-center gap-3">
-                                <CheckCircle size={18} className="text-purple-500 dark:text-purple-400 flex-shrink-0" />
-                                <span>{"Access to "}<strong>All</strong>{" modules for employees"}</span>
-                            </li>
-                            <li className="flex items-center gap-3">
-                                <CheckCircle size={18} className="text-purple-500 dark:text-purple-400 flex-shrink-0" />
-                                <span>{"Weekly "}<strong>progress reports</strong>{" for admins"}</span>
-                            </li>
-                            <li className="flex items-center gap-3">
-                                <CheckCircle size={18} className="text-purple-500 dark:text-purple-400 flex-shrink-0" />
-                                <span>Dedicated company billing & dashboard</span>
-                            </li>
-                            <li className="flex items-center gap-3 text-amber-500 dark:text-amber-400 font-bold">
-                                <Sparkles size={18} className="text-yellow-500 dark:text-yellow-400 flex-shrink-0" />
-                                <span>Unlimited AI Tutor Support</span>
-                            </li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
             )}
 
             {selectedPlanName && (

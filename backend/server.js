@@ -376,11 +376,23 @@ app.get('/api/currency/convert', async (req, res) => {
 // MarzPay Payment Routes (/api/payments/marzpay/*)
 // ----------------------------------------------------
 const marzpayService = require('./services/marzpay');
+const corporateService = require('./services/corporate');
 
 // Helper to upgrade user role upon confirmed payment
-async function upgradeUserRole(userId, plan, txRef = '') {
-    if (!userId || !supabase) return;
-    const targetRole = plan.toUpperCase() === 'PREMIUM' ? 'PREMIUM' : 'PRO';
+async function upgradeUserRole(userId, plan, txRef = '', userEmail = '', seats = 10) {
+    if (!userId) return;
+    const isCorp = (plan || '').toUpperCase() === 'CORPORATE';
+    const targetRole = isCorp ? 'SPONSORED' : ((plan || '').toUpperCase() === 'PREMIUM' ? 'PREMIUM' : 'PRO');
+
+    if (isCorp) {
+        try {
+            await corporateService.provisionSeats(userId, userEmail, seats);
+        } catch (cErr) {
+            console.warn('[Corporate Service] Provision seats error:', cErr.message);
+        }
+    }
+
+    if (!supabase) return;
 
     try {
         console.log(`[MarzPay] Upgrading user ${userId} to role ${targetRole} (txRef: ${txRef})`);
@@ -402,7 +414,7 @@ async function upgradeUserRole(userId, plan, txRef = '') {
         // Sync to Auth metadata if admin is available
         if (supabase.auth?.admin?.updateUserById) {
             await supabase.auth.admin.updateUserById(userId, {
-                user_metadata: { role: targetRole, plan: plan.toLowerCase() }
+                user_metadata: { role: targetRole, plan: (plan || '').toLowerCase() }
             });
         }
     } catch (e) {
@@ -414,6 +426,7 @@ app.post('/api/payments/marzpay/initiate', async (req, res) => {
     try {
         const {
             plan = 'pro',
+            seats = 10,
             amount,
             usdAmount,
             currency = 'UGX',
@@ -426,7 +439,7 @@ app.post('/api/payments/marzpay/initiate', async (req, res) => {
         } = req.body;
 
         if (!plan) {
-            return res.status(400).json({ error: 'Plan is required (pro or premium).' });
+            return res.status(400).json({ error: 'Plan is required (pro, premium, or corporate).' });
         }
 
         // Host origin for callback URL
@@ -437,6 +450,7 @@ app.post('/api/payments/marzpay/initiate', async (req, res) => {
 
         const result = await marzpayService.initiateCollection({
             plan,
+            seats,
             amount,
             usdAmount,
             currency,
@@ -451,7 +465,7 @@ app.post('/api/payments/marzpay/initiate', async (req, res) => {
 
         // If transaction completed immediately (e.g. Sandbox mode), upgrade user right away
         if (result.status === 'completed' && userId) {
-            await upgradeUserRole(userId, plan, result.reference);
+            await upgradeUserRole(userId, plan, result.reference, userEmail, seats);
         }
 
         res.json({
@@ -470,7 +484,13 @@ app.get('/api/payments/marzpay/status/:referenceOrUuid', async (req, res) => {
         const result = await marzpayService.checkStatus(referenceOrUuid);
 
         if (result.isCompleted && result.record?.userId && result.record?.plan) {
-            await upgradeUserRole(result.record.userId, result.record.plan, result.record.reference || referenceOrUuid);
+            await upgradeUserRole(
+                result.record.userId, 
+                result.record.plan, 
+                result.record.reference || referenceOrUuid,
+                result.record.userEmail,
+                result.record.seats || 10
+            );
         }
 
         res.json({
@@ -596,6 +616,118 @@ app.post('/api/admin/wallet/mode', (req, res) => {
             sandboxMode: config.sandboxMode
         });
     } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// ----------------------------------------------------
+// Corporate Organization & Seat Management Routes (/api/corporate/*)
+// ----------------------------------------------------
+app.get('/api/corporate/organization', async (req, res) => {
+    try {
+        const { userId, userEmail } = req.query;
+        const org = await corporateService.getOrganization(userId, userEmail);
+        res.json({ success: true, data: org });
+    } catch (err) {
+        console.error('[Corporate] Error fetching organization:', err.message);
+        res.status(500).json({ error: err.message });
+    }
+});
+
+app.post('/api/corporate/branding', async (req, res) => {
+    try {
+        const { userId, name, logoUrl, contactName, contactEmail, contactPhone, website } = req.body;
+        const updated = await corporateService.updateBranding(userId, {
+            name,
+            logoUrl,
+            contactName,
+            contactEmail,
+            contactPhone,
+            website
+        });
+        res.json({ success: true, data: updated });
+    } catch (err) {
+        console.error('[Corporate] Error updating branding:', err.message);
+        res.status(500).json({ error: err.message });
+    }
+});
+
+app.get('/api/corporate/seats', async (req, res) => {
+    try {
+        const { orgId, userId, userEmail } = req.query;
+        const data = await corporateService.getSeatsAndProgress(orgId, userId, userEmail);
+        res.json({ success: true, ...data });
+    } catch (err) {
+        console.error('[Corporate] Error reading seats:', err.message);
+        res.status(500).json({ error: err.message });
+    }
+});
+
+app.post('/api/corporate/invite', async (req, res) => {
+    try {
+        const { orgId, invites, user } = req.body;
+        if (!Array.isArray(invites) || invites.length === 0) {
+            return res.status(400).json({ error: 'At least one invite with email is required.' });
+        }
+        const result = await corporateService.inviteMembers(orgId, invites, user);
+        res.json({ success: true, ...result });
+    } catch (err) {
+        console.error('[Corporate] Invite error:', err.message);
+        res.status(400).json({ error: err.message });
+    }
+});
+
+app.post('/api/corporate/invite/resend', async (req, res) => {
+    try {
+        const { orgId, memberId } = req.body;
+        const result = await corporateService.resendInvite(orgId, memberId);
+        res.json({ success: true, ...result });
+    } catch (err) {
+        console.error('[Corporate] Resend invite error:', err.message);
+        res.status(400).json({ error: err.message });
+    }
+});
+
+app.delete('/api/corporate/seats/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { orgId } = req.query;
+        const result = await corporateService.revokeSeat(orgId, id);
+        res.json({ success: true, ...result });
+    } catch (err) {
+        console.error('[Corporate] Revoke seat error:', err.message);
+        res.status(400).json({ error: err.message });
+    }
+});
+
+app.post('/api/corporate/claim', async (req, res) => {
+    try {
+        const { email, userId, name } = req.body;
+        const result = await corporateService.claimInvite(email, userId, name);
+        res.json({ success: true, data: result });
+    } catch (err) {
+        console.error('[Corporate] Claim invite error:', err.message);
+        res.status(400).json({ error: err.message });
+    }
+});
+
+app.post('/api/corporate/provision', async (req, res) => {
+    try {
+        const { userId, userEmail, seats, planTier } = req.body;
+        const org = await corporateService.provisionSeats(userId, userEmail, Number(seats) || 10, planTier);
+        if (userId) {
+            try {
+                await supabase
+                    .from('profiles')
+                    .update({ role: 'SPONSORED', company_name: org.name })
+                    .eq('id', userId);
+            } catch (supaErr) {
+                console.warn('[Corporate] Profile role update warning:', supaErr.message);
+            }
+        }
+        res.json({ success: true, data: org });
+    } catch (err) {
+        console.error('[Corporate] Provision error:', err.message);
         res.status(500).json({ error: err.message });
     }
 });

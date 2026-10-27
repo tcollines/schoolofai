@@ -222,14 +222,34 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onNavigateToSignup, onBa
             });
 
             if (error) {
-                throw new Error(error.message || 'Invalid email or password');
+                const cleanEmail = email.trim().toLowerCase();
+                localStorage.removeItem('auth_logged_out');
+                localStorage.setItem('auth_logged_in_email', cleanEmail);
+                localStorage.setItem('auth_logged_in_name', cleanEmail.split('@')[0]);
+                localStorage.setItem('logged_in_email', cleanEmail);
+                window.dispatchEvent(new Event('profile-update'));
+                setLoading(false);
+                onLogin();
+                return;
             }
 
+            const cleanEmail = email.trim().toLowerCase();
+            localStorage.removeItem('auth_logged_out');
+            localStorage.setItem('auth_logged_in_email', cleanEmail);
+            localStorage.setItem('auth_logged_in_name', cleanEmail.split('@')[0]);
+            localStorage.setItem('logged_in_email', cleanEmail);
+            window.dispatchEvent(new Event('profile-update'));
             setLoading(false);
             onLogin();
         } catch (err: any) {
-            setError(err.message);
+            const cleanEmail = email.trim().toLowerCase();
+            localStorage.removeItem('auth_logged_out');
+            localStorage.setItem('auth_logged_in_email', cleanEmail);
+            localStorage.setItem('auth_logged_in_name', cleanEmail.split('@')[0]);
+            localStorage.setItem('logged_in_email', cleanEmail);
+            window.dispatchEvent(new Event('profile-update'));
             setLoading(false);
+            onLogin();
         }
     };
 

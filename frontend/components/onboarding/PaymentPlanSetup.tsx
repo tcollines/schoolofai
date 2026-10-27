@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../../src/lib/supabaseClient';
-import { Check, ArrowRight, Loader2, Star, AlertTriangle, Sparkles, Zap } from 'lucide-react';
+import { Check, ArrowRight, Loader2, Star, AlertTriangle, Sparkles, Zap, Building2, Users } from 'lucide-react';
 import MarzPayCheckoutModal from '../payments/MarzPayCheckoutModal';
 
 const PaymentPlanSetup: React.FC = () => {
@@ -196,8 +196,32 @@ const PaymentPlanSetup: React.FC = () => {
 
                         {/* Background Decor */}
                         <div className="absolute top-1/2 -right-20 w-64 h-64 bg-white/10 rounded-full blur-3xl pointer-events-none"></div>
-                        <div className="absolute -bottom-20 -left-20 w-64 h-64 bg-indigo-500/20 rounded-full blur-3xl pointer-events-none"></div>
                     </div>
+                </div>
+
+                {/* Corporate Team Banner */}
+                <div className="mt-10 max-w-6xl mx-auto p-6 rounded-3xl bg-white dark:bg-slate-900 border border-violet-200 dark:border-slate-800 shadow-xl flex flex-col md:flex-row items-center justify-between gap-6">
+                    <div className="flex items-center gap-4">
+                        <div className="w-14 h-14 rounded-2xl bg-violet-100 dark:bg-violet-900/40 text-violet-600 dark:text-violet-400 flex items-center justify-center shrink-0">
+                            <Building2 className="w-7 h-7" />
+                        </div>
+                        <div>
+                            <div className="flex items-center gap-2 mb-1">
+                                <h3 className="text-lg font-black text-gray-900 dark:text-white">Looking to upskill your team?</h3>
+                                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-violet-100 dark:bg-violet-950/60 text-violet-700 dark:text-violet-300">CORPORATE</span>
+                            </div>
+                            <p className="text-sm text-gray-500 dark:text-slate-400">
+                                Corporate plans start at <strong>$20/seat</strong> for 10+ seats or <strong>$15/seat</strong> for 50+ people with dedicated branding, email seat invites & live progress reporting.
+                            </p>
+                        </div>
+                    </div>
+                    <button
+                        onClick={() => navigate('/plans')}
+                        className="whitespace-nowrap px-6 py-3.5 bg-gradient-to-r from-violet-600 to-indigo-600 text-white rounded-full font-bold text-sm hover:shadow-lg hover:opacity-95 transition-all flex items-center gap-2 cursor-pointer"
+                    >
+                        <span>Configure Corporate Plan</span>
+                        <ArrowRight className="w-4 h-4" />
+                    </button>
                 </div>
             </div>
 

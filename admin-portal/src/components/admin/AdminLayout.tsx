@@ -227,6 +227,11 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ onExit, isInstructor, isAdmin
                 <Route path="exams" element={<AdminExams isInstructor={isInstructor} />} />
                 <Route path="events" element={<AdminEvents />} />
                 {!isInstructor && <Route path="mails" element={<AdminMails />} />}
+                {/* Fallback support if user typed /admin/... while on subdomain */}
+                {!isInstructor && <Route path="admin/wallet" element={<Navigate to="/wallet" replace />} />}
+                {!isInstructor && <Route path="admin/enrollments" element={<Navigate to="/enrollments" replace />} />}
+                <Route path="admin/courses" element={<Navigate to="/courses" replace />} />
+                <Route path="admin/*" element={<Navigate to={isInstructor ? "/courses" : "/enrollments"} replace />} />
             </Routes>
         );
     };

@@ -65,7 +65,7 @@ const StudentLayout: React.FC<StudentLayoutProps> = ({ session, isAuthenticated,
 
     // Derived state for Header visibility based on current route
     const currentPath = location.pathname.split('/')[1] || '';
-    const hideHeaderWidgets = ['courses', 'career', 'profile', 'plans', 'discover', 'settings', 'discussions'].includes(currentPath);
+    const hideHeaderWidgets = ['courses', 'career', 'profile', 'plans', 'discover', 'settings', 'discussions', 'corporate'].includes(currentPath);
     const profilePosition = ['courses', 'discover', 'settings', 'discussions'].includes(currentPath) ? 'left' : 'right';
 
     const activeSidebarTab = currentPath === 'plans' ? 'profile' : (currentPath || 'dashboard');

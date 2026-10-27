@@ -8,8 +8,9 @@ export default defineConfig(({ mode }) => {
   return {
     envDir: '../',
     server: {
-      port: 4002,
+      port: 4004,
       host: '0.0.0.0',
+      allowedHosts: true,
       proxy: {
         '/api': {
           target: 'http://localhost:3000',

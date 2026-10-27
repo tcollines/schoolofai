@@ -6,7 +6,8 @@ import { supabaseClient } from '../../src/lib/supabaseClient';
 interface MarzPayCheckoutModalProps {
     isOpen: boolean;
     onClose: () => void;
-    plan: 'pro' | 'premium';
+    plan: 'pro' | 'premium' | 'corporate';
+    seats?: number;
     user?: any;
     onSuccess?: () => void;
 }
@@ -15,6 +16,7 @@ export const MarzPayCheckoutModal: React.FC<MarzPayCheckoutModalProps> = ({
     isOpen,
     onClose,
     plan,
+    seats = 10,
     user,
     onSuccess
 }) => {
@@ -35,13 +37,24 @@ export const MarzPayCheckoutModal: React.FC<MarzPayCheckoutModalProps> = ({
     const [countdown, setCountdown] = useState(120);
 
     const isPro = plan === 'pro';
-    const planTitle = isPro ? 'Pro Subscription' : 'Premium Lifetime Access';
-    const usdPrice = isPro ? 25 : 150;
+    const isCorp = plan === 'corporate';
+    const numSeats = seats || 10;
+    const corpUnitPrice = numSeats >= 50 ? 15 : 20;
+
+    const planTitle = isCorp 
+        ? `Corporate Plan (${numSeats} Seats)` 
+        : (isPro ? 'Pro Subscription' : 'Premium Lifetime Access');
+    
+    const usdPrice = isCorp
+        ? (numSeats * corpUnitPrice)
+        : (isPro ? 25 : 150);
     
     // Calculate live amount: USD * (live dollar rate + 300 UGX)
-    const baseUgxAmount = isPro 
+    const baseUgxAmount = isCorp
         ? Math.round(usdPrice * effectiveRate)
-        : (premiumOption === 'installment' ? Math.round((usdPrice * effectiveRate) / 3) : Math.round(usdPrice * effectiveRate));
+        : (isPro 
+            ? Math.round(usdPrice * effectiveRate)
+            : (premiumOption === 'installment' ? Math.round((usdPrice * effectiveRate) / 3) : Math.round(usdPrice * effectiveRate)));
 
     useEffect(() => {
         fetchLiveExchangeRate().then((r) => {
@@ -84,8 +97,8 @@ export const MarzPayCheckoutModal: React.FC<MarzPayCheckoutModalProps> = ({
         }
     }, [isOpen, plan, user]);
 
-    const activatePaidRole = async (targetPlan: 'pro' | 'premium', txRef?: string) => {
-        const targetRole = targetPlan === 'premium' ? 'PREMIUM' : 'PRO';
+    const activatePaidRole = async (targetPlan: 'pro' | 'premium' | 'corporate', txRef?: string) => {
+        const targetRole = targetPlan === 'corporate' ? 'SPONSORED' : (targetPlan === 'premium' ? 'PREMIUM' : 'PRO');
         try {
             const { data: { user: authUser } } = await supabaseClient.auth.getUser();
             const uid = authUser?.id || user?.id;
@@ -102,7 +115,8 @@ export const MarzPayCheckoutModal: React.FC<MarzPayCheckoutModalProps> = ({
                     .update({
                         role: targetRole,
                         pending_role: null,
-                        pending_txid: txRef || null
+                        pending_txid: txRef || null,
+                        ...(targetPlan === 'corporate' ? { company_name: user?.company_name || 'Corporate Partner' } : {})
                     })
                     .eq('id', uid);
             }
@@ -115,7 +129,7 @@ export const MarzPayCheckoutModal: React.FC<MarzPayCheckoutModalProps> = ({
             const newItem = {
                 id: 'notif-' + Date.now(),
                 title: `${targetPlan.toUpperCase()} Plan Activated!`,
-                description: `Your MarzPay payment of UGX ${baseUgxAmount.toLocaleString()} was successful. You now have full access.`,
+                description: `Your MarzPay payment of UGX ${baseUgxAmount.toLocaleString()} was successful. ${targetPlan === 'corporate' ? `${numSeats} Corporate learning seats are now active.` : 'You now have full access.'}`,
                 timestamp: new Date().toISOString(),
                 read: false,
                 type: 'payment'
@@ -190,6 +204,7 @@ export const MarzPayCheckoutModal: React.FC<MarzPayCheckoutModalProps> = ({
         try {
             const bodyPayload = {
                 plan,
+                seats: isCorp ? numSeats : undefined,
                 amount: baseUgxAmount,
                 usdAmount: usdPrice,
                 currency: 'UGX',

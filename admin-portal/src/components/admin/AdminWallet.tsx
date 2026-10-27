@@ -1,17 +1,21 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { 
-    Wallet, ArrowDownLeft, ArrowUpRight, Plus, RefreshCw, 
-    Search, Filter, CheckCircle2, Clock, AlertTriangle, 
-    Smartphone, CreditCard, Landmark, ShieldAlert, Sparkles,
-    FileText, X, Check, Download, TrendingUp
+    Wallet, BookOpen, Layers, Users, ArrowUpRight, ArrowDownLeft, 
+    Search, Filter, Download, Plus, RefreshCw, CheckCircle2, 
+    Clock, AlertTriangle, ChevronLeft, ChevronRight, Building, 
+    Smartphone, CreditCard, Landmark, Sparkles, X, Eye, FileText
 } from 'lucide-react';
-import { formatAmount } from '../../lib/currency';
+import { formatRawAmount, formatAmount } from '../../lib/currency';
 
 interface Transaction {
     uuid: string;
     reference: string;
     type?: 'deposit' | 'withdrawal' | 'debit';
-    plan?: string;
+    paymentType?: 'course' | 'package' | 'payout';
+    plan?: 'course' | 'pro' | 'premium' | 'corporate' | 'withdrawal' | string;
+    itemTitle?: string;
+    companyName?: string;
+    seats?: number;
     amount: number;
     usdAmount?: number;
     currency: string;
@@ -19,8 +23,8 @@ interface Transaction {
     phoneNumber?: string;
     userEmail?: string;
     userName?: string;
-    sender?: string;
     recipient?: string;
+    sender?: string;
     description?: string;
     category?: string;
     status: string;
@@ -58,38 +62,27 @@ export const AdminWallet: React.FC = () => {
     const [sandboxMode, setSandboxMode] = useState(false);
     const [togglingMode, setTogglingMode] = useState(false);
 
-    // Filters
+    // Filter & Pagination States
+    const [activeTab, setActiveTab] = useState<'all' | 'courses' | 'packages' | 'payouts'>('all');
     const [searchQuery, setSearchQuery] = useState('');
-    const [typeFilter, setTypeFilter] = useState<'all' | 'deposit' | 'withdrawal'>('all');
-    const [statusFilter, setStatusFilter] = useState<'all' | 'completed' | 'processing' | 'failed'>('all');
-    const [modeFilter, setModeFilter] = useState<'all' | 'sandbox' | 'live'>('all');
-
-    // Modals
-    const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-    const [addModalType, setAddModalType] = useState<'deposit' | 'withdrawal'>('deposit');
+    const [packageFilter, setPackageFilter] = useState<'all' | 'pro' | 'premium' | 'corporate'>('all');
+    const [currentPage, setCurrentPage] = useState(1);
+    const [itemsPerPage, setItemsPerPage] = useState(10);
     const [selectedTx, setSelectedTx] = useState<Transaction | null>(null);
 
-    // Form inputs for new transaction
-    const [formAmount, setFormAmount] = useState('');
-    const [formDescription, setFormDescription] = useState('');
-    const [formMethod, setFormMethod] = useState('mobile_money');
-    const [formCategory, setFormCategory] = useState('Subscription');
-    const [formParty, setFormParty] = useState('');
-    const [formNotes, setFormNotes] = useState('');
-    const [submittingTx, setSubmittingTx] = useState(false);
-
+    // Fetch ledger data
     const fetchLedger = async () => {
+        setLoading(true);
         try {
-            setLoading(true);
             const res = await fetch('/api/admin/wallet/ledger');
             if (res.ok) {
                 const data = await res.json();
                 if (data.summary) setSummary(data.summary);
                 if (data.transactions) setTransactions(data.transactions);
-                if (data.sandboxMode !== undefined) setSandboxMode(data.sandboxMode);
+                if (data.sandboxMode !== undefined) setSandboxMode(Boolean(data.sandboxMode));
             }
-        } catch (err) {
-            console.error('Error fetching ledger:', err);
+        } catch (e) {
+            console.error('Failed to load wallet ledger:', e);
         } finally {
             setLoading(false);
         }
@@ -100,8 +93,8 @@ export const AdminWallet: React.FC = () => {
     }, []);
 
     const handleToggleSandbox = async () => {
+        setTogglingMode(true);
         try {
-            setTogglingMode(true);
             const nextMode = !sandboxMode;
             const res = await fetch('/api/admin/wallet/mode', {
                 method: 'POST',
@@ -111,439 +104,566 @@ export const AdminWallet: React.FC = () => {
             if (res.ok) {
                 const data = await res.json();
                 setSandboxMode(data.sandboxMode);
-                await fetchLedger();
+                fetchLedger();
             }
-        } catch (e) {
-            console.error('Error toggling sandbox mode:', e);
+        } catch (err) {
+            console.error('Failed to toggle sandbox mode:', err);
         } finally {
             setTogglingMode(false);
         }
     };
 
-    const handleCreateTransaction = async (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!formAmount || isNaN(Number(formAmount))) {
-            alert('Please enter a valid numeric amount.');
-            return;
+    // Calculate aggregated metrics
+    const stats = useMemo(() => {
+        let courseRevenueUGX = 0;
+        let packageRevenueUGX = 0;
+        let courseCount = 0;
+        let packageCount = 0;
+        let totalSeatsSold = 0;
+
+        for (const t of transactions) {
+            if (t.type === 'withdrawal' || t.type === 'debit') continue;
+            if (t.status !== 'completed' && t.status !== 'successful' && t.status !== 'sandbox') continue;
+
+            const isCourse = t.paymentType === 'course' || t.plan === 'course';
+            const amt = Number(t.amount) || 0;
+            const seats = Number(t.seats) || 1;
+
+            if (isCourse) {
+                courseRevenueUGX += amt;
+                courseCount += 1;
+                totalSeatsSold += seats;
+            } else {
+                packageRevenueUGX += amt;
+                packageCount += 1;
+                totalSeatsSold += seats;
+            }
         }
 
-        setSubmittingTx(true);
-        try {
-            const numAmount = Number(formAmount);
-            const payload = {
-                type: addModalType,
-                amount: numAmount,
-                description: formDescription,
-                method: formMethod,
-                category: formCategory,
-                sender: addModalType === 'deposit' ? formParty : 'School Wallet',
-                recipient: addModalType === 'withdrawal' ? formParty : 'School Wallet',
-                notes: formNotes
-            };
+        return {
+            courseRevenueUGX,
+            packageRevenueUGX,
+            courseCount,
+            packageCount,
+            totalSeatsSold
+        };
+    }, [transactions]);
 
-            const res = await fetch('/api/admin/wallet/transaction', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            });
+    // Filter transactions
+    const filteredTransactions = useMemo(() => {
+        return transactions.filter(t => {
+            const isWithdrawal = t.type === 'withdrawal' || t.type === 'debit';
+            const isCourse = (t.paymentType === 'course' || t.plan === 'course') && !isWithdrawal;
+            const isPackage = !isCourse && !isWithdrawal;
 
-            if (res.ok) {
-                setIsAddModalOpen(false);
-                setFormAmount('');
-                setFormDescription('');
-                setFormParty('');
-                setFormNotes('');
-                await fetchLedger();
-            } else {
-                alert('Failed to record transaction.');
+            // Tab filtering
+            if (activeTab === 'courses' && !isCourse) return false;
+            if (activeTab === 'packages' && !isPackage) return false;
+            if (activeTab === 'payouts' && !isWithdrawal) return false;
+
+            // Sub-filter for packages
+            if (activeTab === 'packages' && packageFilter !== 'all') {
+                const planKey = (t.plan || '').toLowerCase();
+                if (packageFilter === 'pro' && !planKey.includes('pro')) return false;
+                if (packageFilter === 'premium' && !planKey.includes('prem')) return false;
+                if (packageFilter === 'corporate' && !planKey.includes('corp') && !planKey.includes('sponsor')) return false;
             }
-        } catch (err) {
-            console.error('Transaction creation error:', err);
-            alert('Error recording transaction.');
-        } finally {
-            setSubmittingTx(false);
+
+            // Search query
+            if (searchQuery.trim()) {
+                const q = searchQuery.toLowerCase();
+                const matchName = (t.userName || '').toLowerCase().includes(q);
+                const matchEmail = (t.userEmail || '').toLowerCase().includes(q);
+                const matchTitle = (t.itemTitle || t.description || '').toLowerCase().includes(q);
+                const matchCompany = (t.companyName || '').toLowerCase().includes(q);
+                const matchRef = (t.reference || t.uuid || '').toLowerCase().includes(q);
+                const matchPhone = (t.phoneNumber || '').toLowerCase().includes(q);
+                if (!matchName && !matchEmail && !matchTitle && !matchCompany && !matchRef && !matchPhone) {
+                    return false;
+                }
+            }
+
+            return true;
+        });
+    }, [transactions, activeTab, packageFilter, searchQuery]);
+
+    // Pagination calculations
+    const totalPages = Math.max(1, Math.ceil(filteredTransactions.length / itemsPerPage));
+    const paginatedTransactions = useMemo(() => {
+        const start = (currentPage - 1) * itemsPerPage;
+        return filteredTransactions.slice(start, start + itemsPerPage);
+    }, [filteredTransactions, currentPage, itemsPerPage]);
+
+    const handlePageChange = (page: number) => {
+        if (page >= 1 && page <= totalPages) {
+            setCurrentPage(page);
         }
     };
 
-    const filteredTransactions = transactions.filter((tx) => {
-        const isDebit = tx.type === 'withdrawal' || tx.type === 'debit';
-        const txType = isDebit ? 'withdrawal' : 'deposit';
-
-        if (typeFilter !== 'all' && txType !== typeFilter) return false;
-
-        const isSuccess = ['completed', 'successful', 'sandbox'].includes(tx.status?.toLowerCase());
-        const isPending = ['processing', 'pending'].includes(tx.status?.toLowerCase());
-        const isFailed = ['failed', 'cancelled', 'rejected'].includes(tx.status?.toLowerCase());
-
-        if (statusFilter === 'completed' && !isSuccess) return false;
-        if (statusFilter === 'processing' && !isPending) return false;
-        if (statusFilter === 'failed' && !isFailed) return false;
-
-        if (modeFilter === 'sandbox' && !tx.isSandbox) return false;
-        if (modeFilter === 'live' && tx.isSandbox) return false;
-
-        if (searchQuery.trim()) {
-            const query = searchQuery.toLowerCase();
-            const matchRef = (tx.reference || tx.uuid || '').toLowerCase().includes(query);
-            const matchEmail = (tx.userEmail || '').toLowerCase().includes(query);
-            const matchName = (tx.userName || tx.sender || tx.recipient || '').toLowerCase().includes(query);
-            const matchDesc = (tx.description || '').toLowerCase().includes(query);
-            const matchPhone = (tx.phoneNumber || '').includes(query);
-            if (!matchRef && !matchEmail && !matchName && !matchDesc && !matchPhone) return false;
-        }
-
-        return true;
-    });
-
-    const exportToCSV = () => {
-        const headers = ['Date', 'Reference', 'Type', 'Description', 'Amount (UGX)', 'Method', 'Party', 'Status', 'Environment'];
-        const rows = filteredTransactions.map(tx => [
-            tx.createdAt || '',
-            tx.reference || tx.uuid,
-            tx.type === 'withdrawal' ? 'Withdrawal' : 'Deposit',
-            `"${(tx.description || '').replace(/"/g, '""')}"`,
-            tx.amount,
-            tx.method || '',
-            `"${(tx.userName || tx.userEmail || tx.recipient || tx.sender || '').replace(/"/g, '""')}"`,
-            tx.status,
-            tx.isSandbox ? 'Sandbox' : 'Live'
+    // CSV Export
+    const handleExportCSV = () => {
+        const headers = [
+            'Reference', 'Date', 'Type', 'Item/Plan', 'Customer', 'Email', 
+            'Company', 'Seats', 'Amount UGX', 'Amount USD', 'Method', 'Status'
+        ];
+        const rows = filteredTransactions.map(t => [
+            t.reference || t.uuid,
+            t.createdAt ? new Date(t.createdAt).toLocaleString() : '',
+            t.paymentType || t.type || 'deposit',
+            t.itemTitle || t.plan || '',
+            t.userName || '',
+            t.userEmail || '',
+            t.companyName || '',
+            t.seats || 1,
+            t.amount || 0,
+            t.usdAmount || '',
+            t.method || '',
+            t.status || ''
         ]);
-
-        const csvContent = 'data:text/csv;charset=utf-8,' + [headers.join(','), ...rows.map(e => e.join(','))].join('\n');
+        const csvContent = 'data:text/csv;charset=utf-8,' + 
+            [headers.join(','), ...rows.map(r => r.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(','))].join('\n');
         const encodedUri = encodeURI(csvContent);
         const link = document.createElement('a');
         link.setAttribute('href', encodedUri);
-        link.setAttribute('download', `welile-wallet-ledger-${Date.now()}.csv`);
+        link.setAttribute('download', `wallet-payments-${new Date().toISOString().slice(0, 10)}.csv`);
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
     };
 
     return (
-        <div className="space-y-8 max-w-7xl mx-auto pb-12">
-            {/* Header */}
+        <div className="space-y-6 pb-12 animate-in fade-in duration-300">
+            {/* Header: Title and Environment Mode Badge */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
-                    <h1 className="text-3xl font-black text-gray-900 dark:text-white flex items-center gap-3">
-                        <Wallet className="w-8 h-8 text-violet-600" />
-                        Wallet & Ledger
+                    <h1 className="text-2xl font-bold tracking-tight text-gray-900 dark:text-white flex items-center gap-3">
+                        <Wallet className="w-7 h-7 text-violet-600 dark:text-violet-400" />
+                        Wallet & Payments
                     </h1>
                     <p className="text-sm text-gray-500 dark:text-slate-400 mt-1">
-                        Track platform collections, student subscription revenue, disbursements, and testing modes.
+                        Track platform revenue from individual courses and subscription packages with seat management.
                     </p>
                 </div>
 
                 <div className="flex items-center gap-3">
-                    {/* Sandbox Toggle */}
-                    <div className="flex items-center gap-2 p-1.5 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-2xl shadow-sm">
-                        <span className="text-xs font-bold px-2 text-gray-600 dark:text-slate-400">
-                            Mode:
-                        </span>
+                    <button
+                        onClick={fetchLedger}
+                        disabled={loading}
+                        className="p-2.5 rounded-xl border border-gray-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-gray-600 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-slate-800 transition-all cursor-pointer shadow-sm disabled:opacity-50"
+                        title="Refresh wallet balances"
+                    >
+                        <RefreshCw size={16} className={loading ? 'animate-spin text-violet-600' : ''} />
+                    </button>
+
+                    <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 shadow-sm">
+                        <span className="text-xs font-semibold text-gray-500 dark:text-slate-400">Mode:</span>
                         <button
                             onClick={handleToggleSandbox}
                             disabled={togglingMode}
-                            className={`px-3 py-1.5 rounded-xl text-xs font-black transition-all flex items-center gap-1.5 cursor-pointer ${
+                            className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                                 sandboxMode 
-                                    ? 'bg-amber-400 hover:bg-amber-500 text-amber-950 shadow-sm ring-2 ring-amber-300' 
-                                    : 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm ring-2 ring-emerald-400/40'
+                                    ? 'bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300 border border-amber-300 dark:border-amber-800'
+                                    : 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800'
                             }`}
                         >
-                            <span className={`w-2 h-2 rounded-full ${sandboxMode ? 'bg-amber-900 animate-ping' : 'bg-white'}`}></span>
-                            {sandboxMode ? 'SANDBOX (TEST)' : 'LIVE PRODUCTION'}
+                            <span className={`w-2 h-2 rounded-full ${sandboxMode ? 'bg-amber-500 animate-pulse' : 'bg-emerald-500'}`} />
+                            {sandboxMode ? 'SANDBOX TESTING' : 'LIVE PRODUCTION'}
                         </button>
                     </div>
-
-                    <button
-                        onClick={fetchLedger}
-                        className="p-2.5 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 hover:bg-gray-50 dark:hover:bg-slate-800 text-gray-700 dark:text-slate-300 rounded-xl transition-colors cursor-pointer"
-                        title="Refresh Ledger"
-                    >
-                        <RefreshCw size={16} className={loading ? 'animate-spin' : ''} />
-                    </button>
                 </div>
             </div>
 
-            {/* Sandbox Mode Alert Banner */}
-            {sandboxMode && (
-                <div className="p-4 bg-gradient-to-r from-amber-500/10 via-amber-400/10 to-transparent border border-amber-300 dark:border-amber-800/60 rounded-3xl flex items-start sm:items-center justify-between gap-4">
-                    <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-2xl bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-400 flex items-center justify-center shrink-0">
-                            <Sparkles size={20} />
-                        </div>
-                        <div>
-                            <h4 className="text-sm font-black text-amber-900 dark:text-amber-300">
-                                Sandbox Mode is Currently Active
-                            </h4>
-                            <p className="text-xs text-amber-800/80 dark:text-amber-400/80 mt-0.5">
-                                API collections will run in simulated mode without charging real mobile money or bank accounts. Test collections will complete automatically.
-                            </p>
-                        </div>
-                    </div>
-                    <button
-                        onClick={handleToggleSandbox}
-                        className="px-3 py-1.5 text-xs font-bold bg-amber-200 dark:bg-amber-900/50 hover:bg-amber-300 dark:hover:bg-amber-800/50 text-amber-900 dark:text-amber-200 rounded-xl shrink-0 cursor-pointer"
-                    >
-                        Switch to Live
-                    </button>
-                </div>
-            )}
+            {/* SIMPLE TOTAL WALLET BALANCE CARD */}
+            <div className="bg-gradient-to-br from-slate-900 via-violet-950 to-slate-900 text-white rounded-3xl p-6 md:p-8 shadow-xl border border-violet-800/30 relative overflow-hidden">
+                <div className="absolute top-0 right-0 -mt-8 -mr-8 w-64 h-64 bg-violet-600/20 rounded-full blur-3xl pointer-events-none" />
+                <div className="absolute bottom-0 left-1/3 -mb-12 w-64 h-64 bg-indigo-600/15 rounded-full blur-3xl pointer-events-none" />
 
-            {/* Balances Overview Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                {/* Net Balance Card */}
-                <div className="p-6 bg-gradient-to-br from-violet-600 via-indigo-700 to-slate-900 text-white rounded-3xl shadow-xl border border-violet-400/20 relative overflow-hidden flex flex-col justify-between">
-                    <div className="flex justify-between items-start">
-                        <div>
-                            <span className="text-xs font-bold uppercase tracking-wider text-violet-200">
-                                Net Wallet Balance
+                <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+                    <div>
+                        <div className="flex items-center gap-2 text-violet-300 text-xs font-bold uppercase tracking-wider">
+                            <Wallet className="w-4 h-4" />
+                            Total Wallet Balance
+                        </div>
+                        <div className="mt-2 flex items-baseline gap-3">
+                            <span className="text-3xl md:text-5xl font-extrabold tracking-tight text-white">
+                                {formatRawAmount(summary.netBalanceUGX, 'UGX')}
                             </span>
-                            <div className="text-3xl font-black mt-2">
-                                UGX {summary.netBalanceUGX.toLocaleString()}
+                            <span className="text-lg md:text-xl font-semibold text-violet-300/80">
+                                ≈ ${Math.round(summary.netBalanceUGX / 4600).toLocaleString()} USD
+                            </span>
+                        </div>
+                        <p className="text-xs text-slate-400 mt-1">
+                            Net funds received from student courses and corporate packages minus instructor disbursements.
+                        </p>
+                    </div>
+
+                    {/* Breakdown Pills */}
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                        <div className="bg-white/10 backdrop-blur-md rounded-2xl p-4 border border-white/10">
+                            <div className="flex items-center gap-2 text-xs font-semibold text-violet-200">
+                                <BookOpen className="w-3.5 h-3.5 text-violet-400" />
+                                Course Payments
+                            </div>
+                            <div className="text-lg font-bold text-white mt-1">
+                                {formatRawAmount(stats.courseRevenueUGX, 'UGX')}
+                            </div>
+                            <div className="text-[11px] text-slate-300 mt-0.5">
+                                {stats.courseCount} student enrollment{stats.courseCount === 1 ? '' : 's'}
                             </div>
                         </div>
-                        <div className="w-12 h-12 rounded-2xl bg-white/10 flex items-center justify-center backdrop-blur-sm">
-                            <Wallet className="w-6 h-6 text-white" />
-                        </div>
-                    </div>
 
-                    <div className="pt-6 border-t border-white/10 flex items-center justify-between text-xs text-violet-200">
-                        <span>Total Ledgers Recorded</span>
-                        <span className="font-mono font-bold text-white">{summary.totalCount} Transactions</span>
-                    </div>
-                </div>
-
-                {/* Total Deposits Card */}
-                <div className="p-6 bg-white dark:bg-slate-900 rounded-3xl shadow-sm border border-gray-200 dark:border-slate-800 flex flex-col justify-between">
-                    <div className="flex justify-between items-start">
-                        <div>
-                            <span className="text-xs font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
-                                <ArrowDownLeft size={14} /> Total Deposits (Credits)
-                            </span>
-                            <div className="text-3xl font-black text-gray-900 dark:text-white mt-2">
-                                UGX {summary.totalDepositsUGX.toLocaleString()}
+                        <div className="bg-white/10 backdrop-blur-md rounded-2xl p-4 border border-white/10">
+                            <div className="flex items-center gap-2 text-xs font-semibold text-amber-200">
+                                <Layers className="w-3.5 h-3.5 text-amber-400" />
+                                Package Plans
+                            </div>
+                            <div className="text-lg font-bold text-white mt-1">
+                                {formatRawAmount(stats.packageRevenueUGX, 'UGX')}
+                            </div>
+                            <div className="text-[11px] text-slate-300 mt-0.5">
+                                {stats.packageCount} packages • {stats.totalSeatsSold} total seats
                             </div>
                         </div>
-                        <div className="w-12 h-12 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
-                            <ArrowDownLeft className="w-6 h-6" />
-                        </div>
-                    </div>
 
-                    <div className="pt-6 border-t border-gray-150 dark:border-slate-800 flex items-center justify-between text-xs text-gray-500 dark:text-slate-400">
-                        <span>Confirmed Deposits</span>
-                        <span className="font-bold text-gray-900 dark:text-white">{summary.depositCount} payments</span>
-                    </div>
-                </div>
-
-                {/* Total Withdrawals Card */}
-                <div className="p-6 bg-white dark:bg-slate-900 rounded-3xl shadow-sm border border-gray-200 dark:border-slate-800 flex flex-col justify-between">
-                    <div className="flex justify-between items-start">
-                        <div>
-                            <span className="text-xs font-bold uppercase tracking-wider text-amber-600 dark:text-amber-400 flex items-center gap-1">
-                                <ArrowUpRight size={14} /> Total Withdrawals (Debits)
-                            </span>
-                            <div className="text-3xl font-black text-gray-900 dark:text-white mt-2">
-                                UGX {summary.totalWithdrawalsUGX.toLocaleString()}
+                        <div className="bg-white/10 backdrop-blur-md rounded-2xl p-4 border border-white/10">
+                            <div className="flex items-center gap-2 text-xs font-semibold text-rose-200">
+                                <ArrowUpRight className="w-3.5 h-3.5 text-rose-400" />
+                                Withdrawals / Payouts
+                            </div>
+                            <div className="text-lg font-bold text-white mt-1">
+                                {formatRawAmount(summary.totalWithdrawalsUGX, 'UGX')}
+                            </div>
+                            <div className="text-[11px] text-slate-300 mt-0.5">
+                                {summary.withdrawalCount} honorarium payout{summary.withdrawalCount === 1 ? '' : 's'}
                             </div>
                         </div>
-                        <div className="w-12 h-12 rounded-2xl bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 flex items-center justify-center">
-                            <ArrowUpRight className="w-6 h-6" />
-                        </div>
-                    </div>
-
-                    <div className="pt-6 border-t border-gray-150 dark:border-slate-800 flex items-center justify-between text-xs text-gray-500 dark:text-slate-400">
-                        <span>Disbursements</span>
-                        <span className="font-bold text-gray-900 dark:text-white">{summary.withdrawalCount} payouts</span>
                     </div>
                 </div>
             </div>
 
-            {/* Action Bar & Filters */}
-            <div className="p-6 bg-white dark:bg-slate-900 rounded-3xl border border-gray-200 dark:border-slate-800 shadow-sm space-y-4">
-                <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-                    {/* Search Input */}
-                    <div className="relative flex-1 max-w-md">
-                        <Search className="w-4 h-4 text-gray-400 absolute left-3.5 top-3.5" />
+            {/* FILTER TABS & SEARCH CONTROLS */}
+            <div className="bg-white dark:bg-slate-900 rounded-2xl p-4 border border-gray-200 dark:border-slate-800 shadow-sm flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4">
+                {/* Tabs */}
+                <div className="flex items-center gap-2 overflow-x-auto pb-1 md:pb-0">
+                    <button
+                        onClick={() => { setActiveTab('all'); setCurrentPage(1); }}
+                        className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
+                            activeTab === 'all'
+                                ? 'bg-violet-600 text-white shadow-sm'
+                                : 'bg-gray-100 dark:bg-slate-800 text-gray-600 dark:text-slate-300 hover:bg-gray-200 dark:hover:bg-slate-700'
+                        }`}
+                    >
+                        All Payments ({transactions.length})
+                    </button>
+
+                    <button
+                        onClick={() => { setActiveTab('courses'); setCurrentPage(1); }}
+                        className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap flex items-center gap-1.5 ${
+                            activeTab === 'courses'
+                                ? 'bg-violet-600 text-white shadow-sm'
+                                : 'bg-gray-100 dark:bg-slate-800 text-gray-600 dark:text-slate-300 hover:bg-gray-200 dark:hover:bg-slate-700'
+                        }`}
+                    >
+                        <BookOpen size={14} />
+                        Course Payments ({transactions.filter(t => t.paymentType === 'course' || t.plan === 'course').length})
+                    </button>
+
+                    <button
+                        onClick={() => { setActiveTab('packages'); setCurrentPage(1); }}
+                        className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap flex items-center gap-1.5 ${
+                            activeTab === 'packages'
+                                ? 'bg-violet-600 text-white shadow-sm'
+                                : 'bg-gray-100 dark:bg-slate-800 text-gray-600 dark:text-slate-300 hover:bg-gray-200 dark:hover:bg-slate-700'
+                        }`}
+                    >
+                        <Layers size={14} />
+                        Package Payments ({transactions.filter(t => t.paymentType === 'package' || ['pro', 'premium', 'corporate'].includes(t.plan || '')).length})
+                    </button>
+
+                    <button
+                        onClick={() => { setActiveTab('payouts'); setCurrentPage(1); }}
+                        className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap flex items-center gap-1.5 ${
+                            activeTab === 'payouts'
+                                ? 'bg-violet-600 text-white shadow-sm'
+                                : 'bg-gray-100 dark:bg-slate-800 text-gray-600 dark:text-slate-300 hover:bg-gray-200 dark:hover:bg-slate-700'
+                        }`}
+                    >
+                        <ArrowUpRight size={14} />
+                        Payouts ({transactions.filter(t => t.type === 'withdrawal' || t.type === 'debit').length})
+                    </button>
+                </div>
+
+                {/* Sub-filter when on Packages tab */}
+                {activeTab === 'packages' && (
+                    <div className="flex items-center gap-1.5 bg-gray-100 dark:bg-slate-800 p-1 rounded-xl">
+                        {(['all', 'pro', 'premium', 'corporate'] as const).map(p => (
+                            <button
+                                key={p}
+                                onClick={() => { setPackageFilter(p); setCurrentPage(1); }}
+                                className={`px-2.5 py-1 text-[11px] font-bold rounded-lg uppercase tracking-wide cursor-pointer transition-all ${
+                                    packageFilter === p
+                                        ? 'bg-white dark:bg-slate-900 text-violet-600 dark:text-violet-400 shadow-xs'
+                                        : 'text-gray-500 dark:text-slate-400 hover:text-gray-900 dark:hover:text-white'
+                                }`}
+                            >
+                                {p === 'all' ? 'All Packages' : p}
+                            </button>
+                        ))}
+                    </div>
+                )}
+
+                {/* Search & Actions */}
+                <div className="flex items-center gap-2">
+                    <div className="relative flex-1 md:w-64">
+                        <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
                         <input
                             type="text"
                             value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                            placeholder="Search by reference, user email, party..."
-                            className="w-full pl-10 pr-4 py-2.5 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-2xl text-xs text-gray-900 dark:text-white placeholder-gray-400 outline-none focus:ring-2 focus:ring-violet-500/20"
+                            onChange={e => { setSearchQuery(e.target.value); setCurrentPage(1); }}
+                            placeholder="Search payments..."
+                            className="w-full pl-9 pr-3 py-2 bg-gray-50 dark:bg-slate-800 text-gray-800 dark:text-slate-200 rounded-xl text-xs border border-gray-200 dark:border-slate-700 focus:outline-hidden focus:border-violet-500"
                         />
+                        {searchQuery && (
+                            <button onClick={() => setSearchQuery('')} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                                <X size={12} />
+                            </button>
+                        )}
                     </div>
 
-                    {/* Filter Dropdowns */}
-                    <div className="flex flex-wrap items-center gap-3">
-                        <select
-                            value={typeFilter}
-                            onChange={(e) => setTypeFilter(e.target.value as any)}
-                            className="px-3 py-2 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl text-xs font-bold text-gray-900 dark:text-white outline-none"
-                        >
-                            <option value="all">All Types</option>
-                            <option value="deposit">Deposits Only</option>
-                            <option value="withdrawal">Withdrawals Only</option>
-                        </select>
-
-                        <select
-                            value={statusFilter}
-                            onChange={(e) => setStatusFilter(e.target.value as any)}
-                            className="px-3 py-2 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl text-xs font-bold text-gray-900 dark:text-white outline-none"
-                        >
-                            <option value="all">All Statuses</option>
-                            <option value="completed">Completed</option>
-                            <option value="processing">Processing</option>
-                            <option value="failed">Failed</option>
-                        </select>
-
-                        <select
-                            value={modeFilter}
-                            onChange={(e) => setModeFilter(e.target.value as any)}
-                            className="px-3 py-2 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl text-xs font-bold text-gray-900 dark:text-white outline-none"
-                        >
-                            <option value="all">All Environments</option>
-                            <option value="live">Live Only</option>
-                            <option value="sandbox">Sandbox Only</option>
-                        </select>
-
-                        <button
-                            onClick={exportToCSV}
-                            className="px-3.5 py-2 rounded-xl border border-gray-200 dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-800 text-xs font-bold text-gray-700 dark:text-slate-300 flex items-center gap-1.5 cursor-pointer"
-                        >
-                            <Download size={14} /> Export CSV
-                        </button>
-
-                        {/* Action Buttons */}
-                        <button
-                            onClick={() => {
-                                setAddModalType('deposit');
-                                setIsAddModalOpen(true);
-                            }}
-                            className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-sm transition-colors cursor-pointer"
-                        >
-                            <Plus size={14} /> Record Deposit
-                        </button>
-
-                        <button
-                            onClick={() => {
-                                setAddModalType('withdrawal');
-                                setIsAddModalOpen(true);
-                            }}
-                            className="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-sm transition-colors cursor-pointer"
-                        >
-                            <ArrowUpRight size={14} /> Record Withdrawal
-                        </button>
-                    </div>
+                    <button
+                        onClick={handleExportCSV}
+                        className="px-3.5 py-2 rounded-xl border border-gray-200 dark:border-slate-700 text-gray-700 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-slate-800 text-xs font-bold flex items-center gap-1.5 cursor-pointer shadow-xs whitespace-nowrap"
+                    >
+                        <Download size={13} />
+                        Export CSV
+                    </button>
                 </div>
+            </div>
 
-                {/* Ledger Transactions Table */}
-                <div className="overflow-x-auto pt-2">
-                    <table className="w-full text-left text-xs">
+            {/* PAYMENTS TABLE WITH PAGINATION */}
+            <div className="bg-white dark:bg-slate-900 rounded-2xl border border-gray-200 dark:border-slate-800 shadow-sm overflow-hidden">
+                <div className="overflow-x-auto">
+                    <table className="w-full text-left border-collapse">
                         <thead>
-                            <tr className="border-b border-gray-200 dark:border-slate-800 text-gray-400 dark:text-slate-500 font-bold uppercase tracking-wider">
-                                <th className="py-3 px-4">Date & Time</th>
-                                <th className="py-3 px-4">Type</th>
-                                <th className="py-3 px-4">Description</th>
-                                <th className="py-3 px-4">Party</th>
-                                <th className="py-3 px-4">Method</th>
-                                <th className="py-3 px-4">Amount</th>
-                                <th className="py-3 px-4">Env</th>
-                                <th className="py-3 px-4">Status</th>
-                                <th className="py-3 px-4 text-right">Details</th>
+                            <tr className="border-b border-gray-150 dark:border-slate-800 bg-gray-50/60 dark:bg-slate-800/40 text-[11px] font-bold text-gray-500 dark:text-slate-400 uppercase tracking-wider">
+                                <th className="py-3.5 px-4">Date & Time</th>
+                                <th className="py-3.5 px-4">Student / Buyer</th>
+                                <th className="py-3.5 px-4">Course or Package</th>
+                                <th className="py-3.5 px-4 text-center">Seats</th>
+                                <th className="py-3.5 px-4 text-right">Amount (UGX / USD)</th>
+                                <th className="py-3.5 px-4">Method</th>
+                                <th className="py-3.5 px-4">Status</th>
+                                <th className="py-3.5 px-4 text-center">Action</th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-gray-150 dark:divide-slate-800/60 font-medium">
-                            {filteredTransactions.length === 0 ? (
+
+                        <tbody className="divide-y divide-gray-100 dark:divide-slate-800/60 text-xs">
+                            {loading ? (
                                 <tr>
-                                    <td colSpan={9} className="text-center py-12 text-gray-400 dark:text-slate-500">
-                                        No ledger transactions found matching the selected criteria.
+                                    <td colSpan={8} className="py-12 text-center text-gray-400 dark:text-slate-500">
+                                        <div className="flex flex-col items-center justify-center gap-2">
+                                            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-violet-600"></div>
+                                            <span>Loading payment records...</span>
+                                        </div>
+                                    </td>
+                                </tr>
+                            ) : paginatedTransactions.length === 0 ? (
+                                <tr>
+                                    <td colSpan={8} className="py-16 text-center text-gray-400 dark:text-slate-500">
+                                        <div className="flex flex-col items-center justify-center max-w-sm mx-auto">
+                                            <div className="w-12 h-12 rounded-2xl bg-violet-50 dark:bg-violet-950/40 text-violet-600 flex items-center justify-center mb-3">
+                                                <Wallet size={24} />
+                                            </div>
+                                            <p className="font-bold text-sm text-gray-800 dark:text-slate-200">No payment transactions yet</p>
+                                            <p className="text-xs text-gray-500 dark:text-slate-400 mt-1">
+                                                Transactions will automatically appear here as students purchase individual courses or subscribe to Pro, Premium, or Corporate packages.
+                                            </p>
+                                        </div>
                                     </td>
                                 </tr>
                             ) : (
-                                filteredTransactions.map((tx) => {
-                                    const isDebit = tx.type === 'withdrawal' || tx.type === 'debit';
-                                    const isSuccess = ['completed', 'successful', 'sandbox'].includes(tx.status?.toLowerCase());
-                                    const isPending = ['processing', 'pending'].includes(tx.status?.toLowerCase());
+                                paginatedTransactions.map(t => {
+                                    const isWithdrawal = t.type === 'withdrawal' || t.type === 'debit';
+                                    const isCourse = (t.paymentType === 'course' || t.plan === 'course') && !isWithdrawal;
+                                    const planKey = (t.plan || '').toLowerCase();
+                                    const isPro = planKey.includes('pro');
+                                    const isPremium = planKey.includes('prem');
+                                    const isCorporate = planKey.includes('corp') || planKey.includes('sponsor') || Boolean(t.companyName);
+                                    const seatsCount = t.seats || 1;
 
                                     return (
-                                        <tr key={tx.uuid || tx.reference} className="hover:bg-gray-50/60 dark:hover:bg-slate-800/30 transition-colors">
+                                        <tr key={t.uuid || t.reference} className="hover:bg-gray-50/80 dark:hover:bg-slate-800/40 transition-colors">
+                                            {/* Date & Time */}
                                             <td className="py-3.5 px-4 text-gray-500 dark:text-slate-400 whitespace-nowrap">
-                                                {tx.createdAt ? new Date(tx.createdAt).toLocaleString() : 'N/A'}
+                                                <div className="font-medium text-gray-900 dark:text-slate-200">
+                                                    {t.createdAt ? new Date(t.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'Recent'}
+                                                </div>
+                                                <div className="text-[10px] text-gray-400">
+                                                    {t.createdAt ? new Date(t.createdAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }) : ''}
+                                                </div>
                                             </td>
 
-                                            <td className="py-3.5 px-4 whitespace-nowrap">
-                                                <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider ${
-                                                    isDebit 
-                                                        ? 'bg-amber-100 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300' 
-                                                        : 'bg-emerald-100 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300'
-                                                }`}>
-                                                    {isDebit ? <ArrowUpRight size={12} /> : <ArrowDownLeft size={12} />}
-                                                    {isDebit ? 'Withdrawal' : 'Deposit'}
-                                                </span>
-                                            </td>
-
+                                            {/* Student / Buyer */}
                                             <td className="py-3.5 px-4">
-                                                <div className="font-bold text-gray-900 dark:text-white max-w-xs truncate">
-                                                    {tx.description || (tx.plan ? `${tx.plan.toUpperCase()} Plan Subscription` : 'Payment')}
+                                                <div className="font-bold text-gray-900 dark:text-white flex items-center gap-1.5">
+                                                    {t.userName || t.sender || t.recipient || 'Learner'}
                                                 </div>
-                                                <div className="text-[10px] font-mono text-gray-400 dark:text-slate-500 truncate">
-                                                    Ref: {tx.reference || tx.uuid}
+                                                <div className="text-[11px] text-gray-500 dark:text-slate-400">
+                                                    {t.userEmail || t.phoneNumber || '—'}
                                                 </div>
-                                            </td>
-
-                                            <td className="py-3.5 px-4 text-gray-700 dark:text-slate-300 whitespace-nowrap">
-                                                {tx.userEmail || tx.userName || tx.recipient || tx.sender || '—'}
-                                            </td>
-
-                                            <td className="py-3.5 px-4 whitespace-nowrap">
-                                                <span className="capitalize text-gray-600 dark:text-slate-400 font-semibold">
-                                                    {tx.method ? tx.method.replace('_', ' ') : 'Mobile Money'}
-                                                </span>
-                                            </td>
-
-                                            <td className="py-3.5 px-4 whitespace-nowrap">
-                                                <span className={`font-black text-sm ${
-                                                    isDebit 
-                                                        ? 'text-amber-600 dark:text-amber-400' 
-                                                        : 'text-emerald-600 dark:text-emerald-400'
-                                                }`}>
-                                                    {isDebit ? '-' : '+'}UGX {Number(tx.amount).toLocaleString()}
-                                                </span>
-                                                {tx.usdAmount && (
-                                                    <div className="text-[10px] text-gray-400 font-medium">
-                                                        ≈ ${tx.usdAmount} USD
+                                                {t.companyName && (
+                                                    <div className="inline-flex items-center gap-1 mt-0.5 px-1.5 py-0.5 rounded-md bg-indigo-50 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-300 text-[10px] font-semibold">
+                                                        <Building size={10} />
+                                                        {t.companyName}
                                                     </div>
                                                 )}
                                             </td>
 
-                                            <td className="py-3.5 px-4 whitespace-nowrap">
-                                                <span className={`px-2 py-0.5 rounded text-[10px] font-black uppercase ${
-                                                    tx.isSandbox 
-                                                        ? 'bg-amber-100 text-amber-800 dark:bg-amber-950/40 dark:text-amber-300' 
-                                                        : 'bg-blue-100 text-blue-800 dark:bg-blue-950/40 dark:text-blue-300'
-                                                }`}>
-                                                    {tx.isSandbox ? 'Sandbox' : 'Live'}
-                                                </span>
+                                            {/* Course or Package */}
+                                            <td className="py-3.5 px-4">
+                                                {isCourse ? (
+                                                    <div>
+                                                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-purple-100 dark:bg-purple-950/40 text-purple-700 dark:text-purple-300 text-[10px] font-extrabold uppercase tracking-wide">
+                                                            <BookOpen size={10} />
+                                                            Individual Course
+                                                        </span>
+                                                        <div className="font-semibold text-gray-900 dark:text-slate-100 mt-1 line-clamp-1">
+                                                            {t.itemTitle || t.description || 'Course Purchase'}
+                                                        </div>
+                                                    </div>
+                                                ) : isWithdrawal ? (
+                                                    <div>
+                                                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-rose-100 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300 text-[10px] font-extrabold uppercase tracking-wide">
+                                                            <ArrowUpRight size={10} />
+                                                            Payout / Withdrawal
+                                                        </span>
+                                                        <div className="font-semibold text-gray-900 dark:text-slate-100 mt-1 line-clamp-1">
+                                                            {t.description || t.itemTitle || 'Instructor Disbursement'}
+                                                        </div>
+                                                    </div>
+                                                ) : isCorporate ? (
+                                                    <div>
+                                                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-indigo-100 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-300 text-[10px] font-extrabold uppercase tracking-wide">
+                                                            <Building size={10} />
+                                                            Corporate Package
+                                                        </span>
+                                                        <div className="font-semibold text-gray-900 dark:text-slate-100 mt-1">
+                                                            {t.itemTitle || 'Corporate Sponsored Access'}
+                                                        </div>
+                                                    </div>
+                                                ) : isPremium ? (
+                                                    <div>
+                                                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-amber-100 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 text-[10px] font-extrabold uppercase tracking-wide">
+                                                            <Sparkles size={10} />
+                                                            Premium Plan ($150)
+                                                        </span>
+                                                        <div className="font-semibold text-gray-900 dark:text-slate-100 mt-1">
+                                                            Lifetime All-Access Access
+                                                        </div>
+                                                    </div>
+                                                ) : isPro ? (
+                                                    <div>
+                                                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-violet-100 dark:bg-violet-950/40 text-violet-700 dark:text-violet-300 text-[10px] font-extrabold uppercase tracking-wide">
+                                                            <Layers size={10} />
+                                                            Pro Plan ($25/mo)
+                                                        </span>
+                                                        <div className="font-semibold text-gray-900 dark:text-slate-100 mt-1">
+                                                            Monthly Subscription
+                                                        </div>
+                                                    </div>
+                                                ) : (
+                                                    <div>
+                                                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-gray-100 dark:bg-slate-800 text-gray-700 dark:text-slate-300 text-[10px] font-extrabold uppercase">
+                                                            Package Payment
+                                                        </span>
+                                                        <div className="font-semibold text-gray-900 dark:text-slate-100 mt-1">
+                                                            {t.itemTitle || t.description || 'Platform Subscription'}
+                                                        </div>
+                                                    </div>
+                                                )}
                                             </td>
 
-                                            <td className="py-3.5 px-4 whitespace-nowrap">
-                                                <span className={`inline-flex items-center gap-1 text-[11px] font-bold ${
-                                                    isSuccess 
-                                                        ? 'text-emerald-600 dark:text-emerald-400' 
-                                                        : isPending 
-                                                            ? 'text-yellow-600 dark:text-yellow-400' 
-                                                            : 'text-red-600 dark:text-red-400'
-                                                }`}>
-                                                    {isSuccess ? <CheckCircle2 size={13} /> : isPending ? <Clock size={13} /> : <AlertTriangle size={13} />}
-                                                    {tx.status}
-                                                </span>
+                                            {/* Number of Seats */}
+                                            <td className="py-3.5 px-4 text-center whitespace-nowrap">
+                                                {isWithdrawal ? (
+                                                    <span className="text-gray-400">—</span>
+                                                ) : isCorporate || seatsCount > 1 ? (
+                                                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-indigo-100 dark:bg-indigo-950/50 text-indigo-800 dark:text-indigo-300 text-xs font-extrabold border border-indigo-200 dark:border-indigo-800">
+                                                        <Users size={12} />
+                                                        {seatsCount} Seats
+                                                    </span>
+                                                ) : (
+                                                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-gray-100 dark:bg-slate-800 text-gray-600 dark:text-slate-300 text-[11px] font-semibold">
+                                                        1 Seat
+                                                    </span>
+                                                )}
                                             </td>
 
+                                            {/* Amount */}
                                             <td className="py-3.5 px-4 text-right whitespace-nowrap">
+                                                <div className={`font-extrabold text-sm ${isWithdrawal ? 'text-rose-600 dark:text-rose-400' : 'text-emerald-600 dark:text-emerald-400'}`}>
+                                                    {isWithdrawal ? '-' : '+'}{formatRawAmount(t.amount, 'UGX')}
+                                                </div>
+                                                <div className="text-[10px] text-gray-400">
+                                                    ≈ ${t.usdAmount || Math.round(t.amount / 4600)} USD
+                                                </div>
+                                            </td>
+
+                                            {/* Method */}
+                                            <td className="py-3.5 px-4 whitespace-nowrap">
+                                                <span className="inline-flex items-center gap-1 text-[11px] font-medium text-gray-600 dark:text-slate-300">
+                                                    {t.method === 'mobile_money' ? (
+                                                        <>
+                                                            <Smartphone size={13} className="text-amber-500" />
+                                                            Mobile Money
+                                                        </>
+                                                    ) : t.method === 'bank_transfer' ? (
+                                                        <>
+                                                            <Landmark size={13} className="text-blue-500" />
+                                                            Bank Transfer
+                                                        </>
+                                                    ) : t.method === 'card' ? (
+                                                        <>
+                                                            <CreditCard size={13} className="text-emerald-500" />
+                                                            Card
+                                                        </>
+                                                    ) : (
+                                                        <>
+                                                            <Wallet size={13} className="text-violet-500" />
+                                                            {t.method || 'Direct'}
+                                                        </>
+                                                    )}
+                                                </span>
+                                            </td>
+
+                                            {/* Status */}
+                                            <td className="py-3.5 px-4 whitespace-nowrap">
+                                                {['completed', 'successful', 'sandbox'].includes(t.status?.toLowerCase()) ? (
+                                                    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-300 text-[10px] font-bold">
+                                                        <CheckCircle2 size={11} />
+                                                        Completed
+                                                    </span>
+                                                ) : ['processing', 'pending'].includes(t.status?.toLowerCase()) ? (
+                                                    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-amber-100 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 text-[10px] font-bold">
+                                                        <Clock size={11} className="animate-spin" />
+                                                        Processing
+                                                    </span>
+                                                ) : (
+                                                    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-rose-100 dark:bg-rose-950/40 text-rose-800 dark:text-rose-300 text-[10px] font-bold">
+                                                        <AlertTriangle size={11} />
+                                                        Failed
+                                                    </span>
+                                                )}
+                                            </td>
+
+                                            {/* Action */}
+                                            <td className="py-3.5 px-4 text-center whitespace-nowrap">
                                                 <button
-                                                    onClick={() => setSelectedTx(tx)}
-                                                    className="p-1.5 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-lg text-gray-500 hover:text-gray-900 dark:hover:text-white cursor-pointer"
+                                                    onClick={() => setSelectedTx(t)}
+                                                    className="p-1.5 rounded-lg text-gray-400 hover:text-violet-600 hover:bg-violet-50 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+                                                    title="View payment receipt details"
                                                 >
-                                                    <FileText size={15} />
+                                                    <Eye size={14} />
                                                 </button>
                                             </td>
                                         </tr>
@@ -553,169 +673,172 @@ export const AdminWallet: React.FC = () => {
                         </tbody>
                     </table>
                 </div>
-            </div>
 
-            {/* RECORD TRANSACTION MODAL */}
-            {isAddModalOpen && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-                    <div className="fixed inset-0 bg-slate-950/70 backdrop-blur-sm" onClick={() => setIsAddModalOpen(false)} />
-                    <div className="bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 w-full max-w-md rounded-3xl p-6 shadow-2xl relative z-10 text-gray-900 dark:text-white">
+                {/* PAGINATION FOOTER */}
+                <div className="p-4 border-t border-gray-150 dark:border-slate-800 bg-gray-50/50 dark:bg-slate-900/50 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
+                    <div className="text-gray-500 dark:text-slate-400 font-medium">
+                        Showing{' '}
+                        <span className="font-bold text-gray-900 dark:text-white">
+                            {filteredTransactions.length === 0 ? 0 : (currentPage - 1) * itemsPerPage + 1}
+                        </span>{' '}
+                        to{' '}
+                        <span className="font-bold text-gray-900 dark:text-white">
+                            {Math.min(currentPage * itemsPerPage, filteredTransactions.length)}
+                        </span>{' '}
+                        of{' '}
+                        <span className="font-bold text-gray-900 dark:text-white">
+                            {filteredTransactions.length}
+                        </span>{' '}
+                        payment records
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                        {/* Rows per page selector */}
+                        <div className="flex items-center gap-1.5 mr-2">
+                            <span className="text-gray-400 text-[11px]">Rows:</span>
+                            <select
+                                value={itemsPerPage}
+                                onChange={e => { setItemsPerPage(Number(e.target.value)); setCurrentPage(1); }}
+                                className="bg-white dark:bg-slate-800 text-gray-700 dark:text-slate-300 rounded-lg px-2 py-1 text-xs border border-gray-200 dark:border-slate-700 focus:outline-hidden"
+                            >
+                                <option value={10}>10</option>
+                                <option value={20}>20</option>
+                                <option value={50}>50</option>
+                            </select>
+                        </div>
+
+                        {/* Prev Button */}
                         <button
-                            type="button"
-                            onClick={() => setIsAddModalOpen(false)}
-                            className="absolute top-5 right-5 text-gray-400 hover:text-gray-900 dark:hover:text-white p-1 rounded-full cursor-pointer"
+                            onClick={() => handlePageChange(currentPage - 1)}
+                            disabled={currentPage === 1}
+                            className="p-1.5 rounded-lg border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-gray-600 dark:text-slate-300 hover:bg-gray-100 dark:hover:bg-slate-700 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
                         >
-                            <X size={20} />
+                            <ChevronLeft size={16} />
                         </button>
 
-                        <h3 className="text-xl font-bold mb-1">
-                            {addModalType === 'deposit' ? 'Record Deposit (Credit)' : 'Record Withdrawal (Debit)'}
-                        </h3>
-                        <p className="text-xs text-gray-500 dark:text-slate-400 mb-6">
-                            Manual ledger entries appear directly on the financial dashboard.
-                        </p>
+                        {/* Page Numbers */}
+                        <div className="flex items-center gap-1">
+                            {Array.from({ length: totalPages }, (_, i) => i + 1).map(p => (
+                                <button
+                                    key={p}
+                                    onClick={() => handlePageChange(p)}
+                                    className={`w-7 h-7 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                                        currentPage === p
+                                            ? 'bg-violet-600 text-white shadow-xs'
+                                            : 'bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 text-gray-600 dark:text-slate-300 hover:bg-gray-100 dark:hover:bg-slate-700'
+                                    }`}
+                                >
+                                    {p}
+                                </button>
+                            ))}
+                        </div>
 
-                        <form onSubmit={handleCreateTransaction} className="space-y-4">
-                            <div>
-                                <label className="text-xs font-bold text-gray-700 dark:text-slate-300">Amount (UGX)</label>
-                                <input
-                                    type="number"
-                                    required
-                                    value={formAmount}
-                                    onChange={(e) => setFormAmount(e.target.value)}
-                                    placeholder="e.g. 150000"
-                                    className="w-full mt-1 p-3 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl text-sm font-semibold outline-none focus:ring-2 focus:ring-violet-500/20"
-                                />
+                        {/* Next Button */}
+                        <button
+                            onClick={() => handlePageChange(currentPage + 1)}
+                            disabled={currentPage === totalPages}
+                            className="p-1.5 rounded-lg border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-gray-600 dark:text-slate-300 hover:bg-gray-100 dark:hover:bg-slate-700 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+                        >
+                            <ChevronRight size={16} />
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            {/* TRANSACTION DETAILS MODAL */}
+            {selectedTx && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
+                    <div className="bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-3xl max-w-lg w-full p-6 shadow-2xl animate-in zoom-in-95 duration-200">
+                        <div className="flex items-center justify-between pb-4 border-b border-gray-150 dark:border-slate-800">
+                            <div className="flex items-center gap-2">
+                                <div className="p-2 rounded-xl bg-violet-50 dark:bg-violet-950/40 text-violet-600">
+                                    <FileText size={20} />
+                                </div>
+                                <div>
+                                    <h3 className="font-bold text-gray-900 dark:text-white text-base">Payment Details</h3>
+                                    <p className="text-xs text-gray-500 font-mono">{selectedTx.reference || selectedTx.uuid}</p>
+                                </div>
                             </div>
+                            <button
+                                onClick={() => setSelectedTx(null)}
+                                className="p-1.5 text-gray-400 hover:text-gray-600 dark:hover:text-slate-300 rounded-lg"
+                            >
+                                <X size={18} />
+                            </button>
+                        </div>
 
-                            <div>
-                                <label className="text-xs font-bold text-gray-700 dark:text-slate-300">Description</label>
-                                <input
-                                    type="text"
-                                    required
-                                    value={formDescription}
-                                    onChange={(e) => setFormDescription(e.target.value)}
-                                    placeholder={addModalType === 'deposit' ? "Corporate Sponsorship Deposit" : "Tutor Honorarium Payout"}
-                                    className="w-full mt-1 p-3 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-violet-500/20"
-                                />
+                        <div className="mt-4 space-y-3 text-xs">
+                            <div className="p-4 rounded-2xl bg-gray-50 dark:bg-slate-800/60 border border-gray-100 dark:border-slate-800 flex justify-between items-center">
+                                <div>
+                                    <span className="text-gray-400 text-[11px] block">Total Amount</span>
+                                    <span className="text-2xl font-black text-gray-900 dark:text-white">
+                                        {formatRawAmount(selectedTx.amount, 'UGX')}
+                                    </span>
+                                </div>
+                                <span className="text-sm font-semibold text-gray-500">
+                                    ≈ ${selectedTx.usdAmount || Math.round(selectedTx.amount / 4600)} USD
+                                </span>
                             </div>
 
                             <div className="grid grid-cols-2 gap-3">
-                                <div>
-                                    <label className="text-xs font-bold text-gray-700 dark:text-slate-300">Method</label>
-                                    <select
-                                        value={formMethod}
-                                        onChange={(e) => setFormMethod(e.target.value)}
-                                        className="w-full mt-1 p-3 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl text-xs font-bold outline-none"
-                                    >
-                                        <option value="mobile_money">Mobile Money</option>
-                                        <option value="bank_transfer">Bank Transfer</option>
-                                        <option value="card">Card Payment</option>
-                                        <option value="cash">Cash / Cheque</option>
-                                    </select>
+                                <div className="p-3 rounded-xl bg-gray-50 dark:bg-slate-800/40">
+                                    <span className="text-gray-400 block text-[10px]">Payment Type</span>
+                                    <span className="font-bold uppercase text-gray-800 dark:text-slate-200">
+                                        {selectedTx.paymentType || selectedTx.plan || 'Direct'}
+                                    </span>
                                 </div>
 
-                                <div>
-                                    <label className="text-xs font-bold text-gray-700 dark:text-slate-300">Category</label>
-                                    <select
-                                        value={formCategory}
-                                        onChange={(e) => setFormCategory(e.target.value)}
-                                        className="w-full mt-1 p-3 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl text-xs font-bold outline-none"
-                                    >
-                                        <option value="Subscription">Subscription</option>
-                                        <option value="Sponsorship">Sponsorship</option>
-                                        <option value="Tutor Payout">Tutor Payout</option>
-                                        <option value="Operational">Operational</option>
-                                        <option value="Refund">Refund</option>
-                                    </select>
+                                <div className="p-3 rounded-xl bg-gray-50 dark:bg-slate-800/40">
+                                    <span className="text-gray-400 block text-[10px]">Seats Allocated</span>
+                                    <span className="font-bold text-gray-800 dark:text-slate-200 flex items-center gap-1">
+                                        <Users size={12} />
+                                        {selectedTx.seats || 1} Seat{(selectedTx.seats || 1) === 1 ? '' : 's'}
+                                    </span>
+                                </div>
+
+                                <div className="p-3 rounded-xl bg-gray-50 dark:bg-slate-800/40">
+                                    <span className="text-gray-400 block text-[10px]">Customer / Payer</span>
+                                    <span className="font-bold text-gray-800 dark:text-slate-200 truncate block">
+                                        {selectedTx.userName || 'Learner'}
+                                    </span>
+                                    <span className="text-[10px] text-gray-500 truncate block">{selectedTx.userEmail}</span>
+                                </div>
+
+                                <div className="p-3 rounded-xl bg-gray-50 dark:bg-slate-800/40">
+                                    <span className="text-gray-400 block text-[10px]">Method</span>
+                                    <span className="font-bold capitalize text-gray-800 dark:text-slate-200">
+                                        {selectedTx.method?.replace('_', ' ') || 'Mobile Money'}
+                                    </span>
                                 </div>
                             </div>
 
-                            <div>
-                                <label className="text-xs font-bold text-gray-700 dark:text-slate-300">
-                                    {addModalType === 'deposit' ? 'Sender (Entity / Person)' : 'Recipient (Beneficiary)'}
-                                </label>
-                                <input
-                                    type="text"
-                                    value={formParty}
-                                    onChange={(e) => setFormParty(e.target.value)}
-                                    placeholder="e.g. MTN Foundation / Dr. Jane"
-                                    className="w-full mt-1 p-3 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-violet-500/20"
-                                />
+                            {selectedTx.companyName && (
+                                <div className="p-3 rounded-xl bg-indigo-50 dark:bg-indigo-950/30 border border-indigo-100 dark:border-indigo-900/50">
+                                    <span className="text-indigo-600 dark:text-indigo-400 block text-[10px] font-bold uppercase">
+                                        Corporate Sponsoring Organization
+                                    </span>
+                                    <span className="font-extrabold text-sm text-indigo-900 dark:text-indigo-200">
+                                        {selectedTx.companyName}
+                                    </span>
+                                </div>
+                            )}
+
+                            <div className="p-3 rounded-xl bg-gray-50 dark:bg-slate-800/40 flex justify-between items-center">
+                                <span className="text-gray-400">Payment Status</span>
+                                <span className="font-bold uppercase text-emerald-600 dark:text-emerald-400">
+                                    {selectedTx.status}
+                                </span>
                             </div>
 
-                            <div>
-                                <label className="text-xs font-bold text-gray-700 dark:text-slate-300">Notes (Optional)</label>
-                                <textarea
-                                    value={formNotes}
-                                    onChange={(e) => setFormNotes(e.target.value)}
-                                    placeholder="Reference receipt or remarks..."
-                                    rows={2}
-                                    className="w-full mt-1 p-3 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl text-xs outline-none focus:ring-2 focus:ring-violet-500/20 resize-none"
-                                />
-                            </div>
-
-                            <button
-                                type="submit"
-                                disabled={submittingTx}
-                                className={`w-full py-3.5 rounded-xl text-sm font-bold text-white shadow-md cursor-pointer transition-colors ${
-                                    addModalType === 'deposit' ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-amber-600 hover:bg-amber-700'
-                                }`}
-                            >
-                                {submittingTx ? 'Saving Entry...' : `Confirm & Save ${addModalType === 'deposit' ? 'Deposit' : 'Withdrawal'}`}
-                            </button>
-                        </form>
-                    </div>
-                </div>
-            )}
-
-            {/* TRANSACTION DETAIL MODAL */}
-            {selectedTx && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-                    <div className="fixed inset-0 bg-slate-950/70 backdrop-blur-sm" onClick={() => setSelectedTx(null)} />
-                    <div className="bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 w-full max-w-lg rounded-3xl p-6 shadow-2xl relative z-10 text-gray-900 dark:text-white max-h-[85vh] overflow-y-auto">
-                        <button
-                            type="button"
-                            onClick={() => setSelectedTx(null)}
-                            className="absolute top-5 right-5 text-gray-400 hover:text-gray-900 dark:hover:text-white p-1 rounded-full cursor-pointer"
-                        >
-                            <X size={20} />
-                        </button>
-
-                        <h3 className="text-xl font-bold mb-4">Transaction Details</h3>
-
-                        <div className="p-4 bg-gray-50 dark:bg-slate-800 rounded-2xl border border-gray-200 dark:border-slate-700 space-y-2 text-xs">
-                            <div className="flex justify-between">
-                                <span className="text-gray-500">Transaction ID / UUID</span>
-                                <span className="font-mono font-bold text-gray-900 dark:text-white">{selectedTx.uuid || selectedTx.reference}</span>
-                            </div>
-                            <div className="flex justify-between">
-                                <span className="text-gray-500">Type</span>
-                                <span className="font-bold uppercase">{selectedTx.type || 'deposit'}</span>
-                            </div>
-                            <div className="flex justify-between">
-                                <span className="text-gray-500">Amount</span>
-                                <span className="font-black text-emerald-600 dark:text-emerald-400">UGX {Number(selectedTx.amount).toLocaleString()}</span>
-                            </div>
-                            <div className="flex justify-between">
-                                <span className="text-gray-500">Method</span>
-                                <span className="capitalize">{selectedTx.method}</span>
-                            </div>
-                            <div className="flex justify-between">
-                                <span className="text-gray-500">Environment</span>
-                                <span>{selectedTx.isSandbox ? 'Sandbox Mode' : 'Live Mode'}</span>
-                            </div>
-                            <div className="flex justify-between">
-                                <span className="text-gray-500">Status</span>
-                                <span className="font-bold">{selectedTx.status}</span>
-                            </div>
-                            <div className="flex justify-between">
-                                <span className="text-gray-500">Timestamp</span>
-                                <span>{selectedTx.createdAt}</span>
+                            <div className="p-3 rounded-xl bg-gray-50 dark:bg-slate-800/40 flex justify-between items-center">
+                                <span className="text-gray-400">Timestamp</span>
+                                <span className="font-mono text-gray-600 dark:text-slate-300">
+                                    {selectedTx.createdAt ? new Date(selectedTx.createdAt).toLocaleString() : 'N/A'}
+                                </span>
                             </div>
                         </div>
 
-                        <div className="mt-6 flex justify-end">
+                        <div className="mt-5 flex justify-end">
                             <button
                                 onClick={() => setSelectedTx(null)}
                                 className="px-5 py-2.5 bg-gray-100 dark:bg-slate-800 text-gray-700 dark:text-slate-300 font-bold text-xs rounded-xl hover:bg-gray-200 dark:hover:bg-slate-700 cursor-pointer"

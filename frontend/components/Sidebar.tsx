@@ -1,5 +1,5 @@
 import React from 'react';
-import { LayoutDashboard, BookOpen, MessageSquare, CreditCard, User, Award, Settings, LogOut, Briefcase, X, Compass, Calendar, ClipboardList } from 'lucide-react';
+import { LayoutDashboard, BookOpen, MessageSquare, CreditCard, User, Award, Settings, LogOut, Briefcase, X, Compass, Calendar, ClipboardList, Shield, Building2 } from 'lucide-react';
 import { supabaseClient } from '../src/lib/supabaseClient';
 
 import { useTranslation } from './translations';
@@ -19,6 +19,7 @@ const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, isOpen, onCl
     { id: 'dashboard', label: t('dashboard'), icon: LayoutDashboard },
     { id: 'discover', label: t('discover'), icon: Compass },
     { id: 'courses', label: t('my_courses'), icon: BookOpen },
+    { id: 'corporate', label: 'Corporate Portal', icon: Building2 },
     { id: 'events', label: t('events') || 'Upcoming Classes', icon: Calendar },
     { id: 'career', label: t('career_growth'), icon: Briefcase },
     { id: 'profile', label: t('my_profile'), icon: User },
@@ -74,13 +75,22 @@ const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, isOpen, onCl
           ))}
         </nav>
 
-        <div className="p-4 mt-auto">
+        <div className="p-4 mt-auto space-y-2">
+          {isAdmin && (
+            <a 
+              href="http://admin.localhost:4002" 
+              className="flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 text-sm font-semibold bg-violet-600/20 text-violet-300 border border-violet-500/30 hover:bg-violet-600 hover:text-white group"
+            >
+              <Shield size={18} className="text-violet-400 group-hover:text-white" />
+              <span>Admin Console</span>
+            </a>
+          )}
           <button 
             onClick={async () => {
               await supabaseClient.auth.signOut();
               window.location.href = '/';
             }}
-            className="flex items-center gap-3 text-slate-400 hover:text-white px-4 py-4 w-full mt-2 text-sm"
+            className="flex items-center gap-3 text-slate-400 hover:text-white px-4 py-3 w-full text-sm rounded-xl hover:bg-slate-800 transition-colors"
           >
             <LogOut size={18} />
             {t('sign_out')}

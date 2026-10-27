@@ -221,7 +221,8 @@ function normalizePhoneNumber(phone, countryCode = 'UG') {
  * - Supports automatic currency conversion (USD to UGX).
  */
 async function initiateCollection({
-    plan, // 'pro' or 'premium'
+    plan, // 'pro', 'premium', or 'corporate'
+    seats = 10,
     amount, // In target currency (or USD if usdAmount provided)
     usdAmount,
     currency = 'UGX',
@@ -237,7 +238,18 @@ async function initiateCollection({
 
     // Determine plan pricing and title
     const normalizedPlan = (plan || 'pro').toLowerCase();
-    let finalUsd = usdAmount || (normalizedPlan === 'premium' ? 150 : 25);
+    let finalUsd = usdAmount;
+    if (!finalUsd) {
+        if (normalizedPlan === 'corporate') {
+            const numSeats = Number(seats) || 10;
+            const unitPrice = numSeats >= 50 ? 15 : 20;
+            finalUsd = numSeats * unitPrice;
+        } else if (normalizedPlan === 'premium') {
+            finalUsd = 150;
+        } else {
+            finalUsd = 25;
+        }
+    }
     let finalAmount = amount;
 
     if (!finalAmount) {
@@ -248,9 +260,11 @@ async function initiateCollection({
         }
     }
 
-    const description = normalizedPlan === 'premium'
-        ? 'Welile School - Premium Plan (Lifetime Access)'
-        : 'Welile School - Pro Plan (Monthly Subscription)';
+    const description = normalizedPlan === 'corporate'
+        ? `Welile School - Corporate Package (${seats || 10} Seats)`
+        : (normalizedPlan === 'premium'
+            ? 'Welile School - Premium Plan (Lifetime Access)'
+            : 'Welile School - Pro Plan (Monthly Subscription)');
 
     const formattedPhone = normalizePhoneNumber(phoneNumber, country);
 
@@ -306,6 +320,7 @@ async function initiateCollection({
             uuid: txUuid,
             reference,
             plan: normalizedPlan,
+            seats: normalizedPlan === 'corporate' ? (Number(seats) || 10) : null,
             userId,
             userEmail,
             userName,

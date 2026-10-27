@@ -1,0 +1,144 @@
+{
+  "organizations": [
+    {
+      "id": "org-welile-corp",
+      "name": "Acme AI Technologies",
+      "logoUrl": "https://images.unsplash.com/photo-1542744094-3a31f272c490?w=120&auto=format&fit=crop&q=80",
+      "contactName": "Sarah Jenkins",
+      "contactEmail": "sarah.jenkins@acmeai.com",
+      "contactPhone": "+256 700 123 456",
+      "website": "https://acmeai.com",
+      "billingPlan": "corporate_tier1",
+      "totalSeats": 25,
+      "purchasedSeats": 25,
+      "ownerUserId": "default-owner",
+      "createdAt": "2026-10-26T12:33:25.356Z",
+      "updatedAt": "2026-10-26T12:33:25.359Z"
+    },
+    {
+      "id": "org-1793022896677",
+      "name": "Acme Tech Africa",
+      "logoUrl": "https://images.unsplash.com/photo-1542744094-3a31f272c490?w=120&auto=format&fit=crop&q=80",
+      "contactName": "Sarah Jenkins",
+      "contactEmail": "sarah.jenkins@acmeai.com",
+      "contactPhone": "+256 700 123 456",
+      "website": "https://acmeai.com",
+      "billingPlan": "corporate_tier1",
+      "totalSeats": 10,
+      "purchasedSeats": 10,
+      "ownerUserId": "baa665b0-9c35-4cda-97c0-c9cc659dfcf6",
+      "createdAt": "2026-10-26T13:54:56.677Z",
+      "updatedAt": "2026-10-26T13:56:20.687Z"
+    }
+  ],
+  "members": [
+    {
+      "id": "mem-1",
+      "organizationId": "org-welile-corp",
+      "userId": "user-emp-1",
+      "name": "David Ochieng",
+      "email": "david.o@acmeai.com",
+      "department": "Data Science",
+      "role": "member",
+      "status": "active",
+      "invitedAt": "2026-10-15T09:00:00Z",
+      "joinedAt": "2026-10-15T11:20:00Z",
+      "enrolledCourses": [
+        {
+          "courseId": "c1",
+          "courseTitle": "Introduction to Generative AI",
+          "progress": 85,
+          "completedLessons": 12,
+          "totalLessons": 14,
+          "status": "IN_PROGRESS",
+          "certificateEarned": false,
+          "lastActiveAt": "2026-10-26T14:10:00Z"
+        },
+        {
+          "courseId": "c2",
+          "courseTitle": "Python for Machine Learning",
+          "progress": 100,
+          "completedLessons": 20,
+          "totalLessons": 20,
+          "status": "COMPLETED",
+          "certificateEarned": true,
+          "lastActiveAt": "2026-10-24T16:30:00Z"
+        }
+      ]
+    },
+    {
+      "id": "mem-2",
+      "organizationId": "org-welile-corp",
+      "userId": "user-emp-2",
+      "name": "Amina Nalwanga",
+      "email": "amina.n@acmeai.com",
+      "department": "Software Engineering",
+      "role": "member",
+      "status": "active",
+      "invitedAt": "2026-10-16T10:15:00Z",
+      "joinedAt": "2026-10-16T14:00:00Z",
+      "enrolledCourses": [
+        {
+          "courseId": "c3",
+          "courseTitle": "Full-Stack LLM Application Development",
+          "progress": 60,
+          "completedLessons": 9,
+          "totalLessons": 15,
+          "status": "IN_PROGRESS",
+          "certificateEarned": false,
+          "lastActiveAt": "2026-10-26T11:05:00Z"
+        }
+      ]
+    },
+    {
+      "id": "mem-3",
+      "organizationId": "org-welile-corp",
+      "userId": "user-emp-3",
+      "name": "Brian Mukasa",
+      "email": "brian.m@acmeai.com",
+      "department": "Product Management",
+      "role": "member",
+      "status": "active",
+      "invitedAt": "2026-10-18T08:30:00Z",
+      "joinedAt": "2026-10-18T09:45:00Z",
+      "enrolledCourses": [
+        {
+          "courseId": "c1",
+          "courseTitle": "Introduction to Generative AI",
+          "progress": 100,
+          "completedLessons": 14,
+          "totalLessons": 14,
+          "status": "COMPLETED",
+          "certificateEarned": true,
+          "lastActiveAt": "2026-10-22T17:15:00Z"
+        }
+      ]
+    },
+    {
+      "id": "mem-4",
+      "organizationId": "org-welile-corp",
+      "userId": null,
+      "name": "Grace Atuhaire",
+      "email": "grace.a@acmeai.com",
+      "department": "Quality Assurance",
+      "role": "member",
+      "status": "pending",
+      "invitedAt": "2026-10-24T12:00:00Z",
+      "joinedAt": null,
+      "enrolledCourses": []
+    },
+    {
+      "id": "mem-5",
+      "organizationId": "org-welile-corp",
+      "userId": null,
+      "name": "Joshua Kigozi",
+      "email": "joshua.k@acmeai.com",
+      "department": "Infrastructure & Cloud",
+      "role": "member",
+      "status": "pending",
+      "invitedAt": "2026-10-25T15:30:00Z",
+      "joinedAt": null,
+      "enrolledCourses": []
+    }
+  ]
+}

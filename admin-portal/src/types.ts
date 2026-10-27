@@ -2,6 +2,7 @@ export enum UserRole {
   INDIVIDUAL = 'INDIVIDUAL', // Free
   PLUS = 'PLUS',
   PRO = 'PRO',
+  PREMIUM = 'PREMIUM',
   SPONSORED = 'SPONSORED', // Enterprise/All Access
   ADMIN = 'ADMIN'
 }
