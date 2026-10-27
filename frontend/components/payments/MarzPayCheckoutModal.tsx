@@ -72,13 +72,48 @@ export const MarzPayCheckoutModal: React.FC<MarzPayCheckoutModalProps> = ({
         return () => window.removeEventListener('currency-change', handleRateChange);
     }, []);
 
+    const getCountryDialCode = (c: string) => {
+        switch (c) {
+            case 'KE': return '+254';
+            case 'RW': return '+250';
+            case 'UG':
+            default:
+                return '+256';
+        }
+    };
+
+    const formatFullInternationalPhone = (rawPhone: string, c: string = 'UG') => {
+        if (!rawPhone) return '';
+        let cleaned = rawPhone.replace(/[^\d+]/g, '').trim();
+        if (cleaned.startsWith('+')) return cleaned;
+
+        const dialCode = getCountryDialCode(c);
+        const dialDigits = dialCode.replace('+', '');
+
+        if (cleaned.startsWith(dialDigits)) {
+            return `+${cleaned}`;
+        }
+        if (cleaned.startsWith('0')) {
+            return `${dialCode}${cleaned.slice(1)}`;
+        }
+        return `${dialCode}${cleaned}`;
+    };
+
     // Auto-detect provider based on Uganda prefix
     const getUgandaProvider = (number: string) => {
         const clean = number.replace(/\D/g, '');
-        if (clean.startsWith('25677') || clean.startsWith('25678') || clean.startsWith('077') || clean.startsWith('078') || clean.startsWith('076')) {
+        if (
+            clean.startsWith('25677') || clean.startsWith('25678') || clean.startsWith('25676') ||
+            clean.startsWith('077') || clean.startsWith('078') || clean.startsWith('076') ||
+            clean.startsWith('77') || clean.startsWith('78') || clean.startsWith('76')
+        ) {
             return { name: 'MTN MoMo', color: 'bg-yellow-400 text-yellow-950 border-yellow-500' };
         }
-        if (clean.startsWith('25670') || clean.startsWith('25675') || clean.startsWith('070') || clean.startsWith('075') || clean.startsWith('074')) {
+        if (
+            clean.startsWith('25670') || clean.startsWith('25675') || clean.startsWith('25674') ||
+            clean.startsWith('070') || clean.startsWith('075') || clean.startsWith('074') ||
+            clean.startsWith('70') || clean.startsWith('75') || clean.startsWith('74')
+        ) {
             return { name: 'Airtel Money', color: 'bg-red-500 text-white border-red-600' };
         }
         return null;
@@ -206,6 +241,14 @@ export const MarzPayCheckoutModal: React.FC<MarzPayCheckoutModalProps> = ({
             return;
         }
 
+        const formattedPhone = method === 'mobile_money'
+            ? formatFullInternationalPhone(phoneNumber.trim(), country)
+            : '';
+
+        if (formattedPhone) {
+            setPhoneNumber(formattedPhone);
+        }
+
         setLoading(true);
 
         try {
@@ -217,7 +260,7 @@ export const MarzPayCheckoutModal: React.FC<MarzPayCheckoutModalProps> = ({
                 currency: 'UGX',
                 country,
                 method,
-                phoneNumber: phoneNumber.trim(),
+                phoneNumber: formattedPhone,
                 userId: user?.id || '',
                 userEmail: user?.email || '',
                 userName: user?.name || user?.full_name || ''
@@ -358,7 +401,7 @@ export const MarzPayCheckoutModal: React.FC<MarzPayCheckoutModalProps> = ({
                                 Check Your Phone
                             </h3>
                             <p className="text-sm text-gray-500 dark:text-slate-400 mt-2 max-w-sm mx-auto">
-                                A MarzPay payment prompt of <strong className="text-violet-600 dark:text-violet-400">UGX {baseUgxAmount.toLocaleString()}</strong> has been sent to <strong className="text-gray-900 dark:text-white">{phoneNumber}</strong>.
+                                A MarzPay payment prompt of <strong className="text-violet-600 dark:text-violet-400">UGX {baseUgxAmount.toLocaleString()}</strong> has been sent to <strong className="text-gray-900 dark:text-white">{formatFullInternationalPhone(phoneNumber, country)}</strong>.
                             </p>
                         </div>
 
@@ -529,7 +572,13 @@ export const MarzPayCheckoutModal: React.FC<MarzPayCheckoutModalProps> = ({
                                     <div className="flex gap-2">
                                         <select
                                             value={country}
-                                            onChange={(e) => setCountry(e.target.value)}
+                                            onChange={(e) => {
+                                                const nextC = e.target.value;
+                                                setCountry(nextC);
+                                                if (phoneNumber.trim()) {
+                                                    setPhoneNumber(formatFullInternationalPhone(phoneNumber.trim(), nextC));
+                                                }
+                                            }}
                                             className="p-3 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-2xl text-xs font-bold text-gray-900 dark:text-white outline-none focus:ring-2 focus:ring-violet-500/20"
                                         >
                                             <option value="UG">🇺🇬 +256 (Uganda)</option>
@@ -541,7 +590,12 @@ export const MarzPayCheckoutModal: React.FC<MarzPayCheckoutModalProps> = ({
                                             type="tel"
                                             value={phoneNumber}
                                             onChange={(e) => setPhoneNumber(e.target.value)}
-                                            placeholder="077... or 070..."
+                                            onBlur={() => {
+                                                if (phoneNumber.trim()) {
+                                                    setPhoneNumber(formatFullInternationalPhone(phoneNumber.trim(), country));
+                                                }
+                                            }}
+                                            placeholder="e.g. 786686225 or 0786686225"
                                             className="flex-1 p-3 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-2xl text-sm font-semibold text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-slate-500 outline-none focus:ring-2 focus:ring-violet-500/20"
                                         />
                                     </div>
