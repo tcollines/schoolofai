@@ -12,6 +12,8 @@ interface MarzPayCheckoutModalProps {
     onSuccess?: () => void;
 }
 
+const API_BASE = (import.meta.env.VITE_API_URL || '').replace(/\/$/, '');
+
 export const MarzPayCheckoutModal: React.FC<MarzPayCheckoutModalProps> = ({
     isOpen,
     onClose,
@@ -149,7 +151,7 @@ export const MarzPayCheckoutModal: React.FC<MarzPayCheckoutModalProps> = ({
         if (paymentStatus === 'prompted' && transactionData?.uuid) {
             interval = setInterval(async () => {
                 try {
-                    const res = await fetch(`/api/payments/marzpay/status/${transactionData.uuid}`);
+                    const res = await fetch(`${API_BASE}/api/payments/marzpay/status/${transactionData.uuid}`);
                     const contentType = res.headers.get('content-type') || '';
                     if (!contentType.includes('application/json')) {
                         console.warn('Status poll non-JSON response:', res.status);
@@ -221,7 +223,7 @@ export const MarzPayCheckoutModal: React.FC<MarzPayCheckoutModalProps> = ({
                 userName: user?.name || user?.full_name || ''
             };
 
-            const response = await fetch('/api/payments/marzpay/initiate', {
+            const response = await fetch(`${API_BASE}/api/payments/marzpay/initiate`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
