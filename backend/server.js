@@ -758,7 +758,11 @@ app.post('/api/corporate/provision', async (req, res) => {
     }
 });
 
-app.listen(port, () => {
-    console.log(`Backend API server running on http://localhost:${port}`);
-});
+if (require.main === module) {
+    app.listen(port, () => {
+        console.log(`Backend API server running on http://localhost:${port}`);
+    });
+}
+
+module.exports = app;
 

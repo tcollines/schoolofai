@@ -150,6 +150,11 @@ export const MarzPayCheckoutModal: React.FC<MarzPayCheckoutModalProps> = ({
             interval = setInterval(async () => {
                 try {
                     const res = await fetch(`/api/payments/marzpay/status/${transactionData.uuid}`);
+                    const contentType = res.headers.get('content-type') || '';
+                    if (!contentType.includes('application/json')) {
+                        console.warn('Status poll non-JSON response:', res.status);
+                        return;
+                    }
                     const data = await res.json();
 
                     if (data.isCompleted) {
@@ -224,7 +229,14 @@ export const MarzPayCheckoutModal: React.FC<MarzPayCheckoutModalProps> = ({
                 body: JSON.stringify(bodyPayload)
             });
 
-            const result = await response.json();
+            let result: any = null;
+            const contentType = response.headers.get('content-type') || '';
+            if (contentType.includes('application/json')) {
+                result = await response.json();
+            } else {
+                const text = await response.text();
+                throw new Error(text || `Server returned HTTP ${response.status} (${response.statusText})`);
+            }
 
             if (!response.ok || !result.success) {
                 // If limit reached on MarzPay, provide a helpful suggestion for premium
