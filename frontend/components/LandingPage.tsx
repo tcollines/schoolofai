@@ -19,8 +19,12 @@ import {
     Video,
     X,
     Loader,
-    Shield
+    Shield,
+    Star,
+    Building2,
+    TrendingUp
 } from 'lucide-react';
+import { formatAmount, getCurrencyPreference, getExchangeRate, CurrencyType } from '../src/lib/currency';
 
 interface LandingPageProps {
     onLoginClick?: () => void;
@@ -32,6 +36,24 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLoginClick, onSignupClick, 
     const [isDark, setIsDark] = useState(() => {
         return document.documentElement.classList.contains('dark');
     });
+
+    const [currency, setCurrency] = useState<CurrencyType>(getCurrencyPreference);
+
+    useEffect(() => {
+        const handleCurrencyChange = () => {
+            setCurrency(getCurrencyPreference());
+        };
+        window.addEventListener('currency-change', handleCurrencyChange);
+        return () => {
+            window.removeEventListener('currency-change', handleCurrencyChange);
+        };
+    }, []);
+
+    const handleCurrencyToggle = (cur: CurrencyType) => {
+        setCurrency(cur);
+        localStorage.setItem('user_currency_preference', cur);
+        window.dispatchEvent(new Event('currency-change'));
+    };
 
     const [showInquiryModal, setShowInquiryModal] = useState(false);
     const [inquiryName, setInquiryName] = useState('');
@@ -106,7 +128,14 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLoginClick, onSignupClick, 
                             <a href="#advantages" className="text-gray-600 dark:text-slate-300 hover:text-gray-900 dark:hover:text-white font-medium text-sm transition-colors">Why AI?</a>
                             <a href="#pricing" className="text-gray-600 dark:text-slate-300 hover:text-gray-900 dark:hover:text-white font-medium text-sm transition-colors">Pricing</a>
                         </div>
-                        <div className="flex items-center space-x-4">
+                        <div className="flex items-center space-x-3">
+                            <button
+                                onClick={() => handleCurrencyToggle(currency === 'USD' ? 'UGX' : 'USD')}
+                                className="px-2.5 py-1 text-xs font-bold text-gray-700 dark:text-slate-300 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-lg border border-gray-200 dark:border-slate-700 transition-colors flex items-center gap-1 cursor-pointer"
+                                title="Toggle Currency (USD / UGX)"
+                            >
+                                <span>{currency}</span>
+                            </button>
                             <button
                                 onClick={toggleTheme}
                                 className="p-2 text-gray-500 dark:text-slate-400 hover:bg-gray-100 dark:hover:bg-slate-800/60 rounded-full transition-all cursor-pointer flex items-center justify-center"
@@ -365,121 +394,251 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLoginClick, onSignupClick, 
 
 
             {/* Pricing */}
-            <section id="pricing" className="py-24 bg-gray-50">
+            <section id="pricing" className="py-24 bg-gray-50 dark:bg-slate-900/50 transition-colors">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div className="text-center mb-16">
-                        <h2 className="text-3xl font-bold tracking-tight text-gray-900">Simple, Transparent Pricing</h2>
-                        <p className="mt-4 text-lg text-gray-500">Choose the plan that fits your learning journey.</p>
+                    <div className="text-center mb-12">
+                        <div className="flex flex-wrap items-center justify-center gap-3 mb-3">
+                            <h2 className="text-3xl sm:text-4xl font-black tracking-tight text-gray-900 dark:text-white">Simple, Transparent Pricing</h2>
+                            <span className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1 bg-violet-50 dark:bg-violet-950/40 border border-violet-200 dark:border-violet-900/50 rounded-full text-xs font-bold text-violet-700 dark:text-violet-300">
+                                <TrendingUp size={13} />
+                                Live Rate: $1 USD = {getExchangeRate().toLocaleString()} UGX
+                            </span>
+                        </div>
+                        <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mt-2">
+                            <p className="text-base text-gray-500 dark:text-slate-400">Choose the plan that fits your learning journey.</p>
+                            <div className="inline-flex items-center gap-1 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 p-1 rounded-xl shadow-sm text-xs font-bold">
+                                <button
+                                    type="button"
+                                    onClick={() => handleCurrencyToggle('USD')}
+                                    className={`px-3 py-1 rounded-lg transition-all cursor-pointer ${currency === 'USD' ? 'bg-violet-600 text-white shadow' : 'text-gray-500 dark:text-slate-400 hover:text-gray-900 dark:hover:text-white'}`}
+                                >
+                                    USD ($)
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => handleCurrencyToggle('UGX')}
+                                    className={`px-3 py-1 rounded-lg transition-all cursor-pointer ${currency === 'UGX' ? 'bg-violet-600 text-white shadow' : 'text-gray-500 dark:text-slate-400 hover:text-gray-900 dark:hover:text-white'}`}
+                                >
+                                    UGX (USh)
+                                </button>
+                            </div>
+                        </div>
                     </div>
 
-                    <div className="grid grid-cols-1 lg:grid-cols-3 md:grid-cols-2 gap-8 max-w-6xl mx-auto">
-                        {/* Basic */}
-                        <div className="bg-white dark:bg-gray-900 text-gray-900 dark:text-white rounded-2xl p-8 border border-gray-205 dark:border-gray-800 shadow-xl relative overflow-hidden hover:transform hover:-translate-y-1 hover:border-violet-500 dark:hover:border-violet-400 transition-all duration-300 flex flex-col justify-between">
-                            <div className="absolute top-0 right-0 w-32 h-32 bg-purple-500 blur-3xl opacity-20 -mr-16 -mt-16"></div>
-                            <div className="absolute top-0 right-0 bg-violet-600 text-white text-xs font-bold px-3 py-1 rounded-bl-xl rounded-tr-lg">FREE</div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 max-w-7xl mx-auto px-4 items-stretch">
+                        {/* Basic Plan */}
+                        <div className="p-7 rounded-3xl bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 shadow-xl hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between relative group">
                             <div>
-                                <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Basic</h3>
-                                <div className="text-4xl font-bold text-gray-900 dark:text-white mb-4">Free<span className="text-sm font-medium text-gray-500">/forever</span></div>
-                                <p className="text-gray-550 dark:text-gray-400 mb-6 text-sm">Perfect for exploring new topics and getting started.</p>
-                                <ul className="space-y-4 mb-8 text-sm text-gray-700 dark:text-gray-300">
-                                    <li className="flex items-start text-sm text-gray-700 dark:text-gray-300">
-                                        <CheckCircle2 className="w-5 h-5 text-purple-500 dark:text-purple-400 mr-2 shrink-0" />
-                                        {"Access to "}<strong>Introduction</strong>{" modules"}
-                                    </li>
-                                    <li className="flex items-start text-sm text-gray-700 dark:text-gray-300">
-                                        <span className="w-5 h-5 mr-2 border border-gray-450 dark:border-slate-600 rounded-full block shrink-0"></span>
-                                        Fundamentals modules
-                                    </li>
-                                    <li className="flex items-start text-sm text-gray-700 dark:text-gray-300">
-                                        <span className="w-5 h-5 mr-2 border border-gray-450 dark:border-slate-600 rounded-full block shrink-0"></span>
-                                        Advanced Application modules
-                                    </li>
-                                </ul>
-                            </div>
-                            <button
-                                onClick={onSignupClick || onGetStarted}
-                                className="w-full py-3 bg-gradient-to-r from-violet-600 to-indigo-600 text-white rounded-xl font-medium hover:from-violet-700 hover:to-indigo-700 transition-colors shadow-lg shadow-indigo-900/30"
-                            >
-                                Get Started
-                            </button>
-                        </div>
-
-                        {/* Pro */}
-                        <div className="bg-white dark:bg-gray-900 text-gray-900 dark:text-white rounded-2xl p-8 border border-violet-200 dark:border-violet-600 shadow-xl relative overflow-hidden hover:transform hover:-translate-y-1 hover:border-violet-500 dark:hover:border-violet-400 transition-all duration-300 flex flex-col justify-between">
-                            <div className="absolute top-0 right-0 w-32 h-32 bg-purple-500 blur-3xl opacity-20 -mr-16 -mt-16"></div>
-                            <div className="absolute top-0 right-0 bg-violet-600 text-white text-xs font-bold px-3 py-1 rounded-bl-xl rounded-tr-lg">POPULAR</div>
-                            <div>
-                                <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Pro</h3>
-                                <div className="text-4xl font-bold text-gray-900 dark:text-white mb-4">$100 <span className="text-sm font-medium text-gray-500 dark:text-gray-400">one-time</span></div>
-                                <p className="text-gray-600 dark:text-gray-400 mb-6 text-sm">Master every subject with unlimited access to everything.</p>
-                                <ul className="space-y-4 mb-8 text-sm text-gray-700 dark:text-gray-300">
-                                    <li className="flex items-start text-sm text-gray-700 dark:text-gray-300">
-                                        <CheckCircle2 className="w-5 h-5 text-violet-500 dark:text-violet-400 mr-2 shrink-0" />
-                                        {"Access to "}<strong>Introduction</strong>{" modules"}
-                                    </li>
-                                    <li className="flex items-start text-sm text-gray-700 dark:text-gray-300">
-                                        <CheckCircle2 className="w-5 h-5 text-violet-500 dark:text-violet-400 mr-2 shrink-0" />
-                                        {"Access to "}<strong>Fundamentals</strong>{" modules"}
-                                    </li>
-                                    <li className="flex items-start text-sm text-gray-700 dark:text-gray-300">
-                                        <CheckCircle2 className="w-5 h-5 text-violet-500 dark:text-violet-400 mr-2 shrink-0" />
-                                        {"Access to "}<strong>All</strong>{" modules"}
-                                    </li>
-                                    <li className="flex items-start text-sm text-amber-500 dark:text-amber-400 font-bold">
-                                        <Sparkles className="w-5 h-5 mr-2 shrink-0 text-amber-500 dark:text-amber-400" />
-                                        Unlimited AI Tutor Support
-                                    </li>
-                                </ul>
-                            </div>
-                            <button
-                                onClick={onSignupClick || onGetStarted}
-                                className="w-full py-3 bg-gradient-to-r from-violet-600 to-indigo-600 text-white rounded-xl font-medium hover:from-violet-700 hover:to-indigo-700 transition-colors shadow-lg shadow-indigo-900/30"
-                            >
-                                Get Started
-                            </button>
-                        </div>
-
-                        {/* Business - Corporate */}
-                        <div className="bg-white dark:bg-slate-900 text-gray-900 dark:text-white rounded-2xl p-8 border border-gray-205 dark:border-slate-800 shadow-xl relative overflow-hidden hover:transform hover:-translate-y-1 hover:border-violet-500 dark:hover:border-violet-400 transition-all duration-300 flex flex-col justify-between">
-                            <div className="absolute top-0 right-0 w-32 h-32 bg-purple-500 blur-3xl opacity-20 -mr-16 -mt-16"></div>
-                            <div className="absolute top-0 right-0 bg-violet-600 text-white text-xs font-bold px-3 py-1 rounded-bl-xl rounded-tr-lg">BUSINESS</div>
-                            <div>
-                                <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-1">Corporate</h3>
-                                <p className="text-xs text-violet-600 dark:text-violet-400 font-semibold mb-6">
-                                    Upskill your team
-                                </p>
-                                <div className="text-4xl font-bold text-gray-900 dark:text-white mb-4">
-                                    Custom Plan
+                                <div className="flex items-center justify-between mb-4">
+                                    <span className="text-[11px] font-black tracking-wider uppercase px-3 py-1 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
+                                        Free
+                                    </span>
                                 </div>
-                                <p className="text-gray-600 dark:text-gray-400 mb-6 text-sm leading-relaxed">
-                                    Tailormade enrollment and reporting packages for your organization.
+                                <h3 className="text-2xl font-black text-gray-900 dark:text-white mb-1">Basic</h3>
+                                <div className="flex items-baseline gap-1 mb-2">
+                                    <span className="text-4xl font-black text-gray-900 dark:text-white">Free</span>
+                                    <span className="text-sm font-medium text-gray-500 dark:text-slate-400">/ forever</span>
+                                </div>
+                                <p className="text-xs text-gray-500 dark:text-slate-400 mb-6 min-h-[32px]">
+                                    Perfect for exploring introductory courses and getting started.
                                 </p>
 
-                                <ul className="space-y-4 mb-8 text-sm text-gray-700 dark:text-gray-300">
-                                    <li className="flex items-start">
-                                        <CheckCircle2 className="w-5 h-5 text-purple-500 dark:text-purple-400 mr-2 shrink-0" />
-                                        {"Access to "}<strong>All</strong>{" modules for employees"}
-                                    </li>
-                                    <li className="flex items-start">
-                                        <CheckCircle2 className="w-5 h-5 text-purple-500 dark:text-purple-400 mr-2 shrink-0" />
-                                        {"Weekly "}<strong>progress reports</strong>{" for admins"}
-                                    </li>
-                                    <li className="flex items-start">
-                                        <CheckCircle2 className="w-5 h-5 text-purple-500 dark:text-purple-400 mr-2 shrink-0" />
-                                        Dedicated company billing & dashboard
-                                    </li>
-                                    <li className="flex items-start text-amber-500 dark:text-amber-400 font-bold">
-                                        <Sparkles className="w-5 h-5 mr-2 shrink-0 text-amber-500 dark:text-amber-400" />
-                                        Unlimited AI Tutor Support
-                                    </li>
-                                </ul>
+                                <div className="mb-6">
+                                    <button
+                                        onClick={onSignupClick || onGetStarted}
+                                        className="w-full py-2.5 rounded-xl bg-gray-100 hover:bg-gray-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-gray-900 dark:text-white font-bold text-xs transition-colors cursor-pointer"
+                                    >
+                                        Get Started Free
+                                    </button>
+                                </div>
+
+                                <div className="border-t border-gray-100 dark:border-slate-800/80 pt-5">
+                                    <p className="text-[11px] font-bold text-gray-400 dark:text-slate-500 uppercase tracking-wider mb-3">Included Benefits</p>
+                                    <ul className="space-y-3 text-xs text-gray-600 dark:text-slate-300">
+                                        <li className="flex items-center gap-2.5">
+                                            <CheckCircle2 size={16} className="text-emerald-500 shrink-0" />
+                                            <span>Access to <strong>Introduction modules</strong></span>
+                                        </li>
+                                        <li className="flex items-center gap-2.5">
+                                            <CheckCircle2 size={16} className="text-emerald-500 shrink-0" />
+                                            <span>Free community forums & discussions</span>
+                                        </li>
+                                        <li className="flex items-center gap-2.5">
+                                            <CheckCircle2 size={16} className="text-emerald-500 shrink-0" />
+                                            <span>Standard course progress tracking</span>
+                                        </li>
+                                        <li className="flex items-center gap-2.5 text-gray-400 dark:text-slate-600">
+                                            <X size={16} className="text-gray-300 dark:text-slate-700 shrink-0" />
+                                            <span>Pro & Premium course library</span>
+                                        </li>
+                                    </ul>
+                                </div>
                             </div>
-                            <button
-                                onClick={() => setShowInquiryModal(true)}
-                                className="w-full py-3 bg-gradient-to-r from-violet-600 to-indigo-600 text-white rounded-xl font-medium hover:from-violet-700 hover:to-indigo-700 transition-colors shadow-lg shadow-indigo-900/30"
-                            >
-                                Enquire Now
-                            </button>
+                        </div>
+
+                        {/* Pro Plan ($25 / month) */}
+                        <div className="p-7 rounded-3xl bg-white dark:bg-slate-900 border-2 border-violet-500 shadow-xl shadow-violet-500/10 hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between relative overflow-hidden group">
+                            <div className="absolute top-0 right-0 w-28 h-28 bg-violet-500 blur-3xl opacity-20 -mr-14 -mt-14 pointer-events-none"></div>
+                            <div>
+                                <div className="flex items-center justify-between mb-4">
+                                    <span className="text-[11px] font-black tracking-wider uppercase px-3 py-1 rounded-full bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-sm flex items-center gap-1">
+                                        <Star size={12} className="fill-current" /> Most Popular
+                                    </span>
+                                </div>
+                                <h3 className="text-2xl font-black text-gray-900 dark:text-white mb-1">Pro</h3>
+                                <div className="flex items-baseline gap-1 mb-2">
+                                    <span className="text-4xl font-black text-gray-900 dark:text-white">{formatAmount(25)}</span>
+                                    <span className="text-sm font-medium text-gray-500 dark:text-slate-400">/ month</span>
+                                </div>
+                                <p className="text-xs text-gray-500 dark:text-slate-400 mb-6 min-h-[32px]">
+                                    Full monthly access for dedicated self-paced learners.
+                                </p>
+
+                                <div className="mb-6">
+                                    <button
+                                        onClick={onSignupClick || onGetStarted}
+                                        className="w-full py-2.5 rounded-xl bg-violet-600 hover:bg-violet-700 text-white font-bold text-xs shadow-md shadow-violet-500/25 transition-all cursor-pointer flex items-center justify-center gap-1.5"
+                                    >
+                                        <span>Start Pro Plan</span>
+                                        <ArrowRight size={14} />
+                                    </button>
+                                </div>
+
+                                <div className="border-t border-gray-100 dark:border-slate-800/80 pt-5">
+                                    <p className="text-[11px] font-bold text-gray-400 dark:text-slate-500 uppercase tracking-wider mb-3">Included Benefits</p>
+                                    <ul className="space-y-3 text-xs text-gray-600 dark:text-slate-300">
+                                        <li className="flex items-center gap-2.5">
+                                            <CheckCircle2 size={16} className="text-violet-600 dark:text-violet-400 shrink-0" />
+                                            <span><strong>All Pro & Free courses</strong> unlocked</span>
+                                        </li>
+                                        <li className="flex items-center gap-2.5">
+                                            <CheckCircle2 size={16} className="text-violet-600 dark:text-violet-400 shrink-0" />
+                                            <span><strong>24/7 AI Tutor</strong> support</span>
+                                        </li>
+                                        <li className="flex items-center gap-2.5">
+                                            <CheckCircle2 size={16} className="text-violet-600 dark:text-violet-400 shrink-0" />
+                                            <span>Downloadable resources & exercises</span>
+                                        </li>
+                                        <li className="flex items-center gap-2.5">
+                                            <CheckCircle2 size={16} className="text-violet-600 dark:text-violet-400 shrink-0" />
+                                            <span>Verified course completion certificates</span>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Premium Plan ($150 one-time) */}
+                        <div className="p-7 rounded-3xl bg-gradient-to-br from-violet-600 via-indigo-700 to-indigo-900 text-white border border-violet-400/40 shadow-xl shadow-indigo-950/20 hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between relative overflow-hidden group">
+                            <div className="absolute top-0 right-0 w-32 h-32 bg-white blur-3xl opacity-15 -mr-16 -mt-16 pointer-events-none"></div>
+                            <div>
+                                <div className="flex items-center justify-between mb-4">
+                                    <span className="text-[11px] font-black tracking-wider uppercase px-3 py-1 rounded-full bg-white/20 backdrop-blur-sm text-white border border-white/25 flex items-center gap-1">
+                                        <Sparkles size={12} className="fill-current" /> Lifetime Access
+                                    </span>
+                                </div>
+                                <h3 className="text-2xl font-black text-white mb-1">Premium</h3>
+                                <div className="flex items-baseline gap-1 mb-2">
+                                    <span className="text-4xl font-black text-white">{formatAmount(150)}</span>
+                                    <span className="text-sm font-medium text-violet-200">one-time</span>
+                                </div>
+                                <p className="text-xs text-violet-100/90 mb-6 min-h-[32px]">
+                                    One-time payment • Lifetime access to all Pro & free courses.
+                                </p>
+
+                                <div className="mb-6">
+                                    <button
+                                        onClick={onSignupClick || onGetStarted}
+                                        className="w-full py-2.5 rounded-xl bg-white hover:bg-violet-50 text-indigo-900 font-bold text-xs shadow-md transition-all cursor-pointer flex items-center justify-center gap-1.5"
+                                    >
+                                        <span>Get Lifetime Access</span>
+                                        <ArrowRight size={14} />
+                                    </button>
+                                </div>
+
+                                <div className="border-t border-white/15 pt-5">
+                                    <p className="text-[11px] font-bold text-violet-200 uppercase tracking-wider mb-3">Included Benefits</p>
+                                    <ul className="space-y-3 text-xs text-violet-50">
+                                        <li className="flex items-center gap-2.5">
+                                            <CheckCircle2 size={16} className="text-amber-300 shrink-0" />
+                                            <span><strong>Lifetime access</strong> — zero renewals</span>
+                                        </li>
+                                        <li className="flex items-center gap-2.5">
+                                            <CheckCircle2 size={16} className="text-amber-300 shrink-0" />
+                                            <span>All current & future Pro courses</span>
+                                        </li>
+                                        <li className="flex items-center gap-2.5">
+                                            <CheckCircle2 size={16} className="text-amber-300 shrink-0" />
+                                            <span><strong>1-on-1 Mentorship</strong> & Live Q&A</span>
+                                        </li>
+                                        <li className="flex items-center gap-2.5">
+                                            <CheckCircle2 size={16} className="text-amber-300 shrink-0" />
+                                            <span>Portfolio review & career guidance</span>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Corporate Plan */}
+                        <div className="p-7 rounded-3xl bg-white dark:bg-slate-900 border border-violet-300/80 dark:border-violet-900/60 shadow-xl hover:shadow-2xl hover:border-violet-500 hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between relative overflow-hidden group">
+                            <div className="absolute top-0 right-0 w-28 h-28 bg-violet-500 blur-3xl opacity-15 -mr-14 -mt-14 pointer-events-none"></div>
+                            <div>
+                                <div className="flex items-center justify-between mb-4">
+                                    <span className="text-[11px] font-black tracking-wider uppercase px-3 py-1 rounded-full bg-violet-100 dark:bg-violet-950/70 text-violet-700 dark:text-violet-300 flex items-center gap-1 border border-violet-200 dark:border-violet-900/60">
+                                        <Building2 size={12} /> Corporate
+                                    </span>
+                                </div>
+                                <h3 className="text-2xl font-black text-gray-900 dark:text-white mb-1">Corporate</h3>
+                                <div className="flex items-baseline gap-1 mb-2">
+                                    <span className="text-xs font-semibold text-gray-400">From</span>
+                                    <span className="text-4xl font-black text-gray-900 dark:text-white">{formatAmount(15)}</span>
+                                    <span className="text-sm font-medium text-gray-500 dark:text-slate-400">/ seat</span>
+                                </div>
+                                <p className="text-xs text-gray-500 dark:text-slate-400 mb-6 min-h-[32px]">
+                                    10–49 seats: $20/seat • 50+ seats: $15/seat.
+                                </p>
+
+                                <div className="mb-6 space-y-2">
+                                    <button
+                                        onClick={() => {
+                                            window.location.href = '/corporate/setup';
+                                        }}
+                                        className="w-full py-2.5 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 hover:opacity-95 text-white font-bold text-xs shadow-md shadow-violet-500/25 transition-all cursor-pointer flex items-center justify-center gap-1.5"
+                                    >
+                                        <span>Setup Corporate Plan</span>
+                                        <ArrowRight size={14} />
+                                    </button>
+                                    <button
+                                        onClick={() => setShowInquiryModal(true)}
+                                        className="w-full py-1 text-center text-[11px] font-semibold text-violet-600 dark:text-violet-400 hover:underline flex items-center justify-center gap-1 cursor-pointer"
+                                    >
+                                        <span>Custom quote inquiry →</span>
+                                    </button>
+                                </div>
+
+                                <div className="border-t border-gray-100 dark:border-slate-800/80 pt-5">
+                                    <p className="text-[11px] font-bold text-gray-400 dark:text-slate-500 uppercase tracking-wider mb-3">Corporate Benefits</p>
+                                    <ul className="space-y-3 text-xs text-gray-600 dark:text-slate-300">
+                                        <li className="flex items-center gap-2.5">
+                                            <CheckCircle2 size={16} className="text-violet-600 dark:text-violet-400 shrink-0" />
+                                            <span><strong>Dedicated team seats</strong> (10+ learners)</span>
+                                        </li>
+                                        <li className="flex items-center gap-2.5">
+                                            <CheckCircle2 size={16} className="text-violet-600 dark:text-violet-400 shrink-0" />
+                                            <span>Custom <strong>Company branding & logo</strong></span>
+                                        </li>
+                                        <li className="flex items-center gap-2.5">
+                                            <CheckCircle2 size={16} className="text-violet-600 dark:text-violet-400 shrink-0" />
+                                            <span><strong>Email invitations</strong> & seat management</span>
+                                        </li>
+                                        <li className="flex items-center gap-2.5">
+                                            <CheckCircle2 size={16} className="text-violet-600 dark:text-violet-400 shrink-0" />
+                                            <span>Live <strong>team progress & analytics</strong></span>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
