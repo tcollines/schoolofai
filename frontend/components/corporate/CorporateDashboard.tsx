@@ -51,21 +51,28 @@ export const CorporateDashboard: React.FC<CorporateDashboardProps> = ({ user }) 
             setLoading(true);
             const userEmail = user?.email || localStorage.getItem('auth_logged_in_email') || localStorage.getItem('logged_in_email') || '';
             const userId = user?.id || localStorage.getItem('auth_logged_in_id') || '';
+            const userName = user?.name || '';
 
-            const res = await fetch(`/api/corporate/seats?userId=${encodeURIComponent(userId)}&userEmail=${encodeURIComponent(userEmail)}`);
+            const res = await fetch(`/api/corporate/seats?userId=${encodeURIComponent(userId)}&userEmail=${encodeURIComponent(userEmail)}&userName=${encodeURIComponent(userName)}`);
             const data = await res.json();
 
-            if (data.success) {
+            if (data.success && data.organization) {
                 setOrganization(data.organization);
                 setSeats(data.seats || []);
                 if (data.organization?.name && data.organization.name !== 'Corporate Partner') {
+                    if (userId) localStorage.setItem(`user_company_name_${userId}`, data.organization.name);
                     localStorage.setItem('user_company_name', data.organization.name);
                     localStorage.setItem('user_plan', 'corporate');
                     window.dispatchEvent(new Event('profile-update'));
                 }
+            } else {
+                setOrganization(null);
+                setSeats([]);
             }
         } catch (err) {
             console.error('Error fetching corporate data:', err);
+            setOrganization(null);
+            setSeats([]);
         } finally {
             setLoading(false);
         }
@@ -175,6 +182,36 @@ export const CorporateDashboard: React.FC<CorporateDashboardProps> = ({ user }) 
     const pendingSeats = organization?.pendingSeats || 0;
     const availableSeats = organization?.availableSeats ?? Math.max(0, totalSeats - seats.length);
     const avgProgress = organization?.avgProgress || 0;
+
+    if (!loading && !organization) {
+        return (
+            <div className="max-w-2xl mx-auto my-16 p-8 sm:p-10 bg-white dark:bg-slate-900 border border-gray-100 dark:border-slate-800 rounded-3xl text-center space-y-6 shadow-xl animate-fadeIn">
+                <div className="w-16 h-16 bg-purple-100 dark:bg-purple-950/40 text-welile-purple dark:text-purple-400 rounded-2xl flex items-center justify-center mx-auto shadow-inner">
+                    <Building2 size={32} />
+                </div>
+                <div className="space-y-2">
+                    <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Corporate Account Required</h2>
+                    <p className="text-sm text-gray-500 dark:text-slate-400 max-w-md mx-auto leading-relaxed">
+                        The Corporate Portal is exclusively available to registered corporate organizations and sponsored corporate learners. Upgrade your account or create a corporate plan to unlock team seats and analytics.
+                    </p>
+                </div>
+                <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
+                    <button
+                        onClick={() => navigate('/corporate/setup')}
+                        className="w-full sm:w-auto px-6 py-3 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-semibold text-sm hover:from-purple-700 hover:to-indigo-700 transition shadow-lg shadow-purple-500/20 cursor-pointer"
+                    >
+                        Set Up Corporate Plan
+                    </button>
+                    <button
+                        onClick={() => navigate('/dashboard')}
+                        className="w-full sm:w-auto px-6 py-3 rounded-xl border border-gray-200 dark:border-slate-700 text-gray-700 dark:text-slate-300 font-semibold text-sm hover:bg-gray-50 dark:hover:bg-slate-800 transition cursor-pointer"
+                    >
+                        Back to Dashboard
+                    </button>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="max-w-7xl mx-auto space-y-8 animate-fadeIn pb-12">

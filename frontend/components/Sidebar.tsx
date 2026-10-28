@@ -10,16 +10,17 @@ interface SidebarProps {
   isOpen: boolean;
   onClose: () => void;
   isAdmin?: boolean;
+  isCorporate?: boolean;
 }
 
-const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, isOpen, onClose, isAdmin }) => {
+const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, isOpen, onClose, isAdmin, isCorporate }) => {
   const { t } = useTranslation();
 
   const menuItems = [
     { id: 'dashboard', label: t('dashboard'), icon: LayoutDashboard },
     { id: 'discover', label: t('discover'), icon: Compass },
     { id: 'courses', label: t('my_courses'), icon: BookOpen },
-    { id: 'corporate', label: 'Corporate Portal', icon: Building2 },
+    ...(isCorporate ? [{ id: 'corporate', label: 'Corporate Portal', icon: Building2 }] : []),
     { id: 'events', label: t('events') || 'Upcoming Classes', icon: Calendar },
     { id: 'career', label: t('career_growth'), icon: Briefcase },
     { id: 'profile', label: t('my_profile'), icon: User },

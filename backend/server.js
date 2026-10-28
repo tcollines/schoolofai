@@ -688,8 +688,11 @@ app.post('/api/corporate/branding', async (req, res) => {
 
 app.get('/api/corporate/seats', async (req, res) => {
     try {
-        const { orgId, userId, userEmail } = req.query;
-        const data = await corporateService.getSeatsAndProgress(orgId, userId, userEmail);
+        const { orgId, userId, userEmail, userName } = req.query;
+        const data = await corporateService.getSeatsAndProgress(orgId, userId, userEmail, userName);
+        if (!data.organization) {
+            return res.json({ success: false, error: 'No corporate account found for this user', organization: null, seats: [] });
+        }
         res.json({ success: true, ...data });
     } catch (err) {
         console.error('[Corporate] Error reading seats:', err.message);

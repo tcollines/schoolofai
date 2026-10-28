@@ -21,11 +21,12 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({ courses, userId }) => {
     const [recentCourse, setRecentCourse] = useState<Course | null>(null);
     const [quizGrades, setQuizGrades] = useState<any[]>([]);
     const [userRole, setUserRole] = useState<string>(() => {
-        if (localStorage.getItem('user_plan') === 'corporate') return 'SPONSORED';
+        if (userId && userId !== 'guest' && localStorage.getItem(`user_company_name_${userId}`)) return 'SPONSORED';
         return 'INDIVIDUAL';
     });
     const [companyName, setCompanyName] = useState<string>(() => {
-        return localStorage.getItem('user_company_name') || '';
+        if (userId && userId !== 'guest') return localStorage.getItem(`user_company_name_${userId}`) || '';
+        return '';
     });
 
     // Cohort & Orientation Lock State
@@ -89,21 +90,21 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({ courses, userId }) => {
         const fetchRole = async () => {
             if (!userId || userId === 'guest') return;
             try {
-                const cachedCompany = localStorage.getItem('user_company_name');
-                if (cachedCompany) setCompanyName(cachedCompany);
-
-                if (localStorage.getItem('user_plan') === 'corporate') {
+                const userSpecificCompany = localStorage.getItem(`user_company_name_${userId}`);
+                if (userSpecificCompany) {
+                    setCompanyName(userSpecificCompany);
                     setUserRole('SPONSORED');
                 }
 
                 const cached = localStorage.getItem(`student-profile-${userId}`);
                 if (cached) {
                     const parsed = JSON.parse(cached);
-                    if (parsed.role) {
+                    if (parsed.role && parsed.role !== 'SPONSORED') {
                         setUserRole(parsed.role);
                     }
                     if (parsed.company_name || parsed.companyName) {
                         setCompanyName(parsed.company_name || parsed.companyName);
+                        setUserRole('SPONSORED');
                     }
                 }
                 
@@ -116,7 +117,9 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({ courses, userId }) => {
                     if (data.role) setUserRole(data.role);
                     if (data.company_name) {
                         setCompanyName(data.company_name);
+                        localStorage.setItem(`user_company_name_${userId}`, data.company_name);
                         localStorage.setItem('user_company_name', data.company_name);
+                        setUserRole('SPONSORED');
                     }
                     const storedProfile = localStorage.getItem(`student-profile-${userId}`);
                     const parsedProfile = storedProfile ? JSON.parse(storedProfile) : {};
@@ -127,21 +130,24 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({ courses, userId }) => {
                     }));
                 }
 
-                // If company name not yet found, check corporate organization endpoint
-                if (!cachedCompany && !data?.company_name) {
-                    try {
-                        const orgRes = await fetch(`/api/corporate/organization?userId=${encodeURIComponent(userId)}`);
-                        if (orgRes.ok) {
-                            const orgJson = await orgRes.json();
-                            if (orgJson.data?.name && orgJson.data.name !== 'Corporate Partner') {
-                                setCompanyName(orgJson.data.name);
-                                localStorage.setItem('user_company_name', orgJson.data.name);
-                                localStorage.setItem('user_plan', 'corporate');
-                                setUserRole('SPONSORED');
-                            }
+                // Verify corporate organization endpoint for live corporate accounts
+                try {
+                    const orgRes = await fetch(`/api/corporate/organization?userId=${encodeURIComponent(userId)}`);
+                    if (orgRes.ok) {
+                        const orgJson = await orgRes.json();
+                        if (orgJson.data?.name && orgJson.data.name !== 'Corporate Partner') {
+                            setCompanyName(orgJson.data.name);
+                            localStorage.setItem(`user_company_name_${userId}`, orgJson.data.name);
+                            localStorage.setItem('user_company_name', orgJson.data.name);
+                            localStorage.setItem('user_plan', 'corporate');
+                            setUserRole('SPONSORED');
+                        } else if (!orgJson?.data && (!data?.role || data.role !== 'SPONSORED') && !data?.company_name) {
+                            // Non-corporate account - clear corporate state
+                            setCompanyName('');
+                            localStorage.removeItem(`user_company_name_${userId}`);
                         }
-                    } catch (orgErr) {}
-                }
+                    }
+                } catch (orgErr) {}
             } catch (e) {
                 console.error(e);
             }

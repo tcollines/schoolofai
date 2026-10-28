@@ -42,8 +42,9 @@ export const useProfile = (session: any) => {
                         onboarding_complete: false
                     });
                 } else {
-                    const cachedCompany = localStorage.getItem('user_company_name') || '';
-                    const isCorporatePlan = localStorage.getItem('user_plan') === 'corporate';
+                    const userSpecificCompany = data.id ? localStorage.getItem(`user_company_name_${data.id}`) : null;
+                    const cachedCompany = userSpecificCompany || (data.role?.toUpperCase() === 'SPONSORED' ? (localStorage.getItem('user_company_name') || '') : '');
+                    const isCorporatePlan = data.role?.toUpperCase() === 'SPONSORED' || (localStorage.getItem('user_plan') === 'corporate' && Boolean(userSpecificCompany));
                     const resolvedRole = (() => {
                         const raw = (data.role || session?.user?.user_metadata?.role || '').toUpperCase();
                         if (raw === 'ADMIN') return UserRole.ADMIN;
@@ -55,7 +56,8 @@ export const useProfile = (session: any) => {
                     })();
 
                     const resolvedCompany = data.companyName || data.company_name || cachedCompany || '';
-                    if (resolvedCompany) {
+                    if (resolvedCompany && data.id) {
+                        localStorage.setItem(`user_company_name_${data.id}`, resolvedCompany);
                         localStorage.setItem('user_company_name', resolvedCompany);
                     }
 
@@ -67,7 +69,7 @@ export const useProfile = (session: any) => {
                         skills: [],
                         bio: data.bio,
                         location: data.location,
-                        companyName: resolvedCompany,
+                        companyName: resolvedCompany || undefined,
                         nationality: data.nationality || session?.user?.user_metadata?.nationality || '',
                         dateOfBirth: data.dateOfBirth || data.date_of_birth || session?.user?.user_metadata?.date_of_birth || '',
                         avatarScale: data.avatarScale !== undefined ? Number(data.avatarScale) : (data.avatar_scale !== undefined ? Number(data.avatar_scale) : 1),
@@ -78,19 +80,32 @@ export const useProfile = (session: any) => {
 
                     setProfile(profileObj);
 
-                    // If company name not yet known, check corporate organization endpoint
-                    if (!resolvedCompany && session?.user) {
+                    // Check corporate organization endpoint to dynamically verify corporate status
+                    if (session?.user) {
                         try {
                             const orgRes = await fetch(`/api/corporate/organization?userId=${encodeURIComponent(session.user.id)}&userEmail=${encodeURIComponent(session.user.email || '')}`);
                             if (orgRes.ok) {
                                 const orgJson = await orgRes.json();
                                 if (orgJson?.data?.name && orgJson.data.name !== 'Corporate Partner') {
+                                    localStorage.setItem(`user_company_name_${session.user.id}`, orgJson.data.name);
                                     localStorage.setItem('user_company_name', orgJson.data.name);
                                     localStorage.setItem('user_plan', 'corporate');
                                     setProfile(prev => prev ? {
                                         ...prev,
                                         companyName: orgJson.data.name,
                                         role: UserRole.SPONSORED
+                                    } : prev);
+                                } else if (!orgJson?.data && (data.role || '').toUpperCase() !== 'SPONSORED' && !data.company_name) {
+                                    // User has no corporate org - clear any stale corporate local storage
+                                    localStorage.removeItem(`user_company_name_${session.user.id}`);
+                                    localStorage.removeItem('user_company_name');
+                                    if (localStorage.getItem('user_plan') === 'corporate') {
+                                        localStorage.removeItem('user_plan');
+                                    }
+                                    setProfile(prev => prev ? {
+                                        ...prev,
+                                        companyName: undefined,
+                                        role: resolvedRole === UserRole.SPONSORED ? UserRole.INDIVIDUAL : resolvedRole
                                     } : prev);
                                 }
                             }
