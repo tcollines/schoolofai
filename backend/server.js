@@ -747,8 +747,8 @@ app.post('/api/corporate/claim', async (req, res) => {
 
 app.post('/api/corporate/provision', async (req, res) => {
     try {
-        const { userId, userEmail, seats, planTier } = req.body;
-        const org = await corporateService.provisionSeats(userId, userEmail, Number(seats) || 10, planTier);
+        const { userId, userEmail, seats, planTier, companyName, userName } = req.body;
+        const org = await corporateService.provisionSeats(userId, userEmail, Number(seats) || 10, planTier, { companyName, userName });
         if (userId) {
             try {
                 await supabase

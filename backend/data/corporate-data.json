@@ -33,6 +33,31 @@
   ],
   "members": [
     {
+      "id": "mem-owner-org-1793022896677",
+      "organizationId": "org-1793022896677",
+      "userId": "baa665b0-9c35-4cda-97c0-c9cc659dfcf6",
+      "name": "Sarah Jenkins",
+      "email": "sarah.jenkins@acmeai.com",
+      "department": "Corporate Lead",
+      "role": "admin",
+      "isOwner": true,
+      "status": "active",
+      "invitedAt": "2026-10-26T13:54:56.677Z",
+      "joinedAt": "2026-10-26T13:54:56.677Z",
+      "enrolledCourses": [
+        {
+          "courseId": "c1",
+          "courseTitle": "Introduction to Generative AI",
+          "progress": 25,
+          "completedLessons": 3,
+          "totalLessons": 14,
+          "status": "IN_PROGRESS",
+          "certificateEarned": false,
+          "lastActiveAt": "2026-10-27T10:00:00Z"
+        }
+      ]
+    },
+    {
       "id": "mem-1",
       "organizationId": "org-welile-corp",
       "userId": "user-emp-1",

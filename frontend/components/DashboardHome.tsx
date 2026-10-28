@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { TrendingUp, CheckCircle, PlayCircle, BookOpen, MessageSquare, Award, Shield, Star, PartyPopper, ArrowRight } from 'lucide-react';
+import { TrendingUp, CheckCircle, PlayCircle, BookOpen, MessageSquare, Award, Shield, Star, PartyPopper, ArrowRight, Building2 } from 'lucide-react';
 import { Course, CourseStatus } from '../types';
 import { useTranslation } from './translations';
 import { supabaseClient } from '../src/lib/supabaseClient';
@@ -20,7 +20,13 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({ courses, userId }) => {
 
     const [recentCourse, setRecentCourse] = useState<Course | null>(null);
     const [quizGrades, setQuizGrades] = useState<any[]>([]);
-    const [userRole, setUserRole] = useState<string>('INDIVIDUAL');
+    const [userRole, setUserRole] = useState<string>(() => {
+        if (localStorage.getItem('user_plan') === 'corporate') return 'SPONSORED';
+        return 'INDIVIDUAL';
+    });
+    const [companyName, setCompanyName] = useState<string>(() => {
+        return localStorage.getItem('user_company_name') || '';
+    });
 
     // Cohort & Orientation Lock State
     const [cohort, setCohort] = useState<any>(null);
@@ -83,27 +89,58 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({ courses, userId }) => {
         const fetchRole = async () => {
             if (!userId || userId === 'guest') return;
             try {
+                const cachedCompany = localStorage.getItem('user_company_name');
+                if (cachedCompany) setCompanyName(cachedCompany);
+
+                if (localStorage.getItem('user_plan') === 'corporate') {
+                    setUserRole('SPONSORED');
+                }
+
                 const cached = localStorage.getItem(`student-profile-${userId}`);
                 if (cached) {
                     const parsed = JSON.parse(cached);
                     if (parsed.role) {
                         setUserRole(parsed.role);
                     }
+                    if (parsed.company_name || parsed.companyName) {
+                        setCompanyName(parsed.company_name || parsed.companyName);
+                    }
                 }
                 
                 const { data } = await supabaseClient
                     .from('profiles')
-                    .select('role')
+                    .select('role, company_name')
                     .eq('id', userId)
                     .single();
-                if (data?.role) {
-                    setUserRole(data.role);
+                if (data) {
+                    if (data.role) setUserRole(data.role);
+                    if (data.company_name) {
+                        setCompanyName(data.company_name);
+                        localStorage.setItem('user_company_name', data.company_name);
+                    }
                     const storedProfile = localStorage.getItem(`student-profile-${userId}`);
                     const parsedProfile = storedProfile ? JSON.parse(storedProfile) : {};
                     localStorage.setItem(`student-profile-${userId}`, JSON.stringify({
                         ...parsedProfile,
-                        role: data.role
+                        role: data.role || parsedProfile.role,
+                        company_name: data.company_name || parsedProfile.company_name
                     }));
+                }
+
+                // If company name not yet found, check corporate organization endpoint
+                if (!cachedCompany && !data?.company_name) {
+                    try {
+                        const orgRes = await fetch(`/api/corporate/organization?userId=${encodeURIComponent(userId)}`);
+                        if (orgRes.ok) {
+                            const orgJson = await orgRes.json();
+                            if (orgJson.data?.name && orgJson.data.name !== 'Corporate Partner') {
+                                setCompanyName(orgJson.data.name);
+                                localStorage.setItem('user_company_name', orgJson.data.name);
+                                localStorage.setItem('user_plan', 'corporate');
+                                setUserRole('SPONSORED');
+                            }
+                        }
+                    } catch (orgErr) {}
                 }
             } catch (e) {
                 console.error(e);
@@ -499,24 +536,47 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({ courses, userId }) => {
 
             {/* Right Column */}
             <div className="space-y-6 lg:space-y-8">
-                {/* Premium Banner */}
+                {/* Premium / Corporate Banner */}
                 <div className="bg-[#1a1a2e] p-6 rounded-3xl text-white relative overflow-hidden">
                     <div className="relative z-10">
-                        <h3 className="font-bold text-xl mb-1">
-                            {userRole === 'PRO' || userRole === 'ADMIN' ? 'Premium Account' : t('go_premium')}
-                        </h3>
-                        <p className="text-xs text-gray-400 mb-4 max-w-[200px] leading-relaxed">
-                            {userRole === 'PRO' || userRole === 'ADMIN' 
-                                ? 'You have unlocked unlimited access to all courses, 24/7 AI tutor guidance, and verified certificates.' 
-                                : t('explore_courses')}
-                        </p>
-                        {userRole !== 'PRO' && userRole !== 'ADMIN' && (
-                            <button 
-                                onClick={() => navigate('/plans')}
-                                className="bg-welile-lime text-black text-xs font-bold px-4 py-2 rounded-full hover:bg-lime-300 transition-colors cursor-pointer"
-                            >
-                                {t('go_premium')}
-                            </button>
+                        {userRole === 'SPONSORED' || companyName ? (
+                            <>
+                                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase bg-violet-500/30 text-violet-200 border border-violet-400/30 mb-2">
+                                    <Building2 size={11} /> Enterprise Plan
+                                </span>
+                                <h3 className="font-bold text-xl mb-1 text-white">
+                                    {companyName || 'Corporate Partner'}
+                                </h3>
+                                <p className="text-xs text-gray-400 mb-4 max-w-[220px] leading-relaxed">
+                                    Your account holds Seat #1 in the enterprise upskilling program with full access to all verified courses.
+                                </p>
+                                <button 
+                                    onClick={() => navigate('/corporate')}
+                                    className="bg-gradient-to-r from-violet-500 to-indigo-500 text-white text-xs font-bold px-4 py-2 rounded-full hover:opacity-90 transition-opacity cursor-pointer flex items-center gap-1.5 shadow-md shadow-violet-500/20"
+                                >
+                                    <Building2 size={13} />
+                                    <span>Corporate Portal</span>
+                                </button>
+                            </>
+                        ) : (
+                            <>
+                                <h3 className="font-bold text-xl mb-1">
+                                    {userRole === 'PRO' || userRole === 'ADMIN' ? 'Premium Account' : t('go_premium')}
+                                </h3>
+                                <p className="text-xs text-gray-400 mb-4 max-w-[200px] leading-relaxed">
+                                    {userRole === 'PRO' || userRole === 'ADMIN' 
+                                        ? 'You have unlocked unlimited access to all courses, 24/7 AI tutor guidance, and verified certificates.' 
+                                        : t('explore_courses')}
+                                </p>
+                                {userRole !== 'PRO' && userRole !== 'ADMIN' && (
+                                    <button 
+                                        onClick={() => navigate('/plans')}
+                                        className="bg-welile-lime text-black text-xs font-bold px-4 py-2 rounded-full hover:bg-lime-300 transition-colors cursor-pointer"
+                                    >
+                                        {t('go_premium')}
+                                    </button>
+                                )}
+                            </>
                         )}
                     </div>
                     {/* Abstract illustration circles */}

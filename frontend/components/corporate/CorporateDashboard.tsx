@@ -49,8 +49,8 @@ export const CorporateDashboard: React.FC<CorporateDashboardProps> = ({ user }) 
     const fetchCorporateData = async () => {
         try {
             setLoading(true);
-            const userEmail = user?.email || localStorage.getItem('logged_in_email') || '';
-            const userId = user?.id || '';
+            const userEmail = user?.email || localStorage.getItem('auth_logged_in_email') || localStorage.getItem('logged_in_email') || '';
+            const userId = user?.id || localStorage.getItem('auth_logged_in_id') || '';
 
             const res = await fetch(`/api/corporate/seats?userId=${encodeURIComponent(userId)}&userEmail=${encodeURIComponent(userEmail)}`);
             const data = await res.json();
@@ -58,6 +58,11 @@ export const CorporateDashboard: React.FC<CorporateDashboardProps> = ({ user }) 
             if (data.success) {
                 setOrganization(data.organization);
                 setSeats(data.seats || []);
+                if (data.organization?.name && data.organization.name !== 'Corporate Partner') {
+                    localStorage.setItem('user_company_name', data.organization.name);
+                    localStorage.setItem('user_plan', 'corporate');
+                    window.dispatchEvent(new Event('profile-update'));
+                }
             }
         } catch (err) {
             console.error('Error fetching corporate data:', err);
@@ -480,7 +485,11 @@ export const CorporateDashboard: React.FC<CorporateDashboardProps> = ({ user }) 
                                                     <div>
                                                         <div className="font-bold text-gray-900 dark:text-white flex items-center gap-2">
                                                             <span>{seat.name || 'Invited User'}</span>
-                                                            {seat.department && (
+                                                            {seat.isOwner ? (
+                                                                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-violet-100 dark:bg-violet-950/60 text-violet-700 dark:text-violet-300 border border-violet-200 dark:border-violet-800 flex items-center gap-1">
+                                                                    <Shield size={10} /> Corporate Lead (Seat #1)
+                                                                </span>
+                                                            ) : seat.department && (
                                                                 <span className="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-gray-100 dark:bg-slate-800 text-gray-600 dark:text-slate-400 border border-gray-200 dark:border-slate-700">
                                                                     {seat.department}
                                                                 </span>
@@ -569,25 +578,33 @@ export const CorporateDashboard: React.FC<CorporateDashboardProps> = ({ user }) 
                                             {/* Actions */}
                                             <td className="py-4 px-6 text-right">
                                                 <div className="flex items-center justify-end gap-2">
-                                                    {!isActive && (
-                                                        <button
-                                                            onClick={() => handleResendInvite(seat.id)}
-                                                            disabled={actionLoadingId === seat.id}
-                                                            className="p-1.5 rounded-lg bg-gray-100 dark:bg-slate-800 hover:bg-violet-100 dark:hover:bg-slate-700 text-gray-600 dark:text-slate-300 hover:text-violet-600 transition-colors cursor-pointer"
-                                                            title="Resend Invitation Email"
-                                                        >
-                                                            <Send size={13} />
-                                                        </button>
-                                                    )}
+                                                    {seat.isOwner ? (
+                                                        <span className="text-[11px] text-violet-600 dark:text-violet-400 font-bold px-2.5 py-1 bg-violet-50 dark:bg-violet-950/40 rounded-lg border border-violet-100 dark:border-violet-900/50">
+                                                            Primary Seat
+                                                        </span>
+                                                    ) : (
+                                                        <>
+                                                            {!isActive && (
+                                                                <button
+                                                                    onClick={() => handleResendInvite(seat.id)}
+                                                                    disabled={actionLoadingId === seat.id}
+                                                                    className="p-1.5 rounded-lg bg-gray-100 dark:bg-slate-800 hover:bg-violet-100 dark:hover:bg-slate-700 text-gray-600 dark:text-slate-300 hover:text-violet-600 transition-colors cursor-pointer"
+                                                                    title="Resend Invitation Email"
+                                                                >
+                                                                    <Send size={13} />
+                                                                </button>
+                                                            )}
 
-                                                    <button
-                                                        onClick={() => handleRevokeSeat(seat.id)}
-                                                        disabled={actionLoadingId === seat.id}
-                                                        className="p-1.5 rounded-lg bg-gray-100 dark:bg-slate-800 hover:bg-red-100 dark:hover:bg-red-950/50 text-gray-500 hover:text-red-600 transition-colors cursor-pointer"
-                                                        title="Revoke / Reassign Seat"
-                                                    >
-                                                        <Trash2 size={13} />
-                                                    </button>
+                                                            <button
+                                                                onClick={() => handleRevokeSeat(seat.id)}
+                                                                disabled={actionLoadingId === seat.id}
+                                                                className="p-1.5 rounded-lg bg-gray-100 dark:bg-slate-800 hover:bg-red-100 dark:hover:bg-red-950/50 text-gray-500 hover:text-red-600 transition-colors cursor-pointer"
+                                                                title="Revoke / Reassign Seat"
+                                                            >
+                                                                <Trash2 size={13} />
+                                                            </button>
+                                                        </>
+                                                    )}
                                                 </div>
                                             </td>
                                         </tr>

@@ -163,6 +163,72 @@ function saveCorporateStore(data) {
 }
 
 /**
+ * Ensures the account owner / signup user takes the first seat of the organization
+ */
+function ensureOwnerFirstSeat(store, org, extraInfo = {}) {
+    if (!org) return;
+
+    const ownerUserId = org.ownerUserId || extraInfo.userId || null;
+    const ownerEmail = (org.contactEmail || extraInfo.userEmail || '').trim().toLowerCase();
+    const ownerName = (org.contactName || extraInfo.userName || 'Corporate Lead').trim();
+
+    // Check if the owner/lead already has a seat
+    let ownerMember = store.members.find(m => 
+        m.organizationId === org.id && 
+        m.status !== 'revoked' && (
+            m.isOwner === true ||
+            (ownerUserId && m.userId === ownerUserId) ||
+            (ownerEmail && m.email && m.email.toLowerCase() === ownerEmail)
+        )
+    );
+
+    if (!ownerMember) {
+        ownerMember = {
+            id: 'mem-owner-' + org.id,
+            organizationId: org.id,
+            userId: ownerUserId,
+            name: ownerName || 'Corporate Lead',
+            email: ownerEmail || 'lead@corporate.com',
+            department: 'Corporate Lead',
+            role: 'admin',
+            isOwner: true,
+            status: 'active',
+            invitedAt: org.createdAt || new Date().toISOString(),
+            joinedAt: org.createdAt || new Date().toISOString(),
+            enrolledCourses: []
+        };
+        // Unshift so owner is always seat #1
+        store.members.unshift(ownerMember);
+        saveCorporateStore(store);
+    } else {
+        let changed = false;
+        if (ownerMember.status !== 'active') {
+            ownerMember.status = 'active';
+            changed = true;
+        }
+        if (!ownerMember.isOwner) {
+            ownerMember.isOwner = true;
+            changed = true;
+        }
+        if (ownerName && (!ownerMember.name || ownerMember.name === 'Corporate Lead')) {
+            ownerMember.name = ownerName;
+            changed = true;
+        }
+        if (ownerEmail && !ownerMember.email) {
+            ownerMember.email = ownerEmail;
+            changed = true;
+        }
+        if (ownerUserId && !ownerMember.userId) {
+            ownerMember.userId = ownerUserId;
+            changed = true;
+        }
+        if (changed) {
+            saveCorporateStore(store);
+        }
+    }
+}
+
+/**
  * Get organization profile for a given user or return default
  */
 async function getOrganization(userId, userEmail) {
@@ -177,6 +243,10 @@ async function getOrganization(userId, userEmail) {
     // If no org found, use the primary organization
     if (!org) {
         org = store.organizations[0];
+    }
+
+    if (org) {
+        ensureOwnerFirstSeat(store, org, { userId, userEmail });
     }
 
     // Calculate live seat metrics
@@ -236,6 +306,12 @@ async function updateBranding(userId, brandingData) {
     if (brandingData.website !== undefined) org.website = brandingData.website.trim();
     org.updatedAt = new Date().toISOString();
 
+    ensureOwnerFirstSeat(store, org, {
+        userId,
+        userEmail: brandingData.contactEmail,
+        userName: brandingData.contactName
+    });
+
     saveCorporateStore(store);
 
     // If Supabase is connected, attempt sync
@@ -263,7 +339,7 @@ async function updateBranding(userId, brandingData) {
 /**
  * Update or provision seats count for an organization (e.g. after purchasing seats)
  */
-async function provisionSeats(userId, userEmail, seatsCount, planTier) {
+async function provisionSeats(userId, userEmail, seatsCount, planTier, extraData = {}) {
     const store = getCorporateStore();
     let org = store.organizations.find(o => 
         (userId && o.ownerUserId === userId) || 
@@ -273,9 +349,9 @@ async function provisionSeats(userId, userEmail, seatsCount, planTier) {
     if (!org) {
         org = {
             id: 'org-' + Date.now(),
-            name: 'Corporate Partner',
+            name: extraData.companyName || 'Corporate Partner',
             logoUrl: '',
-            contactName: 'Organization Admin',
+            contactName: extraData.userName || 'Organization Admin',
             contactEmail: userEmail || '',
             contactPhone: '',
             website: '',
@@ -288,12 +364,16 @@ async function provisionSeats(userId, userEmail, seatsCount, planTier) {
         };
         store.organizations.push(org);
     } else {
+        if (extraData.companyName && (!org.name || org.name === 'Corporate Partner')) {
+            org.name = extraData.companyName;
+        }
         org.totalSeats = (org.totalSeats || 0) + (Number(seatsCount) || 10);
         org.purchasedSeats = org.totalSeats;
         org.billingPlan = org.totalSeats >= 50 ? 'corporate_tier2' : 'corporate_tier1';
         org.updatedAt = new Date().toISOString();
     }
 
+    ensureOwnerFirstSeat(store, org, { userId, userEmail, userName: extraData.userName });
     saveCorporateStore(store);
     return org;
 }
@@ -306,11 +386,20 @@ async function getSeatsAndProgress(orgId, userId, userEmail) {
     const org = await getOrganization(userId, userEmail);
     const targetOrgId = orgId || org.id;
 
+    ensureOwnerFirstSeat(store, org, { userId, userEmail });
+
     const members = store.members.filter(m => m.organizationId === targetOrgId && m.status !== 'revoked');
+
+    // Sort with primary owner seat first
+    const sortedMembers = [...members].sort((a, b) => {
+        if (a.isOwner) return -1;
+        if (b.isOwner) return 1;
+        return 0;
+    });
 
     return {
         organization: org,
-        seats: members
+        seats: sortedMembers
     };
 }
 
@@ -432,6 +521,10 @@ async function revokeSeat(orgId, memberId) {
     const store = getCorporateStore();
     const member = store.members.find(m => m.id === memberId);
     if (!member) throw new Error('Seat / Member not found');
+
+    if (member.isOwner) {
+        throw new Error('The primary corporate account owner seat cannot be revoked.');
+    }
 
     member.status = 'revoked';
     member.revokedAt = new Date().toISOString();

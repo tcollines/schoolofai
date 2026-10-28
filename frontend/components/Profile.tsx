@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useOutletContext, useNavigate } from 'react-router-dom';
-import { User, MapPin, Briefcase, GraduationCap, Save, Camera, FileImage, X, Loader, Trash2, Edit2, Check, Star } from 'lucide-react';
+import { User, MapPin, Briefcase, GraduationCap, Save, Camera, FileImage, X, Loader, Trash2, Edit2, Check, Star, Building2 } from 'lucide-react';
 import { UserProfile } from '../types';
 import { useTranslation } from './translations';
 import { supabaseClient } from '../src/lib/supabaseClient';
@@ -1024,29 +1024,73 @@ const Profile: React.FC<ProfileProps> = ({ user, onUpgradeClick }) => {
                         </div>
                         <h3 className="mt-4 font-bold text-lg text-gray-900 dark:text-white">{formData.name}</h3>
                         <p className="text-gray-500 dark:text-slate-400 text-sm mb-4">{formData.email}</p>
-                        <div className="inline-block bg-purple-50 dark:bg-purple-950/30 text-welile-purple dark:text-purple-400 text-xs font-bold px-3 py-1 rounded-full border border-purple-100 dark:border-purple-900/50">
-                            {formData.role === 'SPONSORED' ? 'Enterprise Plan' : formData.role === 'INDIVIDUAL' ? 'Basic Plan' : formData.role === 'ADMIN' ? 'Instructor' : (formData.role || 'Student').replace('_', ' ')}
-                        </div>
-                        {formData.role === 'PRO' || formData.role === 'ADMIN' ? (
-                            <div className="mt-6 pt-6 border-t border-gray-50 dark:border-slate-800 text-center space-y-2">
-                                <div className="text-xs font-bold text-green-650 dark:text-green-400 bg-green-50 dark:bg-green-950/20 border border-green-100 dark:border-green-900/30 px-3 py-2 rounded-xl inline-block w-full">
-                                    <Star className="inline-block w-4 h-4 mr-1 align-middle" /> Premium Account Active
+                        {(() => {
+                            const corporateCompanyName = formData?.companyName || (formData as any)?.company_name || localStorage.getItem('user_company_name') || '';
+                            const isCorporate = formData?.role === 'SPONSORED' || localStorage.getItem('user_plan') === 'corporate' || Boolean(corporateCompanyName);
+
+                            if (isCorporate) {
+                                return (
+                                    <div className="inline-flex items-center gap-1.5 bg-purple-50 dark:bg-purple-950/30 text-welile-purple dark:text-purple-400 text-xs font-bold px-3 py-1 rounded-full border border-purple-100 dark:border-purple-900/50">
+                                        <Building2 size={13} className="text-welile-purple dark:text-purple-400" />
+                                        <span>{corporateCompanyName || 'Corporate Partner'}</span>
+                                    </div>
+                                );
+                            }
+
+                            return (
+                                <div className="inline-block bg-purple-50 dark:bg-purple-950/30 text-welile-purple dark:text-purple-400 text-xs font-bold px-3 py-1 rounded-full border border-purple-100 dark:border-purple-900/50">
+                                    {formData.role === 'SPONSORED' ? 'Enterprise Plan' : formData.role === 'INDIVIDUAL' ? 'Basic Plan' : formData.role === 'ADMIN' ? 'Instructor' : (formData.role || 'Student').replace('_', ' ')}
                                 </div>
-                                <p className="text-xs text-gray-500 dark:text-slate-400 leading-relaxed px-2">
-                                    You are currently enjoying our premium services. We recommend you explore courses in the <span className="font-semibold text-welile-purple">Discover</span> tab!
-                                </p>
-                            </div>
-                        ) : (
-                            <div className="mt-6 pt-6 border-t border-gray-50 dark:border-slate-800">
-                                <button
-                                    onClick={() => navigate('/plans')}
-                                    className="w-full bg-black dark:bg-violet-600 text-white py-2.5 rounded-xl text-sm font-semibold hover:bg-gray-800 dark:hover:bg-violet-700 transition-colors shadow-lg shadow-gray-200 dark:shadow-none cursor-pointer"
-                                >
-                                    Upgrade Plan
-                                </button>
-                                <p className="text-xs text-gray-400 dark:text-slate-500 mt-2">Unlock premium features & courses</p>
-                            </div>
-                        )}
+                            );
+                        })()}
+                        {(() => {
+                            const corporateCompanyName = formData?.companyName || (formData as any)?.company_name || localStorage.getItem('user_company_name') || '';
+                            const isCorporate = formData?.role === 'SPONSORED' || localStorage.getItem('user_plan') === 'corporate' || Boolean(corporateCompanyName);
+
+                            if (isCorporate) {
+                                return (
+                                    <div className="mt-6 pt-6 border-t border-gray-50 dark:border-slate-800 text-center space-y-2">
+                                        <div className="text-xs font-bold text-welile-purple dark:text-purple-400 bg-purple-50 dark:bg-purple-950/20 border border-purple-100 dark:border-purple-900/30 px-3 py-2 rounded-xl flex items-center justify-center gap-1.5 w-full">
+                                            <Building2 className="w-4 h-4" /> {corporateCompanyName || 'Corporate Plan'} Active
+                                        </div>
+                                        <p className="text-xs text-gray-500 dark:text-slate-400 leading-relaxed px-2">
+                                            Your seat is provisioned under <span className="font-semibold text-welile-purple">{corporateCompanyName || 'Corporate'}</span> with enterprise course access.
+                                        </p>
+                                        <button
+                                            onClick={() => navigate('/corporate')}
+                                            className="w-full mt-2 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white py-2.5 rounded-xl text-xs font-semibold transition-all shadow-md shadow-purple-500/20 cursor-pointer flex items-center justify-center gap-1.5"
+                                        >
+                                            <Building2 size={13} /> Manage Corporate Portal
+                                        </button>
+                                    </div>
+                                );
+                            }
+
+                            if (formData.role === 'PRO' || formData.role === 'ADMIN') {
+                                return (
+                                    <div className="mt-6 pt-6 border-t border-gray-50 dark:border-slate-800 text-center space-y-2">
+                                        <div className="text-xs font-bold text-green-650 dark:text-green-400 bg-green-50 dark:bg-green-950/20 border border-green-100 dark:border-green-900/30 px-3 py-2 rounded-xl inline-block w-full">
+                                            <Star className="inline-block w-4 h-4 mr-1 align-middle" /> Premium Account Active
+                                        </div>
+                                        <p className="text-xs text-gray-500 dark:text-slate-400 leading-relaxed px-2">
+                                            You are currently enjoying our premium services. We recommend you explore courses in the <span className="font-semibold text-welile-purple">Discover</span> tab!
+                                        </p>
+                                    </div>
+                                );
+                            }
+
+                            return (
+                                <div className="mt-6 pt-6 border-t border-gray-50 dark:border-slate-800">
+                                    <button
+                                        onClick={() => navigate('/plans')}
+                                        className="w-full bg-black dark:bg-violet-600 text-white py-2.5 rounded-xl text-sm font-semibold hover:bg-gray-800 dark:hover:bg-violet-700 transition-colors shadow-lg shadow-gray-200 dark:shadow-none cursor-pointer"
+                                    >
+                                        Upgrade Plan
+                                    </button>
+                                    <p className="text-xs text-gray-400 dark:text-slate-500 mt-2">Unlock premium features & courses</p>
+                                </div>
+                            );
+                        })()}
                     </div>
 
 
