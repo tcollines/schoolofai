@@ -72,6 +72,7 @@ export interface OutreachRegistrationPayload {
     // 2. COURSE & PROGRAMME INFORMATION
     course_interest: string;
     level?: string | null;
+    mode_of_study_text?: string | null;
     mode_preference?: string | null;
     expected_start_date?: string | null;
     expected_completion_date?: string | null;
@@ -114,8 +115,9 @@ export interface OutreachRegistrationPayload {
     approver_position?: string | null;
     assigned_instructor?: string | null;
     confirmed_schedule?: string | null;
-    admin_payment_status?: 'Fully Paid' | 'Partially Paid' | 'Payment Plan' | 'Pending';
+    admin_payment_status?: 'Fully Paid' | 'Partially Paid' | 'Payment Plan' | 'Pending' | string;
     admin_signature_date?: string | null;
+    admin_remarks?: string | null;
     admin_notes?: string | null;
     converted_profile_id?: string | null;
     submitted_from?: 'web' | 'offline-sync';
