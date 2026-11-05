@@ -932,8 +932,14 @@ const AdminRegistrations: React.FC = () => {
                 }
             }
 
+            const rawRegNo = convertingLead.student_reg_no || '';
+            const confirmedRegNo = rawRegNo.startsWith('Pending (')
+                ? rawRegNo.replace(/^Pending \((.+)\)$/, '$1')
+                : rawRegNo || `WSI/11/26/${String(Math.floor(100 + Math.random() * 900))}`;
+
             const updatePayload: Record<string, any> = {
-                status: 'ENROLLED'
+                status: 'ENROLLED',
+                student_reg_no: confirmedRegNo
             };
             if (profileId) {
                 updatePayload.converted_profile_id = profileId;
@@ -951,7 +957,7 @@ const AdminRegistrations: React.FC = () => {
             setRegistrations(prev =>
                 prev.map(r =>
                     r.id === convertingLead.id
-                        ? { ...r, status: 'ENROLLED', converted_profile_id: profileId }
+                        ? { ...r, status: 'ENROLLED', student_reg_no: confirmedRegNo, converted_profile_id: profileId }
                         : r
                 )
             );
