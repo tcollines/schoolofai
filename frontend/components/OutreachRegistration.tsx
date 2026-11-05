@@ -7,6 +7,10 @@ import {
     flushPendingOutreachRegistrations,
     getQueuedOutreachRegistrations,
     insertOutreachRegistrationLive,
+    fetchOutreachCampaigns,
+    generateStudentRegNo,
+    DEFAULT_OUTREACH_CAMPAIGNS,
+    OutreachCampaign,
     OutreachRegistrationPayload
 } from '../src/lib/outreachSync';
 import {
@@ -30,42 +34,95 @@ import {
     AlertCircle,
     Loader,
     Megaphone,
-    Laptop,
-    Building2,
-    Layers
+    GraduationCap,
+    Wallet,
+    FileCheck,
+    PenTool,
+    Printer
 } from 'lucide-react';
 
-const AGE_RANGES = ['Under 18', '18-24', '25-34', '35+'];
-const LEVELS = [
-    { value: 'Beginner', desc: 'New to AI & Tech' },
-    { value: 'Intermediate', desc: 'Some digital / coding skills' },
-    { value: 'Advanced', desc: 'Ready for deep technical labs' }
+const CLASS_LEVEL_OPTIONS = [
+    'University - Year 1',
+    'University - Year 2',
+    'University - Year 3',
+    'University - Year 4 / Finalist',
+    'Diploma / Certificate Student',
+    'Recent Graduate',
+    'Working Professional',
+    'High School (S.5 – S.6)',
+    'High School (S.1 – S.4)',
+    'Vacationist'
 ];
-const MODES = [
-    { value: 'Physical', label: 'Physical', desc: 'In-person campus classes', icon: Building2 },
-    { value: 'Online', label: 'Online', desc: 'Live virtual sessions', icon: Laptop },
-    { value: 'Hybrid', label: 'Hybrid', desc: 'Mix of physical & online', icon: Layers }
-];
-const DAYS_OF_WEEK = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-const TIME_SLOTS = [
-    { value: 'Morning', time: '8:00 AM – 12:00 PM' },
-    { value: 'Afternoon', time: '1:00 PM – 5:00 PM' },
-    { value: 'Evening', time: '6:00 PM – 8:30 PM' },
-    { value: 'Weekend', time: 'Sat & Sun Flexible' }
-];
-const HOW_HEARD_OPTIONS = [
-    'Outreach Event',
-    'Friend/Referral',
-    'Social Media',
-    'Poster/Flyer',
+
+const AGE_RANGES = ['18-24', '25-34', '35+', 'Under 18'];
+
+const LOCATION_PRESETS = [
+    'Nkumba, Entebbe',
+    'Katabi, Entebbe',
+    'Entebbe Town',
+    'Kampala Central',
+    'Makerere / Wandegeya',
+    'Wakiso',
+    'Mukono',
     'Other'
 ];
-const DEFAULT_EVENT_PRESETS = [
-    'Makerere Career Fair Nov 2026',
-    'Kampala Tech Community Meetup',
-    'Welile Campus Activation',
-    'Kyambogo Innovation Expo',
-    'High School ICT Bootcamp'
+
+const DEFAULT_COURSES = [
+    'Coding With AI',
+    'AI & Prompt Engineering Foundations',
+    'Full-Stack Software Development with AI',
+    'Data Analytics & Business Intelligence',
+    'Cybersecurity & Network Fundamentals',
+    'Digital Literacy & AI Office Productivity'
+];
+
+const LEVELS = ['Beginner', 'Intermediate', 'Advanced'];
+const MODES = ['Physical', 'Online', 'Hybrid'];
+const DAYS_OF_WEEK = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+
+const STUDY_TIME_SLOTS = [
+    '09:00 AM – 11:00 AM (Morning)',
+    '11:00 AM – 01:00 PM (Late Morning)',
+    '02:00 PM – 04:00 PM (Afternoon)',
+    '04:00 PM – 06:00 PM (Late Afternoon)',
+    '06:00 PM – 08:00 PM (Evening)',
+    '10:00 AM – 02:00 PM (Weekend Intensive)'
+];
+
+const STUDY_HOURS_OPTIONS = [
+    '2 Hours',
+    '1.5 Hours',
+    '3 Hours',
+    '4 Hours (Weekend)'
+];
+
+const ALTERNATIVE_TIME_OPTIONS = [
+    '06:00 PM – 08:00 PM (Evening)',
+    '04:00 PM – 06:00 PM (Late Afternoon)',
+    '02:00 PM – 04:00 PM (Afternoon)',
+    '09:00 AM – 11:00 AM (Morning)',
+    '10:00 AM – 02:00 PM (Weekend)',
+    'Not Applicable / Flexible'
+];
+
+const PAYMENT_PLANS = [
+    { value: 'Full', label: 'Full Payment', defaultAgreed: 600000 },
+    { value: 'Monthly', label: 'Monthly Plan', defaultAgreed: 200000 },
+    { value: 'Weekly', label: 'Weekly Plan', defaultAgreed: 750000 / 10 },
+    { value: 'Other', label: 'Other / Custom', defaultAgreed: 150000 }
+];
+
+const PAYMENT_METHODS = ['Mobile Money', 'Cash', 'Bank', 'Other'];
+
+const OFFICIAL_COMMITMENTS = [
+    'Attend classes according to the study schedule selected above.',
+    'Be punctual and committed to the agreed study hours.',
+    'Inform the school in advance if unable to attend a scheduled session.',
+    'Complete assigned coursework, activities and learning requirements.',
+    'Follow the rules and guidelines of Welile School of AI.',
+    'Pay all agreed fees according to the payment plan and deadlines.',
+    'Communicate with the school regarding changes to the study schedule or payment arrangements.',
+    'Take responsibility for my learning progress and participation.'
 ];
 
 const OutreachRegistration: React.FC = () => {
@@ -76,42 +133,117 @@ const OutreachRegistration: React.FC = () => {
     const [isOnline, setIsOnline] = useState(() => (typeof navigator !== 'undefined' ? navigator.onLine : true));
     const [pendingQueueCount, setPendingQueueCount] = useState(() => getQueuedOutreachRegistrations().length);
 
-    // Wizard step: 1 = You, 2 = Course, 3 = Finish
+    // Step 1: Sections 1 & 2 | Step 2: Sections 3 & 4 | Step 3: Sections 5, 6, 7 & Submit
     const [step, setStep] = useState<1 | 2 | 3>(1);
+    const [singlePageMode, setSinglePageMode] = useState(false);
 
-    // Live courses & existing outreach event names
-    const [courseOptions, setCourseOptions] = useState<string[]>([]);
-    const [eventPresets, setEventPresets] = useState<string[]>(DEFAULT_EVENT_PRESETS);
+    // Dropdown options from DB
+    const [campaigns, setCampaigns] = useState<OutreachCampaign[]>(DEFAULT_OUTREACH_CAMPAIGNS);
+    const [courseOptions, setCourseOptions] = useState<string[]>(DEFAULT_COURSES);
 
-    // Form fields
+    // Header Metadata
+    const todayStr = new Date().toISOString().split('T')[0];
+    const [registrationDate, setRegistrationDate] = useState('2026-11-06');
+    const [studentRegNo, setStudentRegNo] = useState(() => generateStudentRegNo());
+    const [outreachEvent, setOutreachEvent] = useState(
+        initialEventFromUrl || 'Nkumba University Outreach (Fri, 6th Nov 2026)'
+    );
+    const [howHeard, setHowHeard] = useState('Outreach Event');
+
+    // 1. STUDENT INFORMATION
     const [fullName, setFullName] = useState('');
-    const [phone, setPhone] = useState('');
     const [email, setEmail] = useState('');
+    const [phone, setPhone] = useState('');
+    const [classLevelYear, setClassLevelYear] = useState('University - Year 2');
     const [ageRange, setAgeRange] = useState('18-24');
+    const [location, setLocation] = useState('Nkumba, Entebbe');
     const [guardianName, setGuardianName] = useState('');
     const [guardianPhone, setGuardianPhone] = useState('');
-    const [location, setLocation] = useState('');
 
-    const [courseInterest, setCourseInterest] = useState('');
-    const [level, setLevel] = useState('Beginner');
+    // 2. COURSE & PROGRAMME INFORMATION
+    const [courseInterest, setCourseInterest] = useState('Coding With AI');
+    const [level, setLevel] = useState('Intermediate');
     const [modePreference, setModePreference] = useState('Hybrid');
+    const [expectedStartDate, setExpectedStartDate] = useState('2026-11-09');
+    const [expectedCompletionDate, setExpectedCompletionDate] = useState('2027-01-04');
+
+    // 3. STUDY SCHEDULE
     const [preferredStudyDays, setPreferredStudyDays] = useState<string[]>(['Mon', 'Wed', 'Fri']);
-    const [preferredTimeSlot, setPreferredTimeSlot] = useState('Evening');
+    const [chosenStudyTime, setChosenStudyTime] = useState('04:00 PM – 06:00 PM (Late Afternoon)');
+    const [studyHoursPerSession, setStudyHoursPerSession] = useState('2 Hours');
+    const [sessionsPerWeek, setSessionsPerWeek] = useState('3 Sessions / Week');
+    const [alternativeStudyTime, setAlternativeStudyTime] = useState('06:00 PM – 08:00 PM (Evening)');
 
-    const [howHeard, setHowHeard] = useState('Outreach Event');
-    const [outreachEvent, setOutreachEvent] = useState(initialEventFromUrl);
-    const [consentContact, setConsentContact] = useState(false);
+    // 4. FEES & PAYMENT AGREEMENT
+    const [totalCourseFee] = useState<number>(600000);
+    const [registrationFee] = useState<string>('Not Applicable');
+    const [amountPaid, setAmountPaid] = useState<number>(0);
+    const [paymentPlan, setPaymentPlan] = useState<string>('Monthly');
+    const [agreedPaymentAmount, setAgreedPaymentAmount] = useState<number>(200000);
+    const [nextPaymentDate, setNextPaymentDate] = useState<string>('2026-11-09');
+    const [paymentDueDate, setPaymentDueDate] = useState<string>('2026-12-09');
+    const [paymentMethod, setPaymentMethod] = useState<string>('Mobile Money');
+    const [paymentReference, setPaymentReference] = useState<string>('Pending / Upon Enrollment');
 
-    // Honeypot anti-spam field
+    // 5, 6, 7. COMMITMENTS, DECLARATION & SIGNATURES
+    const [checkedCommitments, setCheckedCommitments] = useState<boolean[]>(
+        OFFICIAL_COMMITMENTS.map(() => true)
+    );
+    const [studentSignature, setStudentSignature] = useState('');
+    const [studentDeclarationDate, setStudentDeclarationDate] = useState(todayStr);
+    const [guardianSignature, setGuardianSignature] = useState('');
+    const [guardianConsentDate, setGuardianConsentDate] = useState(todayStr);
+
+    // Honeypot
     const [honeypotWebsite, setHoneypotWebsite] = useState('');
 
-    // Validation & submission states
+    // Validation & submit states
     const [errors, setErrors] = useState<Record<string, string>>({});
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [submittedRecord, setSubmittedRecord] = useState<OutreachRegistrationPayload | null>(null);
     const [submittedMode, setSubmittedMode] = useState<'online' | 'offline' | null>(null);
 
-    // Theme sync
+    const outstandingBalance = Math.max(0, totalCourseFee - (Number(amountPaid) || 0));
+
+    // Sync signature default with fullName when user types their name
+    useEffect(() => {
+        if (fullName.trim()) {
+            setStudentSignature(fullName.trim());
+        }
+    }, [fullName]);
+
+    useEffect(() => {
+        if (guardianName.trim()) {
+            setGuardianSignature(guardianName.trim());
+        }
+    }, [guardianName]);
+
+    // Auto-calculate Expected Completion Date (+8 weeks) and Payment dates when Expected Start Date changes
+    useEffect(() => {
+        if (expectedStartDate) {
+            const start = new Date(expectedStartDate);
+            if (!isNaN(start.getTime())) {
+                const comp = new Date(start);
+                comp.setDate(comp.getDate() + 56);
+                setExpectedCompletionDate(comp.toISOString().split('T')[0]);
+                setNextPaymentDate(expectedStartDate);
+
+                const due = new Date(start);
+                due.setDate(due.getDate() + 30);
+                setPaymentDueDate(due.toISOString().split('T')[0]);
+            }
+        }
+    }, [expectedStartDate]);
+
+    // Auto-sync sessionsPerWeek when preferredStudyDays changes
+    useEffect(() => {
+        const count = preferredStudyDays.length;
+        if (count > 0) {
+            setSessionsPerWeek(`${count} ${count === 1 ? 'Session' : 'Sessions'} / Week`);
+        }
+    }, [preferredStudyDays]);
+
+    // Theme listener
     useEffect(() => {
         const handleThemeChange = () => {
             setIsDark(document.documentElement.classList.contains('dark'));
@@ -133,26 +265,21 @@ const OutreachRegistration: React.FC = () => {
         window.dispatchEvent(new Event('theme-change'));
     };
 
-    // Online/Offline listener & automatic queue flush
+    // Online/Offline listener
     useEffect(() => {
         const refreshQueueCount = () => {
             setPendingQueueCount(getQueuedOutreachRegistrations().length);
         };
-
         const handleOnline = async () => {
             setIsOnline(true);
             await flushPendingOutreachRegistrations();
             refreshQueueCount();
         };
-
         const handleOffline = () => {
             setIsOnline(false);
             refreshQueueCount();
         };
-
-        // Attempt flush on mount
         flushPendingOutreachRegistrations().then(refreshQueueCount);
-
         window.addEventListener('online', handleOnline);
         window.addEventListener('offline', handleOffline);
         return () => {
@@ -161,69 +288,40 @@ const OutreachRegistration: React.FC = () => {
         };
     }, []);
 
-    // Load live courses and distinct outreach_event names from Supabase
+    // Load Outreach Campaigns & Live Courses
     useEffect(() => {
-        const fetchCoursesAndEvents = async () => {
+        const loadData = async () => {
+            const loadedCampaigns = await fetchOutreachCampaigns();
+            const activeCampaigns = loadedCampaigns.filter(c => c.isActive !== false);
+            if (activeCampaigns.length > 0) {
+                setCampaigns(activeCampaigns);
+                if (!initialEventFromUrl) {
+                    const defaultCamp = activeCampaigns.find(c => c.isDefault) || activeCampaigns[0];
+                    if (defaultCamp) {
+                        setOutreachEvent(defaultCamp.name);
+                    }
+                }
+            }
+
             try {
                 const { data: coursesData } = await supabase
                     .from('courses')
                     .select('title, is_draft');
 
                 if (coursesData && coursesData.length > 0) {
-                    const publishedTitles = Array.from(
-                        new Set(
-                            coursesData
-                                .filter((c: any) => !c.is_draft && c.title)
-                                .map((c: any) => String(c.title).trim())
-                                .filter(Boolean)
-                        )
-                    );
-                    if (publishedTitles.length > 0) {
-                        setCourseOptions(publishedTitles);
-                        try {
-                            localStorage.setItem('outreach_cached_course_titles', JSON.stringify(publishedTitles));
-                        } catch {
-                            // ignore storage quota errors
-                        }
-                    }
-                }
-            } catch {
-                // Fallback to cached course titles when offline
-                try {
-                    const cached = localStorage.getItem('outreach_cached_course_titles');
-                    if (cached) {
-                        const parsed = JSON.parse(cached);
-                        if (Array.isArray(parsed) && parsed.length > 0) {
-                            setCourseOptions(parsed);
-                        }
-                    }
-                } catch {
-                    // ignore
-                }
-            }
-
-            // Pull distinct outreach_event names already used in outreach_registrations
-            try {
-                const { data: eventData } = await supabase
-                    .from('outreach_registrations')
-                    .select('outreach_event')
-                    .not('outreach_event', 'is', null)
-                    .limit(200);
-
-                if (eventData && eventData.length > 0) {
-                    const dbEvents = eventData
-                        .map((r: any) => (r.outreach_event || '').trim())
+                    const dbTitles = coursesData
+                        .filter((c: any) => !c.is_draft && c.title)
+                        .map((c: any) => String(c.title).trim())
                         .filter(Boolean);
-                    const merged = Array.from(new Set([...dbEvents, ...DEFAULT_EVENT_PRESETS]));
-                    setEventPresets(merged);
+                    const merged = Array.from(new Set(['Coding With AI', ...dbTitles, ...DEFAULT_COURSES]));
+                    setCourseOptions(merged);
                 }
             } catch {
-                // ignore if offline
+                // use default courses when offline
             }
         };
-
-        fetchCoursesAndEvents();
-    }, []);
+        loadData();
+    }, [initialEventFromUrl]);
 
     const toggleStudyDay = (day: string) => {
         setPreferredStudyDays(prev =>
@@ -234,25 +332,40 @@ const OutreachRegistration: React.FC = () => {
         }
     };
 
+    const handlePaymentPlanChange = (planValue: string) => {
+        setPaymentPlan(planValue);
+        const found = PAYMENT_PLANS.find(p => p.value === planValue);
+        if (found) {
+            setAgreedPaymentAmount(found.defaultAgreed);
+        }
+    };
+
+    const isGuardianRequired =
+        ageRange === 'Under 18' ||
+        classLevelYear.includes('High School');
+
     const validateStep1 = (): boolean => {
         const nextErrors: Record<string, string> = {};
         if (!fullName.trim() || fullName.trim().length < 2) {
-            nextErrors.fullName = 'Please enter your full name.';
+            nextErrors.fullName = 'Please enter the student’s full name.';
         }
         const cleanedPhone = phone.trim();
         if (!cleanedPhone || cleanedPhone.replace(/[^0-9+]/g, '').length < 7) {
-            nextErrors.phone = 'Please enter a valid phone number (e.g. 0770 000 000).';
+            nextErrors.phone = 'Please enter a valid phone number (e.g. 0772 123 456).';
         }
         if (email.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
-            nextErrors.email = 'Please enter a valid email address or leave it blank.';
+            nextErrors.email = 'Please enter a valid email address or leave blank.';
         }
-        if (ageRange === 'Under 18') {
-            if (!guardianName.trim() || guardianName.trim().length < 2) {
-                nextErrors.guardianName = 'Parent or Guardian name is required for students under 18.';
+        if (isGuardianRequired) {
+            if (!guardianName.trim()) {
+                nextErrors.guardianName = 'Parent / Guardian name is required for students under 18 or in High School.';
             }
-            if (!guardianPhone.trim() || guardianPhone.trim().replace(/[^0-9+]/g, '').length < 7) {
-                nextErrors.guardianPhone = 'Parent or Guardian phone number is required for students under 18.';
+            if (!guardianPhone.trim()) {
+                nextErrors.guardianPhone = 'Parent / Guardian contact is required.';
             }
+        }
+        if (!courseInterest.trim()) {
+            nextErrors.courseInterest = 'Please select a Course / Programme.';
         }
         setErrors(nextErrors);
         return Object.keys(nextErrors).length === 0;
@@ -260,11 +373,8 @@ const OutreachRegistration: React.FC = () => {
 
     const validateStep2 = (): boolean => {
         const nextErrors: Record<string, string> = {};
-        if (!courseInterest.trim()) {
-            nextErrors.courseInterest = 'Please select a course interest (or "Not sure yet").';
-        }
         if (preferredStudyDays.length === 0) {
-            nextErrors.preferredStudyDays = 'Please pick at least one preferred study day.';
+            nextErrors.preferredStudyDays = 'Please select at least one preferred study day.';
         }
         setErrors(nextErrors);
         return Object.keys(nextErrors).length === 0;
@@ -272,21 +382,24 @@ const OutreachRegistration: React.FC = () => {
 
     const validateStep3 = (): boolean => {
         const nextErrors: Record<string, string> = {};
-        if (!howHeard.trim()) {
-            nextErrors.howHeard = 'Please let us know how you heard about us.';
+        const allCommitted = checkedCommitments.every(Boolean);
+        if (!allCommitted) {
+            nextErrors.commitments = 'Please confirm all Student Commitment items to complete registration.';
         }
-        if (!consentContact) {
-            nextErrors.consentContact = 'Please agree to be contacted by Welile School of AI to continue.';
+        if (!studentSignature.trim()) {
+            nextErrors.studentSignature = 'Please type your full name as your digital Student Signature.';
         }
         setErrors(nextErrors);
         return Object.keys(nextErrors).length === 0;
     };
 
     const handleNextStep = () => {
-        if (step === 1) {
-            if (validateStep1()) setStep(2);
-        } else if (step === 2) {
-            if (validateStep2()) setStep(3);
+        if (step === 1 && validateStep1()) {
+            setStep(2);
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        } else if (step === 2 && validateStep2()) {
+            setStep(3);
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         }
     };
 
@@ -294,128 +407,162 @@ const OutreachRegistration: React.FC = () => {
         setErrors({});
         if (step === 2) setStep(1);
         if (step === 3) setStep(2);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        if (honeypotWebsite && honeypotWebsite.trim().length > 0) return;
 
-        // Honeypot check: reject submission if hidden bot field is filled
-        if (honeypotWebsite && honeypotWebsite.trim().length > 0) {
-            setErrors({ form: 'Spam submission detected.' });
+        if (!validateStep1() || !validateStep2() || !validateStep3()) {
+            if (!validateStep1()) setStep(1);
+            else if (!validateStep2()) setStep(2);
             return;
         }
-
-        if (!validateStep3()) return;
 
         setIsSubmitting(true);
         setErrors({});
 
+        const selectedCampaign = campaigns.find(c => c.name === outreachEvent);
+        const resolvedHowHeard =
+            selectedCampaign?.category === 'GENERAL' ? 'Website / Walk-in' : howHeard || 'Outreach Event';
+
         const payload: OutreachRegistrationPayload = {
+            registration_date: registrationDate,
+            student_reg_no: studentRegNo,
+
+            // 1. STUDENT INFORMATION
             full_name: fullName.trim(),
             email: email.trim() ? email.trim().toLowerCase() : null,
             phone: phone.trim(),
+            class_level_year: classLevelYear,
             age_range: ageRange,
-            guardian_name: ageRange === 'Under 18' ? guardianName.trim() : null,
-            guardian_phone: ageRange === 'Under 18' ? guardianPhone.trim() : null,
-            location: location.trim() || null,
+            guardian_name: guardianName.trim() || null,
+            guardian_phone: guardianPhone.trim() || null,
+            location: location,
+
+            // 2. COURSE & PROGRAMME INFORMATION
             course_interest: courseInterest,
             level,
             mode_preference: modePreference,
+            expected_start_date: expectedStartDate,
+            expected_completion_date: expectedCompletionDate,
+
+            // 3. STUDY SCHEDULE
             preferred_study_days: preferredStudyDays,
-            preferred_time_slot: preferredTimeSlot,
-            how_heard: howHeard,
-            outreach_event: outreachEvent.trim() || null,
-            consent_contact: consentContact,
+            preferred_time_slot: chosenStudyTime,
+            study_hours_per_session: studyHoursPerSession,
+            sessions_per_week: sessionsPerWeek,
+            alternative_study_time: alternativeStudyTime,
+
+            // 4. FEES & PAYMENT AGREEMENT
+            total_course_fee: totalCourseFee,
+            registration_fee: registrationFee,
+            amount_paid: Number(amountPaid) || 0,
+            outstanding_balance: outstandingBalance,
+            payment_plan: paymentPlan,
+            agreed_payment_amount: Number(agreedPaymentAmount) || 0,
+            next_payment_date: nextPaymentDate,
+            payment_due_date: paymentDueDate,
+            payment_method: paymentMethod,
+            payment_reference: paymentReference,
+
+            // 5, 6, 7. COMMITMENTS & SIGNATURES
+            commitments_accepted: true,
+            commitments_list: OFFICIAL_COMMITMENTS,
+            student_signature: studentSignature.trim() || fullName.trim(),
+            student_declaration_date: studentDeclarationDate,
+            guardian_signature: guardianName.trim() ? (guardianSignature.trim() || guardianName.trim()) : null,
+            guardian_consent_date: guardianName.trim() ? guardianConsentDate : null,
+            consent_contact: true,
+
+            // OUTREACH ATTRIBUTION
+            how_heard: resolvedHowHeard,
+            outreach_event: outreachEvent,
+
+            // 8. ADMIN USE DEFAULTS
             status: 'NEW',
+            admin_payment_status:
+                Number(amountPaid) >= totalCourseFee
+                    ? 'Fully Paid'
+                    : Number(amountPaid) > 0
+                    ? 'Partially Paid'
+                    : 'Payment Plan',
+            confirmed_schedule: `${preferredStudyDays.join(', ')} (${chosenStudyTime})`,
             submitted_from: 'web'
         };
 
-        // 1. Write immediately to the localStorage offline queue first
         const queuedItem = enqueueOutreachRegistration(payload);
         setPendingQueueCount(getQueuedOutreachRegistrations().length);
 
-        // Add event name to local presets if new
-        if (payload.outreach_event && !eventPresets.includes(payload.outreach_event)) {
-            setEventPresets(prev => [payload.outreach_event!, ...prev]);
-        }
-
-        // 2. Attempt immediate Supabase insert
         try {
             await insertOutreachRegistrationLive(payload);
-
-            // Remove from pending offline queue on successful insert
             if (queuedItem.id) {
                 removeQueuedOutreachRegistration(queuedItem.id);
             }
             setPendingQueueCount(getQueuedOutreachRegistrations().length);
-
-            // Also flush any older queued registrations while we have connectivity
             await flushPendingOutreachRegistrations();
             setPendingQueueCount(getQueuedOutreachRegistrations().length);
 
             window.dispatchEvent(new Event('outreach-registration-update'));
             setSubmittedRecord(payload);
             setSubmittedMode('online');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         } catch (err) {
-            console.warn('Outreach submission queued for offline sync:', err);
+            console.warn('Queued registration for offline sync:', err);
             setSubmittedRecord(queuedItem);
             setSubmittedMode('offline');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         } finally {
             setIsSubmitting(false);
         }
     };
 
     const handleRegisterAnother = () => {
-        // Keep outreachEvent & howHeard intact so booth staff can register the next attendee rapidly
+        setStudentRegNo(generateStudentRegNo());
         setFullName('');
-        setPhone('');
         setEmail('');
-        setAgeRange('18-24');
+        setPhone('');
         setGuardianName('');
         setGuardianPhone('');
-        setLocation('');
-        setCourseInterest('');
-        setLevel('Beginner');
-        setModePreference('Hybrid');
-        setPreferredStudyDays(['Mon', 'Wed', 'Fri']);
-        setPreferredTimeSlot('Evening');
-        setConsentContact(false);
-        setHoneypotWebsite('');
+        setAmountPaid(0);
+        setPaymentReference('Pending / Upon Enrollment');
+        setStudentSignature('');
+        setGuardianSignature('');
+        setCheckedCommitments(OFFICIAL_COMMITMENTS.map(() => true));
         setErrors({});
         setSubmittedRecord(null);
         setSubmittedMode(null);
         setStep(1);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
     };
 
-    const allCourseChoices = [
-        ...courseOptions,
-        ...(courseOptions.length === 0
-            ? [
-                'AI & Prompt Engineering Foundations',
-                'Full-Stack Software Development with AI',
-                'Data Analytics & Business Intelligence',
-                'Cybersecurity & Network Fundamentals',
-                'Digital Literacy & Productivity Tools'
-            ]
-            : []),
-        'Not sure yet / Help me choose'
-    ];
+    const showStep1 = singlePageMode || step === 1;
+    const showStep2 = singlePageMode || step === 2;
+    const showStep3 = singlePageMode || step === 3;
 
     return (
         <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-gray-900 dark:text-slate-100 font-sans transition-colors duration-200 pb-28 sm:pb-16">
-            {/* Top Navigation Bar matching LandingPage.tsx */}
-            <nav className="sticky top-0 left-0 right-0 bg-white/85 dark:bg-slate-900/85 backdrop-blur-md z-40 border-b border-gray-100 dark:border-slate-800/80 transition-colors">
-                <div className="max-w-3xl mx-auto px-4 sm:px-6">
+            {/* Navigation Bar */}
+            <nav className="sticky top-0 left-0 right-0 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md z-40 border-b border-gray-100 dark:border-slate-800 print:hidden">
+                <div className="max-w-4xl mx-auto px-4 sm:px-6">
                     <div className="flex justify-between items-center h-16">
-                        <Link to="/" className="flex items-center gap-2.5 group">
+                        <Link to="/" className="flex items-center gap-2.5">
                             <img src="/schoolofai-logo.png" alt="Welile School of AI" className="h-12 sm:h-14 object-contain" />
+                            <div className="hidden sm:block">
+                                <span className="block text-xs font-extrabold tracking-wider text-violet-600 dark:text-violet-400 uppercase">
+                                    Welile School of AI
+                                </span>
+                                <span className="block text-[11px] text-gray-500 dark:text-slate-400">
+                                    Katabi, Entebbe, Uganda
+                                </span>
+                            </div>
                         </Link>
 
                         <div className="flex items-center gap-2 sm:gap-3">
-                            {/* Connectivity / Queue Status Pill */}
                             {!isOnline ? (
                                 <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 text-[11px] font-bold border border-amber-200 dark:border-amber-800/60">
-                                    <WifiOff size={12} /> Offline Mode
+                                    <WifiOff size={12} /> Offline Ready
                                 </span>
                             ) : pendingQueueCount > 0 ? (
                                 <button
@@ -425,537 +572,632 @@ const OutreachRegistration: React.FC = () => {
                                         setPendingQueueCount(getQueuedOutreachRegistrations().length);
                                     }}
                                     className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-violet-100 dark:bg-violet-950/60 text-violet-700 dark:text-violet-300 text-[11px] font-bold border border-violet-200 dark:border-violet-800/60 cursor-pointer"
-                                    title="Tap to sync queued offline registrations"
                                 >
-                                    <Wifi size={12} /> Syncing ({pendingQueueCount})
+                                    <Wifi size={12} /> Sync ({pendingQueueCount})
                                 </button>
                             ) : null}
+
+                            {!submittedRecord && (
+                                <button
+                                    type="button"
+                                    onClick={() => setSinglePageMode(prev => !prev)}
+                                    className="px-3 py-1.5 rounded-xl bg-gray-100 dark:bg-slate-800 text-gray-700 dark:text-slate-300 text-xs font-bold hover:bg-gray-200 dark:hover:bg-slate-700 transition-colors cursor-pointer"
+                                >
+                                    {singlePageMode ? 'Wizard View' : 'Full Form View'}
+                                </button>
+                            )}
 
                             <button
                                 type="button"
                                 onClick={toggleTheme}
-                                className="p-2.5 text-gray-500 dark:text-slate-400 hover:bg-gray-100 dark:hover:bg-slate-800/60 rounded-full transition-all cursor-pointer flex items-center justify-center"
-                                title={isDark ? 'Activate Light Mode' : 'Activate Dark Mode'}
+                                className="p-2 text-gray-500 dark:text-slate-400 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-full transition-colors cursor-pointer"
                             >
                                 {isDark ? <Sun size={18} /> : <Moon size={18} />}
                             </button>
 
                             <Link
                                 to="/"
-                                className="inline-flex items-center gap-1.5 text-xs sm:text-sm font-semibold text-gray-600 dark:text-slate-300 hover:text-gray-900 dark:hover:text-white px-3 py-1.5 rounded-full hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors"
+                                className="inline-flex items-center gap-1 text-xs font-bold text-gray-600 dark:text-slate-300 hover:text-gray-900 dark:hover:text-white px-3 py-1.5 rounded-full hover:bg-gray-100 dark:hover:bg-slate-800"
                             >
-                                <ArrowLeft size={15} />
-                                <span className="hidden xs:inline">Home</span>
+                                <ArrowLeft size={14} /> Home
                             </Link>
                         </div>
                     </div>
                 </div>
             </nav>
 
-            {/* Main Container */}
-            <main className="max-w-xl mx-auto px-4 sm:px-6 pt-6 sm:pt-10">
-                {/* Header Badge & Title */}
-                <div className="text-center mb-6 sm:mb-8">
-                    <div className="inline-flex items-center px-3 py-1 rounded-full bg-violet-100 dark:bg-violet-950/60 text-violet-700 dark:text-violet-300 text-[11px] font-bold uppercase tracking-wider mb-3 border border-violet-200/60 dark:border-violet-800/50">
-                        <Sparkles className="w-3.5 h-3.5 mr-1.5" />
-                        Welile School of AI • Quick Registration
+            <main className="max-w-3xl mx-auto px-4 sm:px-6 pt-6 sm:pt-8">
+                {/* OFFICIAL PAPER FORM HEADER */}
+                <div className="bg-white dark:bg-slate-900 rounded-3xl border border-gray-200 dark:border-slate-800 p-5 sm:p-7 shadow-sm mb-6">
+                    <div className="text-center border-b border-gray-200 dark:border-slate-800 pb-5 mb-5">
+                        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-violet-100 dark:bg-violet-950/60 text-violet-700 dark:text-violet-300 text-[11px] font-extrabold uppercase tracking-widest mb-2">
+                            <Sparkles size={13} /> Official Enrollment & Outreach Document
+                        </div>
+                        <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-gray-900 dark:text-white uppercase">
+                            Welile School of AI
+                        </h1>
+                        <p className="text-xs sm:text-sm font-semibold text-gray-500 dark:text-slate-400">
+                            Katabi, Entebbe, Uganda
+                        </p>
+                        <h2 className="mt-2 text-sm sm:text-base font-extrabold text-violet-700 dark:text-violet-300 uppercase tracking-wide">
+                            Student Registration, Study Schedule & Payment Agreement Form
+                        </h2>
                     </div>
-                    <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-gray-900 dark:text-white">
-                        Student Interest & Study Schedule
-                    </h1>
-                    <p className="text-xs sm:text-sm text-gray-500 dark:text-slate-400 mt-1.5 max-w-md mx-auto">
-                        Reserve your spot in under 60 seconds. Our admissions team will contact you with cohort dates and onboarding details.
-                    </p>
+
+                    {/* Top Control Table (Matching Paper Form Header Box) */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 bg-gray-50 dark:bg-slate-950/70 p-4 rounded-2xl border border-gray-200/80 dark:border-slate-800 text-xs">
+                        {/* Outreach / Registration Channel Dropdown */}
+                        <div className="sm:col-span-2 pb-2 border-b border-gray-200/70 dark:border-slate-800">
+                            <label className="block text-[10px] font-extrabold uppercase tracking-wider text-violet-600 dark:text-violet-400 mb-1 flex items-center gap-1">
+                                <Megaphone size={12} /> Active Outreach / Registration Channel
+                            </label>
+                            <select
+                                value={outreachEvent}
+                                onChange={(e) => setOutreachEvent(e.target.value)}
+                                disabled={Boolean(submittedRecord)}
+                                className="w-full px-3.5 py-2.5 bg-white dark:bg-slate-900 border border-violet-300 dark:border-violet-800 rounded-xl font-bold text-gray-900 dark:text-white text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/20 cursor-pointer"
+                            >
+                                {campaigns.map((c) => (
+                                    <option key={c.id} value={c.name}>
+                                        {c.name} — {c.location}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
+
+                        <div className="flex items-center justify-between sm:justify-start gap-2">
+                            <span className="text-gray-500 dark:text-slate-400 font-semibold">Registration Date:</span>
+                            <input
+                                type="date"
+                                value={registrationDate}
+                                onChange={(e) => setRegistrationDate(e.target.value)}
+                                disabled={Boolean(submittedRecord)}
+                                className="font-bold text-gray-900 dark:text-white bg-white dark:bg-slate-900 px-2.5 py-1 rounded-lg border border-gray-200 dark:border-slate-700 text-xs"
+                            />
+                        </div>
+
+                        <div className="flex items-center justify-between sm:justify-start gap-2">
+                            <span className="text-gray-500 dark:text-slate-400 font-semibold">Student Reg No.:</span>
+                            <span className="font-mono font-extrabold text-violet-700 dark:text-violet-300 bg-violet-100/70 dark:bg-violet-950/50 px-2.5 py-1 rounded-lg">
+                                {submittedRecord?.student_reg_no || studentRegNo}
+                            </span>
+                        </div>
+
+                        <div className="flex items-center justify-between sm:justify-start gap-2">
+                            <span className="text-gray-500 dark:text-slate-400 font-semibold">Course / Programme:</span>
+                            <span className="font-bold text-gray-900 dark:text-white truncate">
+                                {submittedRecord?.course_interest || courseInterest}
+                            </span>
+                        </div>
+
+                        <div className="flex items-center justify-between sm:justify-start gap-2">
+                            <span className="text-gray-500 dark:text-slate-400 font-semibold">Assigned Level:</span>
+                            <span className="font-bold text-emerald-700 dark:text-emerald-400">
+                                {submittedRecord?.level || level}
+                            </span>
+                        </div>
+                    </div>
                 </div>
 
-                {/* SUCCESS SCREEN */}
+                {/* SUBMITTED CONFIRMATION & OFFICIAL PRINTABLE VIEW */}
                 {submittedRecord ? (
-                    <div className="bg-white dark:bg-slate-900 rounded-3xl border border-gray-100 dark:border-slate-800 p-6 sm:p-8 shadow-xl space-y-6 animate-in fade-in zoom-in-95 duration-200">
-                        <div className="text-center space-y-3">
-                            {submittedMode === 'online' ? (
-                                <div className="w-16 h-16 rounded-2xl bg-emerald-100 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 flex items-center justify-center mx-auto shadow-sm">
-                                    <CheckCircle2 size={36} />
-                                </div>
-                            ) : (
-                                <div className="w-16 h-16 rounded-2xl bg-amber-100 dark:bg-amber-950/50 text-amber-600 dark:text-amber-400 flex items-center justify-center mx-auto shadow-sm">
-                                    <WifiOff size={34} />
-                                </div>
-                            )}
-
+                    <div className="bg-white dark:bg-slate-900 rounded-3xl border border-gray-200 dark:border-slate-800 p-6 sm:p-8 shadow-xl space-y-6 animate-in fade-in duration-200">
+                        <div className="text-center space-y-2 print:hidden">
+                            <div className="w-16 h-16 rounded-2xl bg-emerald-100 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center mx-auto shadow-sm">
+                                <CheckCircle2 size={36} />
+                            </div>
                             <h2 className="text-2xl font-extrabold text-gray-900 dark:text-white">
                                 {submittedMode === 'online'
-                                    ? 'You’re Registered!'
-                                    : 'Saved — Will Sync Once You’re Back Online'}
+                                    ? 'Official Registration Completed!'
+                                    : 'Saved Offline — Will Sync Automatically Once Online'}
                             </h2>
-                            <p className="text-sm text-gray-600 dark:text-slate-400 max-w-md mx-auto">
-                                {submittedMode === 'online'
-                                    ? `Thank you, ${submittedRecord.full_name}! Your study preferences have been received by the Welile School of AI admissions desk.`
-                                    : `Thank you, ${submittedRecord.full_name}! Your registration is safely stored on this device and will automatically sync to Welile School of AI as soon as internet connectivity returns.`}
+                            <p className="text-xs sm:text-sm text-gray-500 dark:text-slate-400 max-w-md mx-auto">
+                                Registration No. <strong className="text-violet-600 dark:text-violet-400">{submittedRecord.student_reg_no}</strong> for{' '}
+                                <strong>{submittedRecord.full_name}</strong> under <strong>{submittedRecord.outreach_event}</strong> has been recorded.
                             </p>
                         </div>
 
-                        {/* Summary Card */}
-                        <div className="bg-gray-50 dark:bg-slate-950/70 rounded-2xl p-5 border border-gray-100 dark:border-slate-800/80 space-y-3 text-sm">
-                            <div className="flex items-center justify-between border-b border-gray-200/70 dark:border-slate-800 pb-2.5">
-                                <span className="text-xs font-bold uppercase tracking-wider text-violet-600 dark:text-violet-400">
-                                    Registration Summary
-                                </span>
-                                <span className={`px-2.5 py-0.5 rounded-full text-[11px] font-bold ${
-                                    submittedMode === 'online'
-                                        ? 'bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300'
-                                        : 'bg-amber-100 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300'
-                                }`}>
-                                    {submittedMode === 'online' ? 'Synced Live' : 'Queued Offline'}
-                                </span>
+                        {/* Complete Official 8-Section Summary Sheet */}
+                        <div className="space-y-4 text-xs border border-gray-200 dark:border-slate-800 rounded-2xl p-5 bg-gray-50/60 dark:bg-slate-950/50">
+                            <div>
+                                <h4 className="font-extrabold text-violet-700 dark:text-violet-300 uppercase mb-2 border-b border-gray-200 dark:border-slate-800 pb-1">
+                                    1. Student Information
+                                </h4>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                    <p><span className="text-gray-500">Full Name:</span> <strong>{submittedRecord.full_name}</strong></p>
+                                    <p><span className="text-gray-500">Email:</span> <strong>{submittedRecord.email || '—'}</strong></p>
+                                    <p><span className="text-gray-500">Phone:</span> <strong>{submittedRecord.phone}</strong></p>
+                                    <p><span className="text-gray-500">Class / Level / Year:</span> <strong>{submittedRecord.class_level_year}</strong></p>
+                                    <p><span className="text-gray-500">Parent / Guardian:</span> <strong>{submittedRecord.guardian_name || 'N/A'}</strong></p>
+                                    <p><span className="text-gray-500">Guardian Contact:</span> <strong>{submittedRecord.guardian_phone || 'N/A'}</strong></p>
+                                </div>
                             </div>
 
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs sm:text-sm">
-                                <div>
-                                    <span className="text-gray-400 dark:text-slate-500 block text-[11px] font-semibold uppercase">Full Name</span>
-                                    <span className="font-bold text-gray-900 dark:text-white">{submittedRecord.full_name}</span>
+                            <div>
+                                <h4 className="font-extrabold text-violet-700 dark:text-violet-300 uppercase mb-2 border-b border-gray-200 dark:border-slate-800 pb-1">
+                                    2. Course & Programme Information
+                                </h4>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                    <p><span className="text-gray-500">Course / Programme:</span> <strong>{submittedRecord.course_interest}</strong></p>
+                                    <p><span className="text-gray-500">Level & Mode:</span> <strong>{submittedRecord.level} • {submittedRecord.mode_preference}</strong></p>
+                                    <p><span className="text-gray-500">Expected Start Date:</span> <strong>{submittedRecord.expected_start_date}</strong></p>
+                                    <p><span className="text-gray-500">Expected Completion:</span> <strong>{submittedRecord.expected_completion_date}</strong></p>
                                 </div>
-                                <div>
-                                    <span className="text-gray-400 dark:text-slate-500 block text-[11px] font-semibold uppercase">Phone Number</span>
-                                    <span className="font-bold text-gray-900 dark:text-white">{submittedRecord.phone}</span>
+                            </div>
+
+                            <div>
+                                <h4 className="font-extrabold text-violet-700 dark:text-violet-300 uppercase mb-2 border-b border-gray-200 dark:border-slate-800 pb-1">
+                                    3. Study Schedule
+                                </h4>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                    <p><span className="text-gray-500">Preferred Study Days:</span> <strong>{(submittedRecord.preferred_study_days || []).join(', ')}</strong></p>
+                                    <p><span className="text-gray-500">Chosen Study Time:</span> <strong>{submittedRecord.preferred_time_slot}</strong></p>
+                                    <p><span className="text-gray-500">Study Hours / Session:</span> <strong>{submittedRecord.study_hours_per_session}</strong></p>
+                                    <p><span className="text-gray-500">Sessions Per Week:</span> <strong>{submittedRecord.sessions_per_week}</strong></p>
+                                    <p className="sm:col-span-2"><span className="text-gray-500">Alternative Study Time:</span> <strong>{submittedRecord.alternative_study_time}</strong></p>
                                 </div>
-                                {submittedRecord.email && (
-                                    <div>
-                                        <span className="text-gray-400 dark:text-slate-500 block text-[11px] font-semibold uppercase">Email</span>
-                                        <span className="font-medium text-gray-800 dark:text-slate-200">{submittedRecord.email}</span>
-                                    </div>
-                                )}
-                                {submittedRecord.location && (
-                                    <div>
-                                        <span className="text-gray-400 dark:text-slate-500 block text-[11px] font-semibold uppercase">Location</span>
-                                        <span className="font-medium text-gray-800 dark:text-slate-200">{submittedRecord.location}</span>
-                                    </div>
-                                )}
-                                {submittedRecord.age_range === 'Under 18' && submittedRecord.guardian_name && (
-                                    <div className="sm:col-span-2 p-2.5 rounded-xl bg-violet-50/70 dark:bg-violet-950/30 border border-violet-100 dark:border-violet-900/40">
-                                        <span className="text-violet-600 dark:text-violet-400 block text-[11px] font-bold uppercase">Parent / Guardian</span>
-                                        <span className="font-semibold text-gray-900 dark:text-white">
-                                            {submittedRecord.guardian_name} ({submittedRecord.guardian_phone})
-                                        </span>
-                                    </div>
-                                )}
-                                <div className="sm:col-span-2 pt-1 border-t border-gray-200/60 dark:border-slate-800">
-                                    <span className="text-gray-400 dark:text-slate-500 block text-[11px] font-semibold uppercase">Course Interest</span>
-                                    <span className="font-bold text-violet-600 dark:text-violet-400">{submittedRecord.course_interest}</span>
-                                    <span className="text-xs text-gray-500 dark:text-slate-400 ml-2">
-                                        ({submittedRecord.level} • {submittedRecord.mode_preference})
-                                    </span>
+                            </div>
+
+                            <div>
+                                <h4 className="font-extrabold text-violet-700 dark:text-violet-300 uppercase mb-2 border-b border-gray-200 dark:border-slate-800 pb-1">
+                                    4. Fees & Payment Agreement
+                                </h4>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                    <p><span className="text-gray-500">Total Course Fee:</span> <strong>UGX {(submittedRecord.total_course_fee ?? 600000).toLocaleString()}</strong></p>
+                                    <p><span className="text-gray-500">Registration Fee:</span> <strong>{submittedRecord.registration_fee}</strong></p>
+                                    <p><span className="text-gray-500">Amount Paid:</span> <strong>UGX {(submittedRecord.amount_paid ?? 0).toLocaleString()}</strong></p>
+                                    <p><span className="text-gray-500">Outstanding Balance:</span> <strong>UGX {(submittedRecord.outstanding_balance ?? 600000).toLocaleString()}</strong></p>
+                                    <p><span className="text-gray-500">Payment Plan:</span> <strong>{submittedRecord.payment_plan} (UGX {(submittedRecord.agreed_payment_amount ?? 200000).toLocaleString()})</strong></p>
+                                    <p><span className="text-gray-500">Payment Method:</span> <strong>{submittedRecord.payment_method} ({submittedRecord.payment_reference})</strong></p>
                                 </div>
-                                <div className="sm:col-span-2">
-                                    <span className="text-gray-400 dark:text-slate-500 block text-[11px] font-semibold uppercase">Preferred Schedule</span>
-                                    <span className="font-medium text-gray-800 dark:text-slate-200">
-                                        {(submittedRecord.preferred_study_days || []).join(', ')} • {submittedRecord.preferred_time_slot}
-                                    </span>
-                                </div>
-                                {submittedRecord.outreach_event && (
-                                    <div className="sm:col-span-2">
-                                        <span className="text-gray-400 dark:text-slate-500 block text-[11px] font-semibold uppercase">Outreach Event</span>
-                                        <span className="font-medium text-gray-800 dark:text-slate-200">{submittedRecord.outreach_event}</span>
-                                    </div>
-                                )}
+                            </div>
+
+                            <div>
+                                <h4 className="font-extrabold text-violet-700 dark:text-violet-300 uppercase mb-2 border-b border-gray-200 dark:border-slate-800 pb-1">
+                                    5 & 6. Student Commitment & Declaration
+                                </h4>
+                                <p className="text-emerald-700 dark:text-emerald-400 font-semibold mb-1">
+                                    ✓ All 8 Student Commitments Accepted & Confirmed
+                                </p>
+                                <p>
+                                    <span className="text-gray-500">Digitally Signed By:</span>{' '}
+                                    <strong className="italic font-serif text-sm">{submittedRecord.student_signature}</strong> on{' '}
+                                    <strong>{submittedRecord.student_declaration_date}</strong>
+                                </p>
                             </div>
                         </div>
 
-                        {/* Action Buttons */}
-                        <div className="flex flex-col sm:flex-row gap-3 pt-2">
+                        <div className="flex flex-col sm:flex-row gap-3 print:hidden">
                             <button
                                 type="button"
                                 onClick={handleRegisterAnother}
-                                className="w-full py-4 px-6 bg-violet-600 hover:bg-violet-700 text-white rounded-2xl font-bold text-base shadow-lg shadow-violet-600/25 flex items-center justify-center gap-2 transition-all cursor-pointer"
+                                className="flex-1 py-4 px-6 bg-violet-600 hover:bg-violet-700 text-white rounded-2xl font-bold text-sm sm:text-base shadow-lg shadow-violet-600/25 flex items-center justify-center gap-2 cursor-pointer"
                             >
                                 <UserPlus size={20} />
-                                Register Another Person
+                                Register Next Student ({outreachEvent.split('(')[0].trim()})
                             </button>
-                            <Link
-                                to="/"
-                                className="w-full sm:w-auto py-4 px-6 bg-gray-100 dark:bg-slate-800 hover:bg-gray-200 dark:hover:bg-slate-700 text-gray-700 dark:text-slate-200 rounded-2xl font-bold text-sm flex items-center justify-center transition-colors text-center"
+                            <button
+                                type="button"
+                                onClick={() => window.print()}
+                                className="py-4 px-5 bg-gray-100 dark:bg-slate-800 hover:bg-gray-200 dark:hover:bg-slate-700 text-gray-800 dark:text-slate-200 rounded-2xl font-bold text-sm flex items-center justify-center gap-2 cursor-pointer"
                             >
-                                Explore Welile
-                            </Link>
+                                <Printer size={18} />
+                                Print / Save PDF
+                            </button>
                         </div>
                     </div>
                 ) : (
-                    /* WIZARD FORM CARD */
-                    <div className="bg-white dark:bg-slate-900 rounded-3xl border border-gray-100 dark:border-slate-800 shadow-xl overflow-hidden">
-                        {/* Step Progress Header */}
-                        <div className="p-5 sm:p-6 bg-gray-50/70 dark:bg-slate-900/90 border-b border-gray-100 dark:border-slate-800">
-                            <div className="flex items-center justify-between mb-3">
-                                <span className="text-xs font-extrabold uppercase tracking-wider text-violet-600 dark:text-violet-400">
-                                    Step {step} of 3
-                                </span>
-                                <span className="text-xs font-semibold text-gray-500 dark:text-slate-400">
-                                    {step === 1 && '1. About You'}
-                                    {step === 2 && '2. Course & Schedule'}
-                                    {step === 3 && '3. Event & Consent'}
-                                </span>
-                            </div>
-
-                            {/* Progress Bar */}
-                            <div className="w-full h-2.5 bg-gray-200 dark:bg-slate-800 rounded-full overflow-hidden">
-                                <div
-                                    className="h-full bg-gradient-to-r from-violet-600 to-purple-500 rounded-full transition-all duration-300"
-                                    style={{ width: `${(step / 3) * 100}%` }}
-                                />
-                            </div>
-
-                            {/* Stepper Pills */}
-                            <div className="grid grid-cols-3 gap-2 mt-4">
-                                {[
-                                    { num: 1, label: 'You', icon: User },
-                                    { num: 2, label: 'Course', icon: BookOpen },
-                                    { num: 3, label: 'Finish', icon: ShieldCheck }
-                                ].map(({ num, label, icon: Icon }) => {
-                                    const active = step === num;
-                                    const completed = step > num;
-                                    return (
-                                        <button
-                                            key={num}
-                                            type="button"
-                                            onClick={() => {
-                                                if (num < step) {
-                                                    setErrors({});
-                                                    setStep(num as 1 | 2 | 3);
-                                                }
-                                            }}
-                                            disabled={num > step}
-                                            className={`flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl text-xs font-bold transition-all ${
-                                                active
-                                                    ? 'bg-violet-600 text-white shadow-sm'
-                                                    : completed
-                                                    ? 'bg-violet-100 dark:bg-violet-950/60 text-violet-700 dark:text-violet-300 cursor-pointer'
-                                                    : 'bg-gray-100 dark:bg-slate-800/70 text-gray-400 dark:text-slate-500 cursor-not-allowed'
-                                            }`}
-                                        >
-                                            {completed ? <CheckCircle2 size={14} /> : <Icon size={14} />}
-                                            <span>{label}</span>
-                                        </button>
-                                    );
-                                })}
-                            </div>
+                    /* FORM WIZARD / FULL SHEET */
+                    <form onSubmit={handleSubmit} noValidate className="space-y-6">
+                        {/* Honeypot */}
+                        <div className="opacity-0 absolute -z-10 h-0 w-0 overflow-hidden pointer-events-none" aria-hidden="true">
+                            <input
+                                type="text"
+                                tabIndex={-1}
+                                autoComplete="off"
+                                value={honeypotWebsite}
+                                onChange={(e) => setHoneypotWebsite(e.target.value)}
+                            />
                         </div>
 
-                        {/* Form Body */}
-                        <form onSubmit={handleSubmit} noValidate className="p-5 sm:p-7 space-y-5">
-                            {/* Honeypot anti-spam field (hidden from real users) */}
-                            <div className="opacity-0 absolute -z-10 h-0 w-0 overflow-hidden pointer-events-none" aria-hidden="true">
-                                <label htmlFor="website_url_hp">Website</label>
-                                <input
-                                    id="website_url_hp"
-                                    name="website_url_hp"
-                                    type="text"
-                                    tabIndex={-1}
-                                    autoComplete="off"
-                                    value={honeypotWebsite}
-                                    onChange={(e) => setHoneypotWebsite(e.target.value)}
-                                />
+                        {/* Wizard Step Progress Bar */}
+                        {!singlePageMode && (
+                            <div className="bg-white dark:bg-slate-900 p-4 sm:p-5 rounded-2xl border border-gray-200 dark:border-slate-800 shadow-sm">
+                                <div className="flex items-center justify-between mb-2">
+                                    <span className="text-xs font-extrabold uppercase tracking-wider text-violet-600 dark:text-violet-400">
+                                        Step {step} of 3
+                                    </span>
+                                    <span className="text-xs font-semibold text-gray-500 dark:text-slate-400">
+                                        {step === 1 && 'Sections 1 & 2: Student & Programme Info'}
+                                        {step === 2 && 'Sections 3 & 4: Study Schedule & Fees Agreement'}
+                                        {step === 3 && 'Sections 5–7: Commitment, Declaration & Signature'}
+                                    </span>
+                                </div>
+                                <div className="w-full h-2 bg-gray-100 dark:bg-slate-800 rounded-full overflow-hidden mb-3">
+                                    <div
+                                        className="h-full bg-gradient-to-r from-violet-600 to-indigo-600 transition-all duration-300"
+                                        style={{ width: `${(step / 3) * 100}%` }}
+                                    />
+                                </div>
+                                <div className="grid grid-cols-3 gap-2">
+                                    {[
+                                        { num: 1, title: '1–2. Student & Course', icon: User },
+                                        { num: 2, title: '3–4. Schedule & Fees', icon: Calendar },
+                                        { num: 3, title: '5–7. Sign & Submit', icon: FileCheck }
+                                    ].map(({ num, title, icon: Icon }) => {
+                                        const active = step === num;
+                                        const done = step > num;
+                                        return (
+                                            <button
+                                                key={num}
+                                                type="button"
+                                                onClick={() => {
+                                                    if (num < step) setStep(num as 1 | 2 | 3);
+                                                }}
+                                                className={`py-2 px-2.5 rounded-xl text-[11px] sm:text-xs font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+                                                    active
+                                                        ? 'bg-violet-600 text-white shadow-sm'
+                                                        : done
+                                                        ? 'bg-violet-100 dark:bg-violet-950/60 text-violet-700 dark:text-violet-300'
+                                                        : 'bg-gray-100 dark:bg-slate-800 text-gray-400'
+                                                }`}
+                                            >
+                                                {done ? <CheckCircle2 size={13} /> : <Icon size={13} />}
+                                                <span className="truncate">{title}</span>
+                                            </button>
+                                        );
+                                    })}
+                                </div>
                             </div>
+                        )}
 
-                            {/* STEP 1: YOU */}
-                            {step === 1 && (
-                                <div className="space-y-5 animate-in fade-in duration-200">
-                                    {/* Full Name */}
-                                    <div>
-                                        <label className="block text-xs font-bold uppercase tracking-wider text-gray-600 dark:text-slate-300 mb-1.5">
-                                            Full Name <span className="text-red-500">*</span>
-                                        </label>
-                                        <div className="relative">
-                                            <User size={18} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 dark:text-slate-500" />
-                                            <input
-                                                type="text"
-                                                required
-                                                value={fullName}
-                                                onChange={(e) => {
-                                                    setFullName(e.target.value);
-                                                    if (errors.fullName) setErrors(prev => ({ ...prev, fullName: '' }));
-                                                }}
-                                                placeholder="e.g. Sarah Namukasa"
-                                                className={`w-full pl-11 pr-4 py-3.5 min-h-[48px] bg-gray-50 dark:bg-slate-800/90 border rounded-2xl text-sm font-medium text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 transition-all ${
-                                                    errors.fullName
-                                                        ? 'border-red-500 focus:ring-red-500/20'
-                                                        : 'border-gray-200 dark:border-slate-700 focus:border-violet-500 focus:ring-violet-500/20'
-                                                }`}
-                                            />
+                        {/* =========================================================
+                            SECTION 1: STUDENT INFORMATION & SECTION 2: COURSE INFO
+                           ========================================================= */}
+                        {showStep1 && (
+                            <div className="space-y-6 animate-in fade-in duration-200">
+                                {/* 1. STUDENT INFORMATION */}
+                                <div className="bg-white dark:bg-slate-900 rounded-3xl border border-gray-200 dark:border-slate-800 p-5 sm:p-7 shadow-sm space-y-5">
+                                    <div className="flex items-center gap-2.5 border-b border-gray-100 dark:border-slate-800 pb-3">
+                                        <div className="w-8 h-8 rounded-xl bg-violet-100 dark:bg-violet-950/60 text-violet-600 dark:text-violet-400 flex items-center justify-center font-black text-sm">
+                                            1
                                         </div>
-                                        {errors.fullName && (
-                                            <p className="mt-1.5 text-xs font-semibold text-red-500 flex items-center gap-1">
-                                                <AlertCircle size={13} /> {errors.fullName}
+                                        <div>
+                                            <h3 className="text-sm sm:text-base font-extrabold uppercase tracking-wide text-gray-900 dark:text-white">
+                                                1. Student Information
+                                            </h3>
+                                            <p className="text-[11px] text-gray-500 dark:text-slate-400">
+                                                Official student contact details and academic level
                                             </p>
-                                        )}
+                                        </div>
                                     </div>
 
-                                    {/* Phone Number */}
-                                    <div>
-                                        <label className="block text-xs font-bold uppercase tracking-wider text-gray-600 dark:text-slate-300 mb-1.5">
-                                            Phone / WhatsApp Number <span className="text-red-500">*</span>
-                                        </label>
-                                        <div className="relative">
-                                            <Phone size={18} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 dark:text-slate-500" />
-                                            <input
-                                                type="tel"
-                                                required
-                                                value={phone}
-                                                onChange={(e) => {
-                                                    setPhone(e.target.value);
-                                                    if (errors.phone) setErrors(prev => ({ ...prev, phone: '' }));
-                                                }}
-                                                placeholder="e.g. 0772 123 456"
-                                                className={`w-full pl-11 pr-4 py-3.5 min-h-[48px] bg-gray-50 dark:bg-slate-800/90 border rounded-2xl text-sm font-medium text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 transition-all ${
-                                                    errors.phone
-                                                        ? 'border-red-500 focus:ring-red-500/20'
-                                                        : 'border-gray-200 dark:border-slate-700 focus:border-violet-500 focus:ring-violet-500/20'
-                                                }`}
-                                            />
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                        {/* Full Name */}
+                                        <div className="sm:col-span-2">
+                                            <label className="block text-xs font-bold uppercase tracking-wider text-gray-600 dark:text-slate-300 mb-1">
+                                                Full Name <span className="text-red-500">*</span>
+                                            </label>
+                                            <div className="relative">
+                                                <User size={17} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
+                                                <input
+                                                    type="text"
+                                                    required
+                                                    value={fullName}
+                                                    onChange={(e) => {
+                                                        setFullName(e.target.value);
+                                                        if (errors.fullName) setErrors(prev => ({ ...prev, fullName: '' }));
+                                                    }}
+                                                    placeholder="Enter student's full name"
+                                                    className={`w-full pl-10 pr-4 py-3 min-h-[48px] bg-gray-50 dark:bg-slate-800/90 border rounded-2xl text-sm font-medium focus:outline-none ${
+                                                        errors.fullName ? 'border-red-500' : 'border-gray-200 dark:border-slate-700 focus:border-violet-500'
+                                                    }`}
+                                                />
+                                            </div>
+                                            {errors.fullName && (
+                                                <p className="mt-1 text-xs font-semibold text-red-500 flex items-center gap-1">
+                                                    <AlertCircle size={12} /> {errors.fullName}
+                                                </p>
+                                            )}
                                         </div>
-                                        {errors.phone && (
-                                            <p className="mt-1.5 text-xs font-semibold text-red-500 flex items-center gap-1">
-                                                <AlertCircle size={13} /> {errors.phone}
-                                            </p>
-                                        )}
-                                    </div>
 
-                                    {/* Email (Optional) */}
-                                    <div>
-                                        <label className="block text-xs font-bold uppercase tracking-wider text-gray-600 dark:text-slate-300 mb-1.5">
-                                            Email Address <span className="text-gray-400 font-normal lowercase">(optional)</span>
-                                        </label>
-                                        <div className="relative">
-                                            <Mail size={18} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 dark:text-slate-500" />
-                                            <input
-                                                type="email"
-                                                value={email}
-                                                onChange={(e) => {
-                                                    setEmail(e.target.value);
-                                                    if (errors.email) setErrors(prev => ({ ...prev, email: '' }));
-                                                }}
-                                                placeholder="sarah@example.com"
-                                                className={`w-full pl-11 pr-4 py-3.5 min-h-[48px] bg-gray-50 dark:bg-slate-800/90 border rounded-2xl text-sm font-medium text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 transition-all ${
-                                                    errors.email
-                                                        ? 'border-red-500 focus:ring-red-500/20'
-                                                        : 'border-gray-200 dark:border-slate-700 focus:border-violet-500 focus:ring-violet-500/20'
-                                                }`}
-                                            />
+                                        {/* Email Address */}
+                                        <div>
+                                            <label className="block text-xs font-bold uppercase tracking-wider text-gray-600 dark:text-slate-300 mb-1">
+                                                Email Address
+                                            </label>
+                                            <div className="relative">
+                                                <Mail size={17} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
+                                                <input
+                                                    type="email"
+                                                    value={email}
+                                                    onChange={(e) => {
+                                                        setEmail(e.target.value);
+                                                        if (errors.email) setErrors(prev => ({ ...prev, email: '' }));
+                                                    }}
+                                                    placeholder="student@email.com"
+                                                    className="w-full pl-10 pr-4 py-3 min-h-[48px] bg-gray-50 dark:bg-slate-800/90 border border-gray-200 dark:border-slate-700 rounded-2xl text-sm font-medium focus:outline-none focus:border-violet-500"
+                                                />
+                                            </div>
+                                            {errors.email && (
+                                                <p className="mt-1 text-xs font-semibold text-red-500">{errors.email}</p>
+                                            )}
                                         </div>
-                                        {errors.email && (
-                                            <p className="mt-1.5 text-xs font-semibold text-red-500 flex items-center gap-1">
-                                                <AlertCircle size={13} /> {errors.email}
-                                            </p>
-                                        )}
-                                    </div>
 
-                                    {/* Age Range */}
-                                    <div>
-                                        <label className="block text-xs font-bold uppercase tracking-wider text-gray-600 dark:text-slate-300 mb-2">
-                                            Age Range
-                                        </label>
-                                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
-                                            {AGE_RANGES.map((range) => {
-                                                const selected = ageRange === range;
-                                                return (
+                                        {/* Phone Number */}
+                                        <div>
+                                            <label className="block text-xs font-bold uppercase tracking-wider text-gray-600 dark:text-slate-300 mb-1">
+                                                Phone Number (WhatsApp / Call) <span className="text-red-500">*</span>
+                                            </label>
+                                            <div className="relative">
+                                                <Phone size={17} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
+                                                <input
+                                                    type="tel"
+                                                    required
+                                                    value={phone}
+                                                    onChange={(e) => {
+                                                        setPhone(e.target.value);
+                                                        if (errors.phone) setErrors(prev => ({ ...prev, phone: '' }));
+                                                    }}
+                                                    placeholder="e.g. 0772 123 456"
+                                                    className={`w-full pl-10 pr-4 py-3 min-h-[48px] bg-gray-50 dark:bg-slate-800/90 border rounded-2xl text-sm font-medium focus:outline-none ${
+                                                        errors.phone ? 'border-red-500' : 'border-gray-200 dark:border-slate-700 focus:border-violet-500'
+                                                    }`}
+                                                />
+                                            </div>
+                                            {errors.phone && (
+                                                <p className="mt-1 text-xs font-semibold text-red-500 flex items-center gap-1">
+                                                    <AlertCircle size={12} /> {errors.phone}
+                                                </p>
+                                            )}
+                                        </div>
+
+                                        {/* Class / Level / Year (Clean Dropdown) */}
+                                        <div>
+                                            <label className="block text-xs font-bold uppercase tracking-wider text-gray-600 dark:text-slate-300 mb-1">
+                                                Class / Level / Year
+                                            </label>
+                                            <div className="relative">
+                                                <GraduationCap size={17} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+                                                <select
+                                                    value={classLevelYear}
+                                                    onChange={(e) => setClassLevelYear(e.target.value)}
+                                                    className="w-full pl-10 pr-4 py-3 min-h-[48px] bg-gray-50 dark:bg-slate-800/90 border border-gray-200 dark:border-slate-700 rounded-2xl text-sm font-semibold focus:outline-none focus:border-violet-500 cursor-pointer"
+                                                >
+                                                    {CLASS_LEVEL_OPTIONS.map(opt => (
+                                                        <option key={opt} value={opt}>{opt}</option>
+                                                    ))}
+                                                </select>
+                                            </div>
+                                        </div>
+
+                                        {/* Residence / Campus Area (Clean Dropdown) */}
+                                        <div>
+                                            <label className="block text-xs font-bold uppercase tracking-wider text-gray-600 dark:text-slate-300 mb-1">
+                                                Location / Campus Area
+                                            </label>
+                                            <div className="relative">
+                                                <MapPin size={17} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+                                                <select
+                                                    value={location}
+                                                    onChange={(e) => setLocation(e.target.value)}
+                                                    className="w-full pl-10 pr-4 py-3 min-h-[48px] bg-gray-50 dark:bg-slate-800/90 border border-gray-200 dark:border-slate-700 rounded-2xl text-sm font-semibold focus:outline-none focus:border-violet-500 cursor-pointer"
+                                                >
+                                                    {LOCATION_PRESETS.map(loc => (
+                                                        <option key={loc} value={loc}>{loc}</option>
+                                                    ))}
+                                                </select>
+                                            </div>
+                                        </div>
+
+                                        {/* Age Category Pills */}
+                                        <div className="sm:col-span-2">
+                                            <label className="block text-xs font-bold uppercase tracking-wider text-gray-600 dark:text-slate-300 mb-1.5">
+                                                Age Category
+                                            </label>
+                                            <div className="grid grid-cols-4 gap-2">
+                                                {AGE_RANGES.map((range) => (
                                                     <button
                                                         key={range}
                                                         type="button"
                                                         onClick={() => setAgeRange(range)}
-                                                        className={`py-3 px-3 min-h-[48px] rounded-2xl text-xs sm:text-sm font-bold border transition-all cursor-pointer ${
-                                                            selected
-                                                                ? 'bg-violet-600 text-white border-violet-600 shadow-md shadow-violet-600/20'
-                                                                : 'bg-gray-50 dark:bg-slate-800/80 text-gray-700 dark:text-slate-300 border-gray-200 dark:border-slate-700 hover:border-violet-400'
+                                                        className={`py-2.5 px-3 rounded-xl text-xs font-bold border transition-all cursor-pointer ${
+                                                            ageRange === range
+                                                                ? 'bg-violet-600 text-white border-violet-600 shadow-sm'
+                                                                : 'bg-gray-50 dark:bg-slate-800 text-gray-700 dark:text-slate-300 border-gray-200 dark:border-slate-700'
                                                         }`}
                                                     >
                                                         {range}
                                                     </button>
-                                                );
-                                            })}
+                                                ))}
+                                            </div>
+                                        </div>
+
+                                        {/* Parent / Guardian Name & Contact (Always captured per paper form, required if Under 18) */}
+                                        <div>
+                                            <label className="block text-xs font-bold uppercase tracking-wider text-gray-600 dark:text-slate-300 mb-1">
+                                                Parent / Guardian Name {isGuardianRequired ? <span className="text-red-500">*</span> : <span className="text-gray-400 font-normal lowercase">(if applicable)</span>}
+                                            </label>
+                                            <input
+                                                type="text"
+                                                value={guardianName}
+                                                onChange={(e) => {
+                                                    setGuardianName(e.target.value);
+                                                    if (errors.guardianName) setErrors(prev => ({ ...prev, guardianName: '' }));
+                                                }}
+                                                placeholder="Parent / Guardian Full Name"
+                                                className={`w-full px-4 py-3 min-h-[48px] bg-gray-50 dark:bg-slate-800/90 border rounded-2xl text-sm font-medium focus:outline-none ${
+                                                    errors.guardianName ? 'border-red-500' : 'border-gray-200 dark:border-slate-700 focus:border-violet-500'
+                                                }`}
+                                            />
+                                            {errors.guardianName && (
+                                                <p className="mt-1 text-xs font-semibold text-red-500">{errors.guardianName}</p>
+                                            )}
+                                        </div>
+
+                                        <div>
+                                            <label className="block text-xs font-bold uppercase tracking-wider text-gray-600 dark:text-slate-300 mb-1">
+                                                Parent / Guardian Contact {isGuardianRequired ? <span className="text-red-500">*</span> : <span className="text-gray-400 font-normal lowercase">(if applicable)</span>}
+                                            </label>
+                                            <input
+                                                type="tel"
+                                                value={guardianPhone}
+                                                onChange={(e) => {
+                                                    setGuardianPhone(e.target.value);
+                                                    if (errors.guardianPhone) setErrors(prev => ({ ...prev, guardianPhone: '' }));
+                                                }}
+                                                placeholder="e.g. 0772 987 654"
+                                                className={`w-full px-4 py-3 min-h-[48px] bg-gray-50 dark:bg-slate-800/90 border rounded-2xl text-sm font-medium focus:outline-none ${
+                                                    errors.guardianPhone ? 'border-red-500' : 'border-gray-200 dark:border-slate-700 focus:border-violet-500'
+                                                }`}
+                                            />
+                                            {errors.guardianPhone && (
+                                                <p className="mt-1 text-xs font-semibold text-red-500">{errors.guardianPhone}</p>
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* 2. COURSE & PROGRAMME INFORMATION */}
+                                <div className="bg-white dark:bg-slate-900 rounded-3xl border border-gray-200 dark:border-slate-800 p-5 sm:p-7 shadow-sm space-y-5">
+                                    <div className="flex items-center gap-2.5 border-b border-gray-100 dark:border-slate-800 pb-3">
+                                        <div className="w-8 h-8 rounded-xl bg-violet-100 dark:bg-violet-950/60 text-violet-600 dark:text-violet-400 flex items-center justify-center font-black text-sm">
+                                            2
+                                        </div>
+                                        <div>
+                                            <h3 className="text-sm sm:text-base font-extrabold uppercase tracking-wide text-gray-900 dark:text-white">
+                                                2. Course & Programme Information
+                                            </h3>
+                                            <p className="text-[11px] text-gray-500 dark:text-slate-400">
+                                                Select your programme, assigned skill level, mode of study, and expected dates
+                                            </p>
                                         </div>
                                     </div>
 
-                                    {/* Conditional Parent / Guardian Section when Under 18 */}
-                                    {ageRange === 'Under 18' && (
-                                        <div className="p-4 sm:p-5 rounded-2xl bg-violet-50/70 dark:bg-violet-950/25 border border-violet-200 dark:border-violet-800/60 space-y-4 animate-in fade-in duration-200">
-                                            <div className="flex items-center gap-2 text-violet-700 dark:text-violet-300 font-bold text-xs uppercase tracking-wider">
-                                                <ShieldCheck size={16} />
-                                                Parent / Guardian Details (Required for Under 18)
-                                            </div>
-
-                                            <div>
-                                                <label className="block text-xs font-bold text-gray-700 dark:text-slate-300 mb-1">
-                                                    Parent / Guardian Full Name <span className="text-red-500">*</span>
-                                                </label>
-                                                <input
-                                                    type="text"
-                                                    value={guardianName}
-                                                    onChange={(e) => {
-                                                        setGuardianName(e.target.value);
-                                                        if (errors.guardianName) setErrors(prev => ({ ...prev, guardianName: '' }));
-                                                    }}
-                                                    placeholder="e.g. Mr. David Namukasa"
-                                                    className={`w-full px-4 py-3 min-h-[48px] bg-white dark:bg-slate-900 border rounded-xl text-sm font-medium text-gray-900 dark:text-white focus:outline-none focus:ring-2 ${
-                                                        errors.guardianName
-                                                            ? 'border-red-500 focus:ring-red-500/20'
-                                                            : 'border-violet-200 dark:border-slate-700 focus:border-violet-500 focus:ring-violet-500/20'
-                                                    }`}
-                                                />
-                                                {errors.guardianName && (
-                                                    <p className="mt-1 text-xs font-semibold text-red-500 flex items-center gap-1">
-                                                        <AlertCircle size={13} /> {errors.guardianName}
-                                                    </p>
-                                                )}
-                                            </div>
-
-                                            <div>
-                                                <label className="block text-xs font-bold text-gray-700 dark:text-slate-300 mb-1">
-                                                    Parent / Guardian Phone Number <span className="text-red-500">*</span>
-                                                </label>
-                                                <input
-                                                    type="tel"
-                                                    value={guardianPhone}
-                                                    onChange={(e) => {
-                                                        setGuardianPhone(e.target.value);
-                                                        if (errors.guardianPhone) setErrors(prev => ({ ...prev, guardianPhone: '' }));
-                                                    }}
-                                                    placeholder="e.g. 0772 987 654"
-                                                    className={`w-full px-4 py-3 min-h-[48px] bg-white dark:bg-slate-900 border rounded-xl text-sm font-medium text-gray-900 dark:text-white focus:outline-none focus:ring-2 ${
-                                                        errors.guardianPhone
-                                                            ? 'border-red-500 focus:ring-red-500/20'
-                                                            : 'border-violet-200 dark:border-slate-700 focus:border-violet-500 focus:ring-violet-500/20'
-                                                    }`}
-                                                />
-                                                {errors.guardianPhone && (
-                                                    <p className="mt-1 text-xs font-semibold text-red-500 flex items-center gap-1">
-                                                        <AlertCircle size={13} /> {errors.guardianPhone}
-                                                    </p>
-                                                )}
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                        {/* Course / Programme */}
+                                        <div className="sm:col-span-2">
+                                            <label className="block text-xs font-bold uppercase tracking-wider text-gray-600 dark:text-slate-300 mb-1">
+                                                Course / Programme <span className="text-red-500">*</span>
+                                            </label>
+                                            <div className="relative">
+                                                <BookOpen size={17} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+                                                <select
+                                                    value={courseInterest}
+                                                    onChange={(e) => setCourseInterest(e.target.value)}
+                                                    className="w-full pl-10 pr-4 py-3.5 min-h-[50px] bg-gray-50 dark:bg-slate-800/90 border border-gray-200 dark:border-slate-700 rounded-2xl text-sm font-bold text-gray-900 dark:text-white focus:outline-none focus:border-violet-500 cursor-pointer"
+                                                >
+                                                    {courseOptions.map((c) => (
+                                                        <option key={c} value={c}>{c}</option>
+                                                    ))}
+                                                </select>
                                             </div>
                                         </div>
-                                    )}
 
-                                    {/* Location */}
-                                    <div>
-                                        <label className="block text-xs font-bold uppercase tracking-wider text-gray-600 dark:text-slate-300 mb-1.5">
-                                            Location (City / Area)
-                                        </label>
-                                        <div className="relative">
-                                            <MapPin size={18} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 dark:text-slate-500" />
+                                        {/* Level Checkboxes (Beginner / Intermediate / Advanced) */}
+                                        <div>
+                                            <label className="block text-xs font-bold uppercase tracking-wider text-gray-600 dark:text-slate-300 mb-1.5">
+                                                Level
+                                            </label>
+                                            <div className="grid grid-cols-3 gap-2">
+                                                {LEVELS.map((lvl) => (
+                                                    <button
+                                                        key={lvl}
+                                                        type="button"
+                                                        onClick={() => setLevel(lvl)}
+                                                        className={`py-3 px-2 rounded-xl text-xs font-bold border transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
+                                                            level === lvl
+                                                                ? 'bg-violet-600 text-white border-violet-600 shadow-sm'
+                                                                : 'bg-gray-50 dark:bg-slate-800 text-gray-700 dark:text-slate-300 border-gray-200 dark:border-slate-700'
+                                                        }`}
+                                                    >
+                                                        <span>{level === lvl ? '☑' : '☐'}</span>
+                                                        <span>{lvl}</span>
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        </div>
+
+                                        {/* Mode of Study (Physical / Online / Hybrid) */}
+                                        <div>
+                                            <label className="block text-xs font-bold uppercase tracking-wider text-gray-600 dark:text-slate-300 mb-1.5">
+                                                Mode of Study
+                                            </label>
+                                            <div className="grid grid-cols-3 gap-2">
+                                                {MODES.map((m) => (
+                                                    <button
+                                                        key={m}
+                                                        type="button"
+                                                        onClick={() => setModePreference(m)}
+                                                        className={`py-3 px-2 rounded-xl text-xs font-bold border transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
+                                                            modePreference === m
+                                                                ? 'bg-violet-600 text-white border-violet-600 shadow-sm'
+                                                                : 'bg-gray-50 dark:bg-slate-800 text-gray-700 dark:text-slate-300 border-gray-200 dark:border-slate-700'
+                                                        }`}
+                                                    >
+                                                        <span>{modePreference === m ? '☑' : '☐'}</span>
+                                                        <span>{m}</span>
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        </div>
+
+                                        {/* Expected Start Date */}
+                                        <div>
+                                            <label className="block text-xs font-bold uppercase tracking-wider text-gray-600 dark:text-slate-300 mb-1">
+                                                Expected Start Date
+                                            </label>
                                             <input
-                                                type="text"
-                                                value={location}
-                                                onChange={(e) => setLocation(e.target.value)}
-                                                placeholder="e.g. Kampala, Ntinda / Makerere"
-                                                className="w-full pl-11 pr-4 py-3.5 min-h-[48px] bg-gray-50 dark:bg-slate-800/90 border border-gray-200 dark:border-slate-700 rounded-2xl text-sm font-medium text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-slate-500 focus:outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-500/20 transition-all"
+                                                type="date"
+                                                value={expectedStartDate}
+                                                onChange={(e) => setExpectedStartDate(e.target.value)}
+                                                className="w-full px-4 py-3 min-h-[48px] bg-gray-50 dark:bg-slate-800/90 border border-gray-200 dark:border-slate-700 rounded-2xl text-sm font-semibold focus:outline-none focus:border-violet-500"
+                                            />
+                                        </div>
+
+                                        {/* Expected Completion Date */}
+                                        <div>
+                                            <label className="block text-xs font-bold uppercase tracking-wider text-gray-600 dark:text-slate-300 mb-1">
+                                                Expected Completion Date
+                                            </label>
+                                            <input
+                                                type="date"
+                                                value={expectedCompletionDate}
+                                                onChange={(e) => setExpectedCompletionDate(e.target.value)}
+                                                className="w-full px-4 py-3 min-h-[48px] bg-gray-50 dark:bg-slate-800/90 border border-gray-200 dark:border-slate-700 rounded-2xl text-sm font-semibold focus:outline-none focus:border-violet-500"
                                             />
                                         </div>
                                     </div>
                                 </div>
-                            )}
+                            </div>
+                        )}
 
-                            {/* STEP 2: COURSE & STUDY SCHEDULE */}
-                            {step === 2 && (
-                                <div className="space-y-6 animate-in fade-in duration-200">
-                                    {/* Course Interest Dropdown */}
-                                    <div>
-                                        <label className="block text-xs font-bold uppercase tracking-wider text-gray-600 dark:text-slate-300 mb-1.5">
-                                            Course of Interest <span className="text-red-500">*</span>
-                                        </label>
-                                        <div className="relative">
-                                            <BookOpen size={18} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 dark:text-slate-500 pointer-events-none" />
-                                            <select
-                                                value={courseInterest}
-                                                onChange={(e) => {
-                                                    setCourseInterest(e.target.value);
-                                                    if (errors.courseInterest) setErrors(prev => ({ ...prev, courseInterest: '' }));
-                                                }}
-                                                className={`w-full pl-11 pr-4 py-3.5 min-h-[50px] bg-gray-50 dark:bg-slate-800/90 border rounded-2xl text-sm font-semibold text-gray-900 dark:text-white focus:outline-none focus:ring-2 transition-all cursor-pointer ${
-                                                    errors.courseInterest
-                                                        ? 'border-red-500 focus:ring-red-500/20'
-                                                        : 'border-gray-200 dark:border-slate-700 focus:border-violet-500 focus:ring-violet-500/20'
-                                                }`}
-                                            >
-                                                <option value="">-- Select a programme --</option>
-                                                {allCourseChoices.map((title) => (
-                                                    <option key={title} value={title}>
-                                                        {title}
-                                                    </option>
-                                                ))}
-                                            </select>
+                        {/* =========================================================
+                            SECTION 3: STUDY SCHEDULE & SECTION 4: FEES & PAYMENT
+                           ========================================================= */}
+                        {showStep2 && (
+                            <div className="space-y-6 animate-in fade-in duration-200">
+                                {/* 3. STUDY SCHEDULE */}
+                                <div className="bg-white dark:bg-slate-900 rounded-3xl border border-gray-200 dark:border-slate-800 p-5 sm:p-7 shadow-sm space-y-5">
+                                    <div className="flex items-center gap-2.5 border-b border-gray-100 dark:border-slate-800 pb-3">
+                                        <div className="w-8 h-8 rounded-xl bg-violet-100 dark:bg-violet-950/60 text-violet-600 dark:text-violet-400 flex items-center justify-center font-black text-sm">
+                                            3
                                         </div>
-                                        {errors.courseInterest && (
-                                            <p className="mt-1.5 text-xs font-semibold text-red-500 flex items-center gap-1">
-                                                <AlertCircle size={13} /> {errors.courseInterest}
+                                        <div>
+                                            <h3 className="text-sm sm:text-base font-extrabold uppercase tracking-wide text-gray-900 dark:text-white">
+                                                3. Study Schedule
+                                            </h3>
+                                            <p className="text-[11px] text-gray-500 dark:text-slate-400">
+                                                Select your preferred study days, session hours, and alternative slot
                                             </p>
-                                        )}
+                                        </div>
                                     </div>
 
-                                    {/* Current Skill Level (Radio Pills) */}
+                                    {/* Preferred Study Days (Mon..Sun) */}
                                     <div>
                                         <label className="block text-xs font-bold uppercase tracking-wider text-gray-600 dark:text-slate-300 mb-2">
-                                            Your Current Skill Level
+                                            Preferred Study Days <span className="text-red-500">*</span>
                                         </label>
-                                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
-                                            {LEVELS.map((item) => {
-                                                const selected = level === item.value;
-                                                return (
-                                                    <button
-                                                        key={item.value}
-                                                        type="button"
-                                                        onClick={() => setLevel(item.value)}
-                                                        className={`p-3.5 min-h-[56px] rounded-2xl border text-left transition-all cursor-pointer flex sm:flex-col justify-between sm:justify-center items-center sm:items-start ${
-                                                            selected
-                                                                ? 'bg-violet-600 text-white border-violet-600 shadow-md shadow-violet-600/20'
-                                                                : 'bg-gray-50 dark:bg-slate-800/80 text-gray-800 dark:text-slate-200 border-gray-200 dark:border-slate-700 hover:border-violet-400'
-                                                        }`}
-                                                    >
-                                                        <span className="font-bold text-sm">{item.value}</span>
-                                                        <span className={`text-[11px] mt-0.5 ${selected ? 'text-violet-100' : 'text-gray-500 dark:text-slate-400'}`}>
-                                                            {item.desc}
-                                                        </span>
-                                                    </button>
-                                                );
-                                            })}
-                                        </div>
-                                    </div>
-
-                                    {/* Study Mode Preference */}
-                                    <div>
-                                        <label className="block text-xs font-bold uppercase tracking-wider text-gray-600 dark:text-slate-300 mb-2">
-                                            Preferred Study Mode
-                                        </label>
-                                        <div className="grid grid-cols-3 gap-2.5">
-                                            {MODES.map((m) => {
-                                                const Icon = m.icon;
-                                                const selected = modePreference === m.value;
-                                                return (
-                                                    <button
-                                                        key={m.value}
-                                                        type="button"
-                                                        onClick={() => setModePreference(m.value)}
-                                                        className={`p-3 min-h-[72px] rounded-2xl border text-center transition-all cursor-pointer flex flex-col items-center justify-center gap-1 ${
-                                                            selected
-                                                                ? 'bg-violet-600 text-white border-violet-600 shadow-md shadow-violet-600/20'
-                                                                : 'bg-gray-50 dark:bg-slate-800/80 text-gray-800 dark:text-slate-200 border-gray-200 dark:border-slate-700 hover:border-violet-400'
-                                                        }`}
-                                                    >
-                                                        <Icon size={18} />
-                                                        <span className="font-bold text-xs sm:text-sm">{m.label}</span>
-                                                        <span className={`text-[10px] hidden sm:block ${selected ? 'text-violet-100' : 'text-gray-500 dark:text-slate-400'}`}>
-                                                            {m.desc}
-                                                        </span>
-                                                    </button>
-                                                );
-                                            })}
-                                        </div>
-                                    </div>
-
-                                    {/* Preferred Study Days (Multi-select chips Mon-Sun) */}
-                                    <div>
-                                        <div className="flex items-center justify-between mb-2">
-                                            <label className="block text-xs font-bold uppercase tracking-wider text-gray-600 dark:text-slate-300">
-                                                Preferred Study Days <span className="text-red-500">*</span>
-                                            </label>
-                                            <span className="text-[11px] text-gray-400 dark:text-slate-500">Tap all that apply</span>
-                                        </div>
                                         <div className="grid grid-cols-7 gap-1.5 sm:gap-2">
                                             {DAYS_OF_WEEK.map((day) => {
                                                 const selected = preferredStudyDays.includes(day);
@@ -964,242 +1206,535 @@ const OutreachRegistration: React.FC = () => {
                                                         key={day}
                                                         type="button"
                                                         onClick={() => toggleStudyDay(day)}
-                                                        className={`py-3 min-h-[48px] rounded-xl font-bold text-xs border transition-all cursor-pointer flex items-center justify-center ${
+                                                        className={`py-3 min-h-[48px] rounded-xl font-bold text-xs border transition-all cursor-pointer flex flex-col items-center justify-center ${
                                                             selected
                                                                 ? 'bg-violet-600 text-white border-violet-600 shadow-sm'
-                                                                : 'bg-gray-50 dark:bg-slate-800/80 text-gray-700 dark:text-slate-300 border-gray-200 dark:border-slate-700 hover:border-violet-400'
+                                                                : 'bg-gray-50 dark:bg-slate-800 text-gray-700 dark:text-slate-300 border-gray-200 dark:border-slate-700'
                                                         }`}
                                                     >
-                                                        {day}
+                                                        <span className="text-[10px] opacity-80">{selected ? '☑' : '☐'}</span>
+                                                        <span>{day}</span>
                                                     </button>
                                                 );
                                             })}
                                         </div>
                                         {errors.preferredStudyDays && (
-                                            <p className="mt-1.5 text-xs font-semibold text-red-500 flex items-center gap-1">
-                                                <AlertCircle size={13} /> {errors.preferredStudyDays}
-                                            </p>
+                                            <p className="mt-1 text-xs font-semibold text-red-500">{errors.preferredStudyDays}</p>
                                         )}
                                     </div>
 
-                                    {/* Preferred Time Slot */}
-                                    <div>
-                                        <label className="block text-xs font-bold uppercase tracking-wider text-gray-600 dark:text-slate-300 mb-2">
-                                            Preferred Time Slot
-                                        </label>
-                                        <div className="grid grid-cols-2 gap-2.5">
-                                            {TIME_SLOTS.map((slot) => {
-                                                const selected = preferredTimeSlot === slot.value;
-                                                return (
-                                                    <button
-                                                        key={slot.value}
-                                                        type="button"
-                                                        onClick={() => setPreferredTimeSlot(slot.value)}
-                                                        className={`p-3 min-h-[54px] rounded-2xl border text-left transition-all cursor-pointer flex flex-col justify-center ${
-                                                            selected
-                                                                ? 'bg-violet-600 text-white border-violet-600 shadow-md shadow-violet-600/20'
-                                                                : 'bg-gray-50 dark:bg-slate-800/80 text-gray-800 dark:text-slate-200 border-gray-200 dark:border-slate-700 hover:border-violet-400'
-                                                        }`}
-                                                    >
-                                                        <span className="font-bold text-xs sm:text-sm flex items-center gap-1.5">
-                                                            <Clock size={13} /> {slot.value}
-                                                        </span>
-                                                        <span className={`text-[11px] mt-0.5 ${selected ? 'text-violet-100' : 'text-gray-500 dark:text-slate-400'}`}>
-                                                            {slot.time}
-                                                        </span>
-                                                    </button>
-                                                );
-                                            })}
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                        {/* Chosen Study Time (From – To) */}
+                                        <div>
+                                            <label className="block text-xs font-bold uppercase tracking-wider text-gray-600 dark:text-slate-300 mb-1">
+                                                Chosen Study Time (From – To)
+                                            </label>
+                                            <select
+                                                value={chosenStudyTime}
+                                                onChange={(e) => setChosenStudyTime(e.target.value)}
+                                                className="w-full px-4 py-3 min-h-[48px] bg-gray-50 dark:bg-slate-800/90 border border-gray-200 dark:border-slate-700 rounded-2xl text-xs sm:text-sm font-semibold focus:outline-none focus:border-violet-500 cursor-pointer"
+                                            >
+                                                {STUDY_TIME_SLOTS.map(slot => (
+                                                    <option key={slot} value={slot}>{slot}</option>
+                                                ))}
+                                            </select>
                                         </div>
-                                    </div>
-                                </div>
-                            )}
 
-                            {/* STEP 3: FINISH */}
-                            {step === 3 && (
-                                <div className="space-y-6 animate-in fade-in duration-200">
-                                    {/* How did you hear about us */}
-                                    <div>
-                                        <label className="block text-xs font-bold uppercase tracking-wider text-gray-600 dark:text-slate-300 mb-2">
-                                            How Did You Hear About Welile School of AI?
-                                        </label>
-                                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
-                                            {HOW_HEARD_OPTIONS.map((opt) => {
-                                                const selected = howHeard === opt;
-                                                return (
-                                                    <button
-                                                        key={opt}
-                                                        type="button"
-                                                        onClick={() => setHowHeard(opt)}
-                                                        className={`py-3 px-3 min-h-[48px] rounded-2xl text-xs sm:text-sm font-bold border transition-all cursor-pointer ${
-                                                            selected
-                                                                ? 'bg-violet-600 text-white border-violet-600 shadow-md shadow-violet-600/20'
-                                                                : 'bg-gray-50 dark:bg-slate-800/80 text-gray-700 dark:text-slate-300 border-gray-200 dark:border-slate-700 hover:border-violet-400'
-                                                        }`}
-                                                    >
-                                                        {opt}
-                                                    </button>
-                                                );
-                                            })}
+                                        {/* Study Hours Per Session */}
+                                        <div>
+                                            <label className="block text-xs font-bold uppercase tracking-wider text-gray-600 dark:text-slate-300 mb-1">
+                                                Study Hours Per Session
+                                            </label>
+                                            <select
+                                                value={studyHoursPerSession}
+                                                onChange={(e) => setStudyHoursPerSession(e.target.value)}
+                                                className="w-full px-4 py-3 min-h-[48px] bg-gray-50 dark:bg-slate-800/90 border border-gray-200 dark:border-slate-700 rounded-2xl text-xs sm:text-sm font-semibold focus:outline-none focus:border-violet-500 cursor-pointer"
+                                            >
+                                                {STUDY_HOURS_OPTIONS.map(h => (
+                                                    <option key={h} value={h}>{h}</option>
+                                                ))}
+                                            </select>
                                         </div>
-                                        {errors.howHeard && (
-                                            <p className="mt-1.5 text-xs font-semibold text-red-500 flex items-center gap-1">
-                                                <AlertCircle size={13} /> {errors.howHeard}
-                                            </p>
-                                        )}
-                                    </div>
 
-                                    {/* Outreach Event Name (with quick preset dropdown/chips + custom input) */}
-                                    <div>
-                                        <label className="block text-xs font-bold uppercase tracking-wider text-gray-600 dark:text-slate-300 mb-1.5">
-                                            Outreach Event / Campaign Name <span className="text-gray-400 font-normal lowercase">(optional)</span>
-                                        </label>
-                                        <div className="relative">
-                                            <Megaphone size={18} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 dark:text-slate-500" />
+                                        {/* Number of Sessions Per Week */}
+                                        <div>
+                                            <label className="block text-xs font-bold uppercase tracking-wider text-gray-600 dark:text-slate-300 mb-1">
+                                                Number of Sessions Per Week
+                                            </label>
                                             <input
                                                 type="text"
-                                                list="outreach-event-presets"
-                                                value={outreachEvent}
-                                                onChange={(e) => setOutreachEvent(e.target.value)}
-                                                placeholder="Select or type event name (e.g. Makerere Career Fair Nov 2026)"
-                                                className="w-full pl-11 pr-4 py-3.5 min-h-[48px] bg-gray-50 dark:bg-slate-800/90 border border-gray-200 dark:border-slate-700 rounded-2xl text-sm font-medium text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-slate-500 focus:outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-500/20 transition-all"
+                                                value={sessionsPerWeek}
+                                                onChange={(e) => setSessionsPerWeek(e.target.value)}
+                                                className="w-full px-4 py-3 min-h-[48px] bg-gray-50 dark:bg-slate-800/90 border border-gray-200 dark:border-slate-700 rounded-2xl text-xs sm:text-sm font-semibold focus:outline-none focus:border-violet-500"
                                             />
-                                            <datalist id="outreach-event-presets">
-                                                {eventPresets.map((ev) => (
-                                                    <option key={ev} value={ev} />
-                                                ))}
-                                            </datalist>
                                         </div>
 
-                                        {/* Quick-tap preset pills for booth staff */}
-                                        <div className="mt-2.5">
-                                            <span className="text-[11px] font-semibold text-gray-400 dark:text-slate-500 block mb-1.5">
-                                                Quick Select Active Event:
+                                        {/* Alternative Study Time */}
+                                        <div>
+                                            <label className="block text-xs font-bold uppercase tracking-wider text-gray-600 dark:text-slate-300 mb-1">
+                                                Alternative Study Time (if applicable)
+                                            </label>
+                                            <select
+                                                value={alternativeStudyTime}
+                                                onChange={(e) => setAlternativeStudyTime(e.target.value)}
+                                                className="w-full px-4 py-3 min-h-[48px] bg-gray-50 dark:bg-slate-800/90 border border-gray-200 dark:border-slate-700 rounded-2xl text-xs sm:text-sm font-semibold focus:outline-none focus:border-violet-500 cursor-pointer"
+                                            >
+                                                {ALTERNATIVE_TIME_OPTIONS.map(opt => (
+                                                    <option key={opt} value={opt}>{opt}</option>
+                                                ))}
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* 4. FEES & PAYMENT AGREEMENT */}
+                                <div className="bg-white dark:bg-slate-900 rounded-3xl border border-gray-200 dark:border-slate-800 p-5 sm:p-7 shadow-sm space-y-5">
+                                    <div className="flex items-center gap-2.5 border-b border-gray-100 dark:border-slate-800 pb-3">
+                                        <div className="w-8 h-8 rounded-xl bg-violet-100 dark:bg-violet-950/60 text-violet-600 dark:text-violet-400 flex items-center justify-center font-black text-sm">
+                                            4
+                                        </div>
+                                        <div>
+                                            <h3 className="text-sm sm:text-base font-extrabold uppercase tracking-wide text-gray-900 dark:text-white">
+                                                4. Fees & Payment Agreement
+                                            </h3>
+                                            <p className="text-[11px] text-gray-500 dark:text-slate-400">
+                                                Standard Tuition Fee: UGX 600,000 • Registration Fee: Not Applicable
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                    {/* Official Fee Box */}
+                                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 bg-violet-50/60 dark:bg-violet-950/25 p-4 rounded-2xl border border-violet-200/70 dark:border-violet-800/50 text-xs">
+                                        <div>
+                                            <span className="text-gray-500 dark:text-slate-400 block text-[10px] font-bold uppercase">Total Course Fee</span>
+                                            <span className="text-sm sm:text-base font-black text-gray-900 dark:text-white">UGX 600,000</span>
+                                        </div>
+                                        <div>
+                                            <span className="text-gray-500 dark:text-slate-400 block text-[10px] font-bold uppercase">Registration Fee</span>
+                                            <span className="text-xs sm:text-sm font-bold text-emerald-600 dark:text-emerald-400">UGX – Not Applicable</span>
+                                        </div>
+                                        <div>
+                                            <span className="text-gray-500 dark:text-slate-400 block text-[10px] font-bold uppercase">Amount Paid</span>
+                                            <span className="text-sm sm:text-base font-black text-violet-700 dark:text-violet-300">
+                                                UGX {(Number(amountPaid) || 0).toLocaleString()}
                                             </span>
-                                            <div className="flex flex-wrap gap-1.5">
-                                                {eventPresets.slice(0, 6).map((preset) => {
-                                                    const active = outreachEvent === preset;
-                                                    return (
-                                                        <button
-                                                            key={preset}
-                                                            type="button"
-                                                            onClick={() => setOutreachEvent(active ? '' : preset)}
-                                                            className={`px-3 py-1.5 rounded-xl text-xs font-semibold border transition-all cursor-pointer ${
-                                                                active
-                                                                    ? 'bg-violet-100 dark:bg-violet-950/80 text-violet-700 dark:text-violet-300 border-violet-300 dark:border-violet-700'
-                                                                    : 'bg-gray-50 dark:bg-slate-800/60 text-gray-600 dark:text-slate-400 border-gray-200 dark:border-slate-700 hover:border-violet-400'
-                                                            }`}
-                                                        >
-                                                            {preset}
-                                                        </button>
-                                                    );
-                                                })}
+                                        </div>
+                                        <div>
+                                            <span className="text-gray-500 dark:text-slate-400 block text-[10px] font-bold uppercase">Outstanding Balance</span>
+                                            <span className="text-sm sm:text-base font-black text-amber-600 dark:text-amber-400">
+                                                UGX {outstandingBalance.toLocaleString()}
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    {/* Payment Plan (Full / Weekly / Monthly / Other) */}
+                                    <div>
+                                        <label className="block text-xs font-bold uppercase tracking-wider text-gray-600 dark:text-slate-300 mb-2">
+                                            Payment Plan
+                                        </label>
+                                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+                                            {PAYMENT_PLANS.map((p) => (
+                                                <button
+                                                    key={p.value}
+                                                    type="button"
+                                                    onClick={() => handlePaymentPlanChange(p.value)}
+                                                    className={`py-3 px-3 rounded-xl text-xs font-bold border transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
+                                                        paymentPlan === p.value
+                                                            ? 'bg-violet-600 text-white border-violet-600 shadow-sm'
+                                                            : 'bg-gray-50 dark:bg-slate-800 text-gray-700 dark:text-slate-300 border-gray-200 dark:border-slate-700'
+                                                    }`}
+                                                >
+                                                    <span>{paymentPlan === p.value ? '☑' : '☐'}</span>
+                                                    <span>{p.value}</span>
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
+
+                                    {/* Quick Amount Paid Presets */}
+                                    <div>
+                                        <label className="block text-xs font-bold uppercase tracking-wider text-gray-600 dark:text-slate-300 mb-1.5">
+                                            Amount Paid Today (UGX) — Quick Select or Enter Amount
+                                        </label>
+                                        <div className="flex flex-wrap gap-2 mb-2.5">
+                                            {[
+                                                { label: 'UGX 0 (Pay at Start)', val: 0 },
+                                                { label: 'UGX 100,000', val: 100000 },
+                                                { label: 'UGX 200,000', val: 200000 },
+                                                { label: 'UGX 300,000', val: 300000 },
+                                                { label: 'UGX 600,000 (Full)', val: 600000 }
+                                            ].map((preset) => (
+                                                <button
+                                                    key={preset.val}
+                                                    type="button"
+                                                    onClick={() => setAmountPaid(preset.val)}
+                                                    className={`px-3 py-1.5 rounded-xl text-xs font-bold border cursor-pointer ${
+                                                        Number(amountPaid) === preset.val
+                                                            ? 'bg-violet-100 dark:bg-violet-950 text-violet-700 dark:text-violet-300 border-violet-400'
+                                                            : 'bg-gray-50 dark:bg-slate-800 text-gray-600 dark:text-slate-400 border-gray-200 dark:border-slate-700'
+                                                    }`}
+                                                >
+                                                    {preset.label}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
+
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                        <div>
+                                            <label className="block text-xs font-bold uppercase tracking-wider text-gray-600 dark:text-slate-300 mb-1">
+                                                Amount Paid (UGX)
+                                            </label>
+                                            <input
+                                                type="number"
+                                                min={0}
+                                                max={600000}
+                                                step={10000}
+                                                value={amountPaid}
+                                                onChange={(e) => setAmountPaid(Number(e.target.value) || 0)}
+                                                className="w-full px-4 py-3 min-h-[48px] bg-gray-50 dark:bg-slate-800/90 border border-gray-200 dark:border-slate-700 rounded-2xl text-sm font-bold"
+                                            />
+                                        </div>
+
+                                        <div>
+                                            <label className="block text-xs font-bold uppercase tracking-wider text-gray-600 dark:text-slate-300 mb-1">
+                                                Agreed Installment Amount (UGX)
+                                            </label>
+                                            <input
+                                                type="number"
+                                                min={0}
+                                                step={10000}
+                                                value={agreedPaymentAmount}
+                                                onChange={(e) => setAgreedPaymentAmount(Number(e.target.value) || 0)}
+                                                className="w-full px-4 py-3 min-h-[48px] bg-gray-50 dark:bg-slate-800/90 border border-gray-200 dark:border-slate-700 rounded-2xl text-sm font-bold"
+                                            />
+                                        </div>
+
+                                        <div>
+                                            <label className="block text-xs font-bold uppercase tracking-wider text-gray-600 dark:text-slate-300 mb-1">
+                                                Next Payment Date
+                                            </label>
+                                            <input
+                                                type="date"
+                                                value={nextPaymentDate}
+                                                onChange={(e) => setNextPaymentDate(e.target.value)}
+                                                className="w-full px-4 py-3 min-h-[48px] bg-gray-50 dark:bg-slate-800/90 border border-gray-200 dark:border-slate-700 rounded-2xl text-sm font-semibold"
+                                            />
+                                        </div>
+
+                                        <div>
+                                            <label className="block text-xs font-bold uppercase tracking-wider text-gray-600 dark:text-slate-300 mb-1">
+                                                Payment Due Date
+                                            </label>
+                                            <input
+                                                type="date"
+                                                value={paymentDueDate}
+                                                onChange={(e) => setPaymentDueDate(e.target.value)}
+                                                className="w-full px-4 py-3 min-h-[48px] bg-gray-50 dark:bg-slate-800/90 border border-gray-200 dark:border-slate-700 rounded-2xl text-sm font-semibold"
+                                            />
+                                        </div>
+
+                                        {/* Payment Method */}
+                                        <div>
+                                            <label className="block text-xs font-bold uppercase tracking-wider text-gray-600 dark:text-slate-300 mb-1.5">
+                                                Payment Method
+                                            </label>
+                                            <div className="grid grid-cols-2 gap-2">
+                                                {PAYMENT_METHODS.map((pm) => (
+                                                    <button
+                                                        key={pm}
+                                                        type="button"
+                                                        onClick={() => setPaymentMethod(pm)}
+                                                        className={`py-2.5 px-3 rounded-xl text-xs font-bold border transition-all cursor-pointer flex items-center justify-center gap-1 ${
+                                                            paymentMethod === pm
+                                                                ? 'bg-violet-600 text-white border-violet-600'
+                                                                : 'bg-gray-50 dark:bg-slate-800 text-gray-700 dark:text-slate-300 border-gray-200 dark:border-slate-700'
+                                                        }`}
+                                                    >
+                                                        <span>{paymentMethod === pm ? '☑' : '☐'}</span>
+                                                        <span>{pm}</span>
+                                                    </button>
+                                                ))}
                                             </div>
                                         </div>
-                                    </div>
 
-                                    {/* Quick Review Preview */}
-                                    <div className="p-4 rounded-2xl bg-gray-50 dark:bg-slate-950/60 border border-gray-100 dark:border-slate-800 text-xs space-y-1.5">
-                                        <div className="font-bold text-gray-700 dark:text-slate-300 uppercase tracking-wider text-[11px] mb-1">
-                                            Quick Check
-                                        </div>
-                                        <p className="text-gray-600 dark:text-slate-400">
-                                            <span className="font-bold text-gray-900 dark:text-white">{fullName}</span> • {phone}
-                                            {email ? ` • ${email}` : ''}
-                                        </p>
-                                        <p className="text-gray-600 dark:text-slate-400">
-                                            Programme: <span className="font-bold text-violet-600 dark:text-violet-400">{courseInterest}</span> ({level}, {modePreference})
-                                        </p>
-                                        <p className="text-gray-600 dark:text-slate-400">
-                                            Schedule: {preferredStudyDays.join(', ')} ({preferredTimeSlot})
-                                        </p>
-                                    </div>
-
-                                    {/* Required Consent Checkbox */}
-                                    <div>
-                                        <label
-                                            className={`flex items-start gap-3.5 p-4 rounded-2xl border cursor-pointer transition-all ${
-                                                consentContact
-                                                    ? 'bg-violet-50/70 dark:bg-violet-950/30 border-violet-300 dark:border-violet-700'
-                                                    : errors.consentContact
-                                                    ? 'bg-red-50/50 dark:bg-red-950/20 border-red-400 dark:border-red-800'
-                                                    : 'bg-gray-50 dark:bg-slate-800/60 border-gray-200 dark:border-slate-700'
-                                            }`}
-                                        >
+                                        {/* Payment Reference / Receipt No. */}
+                                        <div>
+                                            <label className="block text-xs font-bold uppercase tracking-wider text-gray-600 dark:text-slate-300 mb-1">
+                                                Payment Reference / Receipt No.
+                                            </label>
                                             <input
-                                                type="checkbox"
-                                                checked={consentContact}
-                                                onChange={(e) => {
-                                                    setConsentContact(e.target.checked);
-                                                    if (errors.consentContact) setErrors(prev => ({ ...prev, consentContact: '' }));
-                                                }}
-                                                className="mt-0.5 w-5 h-5 accent-violet-600 rounded cursor-pointer shrink-0"
+                                                type="text"
+                                                value={paymentReference}
+                                                onChange={(e) => setPaymentReference(e.target.value)}
+                                                placeholder="Receipt / Mobile Money Ref or Pending"
+                                                className="w-full px-4 py-3 min-h-[48px] bg-gray-50 dark:bg-slate-800/90 border border-gray-200 dark:border-slate-700 rounded-2xl text-sm font-medium"
                                             />
-                                            <span className="text-xs sm:text-sm text-gray-700 dark:text-slate-200 font-medium leading-relaxed">
-                                                I agree to be contacted by <strong className="text-gray-900 dark:text-white">Welile School of AI</strong> about this programme, study schedules, and enrollment opportunities. <span className="text-red-500">*</span>
-                                            </span>
-                                        </label>
-                                        {errors.consentContact && (
-                                            <p className="mt-1.5 text-xs font-semibold text-red-500 flex items-center gap-1">
-                                                <AlertCircle size={13} /> {errors.consentContact}
-                                            </p>
-                                        )}
-                                    </div>
-
-                                    {errors.form && (
-                                        <div className="p-3 rounded-xl bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 text-xs font-semibold text-red-600 dark:text-red-300">
-                                            {errors.form}
                                         </div>
-                                    )}
-                                </div>
-                            )}
-
-                            {/* Sticky Mobile / Standard Desktop Navigation Footer */}
-                            <div className="fixed bottom-0 left-0 right-0 sm:static bg-white/95 dark:bg-slate-900/95 sm:bg-transparent sm:dark:bg-transparent backdrop-blur-md sm:backdrop-blur-none border-t border-gray-200 dark:border-slate-800 sm:border-t-0 p-4 sm:p-0 sm:pt-4 z-30">
-                                <div className="max-w-xl mx-auto flex items-center gap-3">
-                                    {step > 1 && (
-                                        <button
-                                            type="button"
-                                            onClick={handlePrevStep}
-                                            className="px-5 py-3.5 min-h-[50px] rounded-2xl border border-gray-200 dark:border-slate-700 bg-gray-100 dark:bg-slate-800 text-gray-700 dark:text-slate-200 font-bold text-sm hover:bg-gray-200 dark:hover:bg-slate-700 transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
-                                        >
-                                            <ArrowLeft size={16} />
-                                            Back
-                                        </button>
-                                    )}
-
-                                    {step < 3 ? (
-                                        <button
-                                            type="button"
-                                            onClick={handleNextStep}
-                                            className="flex-1 py-3.5 px-6 min-h-[50px] bg-violet-600 hover:bg-violet-700 text-white rounded-2xl font-bold text-sm sm:text-base shadow-lg shadow-violet-600/25 flex items-center justify-center gap-2 transition-all cursor-pointer"
-                                        >
-                                            Continue
-                                            <ArrowRight size={18} />
-                                        </button>
-                                    ) : (
-                                        <button
-                                            type="submit"
-                                            disabled={isSubmitting}
-                                            className="flex-1 py-3.5 px-6 min-h-[50px] bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 disabled:opacity-60 text-white rounded-2xl font-bold text-sm sm:text-base shadow-lg shadow-violet-600/25 flex items-center justify-center gap-2 transition-all cursor-pointer"
-                                        >
-                                            {isSubmitting ? (
-                                                <>
-                                                    <Loader size={18} className="animate-spin" />
-                                                    Submitting...
-                                                </>
-                                            ) : (
-                                                <>
-                                                    <CheckCircle2 size={18} />
-                                                    Submit Registration
-                                                </>
-                                            )}
-                                        </button>
-                                    )}
+                                    </div>
                                 </div>
                             </div>
-                        </form>
-                    </div>
+                        )}
+
+                        {/* =========================================================
+                            SECTIONS 5, 6, 7 & 8: COMMITMENT, DECLARATION & SIGNATURES
+                           ========================================================= */}
+                        {showStep3 && (
+                            <div className="space-y-6 animate-in fade-in duration-200">
+                                {/* 5. STUDENT COMMITMENT */}
+                                <div className="bg-white dark:bg-slate-900 rounded-3xl border border-gray-200 dark:border-slate-800 p-5 sm:p-7 shadow-sm space-y-4">
+                                    <div className="flex items-center justify-between border-b border-gray-100 dark:border-slate-800 pb-3">
+                                        <div className="flex items-center gap-2.5">
+                                            <div className="w-8 h-8 rounded-xl bg-violet-100 dark:bg-violet-950/60 text-violet-600 dark:text-violet-400 flex items-center justify-center font-black text-sm">
+                                                5
+                                            </div>
+                                            <div>
+                                                <h3 className="text-sm sm:text-base font-extrabold uppercase tracking-wide text-gray-900 dark:text-white">
+                                                    5. Student Commitment
+                                                </h3>
+                                                <p className="text-[11px] text-gray-500 dark:text-slate-400">
+                                                    Confirm your agreement to the Welile School of AI learning commitments
+                                                </p>
+                                            </div>
+                                        </div>
+
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                const allTrue = checkedCommitments.every(Boolean);
+                                                setCheckedCommitments(OFFICIAL_COMMITMENTS.map(() => !allTrue));
+                                            }}
+                                            className="text-xs font-bold text-violet-600 dark:text-violet-400 hover:underline cursor-pointer"
+                                        >
+                                            {checkedCommitments.every(Boolean) ? 'All Checked ✓' : 'Check All'}
+                                        </button>
+                                    </div>
+
+                                    <div className="grid grid-cols-1 gap-2.5">
+                                        {OFFICIAL_COMMITMENTS.map((text, idx) => (
+                                            <label
+                                                key={idx}
+                                                className={`flex items-start gap-3 p-3 rounded-xl border text-xs sm:text-sm cursor-pointer transition-colors ${
+                                                    checkedCommitments[idx]
+                                                        ? 'bg-violet-50/50 dark:bg-violet-950/20 border-violet-200 dark:border-violet-800/50 text-gray-900 dark:text-white'
+                                                        : 'bg-gray-50 dark:bg-slate-800/50 border-gray-200 dark:border-slate-700 text-gray-500'
+                                                }`}
+                                            >
+                                                <input
+                                                    type="checkbox"
+                                                    checked={checkedCommitments[idx]}
+                                                    onChange={(e) => {
+                                                        const next = [...checkedCommitments];
+                                                        next[idx] = e.target.checked;
+                                                        setCheckedCommitments(next);
+                                                        if (errors.commitments) setErrors(prev => ({ ...prev, commitments: '' }));
+                                                    }}
+                                                    className="mt-0.5 w-4 h-4 accent-violet-600 rounded shrink-0"
+                                                />
+                                                <span className="font-medium leading-snug">{text}</span>
+                                            </label>
+                                        ))}
+                                    </div>
+                                    {errors.commitments && (
+                                        <p className="text-xs font-semibold text-red-500 flex items-center gap-1">
+                                            <AlertCircle size={13} /> {errors.commitments}
+                                        </p>
+                                    )}
+                                </div>
+
+                                {/* 6. STUDENT DECLARATION & SIGNATURE */}
+                                <div className="bg-white dark:bg-slate-900 rounded-3xl border border-gray-200 dark:border-slate-800 p-5 sm:p-7 shadow-sm space-y-4">
+                                    <div className="flex items-center gap-2.5 border-b border-gray-100 dark:border-slate-800 pb-3">
+                                        <div className="w-8 h-8 rounded-xl bg-violet-100 dark:bg-violet-950/60 text-violet-600 dark:text-violet-400 flex items-center justify-center font-black text-sm">
+                                            6
+                                        </div>
+                                        <div>
+                                            <h3 className="text-sm sm:text-base font-extrabold uppercase tracking-wide text-gray-900 dark:text-white">
+                                                6. Student Declaration & Signature
+                                            </h3>
+                                        </div>
+                                    </div>
+
+                                    <p className="text-xs sm:text-sm text-gray-700 dark:text-slate-300 bg-gray-50 dark:bg-slate-950/60 p-3.5 rounded-2xl border border-gray-200/70 dark:border-slate-800 italic">
+                                        “I confirm that I have read, understood and agreed to the information, study schedule, payment arrangements and responsibilities stated in this form.”
+                                    </p>
+
+                                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                                        <div>
+                                            <label className="block text-xs font-bold uppercase tracking-wider text-gray-600 dark:text-slate-300 mb-1">
+                                                Student Full Name
+                                            </label>
+                                            <input
+                                                type="text"
+                                                value={fullName}
+                                                readOnly
+                                                className="w-full px-3.5 py-3 bg-gray-100 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl text-sm font-bold"
+                                            />
+                                        </div>
+
+                                        <div>
+                                            <label className="block text-xs font-bold uppercase tracking-wider text-gray-600 dark:text-slate-300 mb-1">
+                                                Student Signature (Digital) <span className="text-red-500">*</span>
+                                            </label>
+                                            <div className="relative">
+                                                <PenTool size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-violet-500" />
+                                                <input
+                                                    type="text"
+                                                    required
+                                                    value={studentSignature}
+                                                    onChange={(e) => {
+                                                        setStudentSignature(e.target.value);
+                                                        if (errors.studentSignature) setErrors(prev => ({ ...prev, studentSignature: '' }));
+                                                    }}
+                                                    placeholder="Type full name to sign"
+                                                    className="w-full pl-9 pr-3 py-3 bg-violet-50/50 dark:bg-violet-950/30 border border-violet-300 dark:border-violet-700 rounded-xl text-sm font-serif italic font-bold text-violet-900 dark:text-violet-200"
+                                                />
+                                            </div>
+                                            {errors.studentSignature && (
+                                                <p className="mt-1 text-xs font-semibold text-red-500">{errors.studentSignature}</p>
+                                            )}
+                                        </div>
+
+                                        <div>
+                                            <label className="block text-xs font-bold uppercase tracking-wider text-gray-600 dark:text-slate-300 mb-1">
+                                                Date
+                                            </label>
+                                            <input
+                                                type="date"
+                                                value={studentDeclarationDate}
+                                                onChange={(e) => setStudentDeclarationDate(e.target.value)}
+                                                className="w-full px-3.5 py-3 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl text-sm font-semibold"
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* 7. PARENT / GUARDIAN CONSENT */}
+                                <div className="bg-white dark:bg-slate-900 rounded-3xl border border-gray-200 dark:border-slate-800 p-5 sm:p-7 shadow-sm space-y-4">
+                                    <div className="flex items-center gap-2.5 border-b border-gray-100 dark:border-slate-800 pb-3">
+                                        <div className="w-8 h-8 rounded-xl bg-violet-100 dark:bg-violet-950/60 text-violet-600 dark:text-violet-400 flex items-center justify-center font-black text-sm">
+                                            7
+                                        </div>
+                                        <div>
+                                            <h3 className="text-sm sm:text-base font-extrabold uppercase tracking-wide text-gray-900 dark:text-white">
+                                                7. Parent / Guardian Consent
+                                            </h3>
+                                            <p className="text-[11px] text-gray-500 dark:text-slate-400">
+                                                Complete this section where applicable (required if Under 18 / High School)
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                        <div>
+                                            <label className="block text-xs font-bold uppercase tracking-wider text-gray-600 dark:text-slate-300 mb-1">
+                                                Parent / Guardian Full Name
+                                            </label>
+                                            <input
+                                                type="text"
+                                                value={guardianName}
+                                                onChange={(e) => setGuardianName(e.target.value)}
+                                                placeholder="If applicable"
+                                                className="w-full px-3.5 py-2.5 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl text-sm"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-xs font-bold uppercase tracking-wider text-gray-600 dark:text-slate-300 mb-1">
+                                                Phone Number
+                                            </label>
+                                            <input
+                                                type="tel"
+                                                value={guardianPhone}
+                                                onChange={(e) => setGuardianPhone(e.target.value)}
+                                                placeholder="If applicable"
+                                                className="w-full px-3.5 py-2.5 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl text-sm"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-xs font-bold uppercase tracking-wider text-gray-600 dark:text-slate-300 mb-1">
+                                                Guardian Signature
+                                            </label>
+                                            <input
+                                                type="text"
+                                                value={guardianSignature}
+                                                onChange={(e) => setGuardianSignature(e.target.value)}
+                                                placeholder="Guardian digital signature"
+                                                className="w-full px-3.5 py-2.5 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl text-sm font-serif italic"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-xs font-bold uppercase tracking-wider text-gray-600 dark:text-slate-300 mb-1">
+                                                Date
+                                            </label>
+                                            <input
+                                                type="date"
+                                                value={guardianConsentDate}
+                                                onChange={(e) => setGuardianConsentDate(e.target.value)}
+                                                className="w-full px-3.5 py-2.5 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl text-sm"
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* 8. SCHOOL / ADMINISTRATION USE ONLY (Preview Footer) */}
+                                <div className="bg-gray-100/80 dark:bg-slate-900/50 rounded-3xl border border-dashed border-gray-300 dark:border-slate-800 p-5 text-xs text-gray-500 dark:text-slate-400">
+                                    <div className="font-extrabold uppercase tracking-wider text-gray-700 dark:text-slate-300 mb-1">
+                                        8. School / Administration Use Only (Completed by Welile Admissions Office)
+                                    </div>
+                                    <p>
+                                        Approval, Instructor Assignment, Confirmed Study Schedule, and Official Payment Verification Stamp are completed in the Welile School of AI Admin Portal upon submission.
+                                    </p>
+                                    <p className="mt-2 font-bold text-violet-600 dark:text-violet-400">
+                                        WELILE SCHOOL OF AI • Katabi, Entebbe, Uganda — Empowering students through Artificial Intelligence and digital skills.
+                                    </p>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Sticky Mobile / Standard Desktop Navigation Bar */}
+                        <div className="fixed bottom-0 left-0 right-0 sm:static bg-white/95 dark:bg-slate-900/95 sm:bg-transparent backdrop-blur-md sm:backdrop-blur-none border-t border-gray-200 dark:border-slate-800 sm:border-0 p-4 sm:p-0 z-30">
+                            <div className="max-w-3xl mx-auto flex items-center gap-3">
+                                {!singlePageMode && step > 1 && (
+                                    <button
+                                        type="button"
+                                        onClick={handlePrevStep}
+                                        className="px-5 py-3.5 min-h-[50px] rounded-2xl border border-gray-200 dark:border-slate-700 bg-gray-100 dark:bg-slate-800 text-gray-700 dark:text-slate-200 font-bold text-sm flex items-center gap-1.5 cursor-pointer"
+                                    >
+                                        <ArrowLeft size={16} /> Back
+                                    </button>
+                                )}
+
+                                {!singlePageMode && step < 3 ? (
+                                    <button
+                                        type="button"
+                                        onClick={handleNextStep}
+                                        className="flex-1 py-3.5 px-6 min-h-[50px] bg-violet-600 hover:bg-violet-700 text-white rounded-2xl font-bold text-sm sm:text-base shadow-lg shadow-violet-600/25 flex items-center justify-center gap-2 cursor-pointer"
+                                    >
+                                        Continue to {step === 1 ? 'Study Schedule & Fees' : 'Declaration & Signature'}
+                                        <ArrowRight size={18} />
+                                    </button>
+                                ) : (
+                                    <button
+                                        type="submit"
+                                        disabled={isSubmitting}
+                                        className="flex-1 py-4 px-6 min-h-[52px] bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 disabled:opacity-60 text-white rounded-2xl font-bold text-sm sm:text-base shadow-lg shadow-violet-600/25 flex items-center justify-center gap-2 cursor-pointer"
+                                    >
+                                        {isSubmitting ? (
+                                            <>
+                                                <Loader size={18} className="animate-spin" />
+                                                Submitting Official Registration...
+                                            </>
+                                        ) : (
+                                            <>
+                                                <CheckCircle2 size={18} />
+                                                Submit Official Registration Form
+                                            </>
+                                        )}
+                                    </button>
+                                )}
+                            </div>
+                        </div>
+                    </form>
                 )}
             </main>
         </div>

@@ -26,8 +26,11 @@ const AdminMails: React.FC = () => {
                 .select('*');
             if (error) throw error;
             
-            // Sort by created_at descending (latest first)
-            const sorted = (data || []).sort((a: any, b: any) => {
+            // Sort by created_at descending (latest first), excluding internal system config rows
+            const visibleMails = (data || []).filter(
+                (m: any) => m.type !== 'SYSTEM_CONFIG' && m.email !== 'outreach-config@system.welile.com'
+            );
+            const sorted = visibleMails.sort((a: any, b: any) => {
                 return new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime();
             });
             setMails(sorted);

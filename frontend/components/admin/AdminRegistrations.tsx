@@ -26,7 +26,12 @@ import {
     Loader2,
     Filter,
     RefreshCw,
-    FileText
+    FileText,
+    CreditCard,
+    Plus,
+    Star,
+    Trash2,
+    Layers
 } from 'lucide-react';
 import {
     ResponsiveContainer,
@@ -41,25 +46,105 @@ import {
     Cell
 } from 'recharts';
 
+export interface OutreachCampaign {
+    id: string;
+    name: string;
+    event_date: string;
+    location: string;
+    category: 'OUTREACH' | 'GENERAL';
+    is_active: boolean;
+    is_default: boolean;
+}
+
+export const DEFAULT_OUTREACH_CAMPAIGNS: OutreachCampaign[] = [
+    {
+        id: 'nkumba-2026-11-06',
+        name: 'Nkumba University Outreach (Fri, 6th Nov 2026)',
+        event_date: '2026-11-06',
+        location: 'Nkumba University, Entebbe',
+        category: 'OUTREACH',
+        is_active: true,
+        is_default: true
+    },
+    {
+        id: 'general-website',
+        name: 'General / Website Registration',
+        event_date: '2026-11-05',
+        location: 'Online / Direct',
+        category: 'GENERAL',
+        is_active: true,
+        is_default: false
+    },
+    {
+        id: 'katabi-walkin',
+        name: 'Katabi Campus Walk-in (Entebbe)',
+        event_date: '2026-11-05',
+        location: 'Katabi, Entebbe, Uganda',
+        category: 'GENERAL',
+        is_active: true,
+        is_default: false
+    },
+    {
+        id: 'makerere-career-fair',
+        name: 'Makerere Career Fair Nov 2026',
+        event_date: '2026-11-15',
+        location: 'Makerere University, Kampala',
+        category: 'OUTREACH',
+        is_active: true,
+        is_default: false
+    }
+];
+
+const CAMPAIGNS_STORAGE_KEY = 'welile_outreach_campaigns_v1';
+
 export interface OutreachRegistrationRecord {
     id: string;
     created_at: string;
+    registration_date?: string | null;
+    student_reg_no?: string | null;
     full_name: string;
     email: string | null;
     phone: string;
     age_range: string | null;
+    class_level_year?: string | null;
     guardian_name: string | null;
     guardian_phone: string | null;
     location: string | null;
     course_interest: string;
     level: string | null;
     mode_preference: string | null;
+    expected_start_date?: string | null;
+    expected_completion_date?: string | null;
     preferred_study_days: string[] | null;
     preferred_time_slot: string | null;
+    study_hours_per_session?: string | null;
+    sessions_per_week?: string | null;
+    alternative_study_time?: string | null;
+    total_course_fee?: number | null;
+    registration_fee?: string | null;
+    amount_paid?: number | null;
+    outstanding_balance?: number | null;
+    payment_plan?: string | null;
+    agreed_payment_amount?: number | null;
+    next_payment_date?: string | null;
+    payment_due_date?: string | null;
+    payment_method?: string | null;
+    payment_reference?: string | null;
+    commitments_accepted?: string[] | null;
+    student_signature?: string | null;
+    student_declaration_date?: string | null;
+    guardian_signature?: string | null;
+    guardian_consent_date?: string | null;
     how_heard: string | null;
     outreach_event: string | null;
     consent_contact: boolean;
     status: 'NEW' | 'CONTACTED' | 'ENROLLED' | 'NOT_INTERESTED';
+    approved_by?: string | null;
+    approver_position?: string | null;
+    assigned_instructor?: string | null;
+    confirmed_schedule?: string | null;
+    admin_payment_status?: string | null;
+    admin_signature_date?: string | null;
     admin_notes: string | null;
     converted_profile_id: string | null;
     submitted_from: string | null;
@@ -81,34 +166,84 @@ const STATUS_BADGE_STYLES: Record<OutreachRegistrationRecord['status'], string> 
 
 const CHART_COLORS = ['#a855f7', '#7c3aed', '#6366f1', '#10b981', '#f59e0b', '#ec4899', '#3b82f6'];
 
-const DEFAULT_EVENT_PRESETS = [
-    'Makerere Career Fair Nov 2026',
-    'Kampala Tech Community Meetup',
-    'Welile Campus Activation',
-    'Kyambogo Innovation Expo',
-    'High School ICT Bootcamp'
+const APPROVER_PRESETS = [
+    'Admissions Office — Katabi Campus',
+    'Academic Registrar — Welile School of AI',
+    'Outreach Lead — Nkumba Campaign',
+    'Centre Director — Entebbe'
 ];
+
+const POSITION_PRESETS = [
+    'Admissions Officer',
+    'Academic Registrar',
+    'Outreach Coordinator',
+    'Centre Manager',
+    'Lead AI Instructor',
+    'Chief Operating Officer'
+];
+
+const INSTRUCTOR_CLASS_PRESETS = [
+    'Cohort 1 — Morning Lab (Katabi Campus)',
+    'Cohort 1 — Afternoon Hybrid (Katabi / Online)',
+    'Cohort 1 — Evening Live Online',
+    'Weekend Intensive Cohort (Sat & Sun)',
+    'Nkumba University Fast-Track Cohort'
+];
+
+const ADMIN_PAYMENT_STATUS_OPTIONS = [
+    'Pending',
+    'Payment Plan',
+    'Partially Paid',
+    'Fully Paid'
+];
+
+interface Section8Draft {
+    approved_by: string;
+    approver_position: string;
+    assigned_instructor: string;
+    confirmed_schedule: string;
+    admin_payment_status: string;
+    admin_signature_date: string;
+    admin_notes: string;
+}
 
 const AdminRegistrations: React.FC = () => {
     const [registrations, setRegistrations] = useState<OutreachRegistrationRecord[]>([]);
+    const [campaigns, setCampaigns] = useState<OutreachCampaign[]>(DEFAULT_OUTREACH_CAMPAIGNS);
     const [courses, setCourses] = useState<Array<{ id: string; title: string }>>([]);
     const [loading, setLoading] = useState(true);
 
-    // Filters & Sorting
+    // TOP-LEVEL DASHBOARD SIEVE (Sieves KPIs, Charts, Table, and CSV Export!)
+    // Values: 'ALL' | 'OUTREACH_ONLY' | 'GENERAL_ONLY' | specific campaign name
+    const [dashboardSieve, setDashboardSieve] = useState<string>('ALL');
+
+    // Table-level secondary filters & sorting
     const [searchQuery, setSearchQuery] = useState('');
     const [statusFilter, setStatusFilter] = useState<string>('ALL');
     const [courseFilter, setCourseFilter] = useState<string>('ALL');
-    const [eventFilter, setEventFilter] = useState<string>('ALL');
+    const [paymentStatusFilter, setPaymentStatusFilter] = useState<string>('ALL');
     const [dateFrom, setDateFrom] = useState<string>('');
     const [dateTo, setDateTo] = useState<string>('');
     const [sortBy, setSortBy] = useState<'created_at' | 'full_name' | 'course_interest' | 'status'>('created_at');
     const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
 
-    // Expandable row & notes autosave states
+    // Expandable row & Section 8 states
     const [expandedRowId, setExpandedRowId] = useState<string | null>(null);
-    const [notesDrafts, setNotesDrafts] = useState<Record<string, string>>({});
-    const [savingNoteId, setSavingNoteId] = useState<string | null>(null);
-    const [savedNoteId, setSavedNoteId] = useState<string | null>(null);
+    const [section8Drafts, setSection8Drafts] = useState<Record<string, Section8Draft>>({});
+    const [savingSection8Id, setSavingSection8Id] = useState<string | null>(null);
+    const [savedSection8Id, setSavedSection8Id] = useState<string | null>(null);
+
+    // Printable Official 8-Section Form Modal
+    const [printingRecord, setPrintingRecord] = useState<OutreachRegistrationRecord | null>(null);
+
+    // Outreach Campaign Manager Modal
+    const [showCampaignModal, setShowCampaignModal] = useState(false);
+    const [newCampaignName, setNewCampaignName] = useState('');
+    const [newCampaignDate, setNewCampaignDate] = useState('2026-11-06');
+    const [newCampaignLocation, setNewCampaignLocation] = useState('Entebbe / Kampala');
+    const [newCampaignCategory, setNewCampaignCategory] = useState<'OUTREACH' | 'GENERAL'>('OUTREACH');
+    const [newCampaignIsDefault, setNewCampaignIsDefault] = useState(false);
+    const [savingCampaigns, setSavingCampaigns] = useState(false);
 
     // Convert to Student modal state
     const [convertingLead, setConvertingLead] = useState<OutreachRegistrationRecord | null>(null);
@@ -122,8 +257,170 @@ const AdminRegistrations: React.FC = () => {
 
     // Shareable QR Code Modal state
     const [showQrModal, setShowQrModal] = useState(false);
-    const [qrEventName, setQrEventName] = useState('');
+    const [qrEventName, setQrEventName] = useState('Nkumba University Outreach (Fri, 6th Nov 2026)');
     const [copiedLink, setCopiedLink] = useState(false);
+
+    const loadCampaigns = async (mailsData?: any[]) => {
+        try {
+            const { data: campRows, error: campErr } = await supabaseClient
+                .from('outreach_campaigns')
+                .select('*')
+                .order('is_default', { ascending: false })
+                .order('event_date', { ascending: false });
+
+            if (!campErr && campRows && campRows.length > 0) {
+                const mapped: OutreachCampaign[] = campRows.map((r: any) => ({
+                    id: String(r.id),
+                    name: r.name,
+                    event_date: r.event_date || '2026-11-06',
+                    location: r.location || 'Entebbe, Uganda',
+                    category: r.category === 'GENERAL' ? 'GENERAL' : 'OUTREACH',
+                    is_active: r.is_active !== false,
+                    is_default: Boolean(r.is_default)
+                }));
+                setCampaigns(mapped);
+                localStorage.setItem(CAMPAIGNS_STORAGE_KEY, JSON.stringify(mapped));
+                return;
+            }
+
+            if (mailsData && mailsData.length > 0) {
+                const configRows = mailsData
+                    .filter((m: any) => m.email === 'outreach-config@system.welile.com')
+                    .sort((a: any, b: any) => new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime());
+                if (configRows.length > 0) {
+                    const match = (configRows[0].message || '').match(/<!--CAMPAIGNS_JSON:(.+?)-->/);
+                    if (match && match[1]) {
+                        const parsed = JSON.parse(match[1]);
+                        if (Array.isArray(parsed) && parsed.length > 0) {
+                            setCampaigns(parsed);
+                            localStorage.setItem(CAMPAIGNS_STORAGE_KEY, JSON.stringify(parsed));
+                            return;
+                        }
+                    }
+                }
+            }
+
+            const cached = localStorage.getItem(CAMPAIGNS_STORAGE_KEY);
+            if (cached) {
+                const parsed = JSON.parse(cached);
+                if (Array.isArray(parsed) && parsed.length > 0) {
+                    setCampaigns(parsed);
+                    return;
+                }
+            }
+        } catch {
+            // fallback to default campaigns
+        }
+    };
+
+    const persistCampaigns = async (nextCampaigns: OutreachCampaign[]) => {
+        setSavingCampaigns(true);
+        setCampaigns(nextCampaigns);
+        try {
+            localStorage.setItem(CAMPAIGNS_STORAGE_KEY, JSON.stringify(nextCampaigns));
+        } catch {
+            // ignore storage errors
+        }
+
+        try {
+            // 1. Try syncing to outreach_campaigns table
+            for (const c of nextCampaigns) {
+                await supabaseClient.from('outreach_campaigns').upsert(
+                    {
+                        name: c.name,
+                        event_date: c.event_date,
+                        location: c.location,
+                        category: c.category,
+                        is_active: c.is_active,
+                        is_default: c.is_default
+                    },
+                    { onConflict: 'name' }
+                );
+            }
+
+            // 2. Also store in mails config row so it works even before SQL migration is applied
+            const payloadStr = `<!--CAMPAIGNS_JSON:${JSON.stringify(nextCampaigns)}-->`;
+            const { data: existing } = await supabaseClient
+                .from('mails')
+                .select('id')
+                .eq('email', 'outreach-config@system.welile.com');
+
+            if (existing && existing.length > 0) {
+                await supabaseClient
+                    .from('mails')
+                    .update({ message: payloadStr })
+                    .eq('id', existing[0].id);
+            } else {
+                await supabaseClient.from('mails').insert({
+                    name: 'Outreach Campaign Config',
+                    email: 'outreach-config@system.welile.com',
+                    company_name: 'Welile System Config',
+                    message: payloadStr,
+                    type: 'SYSTEM_CONFIG'
+                });
+            }
+        } catch (err) {
+            console.error('Error persisting outreach campaigns:', err);
+        } finally {
+            setSavingCampaigns(false);
+        }
+    };
+
+    const handleAddCampaign = async (e: React.FormEvent) => {
+        e.preventDefault();
+        const trimmedName = newCampaignName.trim();
+        if (!trimmedName) return;
+
+        const newEntry: OutreachCampaign = {
+            id: `camp-${Date.now()}`,
+            name: trimmedName,
+            event_date: newCampaignDate || '2026-11-06',
+            location: newCampaignLocation.trim() || 'Entebbe, Uganda',
+            category: newCampaignCategory,
+            is_active: true,
+            is_default: newCampaignIsDefault
+        };
+
+        const updated = nextCampaignListWithDefault(campaigns, newEntry, newCampaignIsDefault);
+        await persistCampaigns(updated);
+        setNewCampaignName('');
+        setNewCampaignIsDefault(false);
+    };
+
+    const nextCampaignListWithDefault = (
+        list: OutreachCampaign[],
+        added: OutreachCampaign,
+        makeDefault: boolean
+    ): OutreachCampaign[] => {
+        const filtered = list.filter(c => c.name.toLowerCase() !== added.name.toLowerCase());
+        if (makeDefault) {
+            return [
+                { ...added, is_default: true },
+                ...filtered.map(c => ({ ...c, is_default: false }))
+            ];
+        }
+        return [...filtered, added];
+    };
+
+    const handleSetDefaultCampaign = async (name: string) => {
+        const updated = campaigns.map(c => ({
+            ...c,
+            is_default: c.name === name
+        }));
+        await persistCampaigns(updated);
+    };
+
+    const handleDeleteCampaign = async (name: string) => {
+        if (campaigns.length <= 1) return;
+        const remaining = campaigns.filter(c => c.name !== name);
+        if (!remaining.some(c => c.is_default) && remaining.length > 0) {
+            remaining[0].is_default = true;
+        }
+        await persistCampaigns(remaining);
+        if (dashboardSieve === name) {
+            setDashboardSieve('ALL');
+        }
+    };
 
     const fetchRegistrations = async (silent = false) => {
         if (!silent) setLoading(true);
@@ -141,11 +438,12 @@ const AdminRegistrations: React.FC = () => {
                     .select('*')
             ]);
 
+            await loadCampaigns(mailsData || []);
+
             let combinedList: OutreachRegistrationRecord[] = [];
             if (!regErr && regData && regData.length > 0) {
                 combinedList = regData as OutreachRegistrationRecord[];
             } else if (mailsData && mailsData.length > 0) {
-                // Fallback parser for outreach registrations stored in `mails` when `outreach_registrations` migration hasn't run yet
                 const parsedFromMails: OutreachRegistrationRecord[] = [];
                 mailsData.forEach((m: any) => {
                     const msg: string = m.message || '';
@@ -171,11 +469,31 @@ const AdminRegistrations: React.FC = () => {
             }
 
             setRegistrations(combinedList);
-            const initialNotes: Record<string, string> = {};
-            combinedList.forEach((r: any) => {
-                initialNotes[r.id] = r.admin_notes || '';
+
+            const initialDrafts: Record<string, Section8Draft> = {};
+            combinedList.forEach((r: OutreachRegistrationRecord) => {
+                const defaultSchedule = `${(r.preferred_study_days || []).join(', ') || 'Mon, Wed, Fri'} • ${r.preferred_time_slot || 'Flexible'}`;
+                const autoPayStatus =
+                    r.admin_payment_status ||
+                    ((r.amount_paid || 0) >= (r.total_course_fee || 600000)
+                        ? 'Fully Paid'
+                        : (r.amount_paid || 0) > 0
+                        ? 'Partially Paid'
+                        : r.payment_plan && r.payment_plan !== 'Full'
+                        ? 'Payment Plan'
+                        : 'Pending');
+
+                initialDrafts[r.id] = {
+                    approved_by: r.approved_by || APPROVER_PRESETS[0],
+                    approver_position: r.approver_position || POSITION_PRESETS[0],
+                    assigned_instructor: r.assigned_instructor || INSTRUCTOR_CLASS_PRESETS[0],
+                    confirmed_schedule: r.confirmed_schedule || defaultSchedule,
+                    admin_payment_status: autoPayStatus,
+                    admin_signature_date: r.admin_signature_date || new Date().toISOString().split('T')[0],
+                    admin_notes: r.admin_notes || ''
+                };
             });
-            setNotesDrafts(prev => ({ ...initialNotes, ...prev }));
+            setSection8Drafts(prev => ({ ...initialDrafts, ...prev }));
 
             if (coursesData) {
                 setCourses(
@@ -198,7 +516,6 @@ const AdminRegistrations: React.FC = () => {
         window.addEventListener('outreach-registration-update', handleUpdate);
         window.addEventListener('focus', handleUpdate);
 
-        // Real-time subscription to outreach_registrations
         const channel = supabaseClient
             .channel('outreach-registrations-realtime')
             .on(
@@ -217,38 +534,94 @@ const AdminRegistrations: React.FC = () => {
         };
     }, []);
 
+    // Helper to classify whether a registration belongs to an OUTREACH event vs GENERAL walk-in/website
+    const isGeneralRegistration = (r: OutreachRegistrationRecord): boolean => {
+        const ev = (r.outreach_event || '').trim();
+        if (!ev) return true;
+        const matchedCamp = campaigns.find(c => c.name.toLowerCase() === ev.toLowerCase());
+        if (matchedCamp) {
+            return matchedCamp.category === 'GENERAL';
+        }
+        const lower = ev.toLowerCase();
+        return lower.includes('general') || lower.includes('website') || lower.includes('walk-in') || lower.includes('direct');
+    };
+
+    // 1. FIRST-STAGE SIEVE: Sieves the entire dashboard (KPIs, Charts, Table, CSV) by Outreach / General / Specific Campaign
+    const sievedRegistrations = useMemo(() => {
+        return registrations.filter(r => {
+            if (dashboardSieve === 'ALL') return true;
+            if (dashboardSieve === 'OUTREACH_ONLY') return !isGeneralRegistration(r);
+            if (dashboardSieve === 'GENERAL_ONLY') return isGeneralRegistration(r);
+            return (r.outreach_event || '').trim() === dashboardSieve;
+        });
+    }, [registrations, dashboardSieve, campaigns]);
+
     // Distinct filter options
     const distinctCourses = useMemo(() => {
         const fromRegs = registrations.map(r => r.course_interest).filter(Boolean);
         const fromCourses = courses.map(c => c.title).filter(Boolean);
-        return Array.from(new Set([...fromRegs, ...fromCourses]));
+        return Array.from(new Set(['Coding With AI', ...fromRegs, ...fromCourses]));
     }, [registrations, courses]);
 
     const distinctEvents = useMemo(() => {
+        const fromCampaigns = campaigns.map(c => c.name);
         const fromRegs = registrations
             .map(r => (r.outreach_event || '').trim())
             .filter(Boolean);
-        return Array.from(new Set([...fromRegs, ...DEFAULT_EVENT_PRESETS]));
-    }, [registrations]);
+        return Array.from(new Set([...fromCampaigns, ...fromRegs]));
+    }, [registrations, campaigns]);
 
-    // KPI computations
+    // Sieve counts for quick pill badges
+    const sieveCounts = useMemo(() => {
+        const all = registrations.length;
+        let outreachOnly = 0;
+        let generalOnly = 0;
+        const byEvent: Record<string, number> = {};
+
+        registrations.forEach(r => {
+            const ev = (r.outreach_event || '').trim();
+            if (ev) {
+                byEvent[ev] = (byEvent[ev] || 0) + 1;
+            }
+            if (isGeneralRegistration(r)) {
+                generalOnly++;
+            } else {
+                outreachOnly++;
+            }
+        });
+
+        return { all, outreachOnly, generalOnly, byEvent };
+    }, [registrations, campaigns]);
+
+    // KPI computations (computed from sievedRegistrations!)
     const kpis = useMemo(() => {
-        const total = registrations.length;
+        const total = sievedRegistrations.length;
         const oneWeekAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
-        const newThisWeek = registrations.filter(
+        const newThisWeek = sievedRegistrations.filter(
             r => new Date(r.created_at).getTime() >= oneWeekAgo
         ).length;
 
-        const enrolledCount = registrations.filter(r => r.status === 'ENROLLED').length;
+        const enrolledCount = sievedRegistrations.filter(r => r.status === 'ENROLLED').length;
         const conversionRate = total > 0 ? Math.round((enrolledCount / total) * 100) : 0;
 
+        let totalFeePipeline = 0;
+        let totalCollectedFees = 0;
+        let totalOutstanding = 0;
+
         const courseCounts: Record<string, number> = {};
-        registrations.forEach(r => {
+        sievedRegistrations.forEach(r => {
             if (r.course_interest) {
                 courseCounts[r.course_interest] = (courseCounts[r.course_interest] || 0) + 1;
             }
+            const fee = Number(r.total_course_fee ?? 600000);
+            const paid = Number(r.amount_paid ?? 0);
+            const bal = Number(r.outstanding_balance ?? Math.max(0, fee - paid));
+            totalFeePipeline += fee;
+            totalCollectedFees += paid;
+            totalOutstanding += bal;
         });
-        let topCourse = '—';
+
+        let topCourse = 'Coding With AI';
         let topCourseCount = 0;
         Object.entries(courseCounts).forEach(([course, count]) => {
             if (count > topCourseCount) {
@@ -257,16 +630,26 @@ const AdminRegistrations: React.FC = () => {
             }
         });
 
-        return { total, newThisWeek, enrolledCount, conversionRate, topCourse, topCourseCount };
-    }, [registrations]);
+        return {
+            total,
+            newThisWeek,
+            enrolledCount,
+            conversionRate,
+            topCourse,
+            topCourseCount,
+            totalFeePipeline,
+            totalCollectedFees,
+            totalOutstanding
+        };
+    }, [sievedRegistrations]);
 
-    // Chart 1: Registrations per day over the last 30 days
+    // Chart 1: Registrations per day over the last 30 days (sieved)
     const dailyTrendData = useMemo(() => {
         const days: Array<{ dateKey: string; label: string; count: number }> = [];
         const now = new Date();
         const countsByDate: Record<string, number> = {};
 
-        registrations.forEach(r => {
+        sievedRegistrations.forEach(r => {
             if (!r.created_at) return;
             const d = new Date(r.created_at);
             if (!isNaN(d.getTime())) {
@@ -287,44 +670,48 @@ const AdminRegistrations: React.FC = () => {
             });
         }
         return days;
-    }, [registrations]);
+    }, [sievedRegistrations]);
 
-    // Chart 2: Breakdown by course_interest
-    const courseChartData = useMemo(() => {
+    // Chart 2: Breakdown by Outreach Campaign / Event (or Course Interest)
+    const outreachBreakdownData = useMemo(() => {
         const counts: Record<string, number> = {};
-        registrations.forEach(r => {
-            const key = r.course_interest || 'Unspecified';
+        sievedRegistrations.forEach(r => {
+            const key = r.outreach_event || 'General / Unspecified';
             counts[key] = (counts[key] || 0) + 1;
         });
         return Object.entries(counts)
             .map(([name, count]) => ({
-                name: name.length > 24 ? name.slice(0, 22) + '…' : name,
+                name: name.length > 26 ? name.slice(0, 24) + '…' : name,
                 fullName: name,
                 count
             }))
             .sort((a, b) => b.count - a.count)
             .slice(0, 7);
-    }, [registrations]);
+    }, [sievedRegistrations]);
 
-    // Chart 3: Breakdown by how_heard
-    const howHeardChartData = useMemo(() => {
+    // Chart 3: Breakdown by Payment Plan & Study Mode
+    const paymentPlanChartData = useMemo(() => {
         const counts: Record<string, number> = {};
-        registrations.forEach(r => {
-            const key = r.how_heard || 'Unspecified';
+        sievedRegistrations.forEach(r => {
+            const key = r.payment_plan ? `${r.payment_plan} Plan` : r.how_heard || 'Unspecified';
             counts[key] = (counts[key] || 0) + 1;
         });
         return Object.entries(counts)
             .map(([name, count]) => ({ name, count }))
             .sort((a, b) => b.count - a.count);
-    }, [registrations]);
+    }, [sievedRegistrations]);
 
-    // Filtered & Sorted Table Rows
+    // Filtered & Sorted Table Rows (applies secondary table filters on top of sievedRegistrations)
     const filteredRegistrations = useMemo(() => {
-        return registrations
+        return sievedRegistrations
             .filter(r => {
                 if (statusFilter !== 'ALL' && r.status !== statusFilter) return false;
                 if (courseFilter !== 'ALL' && r.course_interest !== courseFilter) return false;
-                if (eventFilter !== 'ALL' && (r.outreach_event || '') !== eventFilter) return false;
+                if (paymentStatusFilter !== 'ALL') {
+                    const effectivePayStatus =
+                        section8Drafts[r.id]?.admin_payment_status || r.admin_payment_status || 'Pending';
+                    if (effectivePayStatus !== paymentStatusFilter) return false;
+                }
 
                 if (dateFrom) {
                     const fromTime = new Date(dateFrom + 'T00:00:00').getTime();
@@ -341,7 +728,8 @@ const AdminRegistrations: React.FC = () => {
                     const matchPhone = (r.phone || '').toLowerCase().includes(q);
                     const matchEmail = (r.email || '').toLowerCase().includes(q);
                     const matchEvent = (r.outreach_event || '').toLowerCase().includes(q);
-                    if (!matchName && !matchPhone && !matchEmail && !matchEvent) return false;
+                    const matchRegNo = (r.student_reg_no || '').toLowerCase().includes(q);
+                    if (!matchName && !matchPhone && !matchEmail && !matchEvent && !matchRegNo) return false;
                 }
 
                 return true;
@@ -359,7 +747,7 @@ const AdminRegistrations: React.FC = () => {
                 }
                 return sortOrder === 'asc' ? cmp : -cmp;
             });
-    }, [registrations, statusFilter, courseFilter, eventFilter, dateFrom, dateTo, searchQuery, sortBy, sortOrder]);
+    }, [sievedRegistrations, statusFilter, courseFilter, paymentStatusFilter, section8Drafts, dateFrom, dateTo, searchQuery, sortBy, sortOrder]);
 
     const updateMailFallbackRecord = async (id: string, patch: Partial<OutreachRegistrationRecord>) => {
         try {
@@ -406,32 +794,59 @@ const AdminRegistrations: React.FC = () => {
         }
     };
 
-    const handleSaveNotes = async (id: string) => {
-        const noteText = notesDrafts[id] ?? '';
-        const existing = registrations.find(r => r.id === id);
-        if (existing && (existing.admin_notes || '') === noteText) return;
+    const updateSection8Field = (id: string, key: keyof Section8Draft, value: string) => {
+        setSection8Drafts(prev => ({
+            ...prev,
+            [id]: {
+                ...(prev[id] || {
+                    approved_by: APPROVER_PRESETS[0],
+                    approver_position: POSITION_PRESETS[0],
+                    assigned_instructor: INSTRUCTOR_CLASS_PRESETS[0],
+                    confirmed_schedule: '',
+                    admin_payment_status: 'Pending',
+                    admin_signature_date: new Date().toISOString().split('T')[0],
+                    admin_notes: ''
+                }),
+                [key]: value
+            }
+        }));
+    };
 
-        setSavingNoteId(id);
+    const handleSaveSection8 = async (id: string) => {
+        const draft = section8Drafts[id];
+        if (!draft) return;
+
+        setSavingSection8Id(id);
+        const patch: Partial<OutreachRegistrationRecord> = {
+            approved_by: draft.approved_by,
+            approver_position: draft.approver_position,
+            assigned_instructor: draft.assigned_instructor,
+            confirmed_schedule: draft.confirmed_schedule,
+            admin_payment_status: draft.admin_payment_status,
+            admin_signature_date: draft.admin_signature_date,
+            admin_notes: draft.admin_notes
+        };
+
         try {
             const { error } = await supabaseClient
                 .from('outreach_registrations')
-                .update({ admin_notes: noteText })
+                .update(patch)
                 .eq('id', id);
             if (error) {
-                await updateMailFallbackRecord(id, { admin_notes: noteText });
+                await updateMailFallbackRecord(id, patch);
             }
 
             setRegistrations(prev =>
-                prev.map(r => (r.id === id ? { ...r, admin_notes: noteText } : r))
+                prev.map(r => (r.id === id ? { ...r, ...patch } : r))
             );
-            setSavedNoteId(id);
+            setSavedSection8Id(id);
             setTimeout(() => {
-                setSavedNoteId(prev => (prev === id ? null : prev));
-            }, 2000);
+                setSavedSection8Id(prev => (prev === id ? null : prev));
+            }, 2500);
         } catch (err) {
-            console.error('Error saving admin notes:', err);
+            console.error('Error saving Section 8 official record:', err);
         } finally {
-            setSavingNoteId(null);
+            setSavingSection8Id(null);
         }
     };
 
@@ -461,7 +876,6 @@ const AdminRegistrations: React.FC = () => {
             const cleanEmail = convertEmail.trim().toLowerCase();
             let profileId: string | null = null;
 
-            // 1. Check if a student profile with this email already exists in `profiles`
             const { data: existingProfiles } = await supabaseClient
                 .from('profiles')
                 .select('id, email')
@@ -490,7 +904,7 @@ const AdminRegistrations: React.FC = () => {
                             full_name: convertName.trim(),
                             email: cleanEmail,
                             role: convertRole,
-                            bio: `Converted from Outreach Registration (${convertingLead.outreach_event || convertingLead.how_heard || 'Direct'}) • Phone: ${convertPhone}`
+                            bio: `Converted from Outreach Registration (${convertingLead.outreach_event || convertingLead.how_heard || 'Direct'}) • Reg No: ${convertingLead.student_reg_no || 'N/A'} • Phone: ${convertPhone}`
                         }
                     ])
                     .select('id')
@@ -501,7 +915,6 @@ const AdminRegistrations: React.FC = () => {
                 }
             }
 
-            // 2. If a course is selected and we have a profileId, enroll the student in `enrollments`
             if (profileId && convertCourseId) {
                 const { data: existingEnr } = await supabaseClient
                     .from('enrollments')
@@ -519,7 +932,6 @@ const AdminRegistrations: React.FC = () => {
                 }
             }
 
-            // 3. Mark outreach registration as ENROLLED and link converted_profile_id
             const updatePayload: Record<string, any> = {
                 status: 'ENROLLED'
             };
@@ -569,24 +981,47 @@ const AdminRegistrations: React.FC = () => {
 
     const handleExportCSV = () => {
         const headers = [
+            'Student Reg No',
+            'Registration Date',
+            'Outreach Campaign / Channel',
             'Full Name',
             'Phone',
             'Email',
+            'Class / Level / Year',
             'Age Range',
-            'Guardian Name',
-            'Guardian Phone',
             'Location',
-            'Course Interest',
-            'Level',
-            'Mode Preference',
+            'Parent/Guardian Name',
+            'Parent/Guardian Phone',
+            'Course / Programme',
+            'Assigned Level',
+            'Mode of Study',
+            'Expected Start Date',
+            'Expected Completion Date',
             'Preferred Study Days',
-            'Preferred Time Slot',
-            'How Heard',
-            'Outreach Event',
-            'Consent Contact',
+            'Chosen Study Time',
+            'Study Hours/Session',
+            'Sessions/Week',
+            'Alternative Study Time',
+            'Total Course Fee (UGX)',
+            'Registration Fee',
+            'Amount Paid (UGX)',
+            'Outstanding Balance (UGX)',
+            'Payment Plan',
+            'Agreed Payment Amount (UGX)',
+            'Next Payment Date',
+            'Payment Due Date',
+            'Payment Method',
+            'Payment Reference',
+            'Student Signature',
+            'Declaration Date',
+            'Guardian Signature',
             'Status',
-            'Admin Notes',
-            'Submitted From',
+            'Approved By (Sec 8)',
+            'Approver Position (Sec 8)',
+            'Assigned Class/Instructor (Sec 8)',
+            'Confirmed Schedule (Sec 8)',
+            'Admin Payment Status (Sec 8)',
+            'Admin Remarks (Sec 8)',
             'Submitted At'
         ];
 
@@ -596,41 +1031,67 @@ const AdminRegistrations: React.FC = () => {
             return `"${str.replace(/"/g, '""')}"`;
         };
 
-        const rows = filteredRegistrations.map(r => [
-            escapeCsv(r.full_name),
-            escapeCsv(r.phone),
-            escapeCsv(r.email),
-            escapeCsv(r.age_range),
-            escapeCsv(r.guardian_name),
-            escapeCsv(r.guardian_phone),
-            escapeCsv(r.location),
-            escapeCsv(r.course_interest),
-            escapeCsv(r.level),
-            escapeCsv(r.mode_preference),
-            escapeCsv(r.preferred_study_days),
-            escapeCsv(r.preferred_time_slot),
-            escapeCsv(r.how_heard),
-            escapeCsv(r.outreach_event),
-            escapeCsv(r.consent_contact ? 'Yes' : 'No'),
-            escapeCsv(r.status),
-            escapeCsv(r.admin_notes),
-            escapeCsv(r.submitted_from),
-            escapeCsv(r.created_at ? new Date(r.created_at).toISOString() : '')
-        ]);
+        const rows = filteredRegistrations.map(r => {
+            const s8 = section8Drafts[r.id];
+            return [
+                escapeCsv(r.student_reg_no || 'WSI/11/26/—'),
+                escapeCsv(r.registration_date || (r.created_at ? r.created_at.split('T')[0] : '')),
+                escapeCsv(r.outreach_event),
+                escapeCsv(r.full_name),
+                escapeCsv(r.phone),
+                escapeCsv(r.email),
+                escapeCsv(r.class_level_year),
+                escapeCsv(r.age_range),
+                escapeCsv(r.location),
+                escapeCsv(r.guardian_name),
+                escapeCsv(r.guardian_phone),
+                escapeCsv(r.course_interest),
+                escapeCsv(r.level),
+                escapeCsv(r.mode_preference),
+                escapeCsv(r.expected_start_date),
+                escapeCsv(r.expected_completion_date),
+                escapeCsv(r.preferred_study_days),
+                escapeCsv(r.preferred_time_slot),
+                escapeCsv(r.study_hours_per_session),
+                escapeCsv(r.sessions_per_week),
+                escapeCsv(r.alternative_study_time),
+                escapeCsv(r.total_course_fee ?? 600000),
+                escapeCsv(r.registration_fee || 'Not Applicable'),
+                escapeCsv(r.amount_paid ?? 0),
+                escapeCsv(r.outstanding_balance ?? 600000),
+                escapeCsv(r.payment_plan),
+                escapeCsv(r.agreed_payment_amount),
+                escapeCsv(r.next_payment_date),
+                escapeCsv(r.payment_due_date),
+                escapeCsv(r.payment_method),
+                escapeCsv(r.payment_reference),
+                escapeCsv(r.student_signature),
+                escapeCsv(r.student_declaration_date),
+                escapeCsv(r.guardian_signature),
+                escapeCsv(r.status),
+                escapeCsv(s8?.approved_by || r.approved_by),
+                escapeCsv(s8?.approver_position || r.approver_position),
+                escapeCsv(s8?.assigned_instructor || r.assigned_instructor),
+                escapeCsv(s8?.confirmed_schedule || r.confirmed_schedule),
+                escapeCsv(s8?.admin_payment_status || r.admin_payment_status),
+                escapeCsv(s8?.admin_notes || r.admin_notes),
+                escapeCsv(r.created_at ? new Date(r.created_at).toISOString() : '')
+            ];
+        });
 
         const csvContent = [headers.join(','), ...rows.map(row => row.join(','))].join('\n');
         const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = `welile-outreach-registrations-${new Date().toISOString().split('T')[0]}.csv`;
+        const sieveSlug = dashboardSieve === 'ALL' ? 'all' : dashboardSieve.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+        a.download = `welile-registrations-${sieveSlug}-${new Date().toISOString().split('T')[0]}.csv`;
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
     };
 
-    // Build public /register URL for QR code
     const getPublicRegisterUrl = () => {
         const { protocol, host } = window.location;
         const cleanHost = host
@@ -655,21 +1116,26 @@ const AdminRegistrations: React.FC = () => {
         }
     };
 
+    const defaultCampaign = campaigns.find(c => c.is_default) || campaigns[0];
+
     return (
         <div className="space-y-6">
             {/* Page Header */}
-            <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl shadow-sm border border-gray-150 dark:border-slate-800 flex flex-col md:flex-row md:items-center justify-between gap-4 transition-colors">
+            <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl shadow-sm border border-gray-150 dark:border-slate-800 flex flex-col xl:flex-row xl:items-center justify-between gap-4 transition-colors">
                 <div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex flex-wrap items-center gap-2">
                         <h2 className="text-xl font-bold text-gray-900 dark:text-white">
-                            Outreach Registrations & Lead Tracker
+                            Official Student Registrations & Outreach Intelligence
                         </h2>
                         <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/50">
-                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping" /> Live Sync
+                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping" /> Live 8-Section Form Sync
                         </span>
                     </div>
                     <p className="text-xs text-gray-500 dark:text-slate-400 mt-1">
-                        Track mobile outreach registrations in real time, measure per-event ROI, and convert leads into enrolled students.
+                        Welile School of AI (Katabi, Entebbe) • Active Default Outreach:{' '}
+                        <span className="font-bold text-violet-600 dark:text-violet-400">
+                            {defaultCampaign?.name}
+                        </span>
                     </p>
                 </div>
 
@@ -682,6 +1148,15 @@ const AdminRegistrations: React.FC = () => {
                     >
                         <RefreshCw size={14} className={loading ? 'animate-spin' : ''} />
                         Refresh
+                    </button>
+
+                    <button
+                        type="button"
+                        onClick={() => setShowCampaignModal(true)}
+                        className="px-4 py-2.5 rounded-xl border border-amber-200 dark:border-amber-800/60 bg-amber-50 dark:bg-amber-950/40 hover:bg-amber-100 dark:hover:bg-amber-900/50 text-amber-800 dark:text-amber-300 text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer"
+                    >
+                        <Megaphone size={15} />
+                        Manage Outreaches ({campaigns.length})
                     </button>
 
                     <button
@@ -704,25 +1179,103 @@ const AdminRegistrations: React.FC = () => {
                 </div>
             </div>
 
-            {/* KPI Stat Cards (Matching AdminOverview.tsx style) */}
+            {/* TOP-LEVEL DASHBOARD STATS SIEVE BAR (Sieves KPIs, Charts, Table & Exports) */}
+            <div className="bg-white dark:bg-slate-900 p-4 rounded-2xl shadow-sm border border-violet-200/80 dark:border-violet-900/40 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                <div className="flex flex-wrap items-center gap-2">
+                    <span className="text-[11px] font-extrabold uppercase tracking-wider text-violet-700 dark:text-violet-300 flex items-center gap-1.5 mr-1">
+                        <Layers size={14} /> Sieve Dashboard Stats:
+                    </span>
+
+                    <button
+                        type="button"
+                        onClick={() => setDashboardSieve('ALL')}
+                        className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                            dashboardSieve === 'ALL'
+                                ? 'bg-violet-600 text-white shadow-sm'
+                                : 'bg-gray-100 dark:bg-slate-800 text-gray-700 dark:text-slate-300 hover:bg-gray-200 dark:hover:bg-slate-700'
+                        }`}
+                    >
+                        All Combined ({sieveCounts.all})
+                    </button>
+
+                    <button
+                        type="button"
+                        onClick={() => setDashboardSieve('Nkumba University Outreach (Fri, 6th Nov 2026)')}
+                        className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
+                            dashboardSieve === 'Nkumba University Outreach (Fri, 6th Nov 2026)'
+                                ? 'bg-violet-600 text-white shadow-sm'
+                                : 'bg-violet-50 dark:bg-violet-950/50 text-violet-700 dark:text-violet-300 border border-violet-200 dark:border-violet-800/60 hover:bg-violet-100'
+                        }`}
+                    >
+                        <Star size={12} className="fill-current" />
+                        Nkumba Outreach • Fri 6th Nov ({sieveCounts.byEvent['Nkumba University Outreach (Fri, 6th Nov 2026)'] || 0})
+                    </button>
+
+                    <button
+                        type="button"
+                        onClick={() => setDashboardSieve('OUTREACH_ONLY')}
+                        className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                            dashboardSieve === 'OUTREACH_ONLY'
+                                ? 'bg-violet-600 text-white shadow-sm'
+                                : 'bg-gray-100 dark:bg-slate-800 text-gray-700 dark:text-slate-300 hover:bg-gray-200 dark:hover:bg-slate-700'
+                        }`}
+                    >
+                        All Outreaches Only ({sieveCounts.outreachOnly})
+                    </button>
+
+                    <button
+                        type="button"
+                        onClick={() => setDashboardSieve('GENERAL_ONLY')}
+                        className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                            dashboardSieve === 'GENERAL_ONLY'
+                                ? 'bg-violet-600 text-white shadow-sm'
+                                : 'bg-gray-100 dark:bg-slate-800 text-gray-700 dark:text-slate-300 hover:bg-gray-200 dark:hover:bg-slate-700'
+                        }`}
+                    >
+                        General / Walk-in ({sieveCounts.generalOnly})
+                    </button>
+                </div>
+
+                {/* Specific Outreach Campaign Dropdown Sieve */}
+                <div className="flex items-center gap-2">
+                    <span className="text-xs font-bold text-gray-500 dark:text-slate-400 whitespace-nowrap">
+                        Select Outreach Dropdown:
+                    </span>
+                    <select
+                        value={dashboardSieve}
+                        onChange={(e) => setDashboardSieve(e.target.value)}
+                        className="px-3.5 py-2 rounded-xl bg-gray-50 dark:bg-slate-950 border border-gray-200 dark:border-slate-800 text-xs font-bold text-gray-900 dark:text-white focus:outline-none focus:border-violet-500 cursor-pointer"
+                    >
+                        <option value="ALL">All Registrations ({sieveCounts.all})</option>
+                        <option value="OUTREACH_ONLY">All Outreach Campaigns ({sieveCounts.outreachOnly})</option>
+                        <option value="GENERAL_ONLY">All General / Website / Walk-ins ({sieveCounts.generalOnly})</option>
+                        <optgroup label="Specific Outreach Campaigns & Channels">
+                            {distinctEvents.map(ev => (
+                                <option key={ev} value={ev}>
+                                    {ev} ({sieveCounts.byEvent[ev] || 0})
+                                </option>
+                            ))}
+                        </optgroup>
+                    </select>
+                </div>
+            </div>
+
+            {/* KPI Stat Cards (Dynamically Sieved!) */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
                 <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-slate-800 flex items-center gap-4">
                     <div className="w-12 h-12 bg-violet-100 dark:bg-violet-950/60 text-violet-600 dark:text-violet-400 rounded-xl flex items-center justify-center shrink-0">
                         <Users size={24} />
                     </div>
-                    <div>
-                        <p className="text-xs text-gray-500 dark:text-slate-400 font-medium">Total Registrations</p>
-                        <p className="text-2xl font-bold text-gray-900 dark:text-white">{kpis.total}</p>
-                    </div>
-                </div>
-
-                <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-slate-800 flex items-center gap-4">
-                    <div className="w-12 h-12 bg-blue-100 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 rounded-xl flex items-center justify-center shrink-0">
-                        <Sparkles size={24} />
-                    </div>
-                    <div>
-                        <p className="text-xs text-gray-500 dark:text-slate-400 font-medium">New This Week</p>
-                        <p className="text-2xl font-bold text-gray-900 dark:text-white">{kpis.newThisWeek}</p>
+                    <div className="min-w-0">
+                        <p className="text-xs text-gray-500 dark:text-slate-400 font-medium truncate">
+                            {dashboardSieve === 'ALL' ? 'Total Registrations' : 'Sieved Registrations'}
+                        </p>
+                        <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                            {kpis.total}
+                            <span className="text-xs font-normal text-emerald-600 dark:text-emerald-400 ml-2">
+                                +{kpis.newThisWeek} this wk
+                            </span>
+                        </p>
                     </div>
                 </div>
 
@@ -742,19 +1295,32 @@ const AdminRegistrations: React.FC = () => {
                 </div>
 
                 <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-slate-800 flex items-center gap-4 min-w-0">
+                    <div className="w-12 h-12 bg-blue-100 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 rounded-xl flex items-center justify-center shrink-0">
+                        <CreditCard size={24} />
+                    </div>
+                    <div className="min-w-0">
+                        <p className="text-xs text-gray-500 dark:text-slate-400 font-medium">Fees Collected (Sec 4)</p>
+                        <p className="text-base font-extrabold text-gray-900 dark:text-white truncate">
+                            UGX {kpis.totalCollectedFees.toLocaleString()}
+                        </p>
+                        <p className="text-[11px] text-amber-600 dark:text-amber-400 font-semibold truncate">
+                            Bal: UGX {kpis.totalOutstanding.toLocaleString()}
+                        </p>
+                    </div>
+                </div>
+
+                <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-slate-800 flex items-center gap-4 min-w-0">
                     <div className="w-12 h-12 bg-amber-100 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 rounded-xl flex items-center justify-center shrink-0">
                         <BookOpen size={24} />
                     </div>
                     <div className="min-w-0">
-                        <p className="text-xs text-gray-500 dark:text-slate-400 font-medium">Top Course by Interest</p>
+                        <p className="text-xs text-gray-500 dark:text-slate-400 font-medium">Top Programme</p>
                         <p className="text-sm font-bold text-gray-900 dark:text-white truncate" title={kpis.topCourse}>
                             {kpis.topCourse}
                         </p>
-                        {kpis.topCourseCount > 0 && (
-                            <p className="text-[11px] text-violet-600 dark:text-violet-400 font-semibold">
-                                {kpis.topCourseCount} leads
-                            </p>
-                        )}
+                        <p className="text-[11px] text-violet-600 dark:text-violet-400 font-semibold">
+                            {kpis.topCourseCount} student{kpis.topCourseCount === 1 ? '' : 's'}
+                        </p>
                     </div>
                 </div>
             </div>
@@ -763,17 +1329,18 @@ const AdminRegistrations: React.FC = () => {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 {/* 30-Day Daily Registrations Area Chart */}
                 <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-slate-800 lg:col-span-3">
-                    <div className="flex items-center justify-between mb-4">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
                         <div>
                             <h3 className="text-sm font-bold text-gray-900 dark:text-white">
-                                Daily Outreach Registrations (Last 30 Days)
+                                Daily Registration Trend (Last 30 Days)
                             </h3>
                             <p className="text-xs text-gray-500 dark:text-slate-400">
-                                Daily volume of captured student leads across events and digital channels
+                                Showing trend for sieve:{' '}
+                                <span className="font-bold text-violet-600 dark:text-violet-400">{dashboardSieve}</span>
                             </p>
                         </div>
                     </div>
-                    <div className="h-56 w-full">
+                    <div className="h-52 w-full">
                         <ResponsiveContainer width="100%" height="100%">
                             <AreaChart data={dailyTrendData} margin={{ top: 10, right: 16, left: -20, bottom: 0 }}>
                                 <defs>
@@ -808,27 +1375,27 @@ const AdminRegistrations: React.FC = () => {
                     </div>
                 </div>
 
-                {/* Breakdown by Course Interest Bar Chart */}
+                {/* Breakdown by Outreach Event Bar Chart */}
                 <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-slate-800 lg:col-span-2">
                     <h3 className="text-sm font-bold text-gray-900 dark:text-white mb-1">
-                        Demand by Course Interest
+                        Registrations by Outreach Campaign / Channel
                     </h3>
                     <p className="text-xs text-gray-500 dark:text-slate-400 mb-4">
-                        Which programmes attract the most outreach prospects
+                        Compare Nkumba Outreach (Fri 6th Nov) against other outreaches & general walk-ins
                     </p>
-                    {courseChartData.length === 0 ? (
+                    {outreachBreakdownData.length === 0 ? (
                         <div className="h-52 flex items-center justify-center text-xs text-gray-400">
-                            No registrations recorded yet.
+                            No registrations recorded for this sieve yet.
                         </div>
                     ) : (
                         <div className="h-56 w-full">
                             <ResponsiveContainer width="100%" height="100%">
-                                <BarChart data={courseChartData} margin={{ top: 5, right: 16, left: -20, bottom: 25 }}>
+                                <BarChart data={outreachBreakdownData} margin={{ top: 5, right: 16, left: -20, bottom: 25 }}>
                                     <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" opacity={0.35} />
                                     <XAxis
                                         dataKey="name"
                                         tick={{ fontSize: 10, fill: '#94a3b8' }}
-                                        angle={-15}
+                                        angle={-12}
                                         textAnchor="end"
                                         interval={0}
                                     />
@@ -842,8 +1409,8 @@ const AdminRegistrations: React.FC = () => {
                                             fontSize: '12px'
                                         }}
                                     />
-                                    <Bar dataKey="count" name="Leads" radius={[8, 8, 0, 0]}>
-                                        {courseChartData.map((_, idx) => (
+                                    <Bar dataKey="count" name="Students" radius={[8, 8, 0, 0]}>
+                                        {outreachBreakdownData.map((_, idx) => (
                                             <Cell key={idx} fill={CHART_COLORS[idx % CHART_COLORS.length]} />
                                         ))}
                                     </Bar>
@@ -853,23 +1420,23 @@ const AdminRegistrations: React.FC = () => {
                     )}
                 </div>
 
-                {/* Breakdown by How Heard / Channel ROI Bar Chart */}
+                {/* Breakdown by Payment Plan */}
                 <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-slate-800">
                     <h3 className="text-sm font-bold text-gray-900 dark:text-white mb-1">
-                        Acquisition Channel ROI (How Heard)
+                        Payment Plan Breakdown (Sec 4)
                     </h3>
                     <p className="text-xs text-gray-500 dark:text-slate-400 mb-4">
-                        Which outreach channel produces the most leads
+                        Full vs Weekly vs Monthly payment agreements
                     </p>
-                    {howHeardChartData.length === 0 ? (
+                    {paymentPlanChartData.length === 0 ? (
                         <div className="h-52 flex items-center justify-center text-xs text-gray-400">
-                            No channel data yet.
+                            No payment plan data yet.
                         </div>
                     ) : (
                         <div className="h-56 w-full">
                             <ResponsiveContainer width="100%" height="100%">
                                 <BarChart
-                                    data={howHeardChartData}
+                                    data={paymentPlanChartData}
                                     layout="vertical"
                                     margin={{ top: 5, right: 16, left: 10, bottom: 5 }}
                                 >
@@ -890,8 +1457,8 @@ const AdminRegistrations: React.FC = () => {
                                             fontSize: '12px'
                                         }}
                                     />
-                                    <Bar dataKey="count" name="Leads" radius={[0, 8, 8, 0]}>
-                                        {howHeardChartData.map((_, idx) => (
+                                    <Bar dataKey="count" name="Students" radius={[0, 8, 8, 0]}>
+                                        {paymentPlanChartData.map((_, idx) => (
                                             <Cell key={idx} fill={CHART_COLORS[idx % CHART_COLORS.length]} />
                                         ))}
                                     </Bar>
@@ -917,12 +1484,12 @@ const AdminRegistrations: React.FC = () => {
                                 type="text"
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
-                                placeholder="Search by name, phone, email, or event..."
+                                placeholder="Search by Reg No (WSI/...), student name, phone, email..."
                                 className="w-full pl-10 pr-4 py-2.5 bg-gray-50 dark:bg-slate-950 border border-gray-200 dark:border-slate-800 rounded-xl text-xs text-gray-900 dark:text-white placeholder:text-gray-400 focus:outline-none focus:border-violet-500"
                             />
                         </div>
 
-                        {/* Filter Dropdowns */}
+                        {/* Secondary Filter Dropdowns */}
                         <div className="flex flex-wrap items-center gap-2.5">
                             {/* Status Filter */}
                             <div className="flex items-center gap-1.5 bg-gray-50 dark:bg-slate-950 border border-gray-200 dark:border-slate-800 px-3 py-2 rounded-xl text-xs">
@@ -940,6 +1507,21 @@ const AdminRegistrations: React.FC = () => {
                                 </select>
                             </div>
 
+                            {/* Payment Status Filter (Section 8) */}
+                            <div className="flex items-center gap-1.5 bg-gray-50 dark:bg-slate-950 border border-gray-200 dark:border-slate-800 px-3 py-2 rounded-xl text-xs">
+                                <span className="text-gray-400 dark:text-slate-500">Payment:</span>
+                                <select
+                                    value={paymentStatusFilter}
+                                    onChange={(e) => setPaymentStatusFilter(e.target.value)}
+                                    className="bg-transparent font-bold text-gray-800 dark:text-slate-200 focus:outline-none cursor-pointer dark:bg-slate-950"
+                                >
+                                    <option value="ALL">All Payment States</option>
+                                    {ADMIN_PAYMENT_STATUS_OPTIONS.map(ps => (
+                                        <option key={ps} value={ps}>{ps}</option>
+                                    ))}
+                                </select>
+                            </div>
+
                             {/* Course Filter */}
                             <div className="flex items-center gap-1.5 bg-gray-50 dark:bg-slate-950 border border-gray-200 dark:border-slate-800 px-3 py-2 rounded-xl text-xs">
                                 <span className="text-gray-400 dark:text-slate-500">Course:</span>
@@ -951,21 +1533,6 @@ const AdminRegistrations: React.FC = () => {
                                     <option value="ALL">All Courses</option>
                                     {distinctCourses.map(c => (
                                         <option key={c} value={c}>{c}</option>
-                                    ))}
-                                </select>
-                            </div>
-
-                            {/* Outreach Event Filter */}
-                            <div className="flex items-center gap-1.5 bg-gray-50 dark:bg-slate-950 border border-gray-200 dark:border-slate-800 px-3 py-2 rounded-xl text-xs">
-                                <span className="text-gray-400 dark:text-slate-500">Event:</span>
-                                <select
-                                    value={eventFilter}
-                                    onChange={(e) => setEventFilter(e.target.value)}
-                                    className="bg-transparent font-bold text-gray-800 dark:text-slate-200 focus:outline-none cursor-pointer max-w-[160px] truncate dark:bg-slate-950"
-                                >
-                                    <option value="ALL">All Events</option>
-                                    {distinctEvents.map(ev => (
-                                        <option key={ev} value={ev}>{ev}</option>
                                     ))}
                                 </select>
                             </div>
@@ -988,20 +1555,21 @@ const AdminRegistrations: React.FC = () => {
                                     className="bg-transparent text-gray-800 dark:text-slate-200 focus:outline-none text-[11px]"
                                     title="To Date"
                                 />
-                                {(dateFrom || dateTo || statusFilter !== 'ALL' || courseFilter !== 'ALL' || eventFilter !== 'ALL' || searchQuery) && (
+                                {(dateFrom || dateTo || statusFilter !== 'ALL' || courseFilter !== 'ALL' || paymentStatusFilter !== 'ALL' || dashboardSieve !== 'ALL' || searchQuery) && (
                                     <button
                                         type="button"
                                         onClick={() => {
+                                            setDashboardSieve('ALL');
                                             setStatusFilter('ALL');
+                                            setPaymentStatusFilter('ALL');
                                             setCourseFilter('ALL');
-                                            setEventFilter('ALL');
                                             setDateFrom('');
                                             setDateTo('');
                                             setSearchQuery('');
                                         }}
                                         className="ml-1 text-[11px] font-bold text-violet-600 dark:text-violet-400 hover:underline cursor-pointer"
                                     >
-                                        Reset
+                                        Reset All
                                     </button>
                                 )}
                             </div>
@@ -1014,33 +1582,27 @@ const AdminRegistrations: React.FC = () => {
                     <table className="w-full text-left border-collapse">
                         <thead className="bg-gray-50 dark:bg-slate-950/60">
                             <tr className="text-gray-500 dark:text-slate-400 text-[11px] uppercase tracking-wider font-bold border-b border-gray-150 dark:border-slate-800">
+                                <th className="py-3.5 px-4">Reg No.</th>
                                 <th
                                     onClick={() => handleSortToggle('full_name')}
                                     className="py-3.5 px-4 cursor-pointer hover:text-gray-900 dark:hover:text-white select-none"
                                 >
-                                    Name {sortBy === 'full_name' ? (sortOrder === 'asc' ? '↑' : '↓') : ''}
+                                    Student {sortBy === 'full_name' ? (sortOrder === 'asc' ? '↑' : '↓') : ''}
                                 </th>
-                                <th className="py-3.5 px-4">Phone</th>
+                                <th className="py-3.5 px-4">Phone & Class</th>
                                 <th
                                     onClick={() => handleSortToggle('course_interest')}
                                     className="py-3.5 px-4 cursor-pointer hover:text-gray-900 dark:hover:text-white select-none"
                                 >
-                                    Course Interest {sortBy === 'course_interest' ? (sortOrder === 'asc' ? '↑' : '↓') : ''}
+                                    Programme & Schedule {sortBy === 'course_interest' ? (sortOrder === 'asc' ? '↑' : '↓') : ''}
                                 </th>
-                                <th className="py-3.5 px-4">Level</th>
-                                <th className="py-3.5 px-4">How Heard</th>
-                                <th className="py-3.5 px-4">Outreach Event</th>
+                                <th className="py-3.5 px-4">Fees & Plan (Sec 4)</th>
+                                <th className="py-3.5 px-4">Outreach Campaign</th>
                                 <th
                                     onClick={() => handleSortToggle('status')}
                                     className="py-3.5 px-4 cursor-pointer hover:text-gray-900 dark:hover:text-white select-none"
                                 >
                                     Status {sortBy === 'status' ? (sortOrder === 'asc' ? '↑' : '↓') : ''}
-                                </th>
-                                <th
-                                    onClick={() => handleSortToggle('created_at')}
-                                    className="py-3.5 px-4 cursor-pointer hover:text-gray-900 dark:hover:text-white select-none"
-                                >
-                                    Submitted {sortBy === 'created_at' ? (sortOrder === 'asc' ? '↑' : '↓') : ''}
                                 </th>
                                 <th className="py-3.5 px-4 text-right">Actions</th>
                             </tr>
@@ -1048,71 +1610,103 @@ const AdminRegistrations: React.FC = () => {
                         <tbody className="divide-y divide-gray-100 dark:divide-slate-800/80 text-xs">
                             {loading ? (
                                 <tr>
-                                    <td colSpan={9} className="py-12 text-center text-gray-500 dark:text-slate-400">
+                                    <td colSpan={8} className="py-12 text-center text-gray-500 dark:text-slate-400">
                                         <Loader2 className="w-6 h-6 animate-spin mx-auto mb-2 text-violet-500" />
-                                        Loading outreach registrations...
+                                        Loading official student registrations...
                                     </td>
                                 </tr>
                             ) : filteredRegistrations.length === 0 ? (
                                 <tr>
-                                    <td colSpan={9} className="py-12 text-center text-gray-500 dark:text-slate-400">
-                                        No outreach registrations match your current filters.
+                                    <td colSpan={8} className="py-12 text-center text-gray-500 dark:text-slate-400">
+                                        No student registrations match your current sieve or search filters.
                                     </td>
                                 </tr>
                             ) : (
                                 filteredRegistrations.map((reg) => {
                                     const isExpanded = expandedRowId === reg.id;
+                                    const s8 = section8Drafts[reg.id] || {
+                                        approved_by: reg.approved_by || APPROVER_PRESETS[0],
+                                        approver_position: reg.approver_position || POSITION_PRESETS[0],
+                                        assigned_instructor: reg.assigned_instructor || INSTRUCTOR_CLASS_PRESETS[0],
+                                        confirmed_schedule: reg.confirmed_schedule || `${(reg.preferred_study_days || []).join(', ')} • ${reg.preferred_time_slot || ''}`,
+                                        admin_payment_status: reg.admin_payment_status || 'Pending',
+                                        admin_signature_date: reg.admin_signature_date || new Date().toISOString().split('T')[0],
+                                        admin_notes: reg.admin_notes || ''
+                                    };
+
                                     return (
                                         <React.Fragment key={reg.id}>
                                             <tr className="hover:bg-gray-50/70 dark:hover:bg-slate-800/40 transition-colors">
-                                                <td className="py-3.5 px-4 font-bold text-gray-900 dark:text-white">
-                                                    <div className="flex items-center gap-2">
+                                                <td className="py-3.5 px-4 font-mono text-[11px] font-bold text-violet-700 dark:text-violet-300 whitespace-nowrap">
+                                                    <div className="flex items-center gap-1.5">
                                                         <button
                                                             type="button"
                                                             onClick={() => setExpandedRowId(isExpanded ? null : reg.id)}
                                                             className="p-1 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-800 text-gray-400 hover:text-violet-600 cursor-pointer"
-                                                            title="Toggle full details"
+                                                            title="Toggle 8-Section Official Form"
                                                         >
                                                             {isExpanded ? <ChevronUp size={15} /> : <ChevronDown size={15} />}
                                                         </button>
                                                         <div>
-                                                            <div>{reg.full_name}</div>
-                                                            {reg.email && (
-                                                                <div className="text-[11px] font-normal text-gray-400 dark:text-slate-500">
-                                                                    {reg.email}
-                                                                </div>
-                                                            )}
-                                                            {reg.age_range === 'Under 18' && (
-                                                                <span className="inline-block mt-0.5 px-1.5 py-0.2 bg-amber-100 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 rounded text-[10px] font-bold">
-                                                                    Under 18 (Guardian Listed)
-                                                                </span>
-                                                            )}
+                                                            <div>{reg.student_reg_no || 'WSI/11/26/—'}</div>
+                                                            <div className="text-[10px] font-sans font-normal text-gray-400">
+                                                                {reg.registration_date || (reg.created_at ? reg.created_at.split('T')[0] : '')}
+                                                            </div>
                                                         </div>
                                                     </div>
                                                 </td>
-                                                <td className="py-3.5 px-4 font-medium text-gray-700 dark:text-slate-300 whitespace-nowrap">
-                                                    <a href={`tel:${reg.phone}`} className="hover:text-violet-600 dark:hover:text-violet-400">
+
+                                                <td className="py-3.5 px-4 font-bold text-gray-900 dark:text-white">
+                                                    <div>{reg.full_name}</div>
+                                                    {reg.email && (
+                                                        <div className="text-[11px] font-normal text-gray-400 dark:text-slate-500">
+                                                            {reg.email}
+                                                        </div>
+                                                    )}
+                                                    {reg.age_range === 'Under 18' && (
+                                                        <span className="inline-block mt-0.5 px-1.5 py-0.2 bg-amber-100 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 rounded text-[10px] font-bold">
+                                                            Under 18 (Sec 7 Guardian)
+                                                        </span>
+                                                    )}
+                                                </td>
+
+                                                <td className="py-3.5 px-4 text-gray-700 dark:text-slate-300 whitespace-nowrap">
+                                                    <a href={`tel:${reg.phone}`} className="font-bold hover:text-violet-600 dark:hover:text-violet-400 block">
                                                         {reg.phone}
                                                     </a>
+                                                    <span className="text-[11px] text-gray-400 dark:text-slate-500">
+                                                        {reg.class_level_year || reg.location || '—'}
+                                                    </span>
                                                 </td>
-                                                <td className="py-3.5 px-4 font-semibold text-violet-700 dark:text-violet-300 max-w-[200px] truncate" title={reg.course_interest}>
-                                                    {reg.course_interest}
+
+                                                <td className="py-3.5 px-4">
+                                                    <div className="font-bold text-violet-700 dark:text-violet-300 max-w-[200px] truncate" title={reg.course_interest}>
+                                                        {reg.course_interest}
+                                                    </div>
+                                                    <div className="text-[11px] text-gray-500 dark:text-slate-400">
+                                                        {reg.level || 'Intermediate'} • {reg.mode_preference || 'Hybrid'}
+                                                    </div>
                                                 </td>
-                                                <td className="py-3.5 px-4 text-gray-600 dark:text-slate-400">
-                                                    {reg.level || 'Beginner'}
+
+                                                <td className="py-3.5 px-4 whitespace-nowrap">
+                                                    <div className="font-bold text-gray-900 dark:text-white">
+                                                        Paid: UGX {Number(reg.amount_paid ?? 0).toLocaleString()}
+                                                    </div>
+                                                    <div className="text-[11px] text-gray-500 dark:text-slate-400">
+                                                        {reg.payment_plan || 'Monthly'} • {s8.admin_payment_status}
+                                                    </div>
                                                 </td>
-                                                <td className="py-3.5 px-4 text-gray-600 dark:text-slate-400">
-                                                    {reg.how_heard || '—'}
-                                                </td>
+
                                                 <td className="py-3.5 px-4 text-gray-600 dark:text-slate-400">
                                                     {reg.outreach_event ? (
-                                                        <span className="px-2 py-0.5 rounded-lg bg-gray-100 dark:bg-slate-800 text-gray-700 dark:text-slate-300 font-medium">
+                                                        <span className="px-2.5 py-1 rounded-lg bg-violet-50 dark:bg-violet-950/50 text-violet-700 dark:text-violet-300 border border-violet-200/60 dark:border-violet-800/50 font-bold text-[11px] inline-block max-w-[190px] truncate" title={reg.outreach_event}>
                                                             {reg.outreach_event}
                                                         </span>
                                                     ) : (
                                                         '—'
                                                     )}
                                                 </td>
+
                                                 <td className="py-3.5 px-4">
                                                     <select
                                                         value={reg.status}
@@ -1133,24 +1727,23 @@ const AdminRegistrations: React.FC = () => {
                                                         ))}
                                                     </select>
                                                 </td>
-                                                <td className="py-3.5 px-4 text-gray-500 dark:text-slate-400 whitespace-nowrap">
-                                                    {reg.created_at
-                                                        ? new Date(reg.created_at).toLocaleDateString('en-US', {
-                                                              month: 'short',
-                                                              day: 'numeric',
-                                                              hour: '2-digit',
-                                                              minute: '2-digit'
-                                                          })
-                                                        : '—'}
-                                                </td>
+
                                                 <td className="py-3.5 px-4 text-right whitespace-nowrap">
-                                                    <div className="inline-flex items-center gap-2">
+                                                    <div className="inline-flex items-center gap-1.5">
                                                         <button
                                                             type="button"
                                                             onClick={() => setExpandedRowId(isExpanded ? null : reg.id)}
                                                             className="px-2.5 py-1.5 rounded-lg border border-gray-200 dark:border-slate-700 hover:bg-gray-100 dark:hover:bg-slate-800 text-gray-700 dark:text-slate-300 font-bold text-[11px] cursor-pointer"
                                                         >
-                                                            {isExpanded ? 'Hide' : 'Details'}
+                                                            {isExpanded ? 'Hide Form' : '8-Sec Form'}
+                                                        </button>
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => setPrintingRecord({ ...reg, ...s8 })}
+                                                            className="p-1.5 rounded-lg border border-gray-200 dark:border-slate-700 hover:bg-gray-100 dark:hover:bg-slate-800 text-gray-600 dark:text-slate-300 cursor-pointer"
+                                                            title="Print Official 8-Section Form"
+                                                        >
+                                                            <Printer size={13} />
                                                         </button>
                                                         <button
                                                             type="button"
@@ -1158,126 +1751,274 @@ const AdminRegistrations: React.FC = () => {
                                                             className="px-3 py-1.5 rounded-lg bg-violet-600 hover:bg-violet-700 text-white font-bold text-[11px] inline-flex items-center gap-1 shadow-sm cursor-pointer"
                                                         >
                                                             <UserPlus size={12} />
-                                                            {reg.status === 'ENROLLED' ? 'Re-Enroll' : 'Convert to Student'}
+                                                            {reg.status === 'ENROLLED' ? 'Re-Enroll' : 'Convert'}
                                                         </button>
                                                     </div>
                                                 </td>
                                             </tr>
 
-                                            {/* Expandable Detail Row */}
+                                            {/* Expandable Full 8-Section Official Form & Section 8 Admin Editor */}
                                             {isExpanded && (
-                                                <tr className="bg-gray-50/90 dark:bg-slate-950/60">
-                                                    <td colSpan={9} className="p-5 border-b border-gray-200 dark:border-slate-800">
-                                                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                                                            {/* Col 1: Personal & Guardian Info */}
-                                                            <div className="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-gray-100 dark:border-slate-800 space-y-2.5">
-                                                                <h4 className="text-xs font-extrabold uppercase tracking-wider text-violet-600 dark:text-violet-400">
-                                                                    Applicant & Contact Details
-                                                                </h4>
-                                                                <div className="space-y-1.5 text-xs">
-                                                                    <p className="flex items-center gap-2 text-gray-700 dark:text-slate-300">
-                                                                        <Phone size={13} className="text-gray-400" />
-                                                                        <span className="font-semibold">Phone:</span> {reg.phone}
-                                                                    </p>
-                                                                    <p className="flex items-center gap-2 text-gray-700 dark:text-slate-300">
-                                                                        <Mail size={13} className="text-gray-400" />
-                                                                        <span className="font-semibold">Email:</span> {reg.email || 'Not provided'}
-                                                                    </p>
-                                                                    <p className="flex items-center gap-2 text-gray-700 dark:text-slate-300">
-                                                                        <MapPin size={13} className="text-gray-400" />
-                                                                        <span className="font-semibold">Location:</span> {reg.location || 'Not specified'}
-                                                                    </p>
-                                                                    <p className="text-gray-700 dark:text-slate-300">
-                                                                        <span className="font-semibold">Age Range:</span> {reg.age_range || 'Not specified'}
-                                                                    </p>
-                                                                    {reg.guardian_name && (
-                                                                        <div className="mt-2 p-2.5 rounded-xl bg-amber-50 dark:bg-amber-950/30 border border-amber-200/70 dark:border-amber-800/50">
-                                                                            <p className="text-[11px] font-bold text-amber-800 dark:text-amber-300 uppercase flex items-center gap-1">
-                                                                                <ShieldCheck size={13} /> Parent / Guardian
-                                                                            </p>
-                                                                            <p className="font-bold text-gray-900 dark:text-white mt-0.5">
-                                                                                {reg.guardian_name}
-                                                                            </p>
-                                                                            <p className="text-gray-600 dark:text-slate-400">
-                                                                                Phone: {reg.guardian_phone || 'N/A'}
-                                                                            </p>
-                                                                        </div>
-                                                                    )}
-                                                                </div>
-                                                            </div>
-
-                                                            {/* Col 2: Study Schedule & Attribution */}
-                                                            <div className="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-gray-100 dark:border-slate-800 space-y-2.5">
-                                                                <h4 className="text-xs font-extrabold uppercase tracking-wider text-violet-600 dark:text-violet-400">
-                                                                    Study Schedule & Attribution
-                                                                </h4>
-                                                                <div className="space-y-1.5 text-xs text-gray-700 dark:text-slate-300">
-                                                                    <p>
-                                                                        <span className="font-semibold">Course Interest:</span>{' '}
-                                                                        <span className="font-bold text-violet-600 dark:text-violet-400">{reg.course_interest}</span>
-                                                                    </p>
-                                                                    <p>
-                                                                        <span className="font-semibold">Skill Level & Mode:</span>{' '}
-                                                                        {reg.level || 'Beginner'} • {reg.mode_preference || 'Hybrid'}
-                                                                    </p>
-                                                                    <p className="flex items-center gap-1.5">
-                                                                        <Calendar size={13} className="text-gray-400" />
-                                                                        <span className="font-semibold">Preferred Days:</span>{' '}
-                                                                        {(reg.preferred_study_days || []).join(', ') || 'Flexible'}
-                                                                    </p>
-                                                                    <p className="flex items-center gap-1.5">
-                                                                        <Clock size={13} className="text-gray-400" />
-                                                                        <span className="font-semibold">Time Slot:</span>{' '}
-                                                                        {reg.preferred_time_slot || 'Flexible'}
-                                                                    </p>
-                                                                    <p className="flex items-center gap-1.5">
-                                                                        <Megaphone size={13} className="text-gray-400" />
-                                                                        <span className="font-semibold">Source:</span>{' '}
-                                                                        {reg.how_heard || 'Direct'} {reg.outreach_event ? `(${reg.outreach_event})` : ''}
-                                                                    </p>
-                                                                    <p className="text-[11px] text-gray-400">
-                                                                        Submitted via: <span className="font-mono">{reg.submitted_from || 'web'}</span> • Consent: {reg.consent_contact ? 'Granted' : 'No'}
-                                                                    </p>
-                                                                    {reg.converted_profile_id && (
-                                                                        <p className="text-[11px] text-emerald-600 dark:text-emerald-400 font-bold">
-                                                                            ✓ Linked Student Profile ID: {reg.converted_profile_id}
-                                                                        </p>
-                                                                    )}
-                                                                </div>
-                                                            </div>
-
-                                                            {/* Col 3: Admin Notes (Autosaves on blur) */}
-                                                            <div className="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-gray-100 dark:border-slate-800 flex flex-col justify-between">
+                                                <tr className="bg-gray-50/90 dark:bg-slate-950/70">
+                                                    <td colSpan={8} className="p-6 border-b border-gray-200 dark:border-slate-800">
+                                                        <div className="space-y-5">
+                                                            {/* Top Banner inside Expanded View */}
+                                                            <div className="flex flex-wrap items-center justify-between gap-3 bg-white dark:bg-slate-900 p-4 rounded-2xl border border-violet-200 dark:border-violet-900/50">
                                                                 <div>
-                                                                    <div className="flex items-center justify-between mb-2">
-                                                                        <h4 className="text-xs font-extrabold uppercase tracking-wider text-violet-600 dark:text-violet-400 flex items-center gap-1.5">
-                                                                            <FileText size={13} /> Admin Follow-up Notes
-                                                                        </h4>
-                                                                        {savingNoteId === reg.id ? (
-                                                                            <span className="text-[11px] text-gray-400 flex items-center gap-1">
-                                                                                <Loader2 size={11} className="animate-spin" /> Saving...
-                                                                            </span>
-                                                                        ) : savedNoteId === reg.id ? (
-                                                                            <span className="text-[11px] text-emerald-600 dark:text-emerald-400 font-bold flex items-center gap-1">
-                                                                                <Check size={12} /> Saved
-                                                                            </span>
+                                                                    <span className="text-[10px] font-extrabold uppercase tracking-widest text-violet-600 dark:text-violet-400">
+                                                                        WELILE SCHOOL OF AI • KATABI, ENTEBBE, UGANDA
+                                                                    </span>
+                                                                    <h4 className="text-sm font-black text-gray-900 dark:text-white">
+                                                                        OFFICIAL 8-SECTION STUDENT REGISTRATION, STUDY SCHEDULE & PAYMENT AGREEMENT
+                                                                    </h4>
+                                                                </div>
+                                                                <div className="flex items-center gap-2">
+                                                                    <span className="px-3 py-1 rounded-lg bg-violet-50 dark:bg-violet-950/60 text-violet-700 dark:text-violet-300 font-mono text-xs font-bold">
+                                                                        Reg No: {reg.student_reg_no || 'WSI/11/26/—'}
+                                                                    </span>
+                                                                    <button
+                                                                        type="button"
+                                                                        onClick={() => setPrintingRecord({ ...reg, ...s8 })}
+                                                                        className="px-3.5 py-1.5 rounded-xl bg-gray-900 dark:bg-white text-white dark:text-gray-900 text-xs font-bold inline-flex items-center gap-1.5 cursor-pointer"
+                                                                    >
+                                                                        <Printer size={13} /> Print Official Form
+                                                                    </button>
+                                                                </div>
+                                                            </div>
+
+                                                            {/* Sections 1 to 7 Grid */}
+                                                            <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+                                                                {/* SEC 1 & SEC 2 */}
+                                                                <div className="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-gray-100 dark:border-slate-800 space-y-3">
+                                                                    <div>
+                                                                        <h5 className="text-[11px] font-extrabold uppercase tracking-wider text-violet-600 dark:text-violet-400 mb-1.5">
+                                                                            1. Student Information
+                                                                        </h5>
+                                                                        <div className="space-y-1 text-xs text-gray-700 dark:text-slate-300">
+                                                                            <p><span className="font-semibold">Full Name:</span> {reg.full_name}</p>
+                                                                            <p><span className="font-semibold">Email:</span> {reg.email || '—'}</p>
+                                                                            <p><span className="font-semibold">Phone:</span> {reg.phone}</p>
+                                                                            <p><span className="font-semibold">Class / Level / Year:</span> {reg.class_level_year || '—'}</p>
+                                                                            <p><span className="font-semibold">Age Range & Location:</span> {reg.age_range || '—'} • {reg.location || '—'}</p>
+                                                                        </div>
+                                                                    </div>
+
+                                                                    <div className="pt-2 border-t border-gray-100 dark:border-slate-800">
+                                                                        <h5 className="text-[11px] font-extrabold uppercase tracking-wider text-violet-600 dark:text-violet-400 mb-1.5">
+                                                                            2. Course & Programme Information
+                                                                        </h5>
+                                                                        <div className="space-y-1 text-xs text-gray-700 dark:text-slate-300">
+                                                                            <p><span className="font-semibold">Programme:</span> <span className="font-bold text-violet-600 dark:text-violet-400">{reg.course_interest}</span></p>
+                                                                            <p><span className="font-semibold">Assigned Level:</span> {reg.level || 'Intermediate'}</p>
+                                                                            <p><span className="font-semibold">Mode of Study:</span> {reg.mode_preference || 'Hybrid'}</p>
+                                                                            <p><span className="font-semibold">Expected Start – Completion:</span> {reg.expected_start_date || '—'} to {reg.expected_completion_date || '—'}</p>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+
+                                                                {/* SEC 3 & SEC 4 */}
+                                                                <div className="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-gray-100 dark:border-slate-800 space-y-3">
+                                                                    <div>
+                                                                        <h5 className="text-[11px] font-extrabold uppercase tracking-wider text-violet-600 dark:text-violet-400 mb-1.5">
+                                                                            3. Study Schedule
+                                                                        </h5>
+                                                                        <div className="space-y-1 text-xs text-gray-700 dark:text-slate-300">
+                                                                            <p><span className="font-semibold">Preferred Days:</span> {(reg.preferred_study_days || []).join(', ') || '—'}</p>
+                                                                            <p><span className="font-semibold">Chosen Time:</span> {reg.preferred_time_slot || '—'}</p>
+                                                                            <p><span className="font-semibold">Hours / Sessions:</span> {reg.study_hours_per_session || '2 Hours'} • {reg.sessions_per_week || '3 Sessions / Week'}</p>
+                                                                            <p><span className="font-semibold">Alternative Time:</span> {reg.alternative_study_time || '—'}</p>
+                                                                        </div>
+                                                                    </div>
+
+                                                                    <div className="pt-2 border-t border-gray-100 dark:border-slate-800">
+                                                                        <h5 className="text-[11px] font-extrabold uppercase tracking-wider text-violet-600 dark:text-violet-400 mb-1.5">
+                                                                            4. Fees & Payment Agreement
+                                                                        </h5>
+                                                                        <div className="space-y-1 text-xs text-gray-700 dark:text-slate-300">
+                                                                            <p><span className="font-semibold">Total Course Fee:</span> UGX {Number(reg.total_course_fee ?? 600000).toLocaleString()} (Reg Fee: {reg.registration_fee || 'Not Applicable'})</p>
+                                                                            <p>
+                                                                                <span className="font-semibold">Amount Paid:</span>{' '}
+                                                                                <span className="font-bold text-emerald-600 dark:text-emerald-400">UGX {Number(reg.amount_paid ?? 0).toLocaleString()}</span>
+                                                                                {' '}• <span className="font-semibold">Balance:</span>{' '}
+                                                                                <span className="font-bold text-amber-600 dark:text-amber-400">UGX {Number(reg.outstanding_balance ?? 600000).toLocaleString()}</span>
+                                                                            </p>
+                                                                            <p><span className="font-semibold">Payment Plan & Agreed Amt:</span> {reg.payment_plan || 'Monthly'} (UGX {Number(reg.agreed_payment_amount ?? 0).toLocaleString()})</p>
+                                                                            <p><span className="font-semibold">Next / Due Date:</span> {reg.next_payment_date || '—'} / {reg.payment_due_date || '—'}</p>
+                                                                            <p><span className="font-semibold">Method & Ref:</span> {reg.payment_method || 'Mobile Money'} ({reg.payment_reference || 'Pending'})</p>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+
+                                                                {/* SEC 5, 6 & 7 */}
+                                                                <div className="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-gray-100 dark:border-slate-800 space-y-3">
+                                                                    <div>
+                                                                        <h5 className="text-[11px] font-extrabold uppercase tracking-wider text-violet-600 dark:text-violet-400 mb-1.5">
+                                                                            5 & 6. Commitment & Student Declaration
+                                                                        </h5>
+                                                                        <div className="space-y-1 text-xs text-gray-700 dark:text-slate-300">
+                                                                            <p>
+                                                                                <span className="font-semibold">Commitments Accepted:</span>{' '}
+                                                                                <span className="text-emerald-600 dark:text-emerald-400 font-bold">
+                                                                                    {(reg.commitments_accepted || []).length || 8} / 8 Official Commitments Checked
+                                                                                </span>
+                                                                            </p>
+                                                                            <p><span className="font-semibold">Student Digital Signature:</span> <span className="italic font-bold">{reg.student_signature || reg.full_name}</span></p>
+                                                                            <p><span className="font-semibold">Declaration Date:</span> {reg.student_declaration_date || reg.registration_date || '—'}</p>
+                                                                        </div>
+                                                                    </div>
+
+                                                                    <div className="pt-2 border-t border-gray-100 dark:border-slate-800">
+                                                                        <h5 className="text-[11px] font-extrabold uppercase tracking-wider text-amber-600 dark:text-amber-400 mb-1.5">
+                                                                            7. Parent / Guardian Consent
+                                                                        </h5>
+                                                                        {reg.guardian_name ? (
+                                                                            <div className="space-y-1 text-xs text-gray-700 dark:text-slate-300">
+                                                                                <p><span className="font-semibold">Guardian Name:</span> {reg.guardian_name}</p>
+                                                                                <p><span className="font-semibold">Guardian Phone:</span> {reg.guardian_phone || '—'}</p>
+                                                                                <p><span className="font-semibold">Guardian Signature:</span> <span className="italic">{reg.guardian_signature || reg.guardian_name}</span> ({reg.guardian_consent_date || '—'})</p>
+                                                                            </div>
                                                                         ) : (
-                                                                            <span className="text-[10px] text-gray-400">Autosaves on blur</span>
+                                                                            <p className="text-xs text-gray-400 italic">Adult student (18+) — Guardian section optional.</p>
                                                                         )}
                                                                     </div>
-                                                                    <textarea
-                                                                        rows={4}
-                                                                        value={notesDrafts[reg.id] ?? reg.admin_notes ?? ''}
-                                                                        onChange={(e) =>
-                                                                            setNotesDrafts(prev => ({
-                                                                                ...prev,
-                                                                                [reg.id]: e.target.value
-                                                                            }))
-                                                                        }
-                                                                        onBlur={() => handleSaveNotes(reg.id)}
-                                                                        placeholder="Add call notes, payment agreement follow-up, or cohort preference..."
-                                                                        className="w-full p-3 rounded-xl bg-gray-50 dark:bg-slate-950 border border-gray-200 dark:border-slate-800 text-xs text-gray-900 dark:text-white focus:outline-none focus:border-violet-500 resize-none"
-                                                                    />
+                                                                </div>
+                                                            </div>
+
+                                                            {/* SECTION 8: SCHOOL / ADMINISTRATION USE ONLY (Interactive Official Editor) */}
+                                                            <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl border-2 border-violet-500/30 dark:border-violet-500/40 space-y-4">
+                                                                <div className="flex flex-wrap items-center justify-between gap-2 border-b border-gray-100 dark:border-slate-800 pb-3">
+                                                                    <div>
+                                                                        <h4 className="text-xs font-black uppercase tracking-wider text-violet-700 dark:text-violet-300 flex items-center gap-1.5">
+                                                                            <ShieldCheck size={15} /> 8. SCHOOL / ADMINISTRATION USE ONLY (Official Endorsement)
+                                                                        </h4>
+                                                                        <p className="text-[11px] text-gray-500 dark:text-slate-400">
+                                                                            Complete Section 8 to approve this student's registration, assign an instructor/cohort, and confirm their payment status.
+                                                                        </p>
+                                                                    </div>
+
+                                                                    <div className="flex items-center gap-2">
+                                                                        {savedSection8Id === reg.id && (
+                                                                            <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
+                                                                                <CheckCircle2 size={14} /> Saved to Official Record!
+                                                                            </span>
+                                                                        )}
+                                                                        <button
+                                                                            type="button"
+                                                                            onClick={() => handleSaveSection8(reg.id)}
+                                                                            disabled={savingSection8Id === reg.id}
+                                                                            className="px-4 py-2 rounded-xl bg-violet-600 hover:bg-violet-700 text-white text-xs font-bold inline-flex items-center gap-1.5 shadow-sm cursor-pointer disabled:opacity-60"
+                                                                        >
+                                                                            {savingSection8Id === reg.id ? (
+                                                                                <>
+                                                                                    <Loader2 size={13} className="animate-spin" /> Saving...
+                                                                                </>
+                                                                            ) : (
+                                                                                <>
+                                                                                    <Check size={13} /> Save Section 8 Record
+                                                                                </>
+                                                                            )}
+                                                                        </button>
+                                                                    </div>
+                                                                </div>
+
+                                                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 text-xs">
+                                                                    <div>
+                                                                        <label className="block font-bold text-gray-600 dark:text-slate-300 mb-1">
+                                                                            Registration Approved By
+                                                                        </label>
+                                                                        <select
+                                                                            value={s8.approved_by}
+                                                                            onChange={(e) => updateSection8Field(reg.id, 'approved_by', e.target.value)}
+                                                                            className="w-full p-2.5 rounded-xl bg-gray-50 dark:bg-slate-950 border border-gray-200 dark:border-slate-800 text-gray-900 dark:text-white font-semibold"
+                                                                        >
+                                                                            {APPROVER_PRESETS.map(ap => (
+                                                                                <option key={ap} value={ap}>{ap}</option>
+                                                                            ))}
+                                                                        </select>
+                                                                    </div>
+
+                                                                    <div>
+                                                                        <label className="block font-bold text-gray-600 dark:text-slate-300 mb-1">
+                                                                            Position
+                                                                        </label>
+                                                                        <select
+                                                                            value={s8.approver_position}
+                                                                            onChange={(e) => updateSection8Field(reg.id, 'approver_position', e.target.value)}
+                                                                            className="w-full p-2.5 rounded-xl bg-gray-50 dark:bg-slate-950 border border-gray-200 dark:border-slate-800 text-gray-900 dark:text-white font-semibold"
+                                                                        >
+                                                                            {POSITION_PRESETS.map(pos => (
+                                                                                <option key={pos} value={pos}>{pos}</option>
+                                                                            ))}
+                                                                        </select>
+                                                                    </div>
+
+                                                                    <div>
+                                                                        <label className="block font-bold text-gray-600 dark:text-slate-300 mb-1">
+                                                                            Assigned Class / Instructor
+                                                                        </label>
+                                                                        <select
+                                                                            value={s8.assigned_instructor}
+                                                                            onChange={(e) => updateSection8Field(reg.id, 'assigned_instructor', e.target.value)}
+                                                                            className="w-full p-2.5 rounded-xl bg-gray-50 dark:bg-slate-950 border border-gray-200 dark:border-slate-800 text-gray-900 dark:text-white font-semibold"
+                                                                        >
+                                                                            {INSTRUCTOR_CLASS_PRESETS.map(cls => (
+                                                                                <option key={cls} value={cls}>{cls}</option>
+                                                                            ))}
+                                                                        </select>
+                                                                    </div>
+
+                                                                    <div>
+                                                                        <label className="block font-bold text-gray-600 dark:text-slate-300 mb-1">
+                                                                            Confirmed Study Schedule
+                                                                        </label>
+                                                                        <input
+                                                                            type="text"
+                                                                            value={s8.confirmed_schedule}
+                                                                            onChange={(e) => updateSection8Field(reg.id, 'confirmed_schedule', e.target.value)}
+                                                                            className="w-full p-2.5 rounded-xl bg-gray-50 dark:bg-slate-950 border border-gray-200 dark:border-slate-800 text-gray-900 dark:text-white font-semibold"
+                                                                        />
+                                                                    </div>
+
+                                                                    <div>
+                                                                        <label className="block font-bold text-gray-600 dark:text-slate-300 mb-1">
+                                                                            Official Payment Status (Sec 8)
+                                                                        </label>
+                                                                        <select
+                                                                            value={s8.admin_payment_status}
+                                                                            onChange={(e) => updateSection8Field(reg.id, 'admin_payment_status', e.target.value)}
+                                                                            className="w-full p-2.5 rounded-xl bg-gray-50 dark:bg-slate-950 border border-gray-200 dark:border-slate-800 text-gray-900 dark:text-white font-bold"
+                                                                        >
+                                                                            {ADMIN_PAYMENT_STATUS_OPTIONS.map(st => (
+                                                                                <option key={st} value={st}>{st}</option>
+                                                                            ))}
+                                                                        </select>
+                                                                    </div>
+
+                                                                    <div>
+                                                                        <label className="block font-bold text-gray-600 dark:text-slate-300 mb-1">
+                                                                            Administrator Signature Date
+                                                                        </label>
+                                                                        <input
+                                                                            type="date"
+                                                                            value={s8.admin_signature_date}
+                                                                            onChange={(e) => updateSection8Field(reg.id, 'admin_signature_date', e.target.value)}
+                                                                            className="w-full p-2.5 rounded-xl bg-gray-50 dark:bg-slate-950 border border-gray-200 dark:border-slate-800 text-gray-900 dark:text-white font-semibold"
+                                                                        />
+                                                                    </div>
+
+                                                                    <div className="sm:col-span-2 lg:col-span-3">
+                                                                        <label className="block font-bold text-gray-600 dark:text-slate-300 mb-1">
+                                                                            Official Remarks / Follow-up Notes
+                                                                        </label>
+                                                                        <textarea
+                                                                            rows={2}
+                                                                            value={s8.admin_notes}
+                                                                            onChange={(e) => updateSection8Field(reg.id, 'admin_notes', e.target.value)}
+                                                                            onBlur={() => handleSaveSection8(reg.id)}
+                                                                            placeholder="Enter official registrar remarks, installment verification, or scholarship notes..."
+                                                                            className="w-full p-2.5 rounded-xl bg-gray-50 dark:bg-slate-950 border border-gray-200 dark:border-slate-800 text-gray-900 dark:text-white"
+                                                                        />
+                                                                    </div>
                                                                 </div>
                                                             </div>
                                                         </div>
@@ -1292,6 +2033,325 @@ const AdminRegistrations: React.FC = () => {
                     </table>
                 </div>
             </div>
+
+            {/* MANAGE OUTREACH CAMPAIGNS & DROPDOWNS MODAL */}
+            {showCampaignModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+                    <div
+                        className="fixed inset-0 bg-black/60 backdrop-blur-sm"
+                        onClick={() => setShowCampaignModal(false)}
+                    />
+                    <div className="bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 w-full max-w-2xl rounded-3xl p-6 shadow-2xl relative z-10 text-gray-900 dark:text-white max-h-[90vh] overflow-y-auto">
+                        <button
+                            type="button"
+                            onClick={() => setShowCampaignModal(false)}
+                            className="absolute top-4 right-4 text-gray-400 hover:text-gray-700 dark:hover:text-white cursor-pointer"
+                        >
+                            <X size={20} />
+                        </button>
+
+                        <div className="flex items-center gap-2.5 mb-4">
+                            <div className="w-10 h-10 rounded-xl bg-amber-100 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 flex items-center justify-center">
+                                <Megaphone size={20} />
+                            </div>
+                            <div>
+                                <h3 className="text-lg font-bold">Manage Outreach Campaigns & Registration Dropdowns</h3>
+                                <p className="text-xs text-gray-500 dark:text-slate-400">
+                                    Outreaches created here immediately populate the dropdown on <code className="font-mono">/register</code> and the dashboard stats sieve.
+                                </p>
+                            </div>
+                        </div>
+
+                        {/* Add New Outreach Campaign Form */}
+                        <form onSubmit={handleAddCampaign} className="p-4 rounded-2xl bg-gray-50 dark:bg-slate-950 border border-gray-200 dark:border-slate-800 space-y-3 mb-5">
+                            <h4 className="text-xs font-extrabold uppercase tracking-wider text-violet-600 dark:text-violet-400 flex items-center gap-1.5">
+                                <Plus size={14} /> Create New Outreach / Registration Channel
+                            </h4>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                <div className="sm:col-span-2">
+                                    <label className="block text-[11px] font-bold text-gray-500 mb-1">
+                                        Outreach / Campaign Name (Shown in Dropdown)*
+                                    </label>
+                                    <input
+                                        type="text"
+                                        required
+                                        value={newCampaignName}
+                                        onChange={(e) => setNewCampaignName(e.target.value)}
+                                        placeholder="e.g., Uganda Martyrs University Outreach (Fri, 13th Nov 2026)"
+                                        className="w-full p-2.5 rounded-xl bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 text-xs font-bold"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-[11px] font-bold text-gray-500 mb-1">
+                                        Event Date
+                                    </label>
+                                    <input
+                                        type="date"
+                                        value={newCampaignDate}
+                                        onChange={(e) => setNewCampaignDate(e.target.value)}
+                                        className="w-full p-2.5 rounded-xl bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 text-xs"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-[11px] font-bold text-gray-500 mb-1">
+                                        Location / Venue
+                                    </label>
+                                    <input
+                                        type="text"
+                                        value={newCampaignLocation}
+                                        onChange={(e) => setNewCampaignLocation(e.target.value)}
+                                        placeholder="e.g., Nkumba University, Entebbe"
+                                        className="w-full p-2.5 rounded-xl bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 text-xs"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-[11px] font-bold text-gray-500 mb-1">
+                                        Sieve Category
+                                    </label>
+                                    <select
+                                        value={newCampaignCategory}
+                                        onChange={(e) => setNewCampaignCategory(e.target.value as 'OUTREACH' | 'GENERAL')}
+                                        className="w-full p-2.5 rounded-xl bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 text-xs font-bold"
+                                    >
+                                        <option value="OUTREACH">OUTREACH (Campus / Field Event)</option>
+                                        <option value="GENERAL">GENERAL (Website / Walk-in)</option>
+                                    </select>
+                                </div>
+                                <div className="flex items-center pt-4">
+                                    <label className="flex items-center gap-2 text-xs font-bold cursor-pointer">
+                                        <input
+                                            type="checkbox"
+                                            checked={newCampaignIsDefault}
+                                            onChange={(e) => setNewCampaignIsDefault(e.target.checked)}
+                                            className="w-4 h-4 accent-violet-600 rounded"
+                                        />
+                                        Set as Default Pre-selected on /register
+                                    </label>
+                                </div>
+                            </div>
+                            <div className="flex justify-end pt-1">
+                                <button
+                                    type="submit"
+                                    disabled={savingCampaigns}
+                                    className="px-4 py-2 rounded-xl bg-violet-600 hover:bg-violet-700 text-white text-xs font-bold flex items-center gap-1.5 cursor-pointer"
+                                >
+                                    <Plus size={14} /> Add to Outreach Dropdown
+                                </button>
+                            </div>
+                        </form>
+
+                        {/* Existing Campaigns List */}
+                        <div className="space-y-2.5">
+                            <h4 className="text-xs font-extrabold uppercase tracking-wider text-gray-500 dark:text-slate-400">
+                                Active Dropdown Options ({campaigns.length})
+                            </h4>
+                            {campaigns.map((camp) => (
+                                <div
+                                    key={camp.name}
+                                    className={`p-3.5 rounded-2xl border flex flex-col sm:flex-row sm:items-center justify-between gap-3 ${
+                                        camp.is_default
+                                            ? 'bg-violet-50/70 dark:bg-violet-950/30 border-violet-300 dark:border-violet-800'
+                                            : 'bg-white dark:bg-slate-900 border-gray-200 dark:border-slate-800'
+                                    }`}
+                                >
+                                    <div>
+                                        <div className="flex items-center gap-2 flex-wrap">
+                                            <span className="font-bold text-xs text-gray-900 dark:text-white">
+                                                {camp.name}
+                                            </span>
+                                            <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                                                camp.category === 'OUTREACH'
+                                                    ? 'bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300'
+                                                    : 'bg-blue-100 text-blue-800 dark:bg-blue-950/60 dark:text-blue-300'
+                                            }`}>
+                                                {camp.category}
+                                            </span>
+                                            {camp.is_default && (
+                                                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300 flex items-center gap-1">
+                                                    <Star size={10} className="fill-current" /> Default Active on Form
+                                                </span>
+                                            )}
+                                        </div>
+                                        <p className="text-[11px] text-gray-500 dark:text-slate-400 mt-0.5">
+                                            Date: {camp.event_date} • Location: {camp.location} • Leads: {sieveCounts.byEvent[camp.name] || 0}
+                                        </p>
+                                    </div>
+
+                                    <div className="flex items-center gap-2 shrink-0">
+                                        {!camp.is_default && (
+                                            <button
+                                                type="button"
+                                                onClick={() => handleSetDefaultCampaign(camp.name)}
+                                                className="px-2.5 py-1.5 rounded-lg border border-violet-200 dark:border-violet-800 text-violet-700 dark:text-violet-300 text-[11px] font-bold hover:bg-violet-50 cursor-pointer"
+                                            >
+                                                Set Default
+                                            </button>
+                                        )}
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                setQrEventName(camp.name);
+                                                setShowCampaignModal(false);
+                                                setShowQrModal(true);
+                                            }}
+                                            className="px-2.5 py-1.5 rounded-lg border border-gray-200 dark:border-slate-700 text-gray-700 dark:text-slate-300 text-[11px] font-bold hover:bg-gray-100 cursor-pointer flex items-center gap-1"
+                                        >
+                                            <QrCode size={12} /> QR
+                                        </button>
+                                        {campaigns.length > 1 && (
+                                            <button
+                                                type="button"
+                                                onClick={() => handleDeleteCampaign(camp.name)}
+                                                className="p-1.5 rounded-lg text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 cursor-pointer"
+                                                title="Remove Campaign"
+                                            >
+                                                <Trash2 size={14} />
+                                            </button>
+                                        )}
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* OFFICIAL 8-SECTION PRINTABLE FORM MODAL */}
+            {printingRecord && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+                    <div
+                        className="fixed inset-0 bg-black/60 backdrop-blur-sm"
+                        onClick={() => setPrintingRecord(null)}
+                    />
+                    <div className="bg-white text-gray-900 w-full max-w-3xl rounded-3xl p-8 shadow-2xl relative z-10 max-h-[92vh] overflow-y-auto border border-gray-200">
+                        <div className="flex items-center justify-between pb-4 mb-6 border-b border-gray-200 print:hidden">
+                            <h3 className="text-sm font-black uppercase tracking-wider text-violet-700">
+                                Official Printable Form Preview (Sections 1 – 8)
+                            </h3>
+                            <div className="flex items-center gap-2">
+                                <button
+                                    type="button"
+                                    onClick={() => window.print()}
+                                    className="px-4 py-2 rounded-xl bg-violet-600 hover:bg-violet-700 text-white text-xs font-bold flex items-center gap-1.5 cursor-pointer"
+                                >
+                                    <Printer size={14} /> Print / Save PDF
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => setPrintingRecord(null)}
+                                    className="p-2 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-600 cursor-pointer"
+                                >
+                                    <X size={16} />
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* Printable Document Content */}
+                        <div className="space-y-4 text-xs leading-relaxed">
+                            <div className="text-center border-b-2 border-gray-900 pb-3">
+                                <h1 className="text-lg font-black uppercase tracking-wide">WELILE SCHOOL OF AI</h1>
+                                <p className="text-xs font-semibold text-gray-600">Katabi, Entebbe, Uganda</p>
+                                <h2 className="text-sm font-extrabold uppercase mt-1 text-violet-800">
+                                    STUDENT REGISTRATION, STUDY SCHEDULE & PAYMENT AGREEMENT FORM
+                                </h2>
+                            </div>
+
+                            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 p-3 bg-gray-50 rounded-xl border border-gray-200">
+                                <div><span className="font-bold block text-[10px] uppercase text-gray-500">Registration Date</span>{printingRecord.registration_date || (printingRecord.created_at ? printingRecord.created_at.split('T')[0] : '')}</div>
+                                <div><span className="font-bold block text-[10px] uppercase text-gray-500">Student Reg No.</span><span className="font-mono font-bold">{printingRecord.student_reg_no || 'WSI/11/26/001'}</span></div>
+                                <div><span className="font-bold block text-[10px] uppercase text-gray-500">Course / Programme</span>{printingRecord.course_interest}</div>
+                                <div><span className="font-bold block text-[10px] uppercase text-gray-500">Assigned Level</span>{printingRecord.level || 'Intermediate'}</div>
+                            </div>
+
+                            <div className="border border-gray-200 rounded-xl p-3.5">
+                                <h3 className="font-black uppercase text-xs border-b border-gray-200 pb-1 mb-2">1. STUDENT INFORMATION</h3>
+                                <div className="grid grid-cols-2 gap-2">
+                                    <p><strong>Full Name:</strong> {printingRecord.full_name}</p>
+                                    <p><strong>Email Address:</strong> {printingRecord.email || '—'}</p>
+                                    <p><strong>Phone Number:</strong> {printingRecord.phone}</p>
+                                    <p><strong>Class / Level / Year:</strong> {printingRecord.class_level_year || '—'}</p>
+                                    <p><strong>Parent / Guardian Name:</strong> {printingRecord.guardian_name || 'N/A'}</p>
+                                    <p><strong>Parent / Guardian Contact:</strong> {printingRecord.guardian_phone || 'N/A'}</p>
+                                </div>
+                            </div>
+
+                            <div className="border border-gray-200 rounded-xl p-3.5">
+                                <h3 className="font-black uppercase text-xs border-b border-gray-200 pb-1 mb-2">2. COURSE & PROGRAMME INFORMATION</h3>
+                                <div className="grid grid-cols-2 gap-2">
+                                    <p><strong>Course / Programme:</strong> {printingRecord.course_interest}</p>
+                                    <p><strong>Level:</strong> {printingRecord.level || 'Intermediate'}</p>
+                                    <p><strong>Mode of Study:</strong> {printingRecord.mode_preference || 'Hybrid'}</p>
+                                    <p><strong>Outreach Campaign:</strong> {printingRecord.outreach_event || 'General'}</p>
+                                    <p><strong>Expected Start Date:</strong> {printingRecord.expected_start_date || '—'}</p>
+                                    <p><strong>Expected Completion Date:</strong> {printingRecord.expected_completion_date || '—'}</p>
+                                </div>
+                            </div>
+
+                            <div className="border border-gray-200 rounded-xl p-3.5">
+                                <h3 className="font-black uppercase text-xs border-b border-gray-200 pb-1 mb-2">3. STUDY SCHEDULE</h3>
+                                <div className="grid grid-cols-2 gap-2">
+                                    <p><strong>Preferred Study Days:</strong> {(printingRecord.preferred_study_days || []).join(', ')}</p>
+                                    <p><strong>Chosen Study Time:</strong> {printingRecord.preferred_time_slot || '—'}</p>
+                                    <p><strong>Study Hours Per Session:</strong> {printingRecord.study_hours_per_session || '2 Hours'}</p>
+                                    <p><strong>Number of Sessions Per Week:</strong> {printingRecord.sessions_per_week || '3 Sessions / Week'}</p>
+                                    <p className="col-span-2"><strong>Alternative Study Time:</strong> {printingRecord.alternative_study_time || '—'}</p>
+                                </div>
+                            </div>
+
+                            <div className="border border-gray-200 rounded-xl p-3.5">
+                                <h3 className="font-black uppercase text-xs border-b border-gray-200 pb-1 mb-2">4. FEES & PAYMENT AGREEMENT</h3>
+                                <div className="grid grid-cols-2 gap-2">
+                                    <p><strong>Total Course Fee:</strong> UGX {Number(printingRecord.total_course_fee ?? 600000).toLocaleString()}</p>
+                                    <p><strong>Registration Fee:</strong> {printingRecord.registration_fee || 'Not Applicable'}</p>
+                                    <p><strong>Amount Paid:</strong> UGX {Number(printingRecord.amount_paid ?? 0).toLocaleString()}</p>
+                                    <p><strong>Outstanding Balance:</strong> UGX {Number(printingRecord.outstanding_balance ?? 600000).toLocaleString()}</p>
+                                    <p><strong>Payment Plan:</strong> {printingRecord.payment_plan || 'Monthly'}</p>
+                                    <p><strong>Agreed Payment Amount:</strong> UGX {Number(printingRecord.agreed_payment_amount ?? 0).toLocaleString()}</p>
+                                    <p><strong>Next Payment Date:</strong> {printingRecord.next_payment_date || '—'}</p>
+                                    <p><strong>Payment Due Date:</strong> {printingRecord.payment_due_date || '—'}</p>
+                                    <p><strong>Payment Method:</strong> {printingRecord.payment_method || 'Mobile Money'}</p>
+                                    <p><strong>Payment Ref / Receipt No.:</strong> {printingRecord.payment_reference || '—'}</p>
+                                </div>
+                            </div>
+
+                            <div className="border border-gray-200 rounded-xl p-3.5">
+                                <h3 className="font-black uppercase text-xs border-b border-gray-200 pb-1 mb-2">5 & 6. STUDENT COMMITMENT & DECLARATION</h3>
+                                <p className="mb-2 text-[11px] text-gray-700">
+                                    I confirm that the information provided on this form is true and accurate. I agree to follow the study schedule, rules, and payment terms of Welile School of AI.
+                                </p>
+                                <div className="grid grid-cols-3 gap-2">
+                                    <p><strong>Student Full Name:</strong> {printingRecord.full_name}</p>
+                                    <p><strong>Signature:</strong> <em>{printingRecord.student_signature || printingRecord.full_name}</em></p>
+                                    <p><strong>Date:</strong> {printingRecord.student_declaration_date || printingRecord.registration_date || '—'}</p>
+                                </div>
+                            </div>
+
+                            <div className="border border-gray-200 rounded-xl p-3.5">
+                                <h3 className="font-black uppercase text-xs border-b border-gray-200 pb-1 mb-2">7. PARENT / GUARDIAN CONSENT</h3>
+                                <div className="grid grid-cols-2 gap-2">
+                                    <p><strong>Parent / Guardian Name:</strong> {printingRecord.guardian_name || 'N/A'}</p>
+                                    <p><strong>Phone Number:</strong> {printingRecord.guardian_phone || 'N/A'}</p>
+                                    <p><strong>Signature:</strong> <em>{printingRecord.guardian_signature || 'N/A'}</em></p>
+                                    <p><strong>Date:</strong> {printingRecord.guardian_consent_date || 'N/A'}</p>
+                                </div>
+                            </div>
+
+                            <div className="border-2 border-gray-900 rounded-xl p-3.5 bg-gray-50">
+                                <h3 className="font-black uppercase text-xs border-b border-gray-300 pb-1 mb-2">8. SCHOOL / ADMINISTRATION USE ONLY</h3>
+                                <div className="grid grid-cols-2 gap-2">
+                                    <p><strong>Registration Approved By:</strong> {printingRecord.approved_by || '—'}</p>
+                                    <p><strong>Position:</strong> {printingRecord.approver_position || '—'}</p>
+                                    <p><strong>Assigned Class / Instructor:</strong> {printingRecord.assigned_instructor || '—'}</p>
+                                    <p><strong>Confirmed Study Schedule:</strong> {printingRecord.confirmed_schedule || '—'}</p>
+                                    <p><strong>Payment Status:</strong> {printingRecord.admin_payment_status || 'Pending'}</p>
+                                    <p><strong>Admin Signature & Date:</strong> {printingRecord.admin_signature_date || '—'}</p>
+                                    <p className="col-span-2"><strong>Remarks:</strong> {printingRecord.admin_notes || '—'}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {/* CONVERT TO STUDENT MODAL */}
             {convertingLead && (
@@ -1363,33 +2423,36 @@ const AdminRegistrations: React.FC = () => {
 
                             <div>
                                 <label className="block text-xs font-bold text-gray-500 dark:text-slate-400 mb-1">
-                                    Enroll in Course (Lead requested: <span className="text-violet-600 dark:text-violet-400">{convertingLead.course_interest}</span>)
+                                    Enroll in Course (Live Courses Table)
                                 </label>
                                 <select
                                     value={convertCourseId}
                                     onChange={(e) => setConvertCourseId(e.target.value)}
                                     className="w-full p-2.5 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl text-sm"
                                 >
-                                    <option value="">-- Profile only (enroll later) --</option>
+                                    <option value="">— Create Student Profile Only (No Course Yet) —</option>
                                     {courses.map(c => (
-                                        <option key={c.id} value={c.id}>{c.title}</option>
+                                        <option key={c.id} value={c.id}>
+                                            {c.title}
+                                        </option>
                                     ))}
                                 </select>
+                                <p className="text-[11px] text-gray-400 mt-1">
+                                    Lead requested: <span className="font-semibold text-violet-500">{convertingLead.course_interest}</span>
+                                </p>
                             </div>
 
                             <div>
                                 <label className="block text-xs font-bold text-gray-500 dark:text-slate-400 mb-1">
-                                    Subscription Plan / Tier
+                                    Account Role
                                 </label>
                                 <select
                                     value={convertRole}
                                     onChange={(e) => setConvertRole(e.target.value)}
                                     className="w-full p-2.5 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl text-sm"
                                 >
-                                    <option value="INDIVIDUAL">Basic (Individual)</option>
-                                    <option value="PLUS">Plus Plan</option>
-                                    <option value="PRO">Pro Plan</option>
-                                    <option value="SPONSORED">Sponsored / Business</option>
+                                    <option value="INDIVIDUAL">Individual Learner (INDIVIDUAL)</option>
+                                    <option value="CORPORATE">Corporate Sponsored (CORPORATE)</option>
                                 </select>
                             </div>
 
@@ -1397,8 +2460,8 @@ const AdminRegistrations: React.FC = () => {
                                 <div
                                     className={`p-3 rounded-xl text-xs font-bold flex items-center gap-2 ${
                                         convertFeedback.type === 'success'
-                                            ? 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800'
-                                            : 'bg-red-50 dark:bg-red-950/40 text-red-700 dark:text-red-300 border border-red-200 dark:border-red-800'
+                                            ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300 border border-emerald-200'
+                                            : 'bg-red-50 text-red-700 dark:bg-red-950/50 dark:text-red-300 border border-red-200'
                                     }`}
                                 >
                                     <CheckCircle2 size={15} />
@@ -1406,28 +2469,26 @@ const AdminRegistrations: React.FC = () => {
                                 </div>
                             )}
 
-                            <div className="flex gap-3 pt-2">
+                            <div className="flex items-center justify-end gap-2 pt-2">
                                 <button
                                     type="button"
                                     onClick={() => setConvertingLead(null)}
-                                    className="flex-1 py-2.5 rounded-xl border border-gray-200 dark:border-slate-700 text-xs font-bold hover:bg-gray-100 dark:hover:bg-slate-800 cursor-pointer"
+                                    className="px-4 py-2.5 rounded-xl bg-gray-100 dark:bg-slate-800 text-xs font-bold text-gray-600 dark:text-slate-300 cursor-pointer"
                                 >
                                     Cancel
                                 </button>
                                 <button
                                     type="submit"
                                     disabled={isConverting}
-                                    className="flex-1 py-2.5 rounded-xl bg-violet-600 hover:bg-violet-700 text-white text-xs font-bold flex items-center justify-center gap-1.5 shadow-md cursor-pointer"
+                                    className="px-5 py-2.5 rounded-xl bg-violet-600 hover:bg-violet-700 text-white text-xs font-bold flex items-center gap-1.5 shadow-md cursor-pointer disabled:opacity-60"
                                 >
                                     {isConverting ? (
                                         <>
-                                            <Loader2 size={14} className="animate-spin" />
-                                            Converting...
+                                            <Loader2 size={14} className="animate-spin" /> Converting...
                                         </>
                                     ) : (
                                         <>
-                                            <UserPlus size={14} />
-                                            Confirm & Enroll
+                                            <UserPlus size={14} /> Confirm & Enroll Student
                                         </>
                                     )}
                                 </button>
@@ -1454,78 +2515,81 @@ const AdminRegistrations: React.FC = () => {
                         </button>
 
                         <div className="text-center space-y-2">
-                            <div className="inline-flex items-center px-3 py-1 rounded-full bg-violet-100 dark:bg-violet-950/60 text-violet-700 dark:text-violet-300 text-[11px] font-bold uppercase tracking-wider">
-                                <QrCode size={13} className="mr-1.5" /> Event Booth QR Code
+                            <div className="w-12 h-12 rounded-2xl bg-violet-100 dark:bg-violet-950/60 text-violet-600 dark:text-violet-400 flex items-center justify-center mx-auto">
+                                <QrCode size={24} />
                             </div>
-                            <h3 className="text-xl font-extrabold">Scan to Register at Welile</h3>
+                            <h3 className="text-lg font-extrabold">Outreach Booth Registration QR</h3>
                             <p className="text-xs text-gray-500 dark:text-slate-400">
-                                Print or display this QR code at outreach booths so attendees can register on their phones.
+                                Print or display this QR code at the outreach table so students can scan & register with the campaign pre-selected.
                             </p>
                         </div>
 
-                        <div className="mt-4">
-                            <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-500 dark:text-slate-400 mb-1">
-                                Tag QR Code with Event Name (Optional — Auto-fills Form)
-                            </label>
-                            <input
-                                type="text"
-                                list="admin-qr-event-presets"
-                                value={qrEventName}
-                                onChange={(e) => setQrEventName(e.target.value)}
-                                placeholder="e.g. Makerere Career Fair Nov 2026"
-                                className="w-full p-2.5 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl text-xs"
-                            />
-                            <datalist id="admin-qr-event-presets">
-                                {distinctEvents.map(ev => (
-                                    <option key={ev} value={ev} />
-                                ))}
-                            </datalist>
-                        </div>
+                        <div className="mt-4 space-y-3">
+                            <div>
+                                <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-400 dark:text-slate-500 mb-1">
+                                    Select Outreach Campaign for QR Tag
+                                </label>
+                                <select
+                                    value={qrEventName}
+                                    onChange={(e) => setQrEventName(e.target.value)}
+                                    className="w-full p-2.5 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl text-xs font-bold"
+                                >
+                                    {distinctEvents.map(ev => (
+                                        <option key={ev} value={ev}>{ev}</option>
+                                    ))}
+                                </select>
+                            </div>
 
-                        <div className="my-5 flex flex-col items-center justify-center p-5 bg-white rounded-2xl border border-gray-200 shadow-inner">
-                            <img
-                                src={qrCodeImageUrl}
-                                alt="Outreach Registration QR Code"
-                                className="w-56 h-56 object-contain"
-                            />
-                            <p className="mt-2 text-[11px] font-mono text-gray-500 break-all text-center">
-                                {publicRegisterUrl}
-                            </p>
-                        </div>
+                            <div className="bg-white p-4 rounded-2xl border border-gray-200 flex flex-col items-center justify-center shadow-inner">
+                                <img
+                                    src={qrCodeImageUrl}
+                                    alt="Welile Outreach Registration QR Code"
+                                    className="w-52 h-52 object-contain"
+                                />
+                                {qrEventName.trim() && (
+                                    <span className="mt-2 px-3 py-1 rounded-full bg-violet-100 text-violet-800 text-xs font-extrabold">
+                                        {qrEventName.trim()}
+                                    </span>
+                                )}
+                            </div>
 
-                        <div className="grid grid-cols-3 gap-2.5">
-                            <button
-                                type="button"
-                                onClick={() => {
-                                    navigator.clipboard.writeText(publicRegisterUrl);
-                                    setCopiedLink(true);
-                                    setTimeout(() => setCopiedLink(false), 2000);
-                                }}
-                                className="py-2.5 px-3 rounded-xl border border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-slate-800 hover:bg-gray-100 text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer"
-                            >
-                                {copiedLink ? <Check size={14} className="text-emerald-500" /> : <Copy size={14} />}
-                                {copiedLink ? 'Copied!' : 'Copy Link'}
-                            </button>
+                            <div className="flex items-center gap-2 bg-gray-50 dark:bg-slate-950 p-2.5 rounded-xl border border-gray-200 dark:border-slate-800">
+                                <input
+                                    type="text"
+                                    readOnly
+                                    value={publicRegisterUrl}
+                                    className="flex-1 bg-transparent text-[11px] font-mono text-gray-600 dark:text-slate-300 focus:outline-none truncate"
+                                />
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        navigator.clipboard.writeText(publicRegisterUrl);
+                                        setCopiedLink(true);
+                                        setTimeout(() => setCopiedLink(false), 2000);
+                                    }}
+                                    className="px-3 py-1.5 rounded-lg bg-violet-600 hover:bg-violet-700 text-white text-xs font-bold flex items-center gap-1 cursor-pointer shrink-0"
+                                >
+                                    {copiedLink ? <Check size={13} /> : <Copy size={13} />}
+                                    {copiedLink ? 'Copied' : 'Copy'}
+                                </button>
+                            </div>
 
-                            <a
-                                href={qrCodeImageUrl}
-                                download="welile-outreach-qr.png"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="py-2.5 px-3 rounded-xl border border-violet-200 dark:border-violet-800 bg-violet-50 dark:bg-violet-950/50 text-violet-700 dark:text-violet-300 text-xs font-bold flex items-center justify-center gap-1.5"
-                            >
-                                <Download size={14} />
-                                Save QR
-                            </a>
-
-                            <button
-                                type="button"
-                                onClick={() => window.print()}
-                                className="py-2.5 px-3 rounded-xl bg-violet-600 hover:bg-violet-700 text-white text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer"
-                            >
-                                <Printer size={14} />
-                                Print
-                            </button>
+                            <div className="flex items-center justify-between gap-2 pt-2">
+                                <button
+                                    type="button"
+                                    onClick={() => window.print()}
+                                    className="flex-1 py-2.5 rounded-xl border border-gray-200 dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-800 text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer"
+                                >
+                                    <Printer size={14} /> Print Flyer QR
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => setShowQrModal(false)}
+                                    className="flex-1 py-2.5 rounded-xl bg-gray-900 dark:bg-white text-white dark:text-gray-900 text-xs font-bold cursor-pointer"
+                                >
+                                    Done
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
