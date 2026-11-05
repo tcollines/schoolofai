@@ -166,11 +166,11 @@ const AdminMails: React.FC = () => {
 
                                     {isExpanded ? (
                                         <div className="p-4 bg-gray-50 dark:bg-slate-850 rounded-xl border dark:border-slate-800 text-sm text-gray-700 dark:text-slate-300 leading-relaxed font-sans whitespace-pre-wrap animate-in fade-in duration-200">
-                                            {m.message}
+                                            {(m.message || '').replace(/\n?<!--OUTREACH_JSON:[\s\S]*?-->/, '')}
                                         </div>
                                     ) : (
                                         <p className="text-xs text-gray-500 dark:text-slate-400 line-clamp-1 italic font-medium">
-                                            {m.message ? m.message.slice(0, 100) + (m.message.length > 100 ? '...' : '') : 'Empty message'}
+                                            {m.message ? m.message.replace(/\n?<!--OUTREACH_JSON:[\s\S]*?-->/, '').slice(0, 100) + (m.message.replace(/\n?<!--OUTREACH_JSON:[\s\S]*?-->/, '').length > 100 ? '...' : '') : 'Empty message'}
                                         </p>
                                     )}
                                 </div>

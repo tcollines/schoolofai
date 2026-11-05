@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { supabase } from '../src/lib/supabaseClient';
 import Orb from './Orb';
 import {
@@ -127,6 +128,10 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLoginClick, onSignupClick, 
                             <a href="#features" className="text-gray-600 dark:text-slate-300 hover:text-gray-900 dark:hover:text-white font-medium text-sm transition-colors">Features</a>
                             <a href="#advantages" className="text-gray-600 dark:text-slate-300 hover:text-gray-900 dark:hover:text-white font-medium text-sm transition-colors">Why AI?</a>
                             <a href="#pricing" className="text-gray-600 dark:text-slate-300 hover:text-gray-900 dark:hover:text-white font-medium text-sm transition-colors">Pricing</a>
+                            <Link to="/register" className="text-violet-600 dark:text-violet-400 hover:text-violet-700 dark:hover:text-violet-300 font-bold text-sm transition-colors flex items-center gap-1">
+                                <Sparkles size={14} />
+                                Register Now
+                            </Link>
                         </div>
                         <div className="flex items-center space-x-3">
                             <button
@@ -201,6 +206,13 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLoginClick, onSignupClick, 
                                 Start Learning Now
                                 <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1.5 transition-transform" />
                             </button>
+                            <Link
+                                to="/register"
+                                className="w-full sm:w-auto px-7 py-4 bg-violet-600 hover:bg-violet-700 text-white rounded-full font-bold text-[15px] sm:text-lg transition-all shadow-xl shadow-violet-600/25 hover:shadow-2xl hover:-translate-y-0.5 flex items-center justify-center gap-2"
+                            >
+                                <Sparkles className="w-5 h-5" />
+                                Join an Outreach Event
+                            </Link>
                         </div>
                     </div>
                 </div>
@@ -726,13 +738,16 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLoginClick, onSignupClick, 
             )}
 
             {/* Footer */}
-            <footer className="bg-white py-12 border-t border-gray-100">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row justify-between items-center">
+            <footer className="bg-white dark:bg-slate-950 py-12 border-t border-gray-100 dark:border-slate-800">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row justify-between items-center gap-4">
                     <div className="flex items-center mb-4 md:mb-0">
                         <img src="/schoolofai-logo.png" alt="School of AI Logo" className="h-12 object-contain" />
                     </div>
-                    <div className="flex gap-6 items-center">
-                        <div className="text-sm text-gray-500">
+                    <div className="flex flex-wrap gap-6 items-center justify-center">
+                        <Link to="/register" className="text-sm font-bold text-violet-600 dark:text-violet-400 hover:underline">
+                            Outreach Registration Form
+                        </Link>
+                        <div className="text-sm text-gray-500 dark:text-slate-400">
                             © 2024 Welile School. All rights reserved.
                         </div>
                     </div>

@@ -18,6 +18,7 @@ import AdminExams from './AdminExams';
 import AdminEvents from './AdminEvents';
 import AdminLoginPage from './AdminLoginPage';
 import AdminMails from './AdminMails';
+import AdminRegistrations from './AdminRegistrations';
 import { supabaseClient } from '../../lib/supabaseClient';
 
 interface AdminLayoutProps {
@@ -32,6 +33,8 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ onExit, isInstructor, isAdmin
     
     const activeTab = location.pathname.includes('/instructor/')
         ? (location.pathname.split('/')[2] || 'courses')
+        : location.pathname.includes('/admin/')
+        ? (location.pathname.split('/')[2] || 'enrollments')
         : (location.pathname.split('/')[1] || (isInstructor ? 'courses' : 'enrollments'));
 
     // Persist admin/instructor session across page refreshes
@@ -222,6 +225,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ onExit, isInstructor, isAdmin
           ] as const)
         : ([
             { id: 'enrollments', label: 'Enrollments', icon: Users },
+            { id: 'registrations', label: 'Registrations', icon: ClipboardList },
             { id: 'wallet', label: 'Wallet & Ledger', icon: Wallet },
             { id: 'courses', label: 'Course Setup', icon: BookOpen },
             { id: 'cohorts', label: 'Cohorts', icon: Calendar },
@@ -237,6 +241,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ onExit, isInstructor, isAdmin
             <Routes>
                 <Route path="/" element={<Navigate to={isInstructor ? "courses" : "enrollments"} replace />} />
                 {!isInstructor && <Route path="enrollments" element={<AdminEnrollments />} />}
+                {!isInstructor && <Route path="registrations" element={<AdminRegistrations />} />}
                 {!isInstructor && <Route path="wallet" element={<AdminWallet />} />}
                 <Route path="courses" element={<AdminCourses isInstructor={isInstructor} />} />
                 <Route path="courses/setup" element={<AdminCourseSetupWizard isInstructor={isInstructor} />} />

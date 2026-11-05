@@ -21,7 +21,9 @@ import VerifyEmail from './components/onboarding/VerifyEmail';
 import ProfileSetup from './components/onboarding/ProfileSetup';
 import PaymentPlanSetup from './components/onboarding/PaymentPlanSetup';
 import RecommendedCourses from './components/onboarding/RecommendedCourses';
+import OutreachRegistration from './components/OutreachRegistration';
 import { supabase, isSupabaseConfigured } from './src/lib/supabaseClient';
+import { flushPendingOutreachRegistrations } from './src/lib/outreachSync';
 import { useCourses } from './src/hooks/useCourses';
 import { useProfile } from './src/hooks/useProfile';
 import { UserRole } from './types';
@@ -111,6 +113,26 @@ function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [session, setSession] = useState<any>(null);
   const [authLoading, setAuthLoading] = useState(true);
+
+  // Global theme initializer — ensures stored theme is always applied on mount
+  useEffect(() => {
+    const storedTheme = localStorage.getItem('theme');
+    if (storedTheme === 'dark') {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  }, []);
+
+  // Offline outreach registration queue auto-sync on app load and when browser comes online
+  useEffect(() => {
+    flushPendingOutreachRegistrations();
+    const handleOnline = () => {
+      flushPendingOutreachRegistrations();
+    };
+    window.addEventListener('online', handleOnline);
+    return () => window.removeEventListener('online', handleOnline);
+  }, []);
 
   const { courses, loading: coursesLoading } = useCourses(isAuthenticated ? session?.user?.id : undefined);
   const { profile: userProfile } = useProfile(isAuthenticated ? session : null);
@@ -236,6 +258,7 @@ function App() {
         <Route path="/" element={<LandingRoute isAuthenticated={isAuthenticated} />} />
         <Route path="/login" element={<LoginRoute isAuthenticated={isAuthenticated} />} />
         <Route path="/signup" element={<SignupRoute isAuthenticated={isAuthenticated} />} />
+        <Route path="/register" element={<OutreachRegistration />} />
         
         {/* Admin Route - uses its own authentication via AdminLoginPage */}
         <Route path="/admin/*" element={<AdminRoute />} />
