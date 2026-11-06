@@ -37,8 +37,10 @@ export const useCourses = (userId: string | undefined) => {
                     }
                 }
 
-                // Merge data
-                const formattedCourses: Course[] = (coursesData || []).map((course: any) => {
+                // Merge data (excluding internal outreach ledger/config rows)
+                const formattedCourses: Course[] = (coursesData || [])
+                    .filter((course: any) => !String(course.category || '').startsWith('__OUTREACH_'))
+                    .map((course: any) => {
                     const isNewFormat = Array.isArray(course.modules) && course.modules.length > 0 && 'lessons' in course.modules[0];
                     const scheduleData = (course.sections && typeof course.sections === 'object' && !Array.isArray(course.sections)) ? course.sections : {};
                     const resolvedSections = isNewFormat

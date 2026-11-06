@@ -20,7 +20,7 @@ const RecommendedCourses: React.FC = () => {
                     .limit(3);
 
                 if (fetchError) throw fetchError;
-                setCourses(data || []);
+                setCourses((data || []).filter((c: any) => !c.is_draft && !String(c.category || '').startsWith('__OUTREACH_')));
             } catch (err: any) {
                 setError(err.message || 'Failed to load courses.');
             } finally {

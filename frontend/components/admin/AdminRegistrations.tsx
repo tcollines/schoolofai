@@ -108,6 +108,14 @@ export interface OutreachStaffMember {
 
 export const DEFAULT_OUTREACH_STAFF: OutreachStaffMember[] = [
     {
+        id: 'stf-coo-timothy',
+        name: 'Timothy Christian Waniaye',
+        staffCode: 'WSI-COO-001',
+        role: 'COO',
+        phone: '0772000000',
+        isActive: true
+    },
+    {
         id: 'stf-001',
         name: 'Collines T.',
         staffCode: 'WSI-STF-001',
@@ -155,6 +163,31 @@ export const DEFAULT_OUTREACH_STAFF: OutreachStaffMember[] = [
         isActive: true
     }
 ];
+
+function ensureRequiredStaffPresent(list: OutreachStaffMember[]): OutreachStaffMember[] {
+    const map = new Map<string, OutreachStaffMember>();
+    const timothy = DEFAULT_OUTREACH_STAFF[0];
+    map.set(timothy.name.toLowerCase(), timothy);
+
+    for (const item of list || []) {
+        if (item && item.name) {
+            const key = item.name.trim().toLowerCase();
+            if (key === timothy.name.toLowerCase()) {
+                map.set(key, { ...item, role: item.role || 'COO', staffCode: item.staffCode || 'WSI-COO-001' });
+            } else {
+                map.set(key, item);
+            }
+        }
+    }
+
+    for (const def of DEFAULT_OUTREACH_STAFF) {
+        const key = def.name.toLowerCase();
+        if (!map.has(key)) {
+            map.set(key, def);
+        }
+    }
+    return Array.from(map.values());
+}
 
 const STAFF_STORAGE_KEY = 'welile_outreach_staff_v1';
 
@@ -300,6 +333,7 @@ const STATUS_BADGE_STYLES: Record<OutreachRegistrationRecord['status'], string> 
 const CHART_COLORS = ['#a855f7', '#7c3aed', '#6366f1', '#10b981', '#f59e0b', '#ec4899', '#3b82f6'];
 
 const APPROVER_PRESETS = [
+    'Timothy Christian Waniaye — COO',
     'Admissions Office — Katabi Campus',
     'Academic Registrar — Welile School of AI',
     'Outreach Lead — Nkumba Campaign',
@@ -307,12 +341,13 @@ const APPROVER_PRESETS = [
 ];
 
 const POSITION_PRESETS = [
+    'COO',
+    'Chief Operating Officer',
     'Admissions Officer',
     'Academic Registrar',
     'Outreach Coordinator',
     'Centre Manager',
-    'Lead AI Instructor',
-    'Chief Operating Officer'
+    'Lead AI Instructor'
 ];
 
 const INSTRUCTOR_CLASS_PRESETS = [
@@ -406,67 +441,100 @@ const AdminRegistrations: React.FC = () => {
     const [qrStaffName, setQrStaffName] = useState('');
     const [copiedLink, setCopiedLink] = useState(false);
 
-    const loadStaffRoster = async (mailsData?: any[]) => {
+    const loadStaffRoster = async (coursesData?: any[]) => {
         try {
-            if (mailsData && mailsData.length > 0) {
-                const staffRows = mailsData
-                    .filter((m: any) => m.email === 'outreach-staff@system.welile.com')
-                    .sort((a: any, b: any) => new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime());
-                if (staffRows.length > 0) {
-                    const match = (staffRows[0].message || '').match(/<!--STAFF_JSON:([\s\S]+?)-->/);
-                    if (match && match[1]) {
-                        const parsed = JSON.parse(match[1]);
-                        if (Array.isArray(parsed) && parsed.length > 0) {
-                            setStaffRoster(parsed);
-                            localStorage.setItem(STAFF_STORAGE_KEY, JSON.stringify(parsed));
-                            return;
-                        }
-                    }
-                }
+            // 1. Check dedicated outreach_staff table first
+            const { data: staffRows, error: staffErr } = await supabaseClient
+                .from('outreach_staff')
+                .select('*')
+                .order('created_at', { ascending: true });
+
+            if (!staffErr && staffRows && staffRows.length > 0) {
+                const mapped: OutreachStaffMember[] = ensureRequiredStaffPresent(
+                    staffRows.map((s: any) => ({
+                        id: String(s.id),
+                        name: s.name,
+                        staffCode: s.staff_code || 'WSI-STF',
+                        role: s.role || 'Outreach Mobilizer',
+                        phone: s.phone || undefined,
+                        isActive: s.is_active !== false
+                    }))
+                );
+                setStaffRoster(mapped);
+                localStorage.setItem(STAFF_STORAGE_KEY, JSON.stringify(mapped));
+                return;
+            }
+
+            // 2. Check live Supabase system config row in public.courses
+            const configCourse = (coursesData || []).find((c: any) => c.category === '__OUTREACH_CONFIG__');
+            if (configCourse && Array.isArray(configCourse.sections?.staff) && configCourse.sections.staff.length > 0) {
+                const merged = ensureRequiredStaffPresent(configCourse.sections.staff);
+                setStaffRoster(merged);
+                localStorage.setItem(STAFF_STORAGE_KEY, JSON.stringify(merged));
+                return;
             }
 
             const cached = localStorage.getItem(STAFF_STORAGE_KEY);
             if (cached) {
                 const parsed = JSON.parse(cached);
                 if (Array.isArray(parsed) && parsed.length > 0) {
-                    setStaffRoster(parsed);
+                    const merged = ensureRequiredStaffPresent(parsed);
+                    setStaffRoster(merged);
                     return;
                 }
             }
         } catch {
             // fallback to default staff roster
         }
+        setStaffRoster(DEFAULT_OUTREACH_STAFF);
     };
 
     const persistStaffRoster = async (nextStaff: OutreachStaffMember[]) => {
+        const merged = ensureRequiredStaffPresent(nextStaff);
         setSavingStaff(true);
-        setStaffRoster(nextStaff);
+        setStaffRoster(merged);
         try {
-            localStorage.setItem(STAFF_STORAGE_KEY, JSON.stringify(nextStaff));
+            localStorage.setItem(STAFF_STORAGE_KEY, JSON.stringify(merged));
         } catch {
             // ignore
         }
 
         try {
-            const payloadStr = `[System Outreach Staff Roster]\n<!--STAFF_JSON:${JSON.stringify(nextStaff)}-->`;
-            const { data: existing } = await supabaseClient
-                .from('mails')
-                .select('id')
-                .eq('email', 'outreach-staff@system.welile.com');
+            const { data: existingConfig } = await supabaseClient
+                .from('courses')
+                .select('id, sections')
+                .eq('category', '__OUTREACH_CONFIG__')
+                .limit(1);
 
-            if (existing && existing.length > 0) {
+            if (existingConfig && existingConfig.length > 0) {
+                const currentSections = existingConfig[0].sections || {};
                 await supabaseClient
-                    .from('mails')
-                    .update({ message: payloadStr })
-                    .eq('id', existing[0].id);
+                    .from('courses')
+                    .update({
+                        sections: {
+                            ...currentSections,
+                            staff: merged
+                        }
+                    })
+                    .eq('id', existingConfig[0].id);
             } else {
-                await supabaseClient.from('mails').insert({
-                    name: 'Outreach Staff Roster Config',
-                    email: 'outreach-staff@system.welile.com',
-                    company_name: 'Welile System Config',
-                    message: payloadStr,
-                    type: 'SYSTEM_CONFIG'
-                });
+                await supabaseClient.from('courses').insert([{
+                    title: '__OUTREACH_SYSTEM_CONFIG__',
+                    category: '__OUTREACH_CONFIG__',
+                    instructor: 'Welile System',
+                    duration: 'System',
+                    description: 'Outreach Campaigns and Staff Roster Configuration',
+                    price: 0,
+                    status: 'SYSTEM_CONFIG',
+                    is_draft: true,
+                    is_verified: false,
+                    platform: 'Welile',
+                    accessTier: 'FREE',
+                    sections: {
+                        campaigns,
+                        staff: merged
+                    }
+                }]);
             }
         } catch (err) {
             console.error('Error persisting outreach staff roster:', err);
@@ -494,42 +562,50 @@ const AdminRegistrations: React.FC = () => {
         setNewStaffPhone('');
     };
 
-    const handleDeleteStaff = async (id: string, name: string) => {
+    const handleDeleteStaff = async (id: string, name?: string) => {
         if (staffRoster.length <= 1) return;
         const remaining = staffRoster.filter(s => s.id !== id);
         await persistStaffRoster(remaining);
-        if (staffSieve === name) {
+        if (name && staffSieve === name) {
             setStaffSieve('ALL');
         }
     };
 
     const ensureOfficialCoursesSeededInDb = async (existingCourses: any[]) => {
         try {
+            const realCourses = (existingCourses || []).filter(
+                (c: any) => !String(c.category || '').startsWith('__OUTREACH_')
+            );
             const existingTitles = new Set(
-                (existingCourses || []).map((c: any) => String(c.title || '').trim().toLowerCase())
+                realCourses.map((c: any) => String(c.title || '').trim().toLowerCase())
             );
             let addedAny = false;
             for (const c of OFFICIAL_COURSE_CATALOG) {
                 if (!existingTitles.has(c.title.toLowerCase())) {
-                    const { error } = await supabaseClient.from('courses').insert({
+                    const { error } = await supabaseClient.from('courses').insert([{
                         title: c.title,
                         description: `Official Welile School of AI Course — ${c.displayFee}. Hands-on practical AI training at Katabi, Entebbe & Online.`,
                         category: 'Artificial Intelligence',
-                        level: 'Intermediate',
                         duration: '8 Weeks',
-                        is_draft: false
-                    });
+                        price: c.usdPerMonth,
+                        instructor: 'Welile AI Faculty',
+                        platform: 'Welile',
+                        accessTier: 'PAID',
+                        status: 'Published',
+                        is_draft: false,
+                        is_verified: true
+                    }]);
                     if (!error) addedAny = true;
                 }
             }
             if (addedAny) {
                 const { data: refreshed } = await supabaseClient
                     .from('courses')
-                    .select('id, title, is_draft');
+                    .select('id, title, is_draft, category');
                 if (refreshed) {
                     setCourses(
                         refreshed
-                            .filter((c: any) => !c.is_draft && c.title)
+                            .filter((c: any) => !c.is_draft && c.title && !String(c.category || '').startsWith('__OUTREACH_'))
                             .map((c: any) => ({ id: c.id, title: c.title }))
                     );
                 }
@@ -539,7 +615,7 @@ const AdminRegistrations: React.FC = () => {
         }
     };
 
-    const loadCampaigns = async (mailsData?: any[]) => {
+    const loadCampaigns = async (coursesData?: any[]) => {
         try {
             const { data: campRows, error: campErr } = await supabaseClient
                 .from('outreach_campaigns')
@@ -562,21 +638,20 @@ const AdminRegistrations: React.FC = () => {
                 return;
             }
 
-            if (mailsData && mailsData.length > 0) {
-                const configRows = mailsData
-                    .filter((m: any) => m.email === 'outreach-config@system.welile.com')
-                    .sort((a: any, b: any) => new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime());
-                if (configRows.length > 0) {
-                    const match = (configRows[0].message || '').match(/<!--CAMPAIGNS_JSON:(.+?)-->/);
-                    if (match && match[1]) {
-                        const parsed = JSON.parse(match[1]);
-                        if (Array.isArray(parsed) && parsed.length > 0) {
-                            setCampaigns(parsed);
-                            localStorage.setItem(CAMPAIGNS_STORAGE_KEY, JSON.stringify(parsed));
-                            return;
-                        }
-                    }
-                }
+            const configCourse = (coursesData || []).find((c: any) => c.category === '__OUTREACH_CONFIG__');
+            if (configCourse && Array.isArray(configCourse.sections?.campaigns) && configCourse.sections.campaigns.length > 0) {
+                const parsed = configCourse.sections.campaigns.map((c: any) => ({
+                    id: String(c.id || c.name),
+                    name: c.name,
+                    event_date: c.event_date || c.date || '2026-11-06',
+                    location: c.location || 'Entebbe, Uganda',
+                    category: c.category === 'GENERAL' ? 'GENERAL' : 'OUTREACH',
+                    is_active: c.is_active !== false && c.isActive !== false,
+                    is_default: Boolean(c.is_default ?? c.isDefault)
+                }));
+                setCampaigns(parsed);
+                localStorage.setItem(CAMPAIGNS_STORAGE_KEY, JSON.stringify(parsed));
+                return;
             }
 
             const cached = localStorage.getItem(CAMPAIGNS_STORAGE_KEY);
@@ -602,41 +677,41 @@ const AdminRegistrations: React.FC = () => {
         }
 
         try {
-            // 1. Try syncing to outreach_campaigns table
-            for (const c of nextCampaigns) {
-                await supabaseClient.from('outreach_campaigns').upsert(
-                    {
-                        name: c.name,
-                        event_date: c.event_date,
-                        location: c.location,
-                        category: c.category,
-                        is_active: c.is_active,
-                        is_default: c.is_default
-                    },
-                    { onConflict: 'name' }
-                );
-            }
+            const { data: existingConfig } = await supabaseClient
+                .from('courses')
+                .select('id, sections')
+                .eq('category', '__OUTREACH_CONFIG__')
+                .limit(1);
 
-            // 2. Also store in mails config row so it works even before SQL migration is applied
-            const payloadStr = `<!--CAMPAIGNS_JSON:${JSON.stringify(nextCampaigns)}-->`;
-            const { data: existing } = await supabaseClient
-                .from('mails')
-                .select('id')
-                .eq('email', 'outreach-config@system.welile.com');
-
-            if (existing && existing.length > 0) {
+            if (existingConfig && existingConfig.length > 0) {
+                const currentSections = existingConfig[0].sections || {};
                 await supabaseClient
-                    .from('mails')
-                    .update({ message: payloadStr })
-                    .eq('id', existing[0].id);
+                    .from('courses')
+                    .update({
+                        sections: {
+                            ...currentSections,
+                            campaigns: nextCampaigns
+                        }
+                    })
+                    .eq('id', existingConfig[0].id);
             } else {
-                await supabaseClient.from('mails').insert({
-                    name: 'Outreach Campaign Config',
-                    email: 'outreach-config@system.welile.com',
-                    company_name: 'Welile System Config',
-                    message: payloadStr,
-                    type: 'SYSTEM_CONFIG'
-                });
+                await supabaseClient.from('courses').insert([{
+                    title: '__OUTREACH_SYSTEM_CONFIG__',
+                    category: '__OUTREACH_CONFIG__',
+                    instructor: 'Welile System',
+                    duration: 'System',
+                    description: 'Outreach Campaigns and Staff Roster Configuration',
+                    price: 0,
+                    status: 'SYSTEM_CONFIG',
+                    is_draft: true,
+                    is_verified: false,
+                    platform: 'Welile',
+                    accessTier: 'FREE',
+                    sections: {
+                        campaigns: nextCampaigns,
+                        staff: staffRoster
+                    }
+                }]);
             }
         } catch (err) {
             console.error('Error persisting outreach campaigns:', err);
@@ -704,52 +779,66 @@ const AdminRegistrations: React.FC = () => {
     const fetchRegistrations = async (silent = false) => {
         if (!silent) setLoading(true);
         try {
-            const [{ data: regData, error: regErr }, { data: coursesData }, { data: mailsData }] = await Promise.all([
+            const [{ data: regData, error: regErr }, { data: coursesData }] = await Promise.all([
                 supabaseClient
                     .from('outreach_registrations')
                     .select('*')
                     .order('created_at', { ascending: false }),
                 supabaseClient
                     .from('courses')
-                    .select('id, title, is_draft'),
-                supabaseClient
-                    .from('mails')
-                    .select('*')
+                    .select('id, title, category, status, price, is_draft, created_at, sections')
+                    .order('created_at', { ascending: false })
             ]);
 
             await Promise.all([
-                loadCampaigns(mailsData || []),
-                loadStaffRoster(mailsData || []),
+                loadCampaigns(coursesData || []),
+                loadStaffRoster(coursesData || []),
                 ensureOfficialCoursesSeededInDb(coursesData || [])
             ]);
 
-            let combinedList: OutreachRegistrationRecord[] = [];
-            if (!regErr && regData && regData.length > 0) {
-                combinedList = regData as OutreachRegistrationRecord[];
-            } else if (mailsData && mailsData.length > 0) {
-                const parsedFromMails: OutreachRegistrationRecord[] = [];
-                mailsData.forEach((m: any) => {
-                    const msg: string = m.message || '';
-                    const match = msg.match(/<!--OUTREACH_JSON:([\s\S]+?)-->/);
-                    if (match && match[1]) {
-                        try {
-                            const obj = JSON.parse(match[1]);
-                            parsedFromMails.push({
+            const byIdMap = new Map<string, OutreachRegistrationRecord>();
+
+            // 1. Load records stored in live Supabase courses ledger (`category === '__OUTREACH_REGISTRATION__'`)
+            if (coursesData && coursesData.length > 0) {
+                coursesData.forEach((c: any) => {
+                    if (
+                        c.category === '__OUTREACH_REGISTRATION__' ||
+                        c.sections?.is_outreach_registration === true
+                    ) {
+                        const obj = c.sections?.outreach_record || {};
+                        const id = String(c.id || obj.id);
+                        if (id && obj.full_name) {
+                            byIdMap.set(id, {
                                 ...obj,
-                                id: String(m.id),
-                                created_at: m.created_at || obj.created_at || new Date().toISOString(),
-                                status: obj.status || 'NEW',
+                                id,
+                                created_at: c.created_at || obj.created_at || new Date().toISOString(),
+                                status: (c.status && ['NEW', 'CONTACTED', 'ENROLLED', 'NOT_INTERESTED'].includes(c.status)
+                                    ? c.status
+                                    : obj.status || 'NEW') as OutreachRegistrationRecord['status'],
                                 admin_notes: obj.admin_notes || obj.admin_remarks || null,
                                 converted_profile_id: obj.converted_profile_id || null
                             });
-                        } catch {
-                            // ignore malformed json
                         }
                     }
                 });
-                parsedFromMails.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
-                combinedList = parsedFromMails;
             }
+
+            // 2. Merge records from dedicated outreach_registrations table if present
+            if (!regErr && regData && regData.length > 0) {
+                regData.forEach((row: any) => {
+                    const id = String(row.id);
+                    const existing = byIdMap.get(id);
+                    byIdMap.set(id, {
+                        ...(existing || {}),
+                        ...row,
+                        id
+                    });
+                });
+            }
+
+            const combinedList = Array.from(byIdMap.values()).sort(
+                (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+            );
 
             setRegistrations(combinedList);
 
@@ -782,7 +871,7 @@ const AdminRegistrations: React.FC = () => {
             if (coursesData) {
                 setCourses(
                     coursesData
-                        .filter((c: any) => !c.is_draft && c.title)
+                        .filter((c: any) => !c.is_draft && c.title && !String(c.category || '').startsWith('__OUTREACH_'))
                         .map((c: any) => ({ id: c.id, title: c.title }))
                 );
             }
@@ -805,6 +894,13 @@ const AdminRegistrations: React.FC = () => {
             .on(
                 'postgres_changes',
                 { event: '*', schema: 'public', table: 'outreach_registrations' },
+                () => {
+                    fetchRegistrations(true);
+                }
+            )
+            .on(
+                'postgres_changes',
+                { event: '*', schema: 'public', table: 'courses' },
                 () => {
                     fetchRegistrations(true);
                 }
@@ -1141,27 +1237,31 @@ const AdminRegistrations: React.FC = () => {
             });
     }, [sievedRegistrations, statusFilter, courseFilter, paymentStatusFilter, section8Drafts, dateFrom, dateTo, searchQuery, sortBy, sortOrder]);
 
-    const updateMailFallbackRecord = async (id: string, patch: Partial<OutreachRegistrationRecord>) => {
+    const updateLiveCourseFallbackRecord = async (id: string, patch: Partial<OutreachRegistrationRecord>) => {
         try {
-            const { data: mailRow } = await supabaseClient
-                .from('mails')
-                .select('id, message')
+            const { data: courseRow } = await supabaseClient
+                .from('courses')
+                .select('id, status, sections')
                 .eq('id', id)
                 .single();
-            if (mailRow && mailRow.message) {
-                const match = mailRow.message.match(/<!--OUTREACH_JSON:(.+?)-->/);
-                if (match && match[1]) {
-                    const parsed = JSON.parse(match[1]);
-                    const updatedJson = JSON.stringify({ ...parsed, ...patch });
-                    const updatedMessage = mailRow.message.replace(
-                        /<!--OUTREACH_JSON:(.+?)-->/,
-                        `<!--OUTREACH_JSON:${updatedJson}-->`
-                    );
-                    await supabaseClient
-                        .from('mails')
-                        .update({ message: updatedMessage })
-                        .eq('id', id);
+
+            if (courseRow && courseRow.sections) {
+                const currentRecord = courseRow.sections.outreach_record || {};
+                const nextRecord = { ...currentRecord, ...patch };
+                const updateBody: Record<string, any> = {
+                    sections: {
+                        ...courseRow.sections,
+                        is_outreach_registration: true,
+                        outreach_record: nextRecord
+                    }
+                };
+                if (patch.status) {
+                    updateBody.status = patch.status;
                 }
+                await supabaseClient
+                    .from('courses')
+                    .update(updateBody)
+                    .eq('id', id);
             }
         } catch {
             // ignore fallback update error
@@ -1173,13 +1273,13 @@ const AdminRegistrations: React.FC = () => {
             prev.map(r => (r.id === id ? { ...r, status: newStatus } : r))
         );
         try {
-            const { error } = await supabaseClient
-                .from('outreach_registrations')
-                .update({ status: newStatus })
-                .eq('id', id);
-            if (error) {
-                await updateMailFallbackRecord(id, { status: newStatus });
-            }
+            await Promise.all([
+                updateLiveCourseFallbackRecord(id, { status: newStatus }),
+                supabaseClient
+                    .from('outreach_registrations')
+                    .update({ status: newStatus })
+                    .eq('id', id)
+            ]);
         } catch (err) {
             console.error('Failed to update status:', err);
             fetchRegistrations(true);
@@ -1220,13 +1320,13 @@ const AdminRegistrations: React.FC = () => {
         };
 
         try {
-            const { error } = await supabaseClient
-                .from('outreach_registrations')
-                .update(patch)
-                .eq('id', id);
-            if (error) {
-                await updateMailFallbackRecord(id, patch);
-            }
+            await Promise.all([
+                updateLiveCourseFallbackRecord(id, patch),
+                supabaseClient
+                    .from('outreach_registrations')
+                    .update(patch)
+                    .eq('id', id)
+            ]);
 
             setRegistrations(prev =>
                 prev.map(r => (r.id === id ? { ...r, ...patch } : r))
@@ -1337,14 +1437,13 @@ const AdminRegistrations: React.FC = () => {
                 updatePayload.converted_profile_id = profileId;
             }
 
-            const { error: regUpdateErr } = await supabaseClient
-                .from('outreach_registrations')
-                .update(updatePayload)
-                .eq('id', convertingLead.id);
-
-            if (regUpdateErr) {
-                await updateMailFallbackRecord(convertingLead.id, updatePayload);
-            }
+            await Promise.all([
+                updateLiveCourseFallbackRecord(convertingLead.id, updatePayload),
+                supabaseClient
+                    .from('outreach_registrations')
+                    .update(updatePayload)
+                    .eq('id', convertingLead.id)
+            ]);
 
             setRegistrations(prev =>
                 prev.map(r =>
@@ -3079,6 +3178,7 @@ const AdminRegistrations: React.FC = () => {
                                         onChange={(e) => setNewStaffRole(e.target.value)}
                                         className="w-full p-2.5 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-xl text-xs font-bold"
                                     >
+                                        <option value="COO">COO (Chief Operating Officer)</option>
                                         <option value="Outreach Mobilizer">Outreach Mobilizer</option>
                                         <option value="Lead Coordinator">Lead Coordinator</option>
                                         <option value="Admissions Officer">Admissions Officer</option>

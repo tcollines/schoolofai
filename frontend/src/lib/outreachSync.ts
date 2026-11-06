@@ -273,6 +273,14 @@ export interface OutreachStaffMember {
 
 export const DEFAULT_OUTREACH_STAFF: OutreachStaffMember[] = [
     {
+        id: 'stf-coo-timothy',
+        name: 'Timothy Christian Waniaye',
+        staffCode: 'WSI-COO-001',
+        role: 'COO',
+        phone: '0772000000',
+        isActive: true
+    },
+    {
         id: 'stf-001',
         name: 'Collines T.',
         staffCode: 'WSI-STF-001',
@@ -320,6 +328,32 @@ export const DEFAULT_OUTREACH_STAFF: OutreachStaffMember[] = [
         isActive: true
     }
 ];
+
+export function ensureRequiredStaffPresent(list: OutreachStaffMember[]): OutreachStaffMember[] {
+    const map = new Map<string, OutreachStaffMember>();
+    // Always guarantee Timothy Christian Waniaye (COO) is at the top of the mobilization roster
+    const timothy = DEFAULT_OUTREACH_STAFF[0];
+    map.set(timothy.name.toLowerCase(), timothy);
+
+    for (const item of list || []) {
+        if (item && item.name) {
+            const key = item.name.trim().toLowerCase();
+            if (key === timothy.name.toLowerCase()) {
+                map.set(key, { ...item, role: item.role || 'COO', staffCode: item.staffCode || 'WSI-COO-001' });
+            } else {
+                map.set(key, item);
+            }
+        }
+    }
+
+    for (const def of DEFAULT_OUTREACH_STAFF) {
+        const key = def.name.toLowerCase();
+        if (!map.has(key)) {
+            map.set(key, def);
+        }
+    }
+    return Array.from(map.values());
+}
 
 export interface AuditLogEntry {
     timestamp: string;
@@ -374,20 +408,40 @@ export function getOrCreateDeviceAuditInfo(): { deviceId: string; deviceSummary:
 
 export async function fetchOutreachStaff(): Promise<OutreachStaffMember[]> {
     try {
-        const { data: mailConfig } = await supabase
-            .from('mails')
-            .select('id, message')
-            .eq('email', 'outreach-staff@system.welile.com')
+        // 1. Try dedicated outreach_staff table first
+        const { data: staffRows, error: staffErr } = await supabase
+            .from('outreach_staff')
+            .select('*')
+            .order('created_at', { ascending: true });
+
+        if (!staffErr && staffRows && staffRows.length > 0) {
+            const mapped: OutreachStaffMember[] = ensureRequiredStaffPresent(
+                staffRows.map((s: any) => ({
+                    id: String(s.id),
+                    name: s.name,
+                    staffCode: s.staff_code || 'WSI-STF',
+                    role: s.role || 'Outreach Mobilizer',
+                    phone: s.phone || undefined,
+                    isActive: s.is_active !== false
+                }))
+            );
+            localStorage.setItem(OUTREACH_STAFF_CACHE_KEY, JSON.stringify(mapped));
+            return mapped;
+        }
+
+        // 2. Check live Supabase system config row in public.courses
+        const { data: configRows } = await supabase
+            .from('courses')
+            .select('id, sections')
+            .eq('category', '__OUTREACH_CONFIG__')
             .limit(1);
 
-        if (mailConfig && mailConfig.length > 0 && mailConfig[0].message) {
-            const match = mailConfig[0].message.match(/<!--STAFF_JSON:([\s\S]+?)-->/);
-            if (match && match[1]) {
-                const parsed = JSON.parse(match[1]);
-                if (Array.isArray(parsed) && parsed.length > 0) {
-                    localStorage.setItem(OUTREACH_STAFF_CACHE_KEY, JSON.stringify(parsed));
-                    return parsed;
-                }
+        if (configRows && configRows.length > 0 && configRows[0].sections?.staff) {
+            const parsed = configRows[0].sections.staff;
+            if (Array.isArray(parsed) && parsed.length > 0) {
+                const merged = ensureRequiredStaffPresent(parsed);
+                localStorage.setItem(OUTREACH_STAFF_CACHE_KEY, JSON.stringify(merged));
+                return merged;
             }
         }
     } catch {
@@ -398,7 +452,11 @@ export async function fetchOutreachStaff(): Promise<OutreachStaffMember[]> {
         const cached = localStorage.getItem(OUTREACH_STAFF_CACHE_KEY);
         if (cached) {
             const parsed = JSON.parse(cached);
-            if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+            if (Array.isArray(parsed) && parsed.length > 0) {
+                const merged = ensureRequiredStaffPresent(parsed);
+                localStorage.setItem(OUTREACH_STAFF_CACHE_KEY, JSON.stringify(merged));
+                return merged;
+            }
         }
     } catch {
         // ignore
@@ -408,31 +466,49 @@ export async function fetchOutreachStaff(): Promise<OutreachStaffMember[]> {
 }
 
 export async function saveOutreachStaff(staffList: OutreachStaffMember[]): Promise<void> {
+    const mergedList = ensureRequiredStaffPresent(staffList);
     try {
-        localStorage.setItem(OUTREACH_STAFF_CACHE_KEY, JSON.stringify(staffList));
+        localStorage.setItem(OUTREACH_STAFF_CACHE_KEY, JSON.stringify(mergedList));
     } catch {
         // ignore
     }
 
     try {
-        const msg = `[System Outreach Staff Roster]\n<!--STAFF_JSON:${JSON.stringify(staffList)}-->`;
-        const { data: existing } = await supabase
-            .from('mails')
-            .select('id')
-            .eq('email', 'outreach-staff@system.welile.com');
+        const { data: existingConfig } = await supabase
+            .from('courses')
+            .select('id, sections')
+            .eq('category', '__OUTREACH_CONFIG__')
+            .limit(1);
 
-        if (existing && existing.length > 0) {
+        if (existingConfig && existingConfig.length > 0) {
+            const currentSections = existingConfig[0].sections || {};
             await supabase
-                .from('mails')
-                .update({ message: msg })
-                .eq('id', existing[0].id);
+                .from('courses')
+                .update({
+                    sections: {
+                        ...currentSections,
+                        staff: mergedList
+                    }
+                })
+                .eq('id', existingConfig[0].id);
         } else {
-            await supabase.from('mails').insert({
-                name: 'Outreach Staff Roster Config',
-                email: 'outreach-staff@system.welile.com',
-                message: msg,
-                type: 'SYSTEM_CONFIG'
-            });
+            await supabase.from('courses').insert([{
+                title: '__OUTREACH_SYSTEM_CONFIG__',
+                category: '__OUTREACH_CONFIG__',
+                instructor: 'Welile System',
+                duration: 'System',
+                description: 'Outreach Campaigns and Staff Roster Configuration',
+                price: 0,
+                status: 'SYSTEM_CONFIG',
+                is_draft: true,
+                is_verified: false,
+                platform: 'Welile',
+                accessTier: 'FREE',
+                sections: {
+                    campaigns: DEFAULT_OUTREACH_CAMPAIGNS,
+                    staff: mergedList
+                }
+            }]);
         }
     } catch (e) {
         console.warn('Could not persist outreach staff roster to Supabase:', e);
@@ -443,25 +519,32 @@ export async function ensureOfficialCoursesSeeded(): Promise<void> {
     try {
         const { data: existing } = await supabase
             .from('courses')
-            .select('id, title');
+            .select('id, title, category');
         const existingTitles = new Set(
-            (existing || []).map((c: any) => String(c.title || '').trim().toLowerCase())
+            (existing || [])
+                .filter((c: any) => !String(c.category || '').startsWith('__OUTREACH_'))
+                .map((c: any) => String(c.title || '').trim().toLowerCase())
         );
 
         for (const course of OFFICIAL_COURSE_CATALOG) {
             if (!existingTitles.has(course.title.toLowerCase())) {
-                await supabase.from('courses').insert({
+                await supabase.from('courses').insert([{
                     title: course.title,
                     description: `Official Welile School of AI Programme — ${course.displayFee}. Practical hands-on AI training at Katabi, Entebbe & Online.`,
                     category: 'Artificial Intelligence',
-                    level: 'Intermediate',
                     duration: '8 Weeks',
-                    is_draft: false
-                });
+                    price: course.usdPerMonth,
+                    instructor: 'Welile AI Faculty',
+                    platform: 'Welile',
+                    accessTier: 'PAID',
+                    status: 'Published',
+                    is_draft: false,
+                    is_verified: true
+                }]);
             }
         }
     } catch {
-        // non-blocking if user is anon and RLS restricts courses insert
+        // non-blocking
     }
 }
 
@@ -629,20 +712,27 @@ export async function fetchOutreachCampaigns(): Promise<OutreachCampaign[]> {
             return mapped;
         }
 
-        const { data: mailConfig } = await supabase
-            .from('mails')
-            .select('id, message')
-            .eq('email', 'outreach-config@system.welile.com')
+        // Check live Supabase system config row in public.courses
+        const { data: configRows } = await supabase
+            .from('courses')
+            .select('id, sections')
+            .eq('category', '__OUTREACH_CONFIG__')
             .limit(1);
 
-        if (mailConfig && mailConfig.length > 0 && mailConfig[0].message) {
-            const match = mailConfig[0].message.match(/<!--CAMPAIGNS_JSON:([\s\S]+?)-->/);
-            if (match && match[1]) {
-                const parsed = JSON.parse(match[1]);
-                if (Array.isArray(parsed) && parsed.length > 0) {
-                    localStorage.setItem(OUTREACH_CAMPAIGNS_CACHE_KEY, JSON.stringify(parsed));
-                    return parsed;
-                }
+        if (configRows && configRows.length > 0 && configRows[0].sections?.campaigns) {
+            const rawCamps = configRows[0].sections.campaigns;
+            if (Array.isArray(rawCamps) && rawCamps.length > 0) {
+                const normalized: OutreachCampaign[] = rawCamps.map((c: any) => ({
+                    id: String(c.id || c.name),
+                    name: c.name,
+                    date: c.date || c.event_date || '2026-11-06',
+                    location: c.location || 'Entebbe / Kampala',
+                    category: c.category === 'GENERAL' ? 'GENERAL' : 'OUTREACH',
+                    isActive: c.isActive !== false && c.is_active !== false,
+                    isDefault: Boolean(c.isDefault ?? c.is_default)
+                }));
+                localStorage.setItem(OUTREACH_CAMPAIGNS_CACHE_KEY, JSON.stringify(normalized));
+                return normalized;
             }
         }
     } catch {
@@ -670,25 +760,41 @@ export async function saveOutreachCampaigns(campaigns: OutreachCampaign[]): Prom
     }
 
     try {
-        const jsonStr = JSON.stringify(campaigns);
-        const msg = `[System Outreach Campaigns Configuration]\n<!--CAMPAIGNS_JSON:${jsonStr}-->`;
-        const { data: existing } = await supabase
-            .from('mails')
-            .select('id')
-            .eq('email', 'outreach-config@system.welile.com');
+        const { data: existingConfig } = await supabase
+            .from('courses')
+            .select('id, sections')
+            .eq('category', '__OUTREACH_CONFIG__')
+            .limit(1);
 
-        if (existing && existing.length > 0) {
+        if (existingConfig && existingConfig.length > 0) {
+            const currentSections = existingConfig[0].sections || {};
             await supabase
-                .from('mails')
-                .update({ message: msg })
-                .eq('id', existing[0].id);
+                .from('courses')
+                .update({
+                    sections: {
+                        ...currentSections,
+                        campaigns
+                    }
+                })
+                .eq('id', existingConfig[0].id);
         } else {
-            await supabase.from('mails').insert({
-                name: 'Outreach Campaigns Config',
-                email: 'outreach-config@system.welile.com',
-                message: msg,
-                type: 'SYSTEM_CONFIG'
-            });
+            await supabase.from('courses').insert([{
+                title: '__OUTREACH_SYSTEM_CONFIG__',
+                category: '__OUTREACH_CONFIG__',
+                instructor: 'Welile System',
+                duration: 'System',
+                description: 'Outreach Campaigns and Staff Roster Configuration',
+                price: 0,
+                status: 'SYSTEM_CONFIG',
+                is_draft: true,
+                is_verified: false,
+                platform: 'Welile',
+                accessTier: 'FREE',
+                sections: {
+                    campaigns,
+                    staff: DEFAULT_OUTREACH_STAFF
+                }
+            }]);
         }
     } catch (e) {
         console.warn('Could not persist outreach campaigns to Supabase:', e);
@@ -714,11 +820,22 @@ export function setQueuedOutreachRegistrations(items: OutreachRegistrationPayloa
     }
 }
 
+function ensureValidUuid(candidate?: string): string {
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    if (candidate && uuidRegex.test(candidate)) return candidate;
+    if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+        return crypto.randomUUID();
+    }
+    const hex = Date.now().toString(16).padStart(12, '0').slice(-12);
+    const rand = Math.floor(Math.random() * 0xffff).toString(16).padStart(4, '0');
+    return `00000000-0000-4000-8${rand.slice(0, 3)}-${hex}`;
+}
+
 export function enqueueOutreachRegistration(item: OutreachRegistrationPayload): OutreachRegistrationPayload {
     const queued = getQueuedOutreachRegistrations();
     const record: OutreachRegistrationPayload = {
         ...item,
-        id: item.id || (typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : `outreach-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`),
+        id: ensureValidUuid(item.id),
         created_at: item.created_at || new Date().toISOString(),
         status: item.status || 'NEW'
     };
@@ -732,63 +849,50 @@ export function removeQueuedOutreachRegistration(id: string): void {
     setQueuedOutreachRegistrations(queued.filter(q => q.id !== id));
 }
 
-export async function logOutreachToMails(record: OutreachRegistrationPayload): Promise<boolean> {
+export async function logOutreachToLiveCoursesDb(record: OutreachRegistrationPayload): Promise<boolean> {
     try {
         const pricing = getCoursePricing(record.course_interest);
-        const scheduleSummary = [
-            record.mode_preference ? `Mode: ${record.mode_preference}` : null,
-            record.preferred_study_days && record.preferred_study_days.length > 0
-                ? `Days: ${record.preferred_study_days.join(', ')}`
-                : null,
-            record.preferred_time_slot ? `Time: ${record.preferred_time_slot}` : null,
-            record.study_hours_per_session ? `Session: ${record.study_hours_per_session}` : null
-        ].filter(Boolean).join(' | ');
-
-        const paymentSummary = [
-            `Course Fee: ${record.course_fee_display || pricing.displayFee} (UGX ${(record.total_course_fee ?? pricing.ugxPerMonth).toLocaleString()})`,
-            `Paid: UGX ${(record.amount_paid ?? 0).toLocaleString()}`,
-            `Balance: UGX ${(record.outstanding_balance ?? pricing.ugxPerMonth).toLocaleString()}`,
-            `Plan: ${record.payment_plan || 'Monthly'} (${record.payment_method || 'Mobile Money'})`
-        ].join(' | ');
-
-        const auditSummary = `Audit Registrar: ${record.registered_by_staff || 'Self-Registered'} (${record.registration_mode || 'Staff Assisted'}) | Device: ${record.device_audit_id || 'DEV'} (${record.device_info || 'Web'})`;
-
-        const guardianSummary = record.guardian_name
-            ? `\nGuardian: ${record.guardian_name} (${record.guardian_phone || 'N/A'})`
-            : '';
-
-        const structuredJson = JSON.stringify({
+        const recordId = ensureValidUuid(record.id);
+        const createdAt = record.created_at || new Date().toISOString();
+        const fullStructuredRecord: OutreachRegistrationPayload = {
             ...record,
-            id: record.id || (typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : `outreach-${Date.now()}`),
-            created_at: record.created_at || new Date().toISOString(),
-            status: record.status || 'NEW'
-        });
+            id: recordId,
+            created_at: createdAt,
+            status: record.status || 'NEW',
+            total_course_fee: record.total_course_fee ?? pricing.ugxPerMonth,
+            course_fee_usd: record.course_fee_usd ?? pricing.usdPerMonth,
+            course_fee_display: record.course_fee_display || pricing.displayFee
+        };
 
-        const message = [
-            `[Welile Student Registration & Payment Agreement — ${record.student_reg_no || 'WSI'}]`,
-            `Outreach / Channel: ${record.outreach_event || 'Nkumba University Outreach (Fri, 6th Nov 2026)'}`,
-            auditSummary,
-            `Name: ${record.full_name} (${record.class_level_year || record.age_range || 'Student'})`,
-            `Phone: ${record.phone}${record.email ? ` | Email: ${record.email}` : ''}`,
-            `Course: ${record.course_interest} (${record.course_fee_display || pricing.displayFee}) — Level: ${record.level || 'Intermediate'}`,
-            scheduleSummary || null,
-            paymentSummary,
-            `Signed by: ${record.student_signature || record.full_name} on ${record.registration_date || new Date().toISOString().split('T')[0]}`,
-            guardianSummary ? guardianSummary.trim() : null,
-            `<!--OUTREACH_JSON:${structuredJson}-->`
-        ].filter(Boolean).join('\n');
+        const courseLedgerRow = {
+            id: recordId,
+            title: `[OUTREACH_REG] ${record.full_name} — ${record.student_reg_no || 'WSI'}`,
+            category: '__OUTREACH_REGISTRATION__',
+            instructor: record.registered_by_staff || 'Timothy Christian Waniaye',
+            instructor_email: '',
+            duration: record.outreach_event || 'Nkumba University Outreach (Fri, 6th Nov 2026)',
+            description: `${record.course_interest} (${pricing.displayFee}) | ${record.phone} | Registrar: ${record.registered_by_staff || 'Staff'} (${record.registered_by_role || 'Mobilizer'})`,
+            price: Number(record.total_course_fee ?? pricing.ugxPerMonth),
+            status: record.status || 'NEW',
+            is_draft: true,
+            is_verified: false,
+            platform: 'Welile',
+            accessTier: 'PAID',
+            sections: {
+                is_outreach_registration: true,
+                outreach_record: fullStructuredRecord
+            }
+        };
 
-        const { error } = await supabase.from('mails').insert({
-            name: record.full_name,
-            email: record.email || record.phone,
-            message,
-            type: 'ENROLLMENT'
-        });
+        const { error } = await supabase
+            .from('courses')
+            .upsert([courseLedgerRow], { onConflict: 'id' });
+
         if (error) throw error;
-        window.dispatchEvent(new Event('new-mail-notification'));
+        window.dispatchEvent(new Event('outreach-registration-update'));
         return true;
     } catch (e) {
-        console.warn('Could not log outreach registration to mails table:', e);
+        console.warn('Could not persist outreach registration to live Supabase courses ledger:', e);
         return false;
     }
 }
@@ -798,35 +902,45 @@ export async function insertOutreachRegistrationLive(payload: OutreachRegistrati
         throw new Error('Browser is currently offline');
     }
 
-    const coreDbRow: Record<string, any> = {
-        full_name: payload.full_name,
-        email: payload.email || null,
-        phone: payload.phone,
-        age_range: payload.age_range || null,
-        guardian_name: payload.guardian_name || null,
-        guardian_phone: payload.guardian_phone || null,
-        location: payload.location || null,
-        course_interest: payload.course_interest,
-        level: payload.level || 'Intermediate',
-        mode_preference: payload.mode_preference || 'Hybrid',
-        preferred_study_days: payload.preferred_study_days || [],
-        preferred_time_slot: payload.preferred_time_slot || null,
-        how_heard: payload.how_heard || 'Outreach Event',
-        outreach_event: payload.outreach_event || 'Nkumba University Outreach (Fri, 6th Nov 2026)',
-        consent_contact: Boolean(payload.consent_contact),
-        status: payload.status || 'NEW',
-        admin_notes: payload.admin_notes || null,
-        submitted_from: payload.submitted_from || 'web'
+    const recordId = ensureValidUuid(payload.id);
+    const enrichedPayload: OutreachRegistrationPayload = {
+        ...payload,
+        id: recordId,
+        created_at: payload.created_at || new Date().toISOString(),
+        status: payload.status || 'NEW'
     };
 
+    const coreDbRow: Record<string, any> = {
+        id: recordId,
+        full_name: enrichedPayload.full_name,
+        email: enrichedPayload.email || null,
+        phone: enrichedPayload.phone,
+        age_range: enrichedPayload.age_range || null,
+        guardian_name: enrichedPayload.guardian_name || null,
+        guardian_phone: enrichedPayload.guardian_phone || null,
+        location: enrichedPayload.location || null,
+        course_interest: enrichedPayload.course_interest,
+        level: enrichedPayload.level || 'Intermediate',
+        mode_preference: enrichedPayload.mode_preference || 'Hybrid',
+        preferred_study_days: enrichedPayload.preferred_study_days || [],
+        preferred_time_slot: enrichedPayload.preferred_time_slot || null,
+        how_heard: enrichedPayload.how_heard || 'Outreach Event',
+        outreach_event: enrichedPayload.outreach_event || 'Nkumba University Outreach (Fri, 6th Nov 2026)',
+        consent_contact: Boolean(enrichedPayload.consent_contact),
+        status: enrichedPayload.status || 'NEW',
+        admin_notes: enrichedPayload.admin_notes || null,
+        submitted_from: enrichedPayload.submitted_from || 'web'
+    };
+
+    // 1. Always write the full 8-section + staff audit record to the live Supabase DB ledger
+    const savedToLiveDb = await logOutreachToLiveCoursesDb(enrichedPayload);
+
+    // 2. Also attempt insert into dedicated outreach_registrations table if present
     const { error } = await supabase
         .from('outreach_registrations')
         .insert([coreDbRow]);
 
-    // Always log the full structured 8-section + audit trail registration into `mails` as well
-    const loggedToMails = await logOutreachToMails(payload);
-
-    if (!error || loggedToMails) {
+    if (savedToLiveDb || !error) {
         return true;
     }
 

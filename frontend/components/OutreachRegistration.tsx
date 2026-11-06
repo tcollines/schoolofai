@@ -261,8 +261,8 @@ const OutreachRegistration: React.FC = () => {
     const [guardianConsentDate, setGuardianConsentDate] = useState('2026-11-06');
 
     // 8. SCHOOL / ADMINISTRATION USE ONLY (All 7 fields captured & synced with Staff Registrar!)
-    const [approvedBy, setApprovedBy] = useState('Collines T. (Pending Follow-Up Confirmation)');
-    const [approverPosition, setApproverPosition] = useState('Outreach Team Lead — Welile School of AI');
+    const [approvedBy, setApprovedBy] = useState('Timothy Christian Waniaye (Outreach Capture)');
+    const [approverPosition, setApproverPosition] = useState('COO');
     const [assignedInstructor, setAssignedInstructor] = useState('To Be Assigned Upon Enrollment');
     const [confirmedSchedule, setConfirmedSchedule] = useState('Mon, Wed, Fri • 04:00 PM – 06:00 PM (Late Afternoon)');
     const [adminPaymentStatus, setAdminPaymentStatus] = useState<string>('Pending');
@@ -495,11 +495,11 @@ const OutreachRegistration: React.FC = () => {
                 await ensureOfficialCoursesSeeded();
                 const { data: coursesData } = await supabase
                     .from('courses')
-                    .select('title, is_draft');
+                    .select('title, is_draft, category');
 
                 if (coursesData && coursesData.length > 0) {
                     const dbTitles = coursesData
-                        .filter((c: any) => !c.is_draft && c.title)
+                        .filter((c: any) => !c.is_draft && c.title && !String(c.category || '').startsWith('__OUTREACH_'))
                         .map((c: any) => String(c.title).trim())
                         .filter(Boolean);
                     // Put the 4 official priced courses first!

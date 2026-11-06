@@ -48,7 +48,9 @@ export const useAdmin = (isAdmin: boolean) => {
 
             if (coursesError) throw coursesError;
 
-            const formattedCourses: Course[] = (coursesData || []).map((c: any) => {
+            const formattedCourses: Course[] = (coursesData || [])
+                .filter((c: any) => !String(c.category || '').startsWith('__OUTREACH_'))
+                .map((c: any) => {
                 const isNewFormat = Array.isArray(c.modules) && c.modules.length > 0 && 'lessons' in c.modules[0];
                 const scheduleData = (c.sections && typeof c.sections === 'object' && !Array.isArray(c.sections)) ? c.sections : {};
                 const resolvedSections = isNewFormat
