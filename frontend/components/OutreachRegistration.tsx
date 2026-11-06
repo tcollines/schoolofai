@@ -8,9 +8,23 @@ import {
     getQueuedOutreachRegistrations,
     insertOutreachRegistrationLive,
     fetchOutreachCampaigns,
+    fetchOutreachStaff,
+    ensureOfficialCoursesSeeded,
     generateStudentRegNo,
+    getCoursePricing,
+    formatUgx,
+    sanitizeMoneyInput,
+    formatEquivalentUsd,
+    sanitizePhoneInput,
+    validateCleanPhone,
+    cleanPersonName,
+    getOrCreateDeviceAuditInfo,
+    OFFICIAL_COURSE_CATALOG,
     DEFAULT_OUTREACH_CAMPAIGNS,
+    DEFAULT_OUTREACH_STAFF,
+    ACTIVE_STAFF_SESSION_KEY,
     OutreachCampaign,
+    OutreachStaffMember,
     OutreachRegistrationPayload
 } from '../src/lib/outreachSync';
 import {
@@ -37,7 +51,9 @@ import {
     FileCheck,
     PenTool,
     Printer,
-    Info
+    Info,
+    UserCheck,
+    Fingerprint
 } from 'lucide-react';
 
 const CLASS_LEVEL_OPTIONS = [
@@ -66,14 +82,7 @@ const LOCATION_PRESETS = [
     'Other'
 ];
 
-const DEFAULT_COURSES = [
-    'Coding With AI',
-    'AI & Prompt Engineering Foundations',
-    'Full-Stack Software Development with AI',
-    'Data Analytics & Business Intelligence',
-    'Cybersecurity & Network Fundamentals',
-    'Digital Literacy & AI Office Productivity'
-];
+const DEFAULT_COURSES = OFFICIAL_COURSE_CATALOG.map(c => c.title);
 
 const LEVELS = ['Beginner', 'Intermediate', 'Advanced'];
 const MODES = ['Physical', 'Online', 'Hybrid'];
@@ -119,10 +128,10 @@ const ALTERNATIVE_TIME_OPTIONS = [
 ];
 
 const PAYMENT_PLANS = [
-    { value: 'Full', label: 'Full', defaultAgreed: 600000 },
-    { value: 'Weekly', label: 'Weekly', defaultAgreed: 75000 },
-    { value: 'Monthly', label: 'Monthly', defaultAgreed: 200000 },
-    { value: 'Other', label: 'Other', defaultAgreed: 150000 }
+    { value: 'Full', label: 'Full' },
+    { value: 'Weekly', label: 'Weekly' },
+    { value: 'Monthly', label: 'Monthly' },
+    { value: 'Other', label: 'Other' }
 ];
 
 const PAYMENT_METHODS = ['Cash', 'Mobile Money', 'Bank', 'Other'];
@@ -143,19 +152,53 @@ const OFFICIAL_COMMITMENTS = [
 const OutreachRegistration: React.FC = () => {
     const [searchParams] = useSearchParams();
     const initialEventFromUrl = searchParams.get('event') || '';
+    const initialStaffFromUrl = searchParams.get('staff') || searchParams.get('agent') || '';
 
     const [isDark, setIsDark] = useState(() => document.documentElement.classList.contains('dark'));
     const [isOnline, setIsOnline] = useState(() => (typeof navigator !== 'undefined' ? navigator.onLine : true));
     const [pendingQueueCount, setPendingQueueCount] = useState(() => getQueuedOutreachRegistrations().length);
 
-    // Default to Full 8-Section Form so every section (1 to 8) is immediately visible in exact order!
-    // Users can also toggle 3-Step Wizard mode if they want.
+    // Device Audit Fingerprint
+    const [deviceAudit] = useState(() => getOrCreateDeviceAuditInfo());
+
+    // Default to Full 1-8 Form View so all 8 sections are immediately visible in exact order
     const [singlePageMode, setSinglePageMode] = useState(true);
     const [step, setStep] = useState<1 | 2 | 3>(1);
 
     // Dropdown options from DB
     const [campaigns, setCampaigns] = useState<OutreachCampaign[]>(DEFAULT_OUTREACH_CAMPAIGNS);
+    const [staffRoster, setStaffRoster] = useState<OutreachStaffMember[]>(DEFAULT_OUTREACH_STAFF);
     const [courseOptions, setCourseOptions] = useState<string[]>(DEFAULT_COURSES);
+
+    // STAFF / MOBILIZER AUDIT ATTRIBUTION
+    const [registrationMode, setRegistrationMode] = useState<'Staff Assisted (Booth/Field)' | 'Student Self-Registration'>(() => {
+        if (initialStaffFromUrl) return 'Staff Assisted (Booth/Field)';
+        try {
+            const saved = localStorage.getItem(ACTIVE_STAFF_SESSION_KEY);
+            if (saved) {
+                const parsed = JSON.parse(saved);
+                if (parsed.mode) return parsed.mode;
+            }
+        } catch {
+            // ignore
+        }
+        return 'Staff Assisted (Booth/Field)';
+    });
+
+    const [registeredByStaff, setRegisteredByStaff] = useState<string>(() => {
+        if (initialStaffFromUrl) return initialStaffFromUrl;
+        try {
+            const saved = localStorage.getItem(ACTIVE_STAFF_SESSION_KEY);
+            if (saved) {
+                const parsed = JSON.parse(saved);
+                if (parsed.staffName) return parsed.staffName;
+            }
+        } catch {
+            // ignore
+        }
+        return DEFAULT_OUTREACH_STAFF[0].name;
+    });
+    const [customStaffName, setCustomStaffName] = useState('');
 
     // HEADER METADATA (Exact match to Top Table of Official Form)
     const [registrationDate, setRegistrationDate] = useState('2026-11-06');
@@ -175,8 +218,8 @@ const OutreachRegistration: React.FC = () => {
     const [guardianName, setGuardianName] = useState('');
     const [guardianPhone, setGuardianPhone] = useState('');
 
-    // 2. COURSE & PROGRAMME INFORMATION
-    const [courseInterest, setCourseInterest] = useState('Coding With AI');
+    // 2. COURSE & PROGRAMME INFORMATION (Defaults to #1: Advanced Vibe Coding = $25 | 100,000 UGX/month)
+    const [courseInterest, setCourseInterest] = useState('Advanced Vibe Coding');
     const [level, setLevel] = useState('Intermediate');
     const [modePreference, setModePreference] = useState('Hybrid');
     const [modeOfStudyText, setModeOfStudyText] = useState(MODE_DESCRIPTIONS.Hybrid);
@@ -190,13 +233,13 @@ const OutreachRegistration: React.FC = () => {
     const [sessionsPerWeek, setSessionsPerWeek] = useState('3 Sessions / Week');
     const [alternativeStudyTime, setAlternativeStudyTime] = useState('06:00 PM – 08:00 PM (Evening)');
 
-    // 4. FEES & PAYMENT AGREEMENT
-    const [totalCourseFee, setTotalCourseFee] = useState<number>(600000);
+    // 4. FEES & PAYMENT AGREEMENT (Synced with selected course's monthly fee!)
+    const [totalCourseFee, setTotalCourseFee] = useState<number>(100000);
     const [registrationFee, setRegistrationFee] = useState<string>('UGX – Not Applicable');
     const [amountPaid, setAmountPaid] = useState<number>(0);
     const [paymentPlan, setPaymentPlan] = useState<string>('Monthly');
     const [paymentPlanOther, setPaymentPlanOther] = useState<string>('');
-    const [agreedPaymentAmount, setAgreedPaymentAmount] = useState<number>(200000);
+    const [agreedPaymentAmount, setAgreedPaymentAmount] = useState<number>(100000);
     const [nextPaymentDate, setNextPaymentDate] = useState<string>('2026-11-09');
     const [paymentDueDate, setPaymentDueDate] = useState<string>('2026-12-09');
     const [paymentMethod, setPaymentMethod] = useState<string>('Mobile Money');
@@ -217,9 +260,9 @@ const OutreachRegistration: React.FC = () => {
     const [guardianSignature, setGuardianSignature] = useState('');
     const [guardianConsentDate, setGuardianConsentDate] = useState('2026-11-06');
 
-    // 8. SCHOOL / ADMINISTRATION USE ONLY (All 7 fields captured & editable!)
-    const [approvedBy, setApprovedBy] = useState('Pending Follow-Up Confirmation');
-    const [approverPosition, setApproverPosition] = useState('Admissions Office — Katabi Campus');
+    // 8. SCHOOL / ADMINISTRATION USE ONLY (All 7 fields captured & synced with Staff Registrar!)
+    const [approvedBy, setApprovedBy] = useState('Collines T. (Pending Follow-Up Confirmation)');
+    const [approverPosition, setApproverPosition] = useState('Outreach Team Lead — Welile School of AI');
     const [assignedInstructor, setAssignedInstructor] = useState('To Be Assigned Upon Enrollment');
     const [confirmedSchedule, setConfirmedSchedule] = useState('Mon, Wed, Fri • 04:00 PM – 06:00 PM (Late Afternoon)');
     const [adminPaymentStatus, setAdminPaymentStatus] = useState<string>('Pending');
@@ -235,7 +278,66 @@ const OutreachRegistration: React.FC = () => {
     const [submittedRecord, setSubmittedRecord] = useState<OutreachRegistrationPayload | null>(null);
     const [submittedMode, setSubmittedMode] = useState<'online' | 'offline' | null>(null);
 
-    const outstandingBalance = Math.max(0, (Number(totalCourseFee) || 600000) - (Number(amountPaid) || 0));
+    const activeCoursePricing = getCoursePricing(courseInterest);
+    const outstandingBalance = Math.max(0, (Number(totalCourseFee) || activeCoursePricing.ugxPerMonth) - (Number(amountPaid) || 0));
+
+    // Live phone validation state for clean data feedback
+    const phoneValidation = validateCleanPhone(phone);
+    const guardianPhoneValidation = guardianPhone.trim() ? validateCleanPhone(guardianPhone) : null;
+
+    // Effective staff name for audit
+    const effectiveStaffName =
+        registrationMode === 'Student Self-Registration'
+            ? 'Self-Registered (Student Direct)'
+            : registeredByStaff === 'CUSTOM'
+            ? (customStaffName.trim() || 'Outreach Staff Member')
+            : registeredByStaff;
+
+    const matchedStaffObj = staffRoster.find(s => s.name === effectiveStaffName);
+
+    // Persist staff selection on phone so staff don't have to re-select between students
+    useEffect(() => {
+        try {
+            localStorage.setItem(
+                ACTIVE_STAFF_SESSION_KEY,
+                JSON.stringify({
+                    mode: registrationMode,
+                    staffName: registeredByStaff === 'CUSTOM' ? customStaffName : registeredByStaff
+                })
+            );
+        } catch {
+            // ignore
+        }
+    }, [registrationMode, registeredByStaff, customStaffName]);
+
+    // Sync Section 8 Approved By & Position when Staff Registrar changes
+    useEffect(() => {
+        if (registrationMode === 'Student Self-Registration') {
+            setApprovedBy('Self-Registered — Pending Staff Follow-Up');
+            setApproverPosition('Admissions Office — Katabi Campus');
+        } else {
+            setApprovedBy(`${effectiveStaffName} (Outreach Capture)`);
+            setApproverPosition(matchedStaffObj?.role || 'Outreach Mobilizer — Welile School of AI');
+        }
+    }, [effectiveStaffName, registrationMode, matchedStaffObj]);
+
+    // Sync Course Fee & Agreed Payment Amount when Course changes!
+    const handleCourseSelect = (selectedTitle: string) => {
+        setCourseInterest(selectedTitle);
+        const pricing = getCoursePricing(selectedTitle);
+        setTotalCourseFee(pricing.ugxPerMonth);
+        if (paymentPlan === 'Weekly') {
+            setAgreedPaymentAmount(pricing.ugxWeekly);
+        } else {
+            setAgreedPaymentAmount(pricing.ugxPerMonth);
+        }
+        if (amountPaid > pricing.ugxPerMonth) {
+            setAmountPaid(pricing.ugxPerMonth);
+        }
+        if (errors.courseInterest) {
+            setErrors(prev => ({ ...prev, courseInterest: '' }));
+        }
+    };
 
     // Sync Declaration Name & Student Signature with Full Name
     useEffect(() => {
@@ -266,15 +368,15 @@ const OutreachRegistration: React.FC = () => {
     // Sync Section 8 Payment Status when Amount Paid changes
     useEffect(() => {
         const paid = Number(amountPaid) || 0;
-        const fee = Number(totalCourseFee) || 600000;
-        if (paid >= fee) {
+        const fee = Number(totalCourseFee) || activeCoursePricing.ugxPerMonth;
+        if (paid >= fee && fee > 0) {
             setAdminPaymentStatus('Fully Paid');
         } else if (paid > 0) {
             setAdminPaymentStatus('Partially Paid');
         } else if (paymentPlan && paymentPlan !== 'Full') {
             setAdminPaymentStatus('Pending');
         }
-    }, [amountPaid, totalCourseFee, paymentPlan]);
+    }, [amountPaid, totalCourseFee, paymentPlan, activeCoursePricing.ugxPerMonth]);
 
     // Auto-calculate Expected Completion Date (+8 weeks) and Payment dates when Expected Start Date changes
     useEffect(() => {
@@ -346,10 +448,14 @@ const OutreachRegistration: React.FC = () => {
         };
     }, []);
 
-    // Load Outreach Campaigns & Live Courses
+    // Load Outreach Campaigns, Staff Roster, Logged-In Staff & Live Courses
     useEffect(() => {
         const loadData = async () => {
-            const loadedCampaigns = await fetchOutreachCampaigns();
+            const [loadedCampaigns, loadedStaff] = await Promise.all([
+                fetchOutreachCampaigns(),
+                fetchOutreachStaff()
+            ]);
+
             const activeCampaigns = loadedCampaigns.filter(c => c.isActive !== false);
             if (activeCampaigns.length > 0) {
                 setCampaigns(activeCampaigns);
@@ -361,7 +467,32 @@ const OutreachRegistration: React.FC = () => {
                 }
             }
 
+            const activeStaff = loadedStaff.filter(s => s.isActive !== false);
+            if (activeStaff.length > 0) {
+                setStaffRoster(activeStaff);
+            }
+
+            // Check if a staff member is logged in via Supabase Auth
             try {
+                const { data: authData } = await supabase.auth.getUser();
+                if (authData?.user && !initialStaffFromUrl) {
+                    const { data: prof } = await supabase
+                        .from('profiles')
+                        .select('full_name, role, email')
+                        .eq('id', authData.user.id)
+                        .single();
+                    if (prof && (prof.role === 'ADMIN' || prof.role === 'INSTRUCTOR')) {
+                        const staffLabel = prof.full_name || prof.email || 'Logged-in Admin';
+                        setRegisteredByStaff(staffLabel);
+                        setRegistrationMode('Staff Assisted (Booth/Field)');
+                    }
+                }
+            } catch {
+                // ignore if anon
+            }
+
+            try {
+                await ensureOfficialCoursesSeeded();
                 const { data: coursesData } = await supabase
                     .from('courses')
                     .select('title, is_draft');
@@ -371,7 +502,8 @@ const OutreachRegistration: React.FC = () => {
                         .filter((c: any) => !c.is_draft && c.title)
                         .map((c: any) => String(c.title).trim())
                         .filter(Boolean);
-                    const merged = Array.from(new Set(['Coding With AI', ...dbTitles, ...DEFAULT_COURSES]));
+                    // Put the 4 official priced courses first!
+                    const merged = Array.from(new Set([...DEFAULT_COURSES, ...dbTitles]));
                     setCourseOptions(merged);
                 }
             } catch {
@@ -379,7 +511,7 @@ const OutreachRegistration: React.FC = () => {
             }
         };
         loadData();
-    }, [initialEventFromUrl]);
+    }, [initialEventFromUrl, initialStaffFromUrl]);
 
     const toggleStudyDay = (day: string) => {
         setPreferredStudyDays(prev =>
@@ -392,9 +524,11 @@ const OutreachRegistration: React.FC = () => {
 
     const handlePaymentPlanChange = (planValue: string) => {
         setPaymentPlan(planValue);
-        const found = PAYMENT_PLANS.find(p => p.value === planValue);
-        if (found) {
-            setAgreedPaymentAmount(found.defaultAgreed);
+        const pricing = getCoursePricing(courseInterest);
+        if (planValue === 'Weekly') {
+            setAgreedPaymentAmount(pricing.ugxWeekly);
+        } else {
+            setAgreedPaymentAmount(pricing.ugxPerMonth);
         }
     };
 
@@ -404,27 +538,39 @@ const OutreachRegistration: React.FC = () => {
 
     const validateStep1 = (): boolean => {
         const nextErrors: Record<string, string> = {};
-        if (!fullName.trim() || fullName.trim().length < 2) {
-            nextErrors.fullName = 'Please enter Full Name in Section 1.';
+        const cleanedName = cleanPersonName(fullName);
+        if (!cleanedName || cleanedName.length < 3 || /[0-9]/.test(cleanedName)) {
+            nextErrors.fullName = 'Please enter a valid Student Full Name (letters only, at least 3 characters).';
         }
-        const cleanedPhone = phone.trim();
-        if (!cleanedPhone || cleanedPhone.replace(/[^0-9+]/g, '').length < 7) {
-            nextErrors.phone = 'Please enter a valid Phone Number in Section 1.';
+
+        const phoneCheck = validateCleanPhone(phone);
+        if (!phoneCheck.valid) {
+            nextErrors.phone = phoneCheck.message;
         }
-        if (email.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
-            nextErrors.email = 'Please enter a valid Email Address or leave blank.';
+
+        if (email.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email.trim())) {
+            nextErrors.email = 'Please enter a valid Email Address (e.g. name@gmail.com) or leave blank.';
         }
+
         if (isGuardianRequired) {
-            if (!guardianName.trim()) {
+            if (!guardianName.trim() || guardianName.trim().length < 3) {
                 nextErrors.guardianName = 'Parent / Guardian Name is required for students under 18 or in High School.';
             }
-            if (!guardianPhone.trim()) {
-                nextErrors.guardianPhone = 'Parent / Guardian Contact is required.';
+            const gPhoneCheck = validateCleanPhone(guardianPhone);
+            if (!gPhoneCheck.valid) {
+                nextErrors.guardianPhone = `Guardian Phone: ${gPhoneCheck.message}`;
+            }
+        } else if (guardianPhone.trim()) {
+            const gPhoneCheck = validateCleanPhone(guardianPhone);
+            if (!gPhoneCheck.valid) {
+                nextErrors.guardianPhone = `Guardian Phone: ${gPhoneCheck.message}`;
             }
         }
+
         if (!courseInterest.trim()) {
             nextErrors.courseInterest = 'Please select a Course / Programme in Section 2.';
         }
+
         setErrors(nextErrors);
         return Object.keys(nextErrors).length === 0;
     };
@@ -433,6 +579,14 @@ const OutreachRegistration: React.FC = () => {
         const nextErrors: Record<string, string> = {};
         if (preferredStudyDays.length === 0) {
             nextErrors.preferredStudyDays = 'Please select at least one Preferred Study Day in Section 3.';
+        }
+        const fee = Number(totalCourseFee) || 0;
+        const paid = Number(amountPaid) || 0;
+        if (fee <= 0) {
+            nextErrors.totalCourseFee = 'Total Course Fee must be greater than 0 UGX.';
+        }
+        if (paid < 0 || paid > fee) {
+            nextErrors.amountPaid = `Amount Paid cannot exceed Total Course Fee (UGX ${formatUgx(fee)}).`;
         }
         setErrors(nextErrors);
         return Object.keys(nextErrors).length === 0;
@@ -491,6 +645,12 @@ const OutreachRegistration: React.FC = () => {
         setIsSubmitting(true);
         setErrors({});
 
+        const cleanedStudentName = cleanPersonName(fullName);
+        const normalizedPhone = validateCleanPhone(phone).normalized;
+        const normalizedGuardianPhone = guardianPhone.trim()
+            ? validateCleanPhone(guardianPhone).normalized
+            : null;
+
         const selectedCampaign = campaigns.find(c => c.name === outreachEvent);
         const resolvedHowHeard =
             selectedCampaign?.category === 'GENERAL' ? 'Website / Walk-in' : howHeard || 'Outreach Event';
@@ -505,22 +665,36 @@ const OutreachRegistration: React.FC = () => {
                 ? `Other: ${paymentMethodOther.trim()}`
                 : paymentMethod;
 
+        const nowIso = new Date().toISOString();
+        const pricing = getCoursePricing(courseInterest);
+
+        const initialAuditEntry = {
+            timestamp: nowIso,
+            actor: effectiveStaffName,
+            role: matchedStaffObj?.role || (registrationMode === 'Student Self-Registration' ? 'Student' : 'Outreach Staff'),
+            action: 'REGISTERED_STUDENT',
+            device_id: deviceAudit.deviceId,
+            details: `Registered ${cleanedStudentName} (${normalizedPhone}) for ${courseInterest} (${pricing.displayFee}) at ${outreachEvent} via ${deviceAudit.deviceSummary}`
+        };
+
         const payload: OutreachRegistrationPayload = {
             registration_date: registrationDate,
             student_reg_no: studentRegNo.trim() || generateStudentRegNo(),
 
             // 1. STUDENT INFORMATION
-            full_name: fullName.trim(),
+            full_name: cleanedStudentName,
             email: email.trim() ? email.trim().toLowerCase() : null,
-            phone: phone.trim(),
+            phone: normalizedPhone,
             class_level_year: classLevelYear,
             age_range: ageRange,
-            guardian_name: guardianName.trim() || null,
-            guardian_phone: guardianPhone.trim() || null,
+            guardian_name: guardianName.trim() ? cleanPersonName(guardianName) : null,
+            guardian_phone: normalizedGuardianPhone,
             location: location,
 
             // 2. COURSE & PROGRAMME INFORMATION
             course_interest: courseInterest,
+            course_fee_usd: pricing.usdPerMonth,
+            course_fee_display: pricing.displayFee,
             level,
             mode_of_study_text: modeOfStudyText,
             mode_preference: modePreference,
@@ -535,12 +709,12 @@ const OutreachRegistration: React.FC = () => {
             alternative_study_time: alternativeStudyTime,
 
             // 4. FEES & PAYMENT AGREEMENT
-            total_course_fee: Number(totalCourseFee) || 600000,
+            total_course_fee: Number(totalCourseFee) || pricing.ugxPerMonth,
             registration_fee: registrationFee,
             amount_paid: Number(amountPaid) || 0,
             outstanding_balance: outstandingBalance,
             payment_plan: finalPaymentPlan,
-            agreed_payment_amount: Number(agreedPaymentAmount) || 0,
+            agreed_payment_amount: Number(agreedPaymentAmount) || pricing.ugxPerMonth,
             next_payment_date: nextPaymentDate,
             payment_due_date: paymentDueDate,
             payment_method: finalPaymentMethod,
@@ -549,15 +723,22 @@ const OutreachRegistration: React.FC = () => {
             // 5, 6, 7. COMMITMENTS, DECLARATION & GUARDIAN CONSENT
             commitments_accepted: true,
             commitments_list: OFFICIAL_COMMITMENTS,
-            student_signature: studentSignature.trim() || declarationFullName.trim() || fullName.trim(),
+            student_signature: studentSignature.trim() || declarationFullName.trim() || cleanedStudentName,
             student_declaration_date: studentDeclarationDate,
-            guardian_signature: guardianName.trim() ? (guardianSignature.trim() || guardianName.trim()) : null,
+            guardian_signature: guardianName.trim() ? (guardianSignature.trim() || cleanPersonName(guardianName)) : null,
             guardian_consent_date: guardianName.trim() ? guardianConsentDate : null,
             consent_contact: true,
 
-            // OUTREACH ATTRIBUTION
+            // OUTREACH ATTRIBUTION & STAFF AUDIT
             how_heard: resolvedHowHeard,
             outreach_event: outreachEvent,
+            registered_by_staff: effectiveStaffName,
+            registered_by_staff_id: matchedStaffObj?.staffCode || 'STF-CUSTOM',
+            registered_by_role: matchedStaffObj?.role || (registrationMode === 'Student Self-Registration' ? 'Student Self-Service' : 'Outreach Mobilizer'),
+            registration_mode: registrationMode,
+            device_audit_id: deviceAudit.deviceId,
+            device_info: deviceAudit.deviceSummary,
+            audit_trail: [initialAuditEntry],
 
             // 8. SCHOOL / ADMINISTRATION USE ONLY
             status: 'NEW',
@@ -693,7 +874,7 @@ const OutreachRegistration: React.FC = () => {
 
             <main className="max-w-3xl mx-auto px-3.5 sm:px-6 pt-4 sm:pt-7">
                 {/* =====================================================================
-                    OFFICIAL FORM HEADER & TOP METADATA TABLE
+                    OFFICIAL FORM HEADER, STAFF AUDIT BAR & TOP METADATA TABLE
                    ===================================================================== */}
                 <div className="bg-white dark:bg-slate-900 rounded-3xl border border-gray-200 dark:border-slate-800 p-4 sm:p-7 shadow-sm mb-5">
                     <div className="text-center border-b border-gray-200 dark:border-slate-800 pb-4 mb-4">
@@ -719,28 +900,111 @@ const OutreachRegistration: React.FC = () => {
                         </div>
                     </div>
 
-                    {/* Outreach Campaign Selector */}
-                    <div className="mb-3 p-3 rounded-2xl bg-gray-50 dark:bg-slate-950/70 border border-gray-200/80 dark:border-slate-800">
-                        <label className="block text-[10px] font-extrabold uppercase tracking-wider text-violet-600 dark:text-violet-400 mb-1 flex items-center gap-1">
-                            <Megaphone size={12} /> Active Outreach Event / Registration Channel
-                        </label>
-                        <select
-                            value={outreachEvent}
-                            onChange={(e) => setOutreachEvent(e.target.value)}
-                            disabled={Boolean(submittedRecord)}
-                            className="w-full px-3.5 py-2.5 min-h-[46px] bg-white dark:bg-slate-900 border border-violet-300 dark:border-violet-800 rounded-xl font-bold text-gray-900 dark:text-white text-base sm:text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/20 cursor-pointer"
-                        >
-                            {campaigns.map((c) => (
-                                <option key={c.id} value={c.name}>
-                                    {c.name} — {c.location}
-                                </option>
-                            ))}
-                        </select>
+                    {/* Outreach Campaign + Staff / Mobilizer Audit Bar */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
+                        {/* Active Outreach Campaign Selector */}
+                        <div className="p-3 rounded-2xl bg-gray-50 dark:bg-slate-950/70 border border-gray-200/80 dark:border-slate-800">
+                            <label className="block text-[10px] font-extrabold uppercase tracking-wider text-violet-600 dark:text-violet-400 mb-1 flex items-center gap-1">
+                                <Megaphone size={12} /> Active Outreach Event / Channel
+                            </label>
+                            <select
+                                value={outreachEvent}
+                                onChange={(e) => setOutreachEvent(e.target.value)}
+                                disabled={Boolean(submittedRecord)}
+                                className="w-full px-3 py-2.5 min-h-[44px] bg-white dark:bg-slate-900 border border-violet-300 dark:border-violet-800 rounded-xl font-bold text-gray-900 dark:text-white text-base sm:text-xs focus:outline-none focus:ring-2 focus:ring-violet-500/20 cursor-pointer"
+                            >
+                                {campaigns.map((c) => (
+                                    <option key={c.id} value={c.name}>
+                                        {c.name} — {c.location}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
+
+                        {/* Staff / Mobilizer Audit Attribution Selector */}
+                        <div className="p-3 rounded-2xl bg-emerald-50/50 dark:bg-emerald-950/20 border border-emerald-200/80 dark:border-emerald-800/50">
+                            <div className="flex items-center justify-between gap-1 mb-1">
+                                <label className="text-[10px] font-extrabold uppercase tracking-wider text-emerald-700 dark:text-emerald-400 flex items-center gap-1">
+                                    <UserCheck size={12} /> Registered By (Staff Audit)
+                                </label>
+                                <span
+                                    className="text-[9px] font-mono font-bold px-1.5 py-0.5 rounded bg-emerald-100 dark:bg-emerald-900/50 text-emerald-800 dark:text-emerald-300 flex items-center gap-1"
+                                    title={`Persistent Device Audit ID: ${deviceAudit.deviceId} (${deviceAudit.deviceSummary})`}
+                                >
+                                    <Fingerprint size={10} /> {deviceAudit.deviceId}
+                                </span>
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-1.5 mb-2">
+                                <button
+                                    type="button"
+                                    disabled={Boolean(submittedRecord)}
+                                    onClick={() => {
+                                        setRegistrationMode('Staff Assisted (Booth/Field)');
+                                        if (registeredByStaff === 'Self-Registered (Student Direct)') {
+                                            setRegisteredByStaff(staffRoster[0]?.name || 'Collines T.');
+                                        }
+                                    }}
+                                    className={`py-1.5 px-2 rounded-lg text-[10px] font-bold border cursor-pointer transition-all ${
+                                        registrationMode === 'Staff Assisted (Booth/Field)'
+                                            ? 'bg-emerald-600 text-white border-emerald-600'
+                                            : 'bg-white dark:bg-slate-900 text-gray-600 dark:text-slate-300 border-gray-200 dark:border-slate-700'
+                                    }`}
+                                >
+                                    👤 Staff / Mobilizer
+                                </button>
+                                <button
+                                    type="button"
+                                    disabled={Boolean(submittedRecord)}
+                                    onClick={() => setRegistrationMode('Student Self-Registration')}
+                                    className={`py-1.5 px-2 rounded-lg text-[10px] font-bold border cursor-pointer transition-all ${
+                                        registrationMode === 'Student Self-Registration'
+                                            ? 'bg-violet-600 text-white border-violet-600'
+                                            : 'bg-white dark:bg-slate-900 text-gray-600 dark:text-slate-300 border-gray-200 dark:border-slate-700'
+                                    }`}
+                                >
+                                    🎓 Self-Registering
+                                </button>
+                            </div>
+
+                            {registrationMode === 'Staff Assisted (Booth/Field)' ? (
+                                <div className="space-y-1.5">
+                                    <select
+                                        value={registeredByStaff}
+                                        onChange={(e) => setRegisteredByStaff(e.target.value)}
+                                        disabled={Boolean(submittedRecord)}
+                                        className="w-full px-3 py-2 min-h-[40px] bg-white dark:bg-slate-900 border border-emerald-300 dark:border-emerald-800 rounded-xl font-bold text-gray-900 dark:text-white text-base sm:text-xs focus:outline-none cursor-pointer"
+                                    >
+                                        {staffRoster
+                                            .filter(s => s.staffCode !== 'SELF-WEB')
+                                            .map(s => (
+                                                <option key={s.id} value={s.name}>
+                                                    {s.name} ({s.role})
+                                                </option>
+                                            ))}
+                                        <option value="CUSTOM">+ Type Custom Staff / Mobilizer Name...</option>
+                                    </select>
+                                    {registeredByStaff === 'CUSTOM' && (
+                                        <input
+                                            type="text"
+                                            value={customStaffName}
+                                            onChange={(e) => setCustomStaffName(e.target.value)}
+                                            placeholder="Enter Staff / Mobilizer Full Name"
+                                            className="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-emerald-300 dark:border-emerald-700 rounded-xl text-base sm:text-xs font-bold"
+                                        />
+                                    )}
+                                </div>
+                            ) : (
+                                <div className="px-3 py-2 rounded-xl bg-white/80 dark:bg-slate-900 border border-gray-200 dark:border-slate-800 text-[11px] font-semibold text-gray-600 dark:text-slate-300">
+                                    Student Direct Self-Service ({deviceAudit.deviceSummary})
+                                </div>
+                            )}
+                        </div>
                     </div>
 
                     {/* Official 2x2 Header Table:
-                        | Registration Date: ____ / ____ / ______ | Student Registration No.: WSI/10/26/004 |
-                        | Course / Programme: Coding With AI      | Assigned Level: Intermediate            | */}
+                        | Registration Date: ____ / ____ / ______ | Student Registration No.: WSI/11/26/004 |
+                        | Course / Programme: Advanced Vibe Coding | Assigned Level: Intermediate           | */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 border border-gray-300 dark:border-slate-700 rounded-2xl overflow-hidden text-xs bg-white dark:bg-slate-900">
                         {/* Cell 1: Registration Date */}
                         <div className="p-3 border-b border-gray-200 dark:border-slate-800 sm:border-r flex items-center justify-between gap-2">
@@ -777,8 +1041,11 @@ const OutreachRegistration: React.FC = () => {
                             <span className="font-bold text-gray-700 dark:text-slate-300 shrink-0">
                                 Course / Programme:
                             </span>
-                            <span className="font-extrabold text-violet-700 dark:text-violet-300 truncate">
-                                {submittedRecord?.course_interest || courseInterest}
+                            <span className="font-extrabold text-violet-700 dark:text-violet-300 truncate text-right">
+                                {submittedRecord?.course_interest || courseInterest}{' '}
+                                <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400">
+                                    ({activeCoursePricing.shortBadge})
+                                </span>
                             </span>
                         </div>
 
@@ -810,7 +1077,7 @@ const OutreachRegistration: React.FC = () => {
                             </h2>
                             <p className="text-xs sm:text-sm text-gray-600 dark:text-slate-300 max-w-md mx-auto leading-relaxed">
                                 Registration No. <strong className="font-mono text-violet-600 dark:text-violet-400">{submittedRecord.student_reg_no}</strong> for{' '}
-                                <strong>{submittedRecord.full_name}</strong> ({submittedRecord.outreach_event}) has been recorded. Our team will follow up on <strong>{submittedRecord.phone}</strong> to confirm enrollment.
+                                <strong>{submittedRecord.full_name}</strong> ({submittedRecord.outreach_event}) has been recorded by <strong>{submittedRecord.registered_by_staff}</strong>.
                             </p>
                         </div>
 
@@ -835,7 +1102,7 @@ const OutreachRegistration: React.FC = () => {
                                     2. COURSE & PROGRAMME INFORMATION
                                 </h4>
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
-                                    <p><span className="text-gray-500">Course / Programme:</span> <strong>{submittedRecord.course_interest}</strong></p>
+                                    <p><span className="text-gray-500">Course / Programme:</span> <strong>{submittedRecord.course_interest}</strong> ({submittedRecord.course_fee_display})</p>
                                     <p><span className="text-gray-500">Level:</span> <strong>{submittedRecord.level}</strong></p>
                                     <p><span className="text-gray-500">Mode of Study:</span> <strong>{submittedRecord.mode_of_study_text || submittedRecord.mode_preference}</strong></p>
                                     <p><span className="text-gray-500">Mode:</span> <strong>{submittedRecord.mode_preference}</strong></p>
@@ -862,12 +1129,12 @@ const OutreachRegistration: React.FC = () => {
                                     4. FEES & PAYMENT AGREEMENT
                                 </h4>
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
-                                    <p><span className="text-gray-500">Total Course Fee:</span> <strong>UGX {(submittedRecord.total_course_fee ?? 600000).toLocaleString()}</strong></p>
+                                    <p><span className="text-gray-500">Total Course Fee:</span> <strong>UGX {formatUgx(submittedRecord.total_course_fee)} ({submittedRecord.course_fee_display})</strong></p>
                                     <p><span className="text-gray-500">Registration Fee:</span> <strong>{submittedRecord.registration_fee}</strong></p>
-                                    <p><span className="text-gray-500">Amount Paid:</span> <strong>UGX {(submittedRecord.amount_paid ?? 0).toLocaleString()}</strong></p>
-                                    <p><span className="text-gray-500">Outstanding Balance:</span> <strong>UGX {(submittedRecord.outstanding_balance ?? 600000).toLocaleString()}</strong></p>
+                                    <p><span className="text-gray-500">Amount Paid:</span> <strong>UGX {formatUgx(submittedRecord.amount_paid)}</strong></p>
+                                    <p><span className="text-gray-500">Outstanding Balance:</span> <strong>UGX {formatUgx(submittedRecord.outstanding_balance)}</strong></p>
                                     <p><span className="text-gray-500">Payment Plan:</span> <strong>{submittedRecord.payment_plan}</strong></p>
-                                    <p><span className="text-gray-500">Agreed Payment Amount:</span> <strong>UGX {(submittedRecord.agreed_payment_amount ?? 200000).toLocaleString()}</strong></p>
+                                    <p><span className="text-gray-500">Agreed Payment Amount:</span> <strong>UGX {formatUgx(submittedRecord.agreed_payment_amount)}</strong></p>
                                     <p><span className="text-gray-500">Next Payment Date:</span> <strong>{submittedRecord.next_payment_date}</strong></p>
                                     <p><span className="text-gray-500">Payment Due Date:</span> <strong>{submittedRecord.payment_due_date}</strong></p>
                                     <p><span className="text-gray-500">Payment Method:</span> <strong>{submittedRecord.payment_method}</strong></p>
@@ -890,7 +1157,7 @@ const OutreachRegistration: React.FC = () => {
 
                             <div>
                                 <h4 className="font-extrabold text-violet-700 dark:text-violet-300 uppercase mb-1.5 border-b border-gray-200 dark:border-slate-800 pb-1">
-                                    8. SCHOOL / ADMINISTRATION USE ONLY
+                                    8. SCHOOL / ADMINISTRATION USE ONLY & AUDIT STAMP
                                 </h4>
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
                                     <p><span className="text-gray-500">Registration Approved By:</span> <strong>{submittedRecord.approved_by}</strong></p>
@@ -899,6 +1166,8 @@ const OutreachRegistration: React.FC = () => {
                                     <p><span className="text-gray-500">Confirmed Study Schedule:</span> <strong>{submittedRecord.confirmed_schedule}</strong></p>
                                     <p><span className="text-gray-500">Payment Status:</span> <strong>{submittedRecord.admin_payment_status}</strong></p>
                                     <p><span className="text-gray-500">Admin Signature & Date:</span> <strong>{submittedRecord.admin_signature_date}</strong></p>
+                                    <p><span className="text-gray-500">Audit Registrar:</span> <strong>{submittedRecord.registered_by_staff} ({submittedRecord.registration_mode})</strong></p>
+                                    <p><span className="text-gray-500">Device Audit ID:</span> <strong className="font-mono">{submittedRecord.device_audit_id} ({submittedRecord.device_info})</strong></p>
                                     <p className="sm:col-span-2"><span className="text-gray-500">Remarks:</span> <strong>{submittedRecord.admin_remarks || submittedRecord.admin_notes}</strong></p>
                                 </div>
                             </div>
@@ -911,7 +1180,7 @@ const OutreachRegistration: React.FC = () => {
                                 className="flex-1 py-4 px-6 bg-violet-600 hover:bg-violet-700 text-white rounded-2xl font-bold text-sm sm:text-base shadow-lg shadow-violet-600/25 flex items-center justify-center gap-2 cursor-pointer"
                             >
                                 <UserPlus size={20} />
-                                Register Next Student
+                                Register Next Student (Keep Staff: {effectiveStaffName})
                             </button>
                             <button
                                 type="button"
@@ -995,15 +1264,20 @@ const OutreachRegistration: React.FC = () => {
                             <div className="space-y-5">
                                 {/* 1. STUDENT INFORMATION */}
                                 <div className="bg-white dark:bg-slate-900 rounded-3xl border border-gray-200 dark:border-slate-800 p-4 sm:p-7 shadow-sm space-y-4">
-                                    <div className="flex items-center gap-2.5 border-b border-gray-100 dark:border-slate-800 pb-3">
-                                        <div className="w-8 h-8 rounded-xl bg-violet-100 dark:bg-violet-950/60 text-violet-600 dark:text-violet-400 flex items-center justify-center font-black text-sm shrink-0">
-                                            1
+                                    <div className="flex items-center justify-between gap-2.5 border-b border-gray-100 dark:border-slate-800 pb-3">
+                                        <div className="flex items-center gap-2.5">
+                                            <div className="w-8 h-8 rounded-xl bg-violet-100 dark:bg-violet-950/60 text-violet-600 dark:text-violet-400 flex items-center justify-center font-black text-sm shrink-0">
+                                                1
+                                            </div>
+                                            <div>
+                                                <h3 className="text-sm sm:text-base font-extrabold uppercase tracking-wide text-gray-900 dark:text-white">
+                                                    1. STUDENT INFORMATION
+                                                </h3>
+                                            </div>
                                         </div>
-                                        <div>
-                                            <h3 className="text-sm sm:text-base font-extrabold uppercase tracking-wide text-gray-900 dark:text-white">
-                                                1. STUDENT INFORMATION
-                                            </h3>
-                                        </div>
+                                        <span className="text-[10px] font-bold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 px-2.5 py-1 rounded-full">
+                                            Clean Data Validated ✓
+                                        </span>
                                     </div>
 
                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -1019,10 +1293,17 @@ const OutreachRegistration: React.FC = () => {
                                                     required
                                                     value={fullName}
                                                     onChange={(e) => {
-                                                        setFullName(e.target.value);
+                                                        // Strip numbers from person name for clean data
+                                                        const noDigits = e.target.value.replace(/[0-9]/g, '');
+                                                        setFullName(noDigits);
                                                         if (errors.fullName) setErrors(prev => ({ ...prev, fullName: '' }));
                                                     }}
-                                                    placeholder="Enter student's full name"
+                                                    onBlur={() => {
+                                                        if (fullName.trim()) {
+                                                            setFullName(cleanPersonName(fullName));
+                                                        }
+                                                    }}
+                                                    placeholder="Enter student's full name (e.g. Mukasa Ronald)"
                                                     className={`w-full pl-10 pr-4 py-3 min-h-[48px] bg-gray-50 dark:bg-slate-800/90 border rounded-2xl text-base sm:text-sm font-medium focus:outline-none ${
                                                         errors.fullName ? 'border-red-500' : 'border-gray-200 dark:border-slate-700 focus:border-violet-500'
                                                     }`}
@@ -1046,7 +1327,7 @@ const OutreachRegistration: React.FC = () => {
                                                     type="email"
                                                     value={email}
                                                     onChange={(e) => {
-                                                        setEmail(e.target.value);
+                                                        setEmail(e.target.value.replace(/\s+/g, '').toLowerCase());
                                                         if (errors.email) setErrors(prev => ({ ...prev, email: '' }));
                                                     }}
                                                     placeholder="student@email.com"
@@ -1058,30 +1339,60 @@ const OutreachRegistration: React.FC = () => {
                                             )}
                                         </div>
 
-                                        {/* Phone Number: ___________________________________________________________ */}
+                                        {/* Phone Number (Strict 10-digit UG / 12-digit +256 cap): ___________________ */}
                                         <div>
-                                            <label className="block text-xs font-bold uppercase tracking-wider text-gray-600 dark:text-slate-300 mb-1">
-                                                Phone Number: <span className="text-red-500">*</span>
-                                            </label>
+                                            <div className="flex items-center justify-between gap-1 mb-1">
+                                                <label className="text-xs font-bold uppercase tracking-wider text-gray-600 dark:text-slate-300">
+                                                    Phone Number: <span className="text-red-500">*</span>
+                                                </label>
+                                                <span
+                                                    className={`text-[10px] font-mono font-bold px-2 py-0.5 rounded-full ${
+                                                        phoneValidation.valid
+                                                            ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300'
+                                                            : phone.length > 0
+                                                            ? 'bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300'
+                                                            : 'bg-gray-100 text-gray-500 dark:bg-slate-800 dark:text-slate-400'
+                                                    }`}
+                                                >
+                                                    {phoneValidation.valid ? `✓ ${phoneValidation.formatLabel}` : phoneValidation.formatLabel}
+                                                </span>
+                                            </div>
                                             <div className="relative">
                                                 <Phone size={17} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
                                                 <input
                                                     type="tel"
+                                                    inputMode="tel"
                                                     required
+                                                    maxLength={phone.startsWith('+') ? 13 : 10}
                                                     value={phone}
                                                     onChange={(e) => {
-                                                        setPhone(e.target.value);
+                                                        const clean = sanitizePhoneInput(e.target.value);
+                                                        setPhone(clean);
                                                         if (errors.phone) setErrors(prev => ({ ...prev, phone: '' }));
                                                     }}
-                                                    placeholder="e.g. 0772 123 456"
-                                                    className={`w-full pl-10 pr-4 py-3 min-h-[48px] bg-gray-50 dark:bg-slate-800/90 border rounded-2xl text-base sm:text-sm font-medium focus:outline-none ${
-                                                        errors.phone ? 'border-red-500' : 'border-gray-200 dark:border-slate-700 focus:border-violet-500'
+                                                    onBlur={() => {
+                                                        const check = validateCleanPhone(phone);
+                                                        if (check.valid && check.normalized) {
+                                                            setPhone(check.normalized);
+                                                        }
+                                                    }}
+                                                    placeholder="0772123456 (Max 10 digits)"
+                                                    className={`w-full pl-10 pr-4 py-3 min-h-[48px] bg-gray-50 dark:bg-slate-800/90 border rounded-2xl text-base sm:text-sm font-mono font-bold focus:outline-none ${
+                                                        errors.phone
+                                                            ? 'border-red-500'
+                                                            : phoneValidation.valid
+                                                            ? 'border-emerald-500 dark:border-emerald-500'
+                                                            : 'border-gray-200 dark:border-slate-700 focus:border-violet-500'
                                                     }`}
                                                 />
                                             </div>
-                                            {errors.phone && (
+                                            {errors.phone ? (
                                                 <p className="mt-1 text-xs font-semibold text-red-500 flex items-center gap-1">
                                                     <AlertCircle size={12} /> {errors.phone}
+                                                </p>
+                                            ) : (
+                                                <p className="mt-1 text-[11px] text-gray-400 dark:text-slate-500">
+                                                    {phone ? phoneValidation.message : 'Format: 07XX XXX XXX (strictly 10 digits) or +2567XXXXXXXX'}
                                                 </p>
                                             )}
                                         </div>
@@ -1157,8 +1468,11 @@ const OutreachRegistration: React.FC = () => {
                                                 type="text"
                                                 value={guardianName}
                                                 onChange={(e) => {
-                                                    setGuardianName(e.target.value);
+                                                    setGuardianName(e.target.value.replace(/[0-9]/g, ''));
                                                     if (errors.guardianName) setErrors(prev => ({ ...prev, guardianName: '' }));
+                                                }}
+                                                onBlur={() => {
+                                                    if (guardianName.trim()) setGuardianName(cleanPersonName(guardianName));
                                                 }}
                                                 placeholder="Parent / Guardian Name (if applicable)"
                                                 className={`w-full px-4 py-3 min-h-[48px] bg-gray-50 dark:bg-slate-800/90 border rounded-2xl text-base sm:text-sm font-medium focus:outline-none ${
@@ -1170,20 +1484,43 @@ const OutreachRegistration: React.FC = () => {
                                             )}
                                         </div>
 
-                                        {/* Parent / Guardian Contact: _____________________________________________ */}
+                                        {/* Parent / Guardian Contact (Strict 10-digit cap): ______________________ */}
                                         <div>
-                                            <label className="block text-xs font-bold uppercase tracking-wider text-gray-600 dark:text-slate-300 mb-1">
-                                                Parent / Guardian Contact: {isGuardianRequired && <span className="text-red-500">*</span>}
-                                            </label>
+                                            <div className="flex items-center justify-between gap-1 mb-1">
+                                                <label className="text-xs font-bold uppercase tracking-wider text-gray-600 dark:text-slate-300">
+                                                    Parent / Guardian Contact: {isGuardianRequired && <span className="text-red-500">*</span>}
+                                                </label>
+                                                {guardianPhoneValidation && (
+                                                    <span
+                                                        className={`text-[10px] font-mono font-bold px-2 py-0.5 rounded-full ${
+                                                            guardianPhoneValidation.valid
+                                                                ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300'
+                                                                : 'bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300'
+                                                        }`}
+                                                    >
+                                                        {guardianPhoneValidation.formatLabel}
+                                                    </span>
+                                                )}
+                                            </div>
                                             <input
                                                 type="tel"
+                                                inputMode="tel"
+                                                maxLength={guardianPhone.startsWith('+') ? 13 : 10}
                                                 value={guardianPhone}
                                                 onChange={(e) => {
-                                                    setGuardianPhone(e.target.value);
+                                                    setGuardianPhone(sanitizePhoneInput(e.target.value));
                                                     if (errors.guardianPhone) setErrors(prev => ({ ...prev, guardianPhone: '' }));
                                                 }}
-                                                placeholder="Parent / Guardian Phone Number"
-                                                className={`w-full px-4 py-3 min-h-[48px] bg-gray-50 dark:bg-slate-800/90 border rounded-2xl text-base sm:text-sm font-medium focus:outline-none ${
+                                                onBlur={() => {
+                                                    if (guardianPhone.trim()) {
+                                                        const check = validateCleanPhone(guardianPhone);
+                                                        if (check.valid && check.normalized) {
+                                                            setGuardianPhone(check.normalized);
+                                                        }
+                                                    }
+                                                }}
+                                                placeholder="07XX XXX XXX (Max 10 digits)"
+                                                className={`w-full px-4 py-3 min-h-[48px] bg-gray-50 dark:bg-slate-800/90 border rounded-2xl text-base sm:text-sm font-mono font-bold focus:outline-none ${
                                                     errors.guardianPhone ? 'border-red-500' : 'border-gray-200 dark:border-slate-700 focus:border-violet-500'
                                                 }`}
                                             />
@@ -1194,21 +1531,64 @@ const OutreachRegistration: React.FC = () => {
                                     </div>
                                 </div>
 
-                                {/* 2. COURSE & PROGRAMME INFORMATION */}
+                                {/* 2. COURSE & PROGRAMME INFORMATION (With Official Monthly Fees!) */}
                                 <div className="bg-white dark:bg-slate-900 rounded-3xl border border-gray-200 dark:border-slate-800 p-4 sm:p-7 shadow-sm space-y-4">
-                                    <div className="flex items-center gap-2.5 border-b border-gray-100 dark:border-slate-800 pb-3">
-                                        <div className="w-8 h-8 rounded-xl bg-violet-100 dark:bg-violet-950/60 text-violet-600 dark:text-violet-400 flex items-center justify-center font-black text-sm shrink-0">
-                                            2
+                                    <div className="flex flex-wrap items-center justify-between gap-2 border-b border-gray-100 dark:border-slate-800 pb-3">
+                                        <div className="flex items-center gap-2.5">
+                                            <div className="w-8 h-8 rounded-xl bg-violet-100 dark:bg-violet-950/60 text-violet-600 dark:text-violet-400 flex items-center justify-center font-black text-sm shrink-0">
+                                                2
+                                            </div>
+                                            <div>
+                                                <h3 className="text-sm sm:text-base font-extrabold uppercase tracking-wide text-gray-900 dark:text-white">
+                                                    2. COURSE & PROGRAMME INFORMATION
+                                                </h3>
+                                            </div>
                                         </div>
-                                        <div>
-                                            <h3 className="text-sm sm:text-base font-extrabold uppercase tracking-wide text-gray-900 dark:text-white">
-                                                2. COURSE & PROGRAMME INFORMATION
-                                            </h3>
+                                        <span className="px-2.5 py-1 rounded-full bg-violet-100 dark:bg-violet-950/60 text-violet-700 dark:text-violet-300 text-[11px] font-extrabold">
+                                            {activeCoursePricing.displayFee}
+                                        </span>
+                                    </div>
+
+                                    {/* Quick Tap Official Course Fee Cards */}
+                                    <div>
+                                        <label className="block text-[11px] font-extrabold uppercase tracking-wider text-violet-600 dark:text-violet-400 mb-2">
+                                            Official Welile AI Courses & Monthly Charges (Tap to Select):
+                                        </label>
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                                            {OFFICIAL_COURSE_CATALOG.map((item, idx) => {
+                                                const isSelected = courseInterest === item.title;
+                                                return (
+                                                    <button
+                                                        key={item.title}
+                                                        type="button"
+                                                        onClick={() => handleCourseSelect(item.title)}
+                                                        className={`p-3.5 rounded-2xl border text-left transition-all cursor-pointer flex items-center justify-between gap-2 ${
+                                                            isSelected
+                                                                ? 'bg-violet-600 text-white border-violet-600 shadow-md shadow-violet-600/20'
+                                                                : 'bg-gray-50 dark:bg-slate-800/80 text-gray-900 dark:text-white border-gray-200 dark:border-slate-700 hover:border-violet-400'
+                                                        }`}
+                                                    >
+                                                        <div className="min-w-0">
+                                                            <div className="text-xs font-extrabold truncate">
+                                                                {idx + 1}. {item.title}
+                                                            </div>
+                                                            <div className={`text-[11px] font-bold mt-0.5 ${
+                                                                isSelected ? 'text-violet-100' : 'text-emerald-600 dark:text-emerald-400'
+                                                            }`}>
+                                                                {item.displayFee}
+                                                            </div>
+                                                        </div>
+                                                        <span className="text-sm font-black shrink-0">
+                                                            {isSelected ? '☑' : '☐'}
+                                                        </span>
+                                                    </button>
+                                                );
+                                            })}
                                         </div>
                                     </div>
 
                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                        {/* Course / Programme: ________________________________________________________ */}
+                                        {/* Course / Programme Dropdown: ________________________________________________________ */}
                                         <div className="sm:col-span-2">
                                             <label className="block text-xs font-bold uppercase tracking-wider text-gray-600 dark:text-slate-300 mb-1">
                                                 Course / Programme: <span className="text-red-500">*</span>
@@ -1217,12 +1597,17 @@ const OutreachRegistration: React.FC = () => {
                                                 <BookOpen size={17} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
                                                 <select
                                                     value={courseInterest}
-                                                    onChange={(e) => setCourseInterest(e.target.value)}
+                                                    onChange={(e) => handleCourseSelect(e.target.value)}
                                                     className="w-full pl-10 pr-4 py-3.5 min-h-[50px] bg-gray-50 dark:bg-slate-800/90 border border-gray-200 dark:border-slate-700 rounded-2xl text-base sm:text-sm font-bold text-gray-900 dark:text-white focus:outline-none focus:border-violet-500 cursor-pointer"
                                                 >
-                                                    {courseOptions.map((c) => (
-                                                        <option key={c} value={c}>{c}</option>
-                                                    ))}
+                                                    {courseOptions.map((c) => {
+                                                        const p = getCoursePricing(c);
+                                                        return (
+                                                            <option key={c} value={c}>
+                                                                {c} — {p.displayFee}
+                                                            </option>
+                                                        );
+                                                    })}
                                                 </select>
                                             </div>
                                         </div>
@@ -1434,39 +1819,49 @@ const OutreachRegistration: React.FC = () => {
                                     </div>
                                 </div>
 
-                                {/* 4. FEES & PAYMENT AGREEMENT */}
+                                {/* 4. FEES & PAYMENT AGREEMENT (Validated & Formatted Money Inputs!) */}
                                 <div className="bg-white dark:bg-slate-900 rounded-3xl border border-gray-200 dark:border-slate-800 p-4 sm:p-7 shadow-sm space-y-4">
-                                    <div className="flex items-center gap-2.5 border-b border-gray-100 dark:border-slate-800 pb-3">
-                                        <div className="w-8 h-8 rounded-xl bg-violet-100 dark:bg-violet-950/60 text-violet-600 dark:text-violet-400 flex items-center justify-center font-black text-sm shrink-0">
-                                            4
+                                    <div className="flex flex-wrap items-center justify-between gap-2 border-b border-gray-100 dark:border-slate-800 pb-3">
+                                        <div className="flex items-center gap-2.5">
+                                            <div className="w-8 h-8 rounded-xl bg-violet-100 dark:bg-violet-950/60 text-violet-600 dark:text-violet-400 flex items-center justify-center font-black text-sm shrink-0">
+                                                4
+                                            </div>
+                                            <div>
+                                                <h3 className="text-sm sm:text-base font-extrabold uppercase tracking-wide text-gray-900 dark:text-white">
+                                                    4. FEES & PAYMENT AGREEMENT
+                                                </h3>
+                                            </div>
                                         </div>
-                                        <div>
-                                            <h3 className="text-sm sm:text-base font-extrabold uppercase tracking-wide text-gray-900 dark:text-white">
-                                                4. FEES & PAYMENT AGREEMENT
-                                            </h3>
-                                        </div>
+                                        <span className="text-xs font-extrabold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 px-3 py-1 rounded-full border border-emerald-200 dark:border-emerald-800/50">
+                                            {courseInterest}: {activeCoursePricing.displayFee}
+                                        </span>
                                     </div>
 
-                                    {/* Official Fee Table:
-                                        | Total Course Fee      | UGX 600,000         |
-                                        | Registration Fee      | UGX –Not Applicable |
-                                        | Amount Paid           | UGX                 |
-                                        | Outstanding Balance   | UGX                 |
-                                        | Payment Plan          | ☐ Full ☐ Weekly ☐ Monthly ☐ Other: ____ |
-                                        | Agreed Payment Amount | UGX                 |
-                                        | Next Payment Date     | ____ / ____ / ______| */}
                                     <div className="border border-gray-300 dark:border-slate-700 rounded-2xl overflow-hidden divide-y divide-gray-200 dark:divide-slate-800 text-xs sm:text-sm">
                                         {/* Row 1: Total Course Fee */}
                                         <div className="grid grid-cols-1 sm:grid-cols-3 items-center p-3 bg-gray-50/70 dark:bg-slate-950/40 gap-2">
-                                            <span className="font-bold text-gray-700 dark:text-slate-300">Total Course Fee</span>
+                                            <div>
+                                                <span className="font-bold text-gray-700 dark:text-slate-300 block">Total Course Fee (Monthly)</span>
+                                                <span className="text-[10px] text-violet-600 dark:text-violet-400 font-bold">
+                                                    Official Rate: {activeCoursePricing.displayFee}
+                                                </span>
+                                            </div>
                                             <div className="sm:col-span-2 flex items-center gap-2">
                                                 <span className="font-bold text-gray-500">UGX</span>
                                                 <input
-                                                    type="number"
-                                                    value={totalCourseFee}
-                                                    onChange={(e) => setTotalCourseFee(Number(e.target.value) || 600000)}
-                                                    className="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-xl font-black text-gray-900 dark:text-white text-base sm:text-sm"
+                                                    type="text"
+                                                    inputMode="numeric"
+                                                    value={formatUgx(totalCourseFee)}
+                                                    onChange={(e) => {
+                                                        const cleanVal = sanitizeMoneyInput(e.target.value);
+                                                        setTotalCourseFee(cleanVal);
+                                                        if (errors.totalCourseFee) setErrors(prev => ({ ...prev, totalCourseFee: '' }));
+                                                    }}
+                                                    className="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-xl font-black text-gray-900 dark:text-white text-base sm:text-sm font-mono"
                                                 />
+                                                <span className="px-2.5 py-2 rounded-xl bg-violet-100 dark:bg-violet-950/60 text-violet-700 dark:text-violet-300 font-extrabold text-xs shrink-0">
+                                                    {formatEquivalentUsd(totalCourseFee, courseInterest)}/mo
+                                                </span>
                                             </div>
                                         </div>
 
@@ -1490,20 +1885,29 @@ const OutreachRegistration: React.FC = () => {
                                                 <div className="flex items-center gap-2">
                                                     <span className="font-bold text-gray-500">UGX</span>
                                                     <input
-                                                        type="number"
-                                                        min={0}
-                                                        step={10000}
-                                                        value={amountPaid}
-                                                        onChange={(e) => setAmountPaid(Number(e.target.value) || 0)}
-                                                        className="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-xl font-bold text-gray-900 dark:text-white text-base sm:text-sm"
+                                                        type="text"
+                                                        inputMode="numeric"
+                                                        value={formatUgx(amountPaid)}
+                                                        onChange={(e) => {
+                                                            const maxFee = Number(totalCourseFee) || activeCoursePricing.ugxPerMonth;
+                                                            const cleanPaid = sanitizeMoneyInput(e.target.value, maxFee);
+                                                            setAmountPaid(cleanPaid);
+                                                            if (errors.amountPaid) setErrors(prev => ({ ...prev, amountPaid: '' }));
+                                                        }}
+                                                        className="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-xl font-bold text-gray-900 dark:text-white text-base sm:text-sm font-mono"
                                                     />
+                                                    <span className="px-2.5 py-2 rounded-xl bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 font-extrabold text-xs shrink-0">
+                                                        {formatEquivalentUsd(amountPaid, courseInterest)}
+                                                    </span>
                                                 </div>
+                                                {errors.amountPaid && (
+                                                    <p className="text-xs font-semibold text-red-500">{errors.amountPaid}</p>
+                                                )}
                                                 <div className="flex flex-wrap gap-1.5">
                                                     {[
                                                         { label: '0 (Pay on Follow-up)', val: 0 },
-                                                        { label: '100,000', val: 100000 },
-                                                        { label: '200,000', val: 200000 },
-                                                        { label: '600,000', val: 600000 }
+                                                        { label: `50% (${formatUgx(activeCoursePricing.ugxPerMonth / 2)})`, val: Math.round(activeCoursePricing.ugxPerMonth / 2) },
+                                                        { label: `Full Month (${formatUgx(activeCoursePricing.ugxPerMonth)} / $${activeCoursePricing.usdPerMonth})`, val: activeCoursePricing.ugxPerMonth }
                                                     ].map((p) => (
                                                         <button
                                                             key={p.val}
@@ -1530,9 +1934,12 @@ const OutreachRegistration: React.FC = () => {
                                                 <input
                                                     type="text"
                                                     readOnly
-                                                    value={outstandingBalance.toLocaleString()}
-                                                    className="w-full px-3 py-2 bg-amber-50/70 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800/60 rounded-xl font-black text-amber-700 dark:text-amber-300 text-base sm:text-sm"
+                                                    value={formatUgx(outstandingBalance)}
+                                                    className="w-full px-3 py-2 bg-amber-50/70 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800/60 rounded-xl font-black text-amber-700 dark:text-amber-300 text-base sm:text-sm font-mono"
                                                 />
+                                                <span className="px-2.5 py-2 rounded-xl bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 font-extrabold text-xs shrink-0">
+                                                    {formatEquivalentUsd(outstandingBalance, courseInterest)}
+                                                </span>
                                             </div>
                                         </div>
 
@@ -1579,13 +1986,15 @@ const OutreachRegistration: React.FC = () => {
                                             <div className="sm:col-span-2 flex items-center gap-2">
                                                 <span className="font-bold text-gray-500">UGX</span>
                                                 <input
-                                                    type="number"
-                                                    min={0}
-                                                    step={10000}
-                                                    value={agreedPaymentAmount}
-                                                    onChange={(e) => setAgreedPaymentAmount(Number(e.target.value) || 0)}
-                                                    className="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-xl font-bold text-gray-900 dark:text-white text-base sm:text-sm"
+                                                    type="text"
+                                                    inputMode="numeric"
+                                                    value={formatUgx(agreedPaymentAmount)}
+                                                    onChange={(e) => setAgreedPaymentAmount(sanitizeMoneyInput(e.target.value))}
+                                                    className="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-xl font-bold text-gray-900 dark:text-white text-base sm:text-sm font-mono"
                                                 />
+                                                <span className="px-2.5 py-2 rounded-xl bg-gray-100 dark:bg-slate-800 text-gray-700 dark:text-slate-300 font-extrabold text-xs shrink-0">
+                                                    {formatEquivalentUsd(agreedPaymentAmount, courseInterest)}
+                                                </span>
                                             </div>
                                         </div>
 
@@ -1603,11 +2012,7 @@ const OutreachRegistration: React.FC = () => {
                                         </div>
                                     </div>
 
-                                    {/* Below Table Fields in Section 4:
-                                        Payment Due Date: ____________________________________________________
-                                        Payment Method:
-                                        Method: ☐ Cash     ☐ Mobile Money     ☐ Bank     ☐ Other: __________
-                                        Payment Reference / Receipt No.: _______________________________________ */}
+                                    {/* Below Table Fields in Section 4 */}
                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
                                         <div className="sm:col-span-2">
                                             <label className="block text-xs font-bold uppercase tracking-wider text-gray-600 dark:text-slate-300 mb-1">
@@ -1832,7 +2237,7 @@ const OutreachRegistration: React.FC = () => {
                                             <input
                                                 type="text"
                                                 value={guardianName}
-                                                onChange={(e) => setGuardianName(e.target.value)}
+                                                onChange={(e) => setGuardianName(e.target.value.replace(/[0-9]/g, ''))}
                                                 placeholder="Parent / Guardian Full Name"
                                                 className="w-full px-3.5 py-3 min-h-[48px] bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-2xl text-base sm:text-sm"
                                             />
@@ -1843,10 +2248,12 @@ const OutreachRegistration: React.FC = () => {
                                             </label>
                                             <input
                                                 type="tel"
+                                                inputMode="tel"
+                                                maxLength={guardianPhone.startsWith('+') ? 13 : 10}
                                                 value={guardianPhone}
-                                                onChange={(e) => setGuardianPhone(e.target.value)}
-                                                placeholder="Parent / Guardian Phone Number"
-                                                className="w-full px-3.5 py-3 min-h-[48px] bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-2xl text-base sm:text-sm"
+                                                onChange={(e) => setGuardianPhone(sanitizePhoneInput(e.target.value))}
+                                                placeholder="07XX XXX XXX (Max 10 digits)"
+                                                className="w-full px-3.5 py-3 min-h-[48px] bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-2xl text-base sm:text-sm font-mono font-bold"
                                             />
                                         </div>
                                         <div>
@@ -1889,12 +2296,12 @@ const OutreachRegistration: React.FC = () => {
                                                     8. SCHOOL / ADMINISTRATION USE ONLY
                                                 </h3>
                                                 <p className="text-[11px] text-gray-500 dark:text-slate-400">
-                                                    Pre-filled for outreach follow-up (can be updated by staff now or in the Admin Dashboard)
+                                                    Pre-filled with Outreach Registrar & Follow-Up defaults
                                                 </p>
                                             </div>
                                         </div>
                                         <span className="px-2.5 py-1 rounded-full bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 text-[10px] font-bold flex items-center gap-1">
-                                            <ShieldCheck size={12} /> Official Follow-Up Section
+                                            <ShieldCheck size={12} /> Audited: {effectiveStaffName}
                                         </span>
                                     </div>
 
@@ -2055,7 +2462,7 @@ const OutreachRegistration: React.FC = () => {
                                         ) : (
                                             <>
                                                 <CheckCircle2 size={18} />
-                                                Submit Official Registration Form
+                                                Submit Official Registration ({activeCoursePricing.shortBadge})
                                             </>
                                         )}
                                     </button>

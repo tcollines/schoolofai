@@ -68,9 +68,16 @@ CREATE TABLE IF NOT EXISTS public.outreach_registrations (
     guardian_consent_date DATE,
     consent_contact BOOLEAN DEFAULT true NOT NULL,
 
-    -- OUTREACH ATTRIBUTION
+    -- OUTREACH ATTRIBUTION & STAFF AUDIT
     how_heard TEXT DEFAULT 'Outreach Event',
     outreach_event TEXT DEFAULT 'Nkumba University Outreach (Fri, 6th Nov 2026)',
+    registered_by_staff TEXT DEFAULT 'Self-Registered (Student)',
+    registered_by_staff_id TEXT DEFAULT 'self',
+    registered_by_role TEXT DEFAULT 'Student',
+    registration_mode TEXT DEFAULT 'Staff Assisted (Booth/Field)',
+    device_audit_id TEXT,
+    device_info TEXT,
+    audit_trail JSONB DEFAULT '[]'::jsonb,
 
     -- 8. SCHOOL / ADMINISTRATION USE ONLY
     status TEXT DEFAULT 'NEW' NOT NULL,  -- NEW | CONTACTED | ENROLLED | NOT_INTERESTED

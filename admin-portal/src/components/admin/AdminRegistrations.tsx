@@ -31,7 +31,10 @@ import {
     Plus,
     Star,
     Trash2,
-    Layers
+    Layers,
+    UserCheck,
+    Fingerprint,
+    Award
 } from 'lucide-react';
 import {
     ResponsiveContainer,
@@ -45,6 +48,124 @@ import {
     Tooltip,
     Cell
 } from 'recharts';
+
+export interface OfficialCoursePricing {
+    title: string;
+    usdPerMonth: number;
+    ugxPerMonth: number;
+    displayFee: string;
+}
+
+export const OFFICIAL_COURSE_CATALOG: OfficialCoursePricing[] = [
+    {
+        title: 'Advanced Vibe Coding',
+        usdPerMonth: 25,
+        ugxPerMonth: 100000,
+        displayFee: '$25 | 100,000 UGX per month'
+    },
+    {
+        title: 'Document with AI',
+        usdPerMonth: 25,
+        ugxPerMonth: 100000,
+        displayFee: '$25 | 100,000 UGX per month'
+    },
+    {
+        title: 'Agentic AI',
+        usdPerMonth: 50,
+        ugxPerMonth: 200000,
+        displayFee: '$50 | 200,000 UGX per month'
+    },
+    {
+        title: 'AI Security and Safety',
+        usdPerMonth: 35,
+        ugxPerMonth: 150000,
+        displayFee: '$35 | 150,000 UGX per month'
+    }
+];
+
+export function getCoursePricing(courseTitle?: string | null): OfficialCoursePricing {
+    const clean = (courseTitle || '').trim().toLowerCase();
+    const matched = OFFICIAL_COURSE_CATALOG.find(
+        c => c.title.toLowerCase() === clean || clean.includes(c.title.toLowerCase())
+    );
+    if (matched) return matched;
+    return {
+        title: courseTitle || 'Advanced Vibe Coding',
+        usdPerMonth: 25,
+        ugxPerMonth: 100000,
+        displayFee: '$25 | 100,000 UGX per month'
+    };
+}
+
+export interface OutreachStaffMember {
+    id: string;
+    name: string;
+    staffCode: string;
+    role: string;
+    phone?: string;
+    isActive: boolean;
+}
+
+export const DEFAULT_OUTREACH_STAFF: OutreachStaffMember[] = [
+    {
+        id: 'stf-001',
+        name: 'Collines T.',
+        staffCode: 'WSI-STF-001',
+        role: 'Outreach Team Lead',
+        phone: '0772000001',
+        isActive: true
+    },
+    {
+        id: 'stf-002',
+        name: 'Nkumba Mobilizer 1 (Booth Desk A)',
+        staffCode: 'WSI-STF-002',
+        role: 'Outreach Mobilizer',
+        phone: '0772000002',
+        isActive: true
+    },
+    {
+        id: 'stf-003',
+        name: 'Nkumba Mobilizer 2 (Booth Desk B)',
+        staffCode: 'WSI-STF-003',
+        role: 'Outreach Mobilizer',
+        phone: '0772000003',
+        isActive: true
+    },
+    {
+        id: 'stf-004',
+        name: 'Katabi Admissions Office',
+        staffCode: 'WSI-STF-004',
+        role: 'Admissions Officer',
+        phone: '0700000004',
+        isActive: true
+    },
+    {
+        id: 'stf-005',
+        name: 'Welile Campus Ambassador',
+        staffCode: 'WSI-STF-005',
+        role: 'Campus Mobilizer',
+        phone: '0750000005',
+        isActive: true
+    },
+    {
+        id: 'stf-self',
+        name: 'Self-Registered (Student Direct)',
+        staffCode: 'SELF-WEB',
+        role: 'Student Self-Service',
+        isActive: true
+    }
+];
+
+const STAFF_STORAGE_KEY = 'welile_outreach_staff_v1';
+
+export interface AuditLogEntry {
+    timestamp: string;
+    actor: string;
+    role: string;
+    action: string;
+    device_id: string;
+    details?: string;
+}
 
 export interface OutreachCampaign {
     id: string;
@@ -111,7 +232,10 @@ export interface OutreachRegistrationRecord {
     guardian_phone: string | null;
     location: string | null;
     course_interest: string;
+    course_fee_usd?: number | null;
+    course_fee_display?: string | null;
     level: string | null;
+    mode_of_study_text?: string | null;
     mode_preference: string | null;
     expected_start_date?: string | null;
     expected_completion_date?: string | null;
@@ -130,13 +254,21 @@ export interface OutreachRegistrationRecord {
     payment_due_date?: string | null;
     payment_method?: string | null;
     payment_reference?: string | null;
-    commitments_accepted?: string[] | null;
+    commitments_accepted?: string[] | boolean | null;
+    commitments_list?: string[] | null;
     student_signature?: string | null;
     student_declaration_date?: string | null;
     guardian_signature?: string | null;
     guardian_consent_date?: string | null;
     how_heard: string | null;
     outreach_event: string | null;
+    registered_by_staff?: string | null;
+    registered_by_staff_id?: string | null;
+    registered_by_role?: string | null;
+    registration_mode?: string | null;
+    device_audit_id?: string | null;
+    device_info?: string | null;
+    audit_trail?: AuditLogEntry[] | null;
     consent_contact: boolean;
     status: 'NEW' | 'CONTACTED' | 'ENROLLED' | 'NOT_INTERESTED';
     approved_by?: string | null;
@@ -145,6 +277,7 @@ export interface OutreachRegistrationRecord {
     confirmed_schedule?: string | null;
     admin_payment_status?: string | null;
     admin_signature_date?: string | null;
+    admin_remarks?: string | null;
     admin_notes: string | null;
     converted_profile_id: string | null;
     submitted_from: string | null;
@@ -210,12 +343,17 @@ interface Section8Draft {
 const AdminRegistrations: React.FC = () => {
     const [registrations, setRegistrations] = useState<OutreachRegistrationRecord[]>([]);
     const [campaigns, setCampaigns] = useState<OutreachCampaign[]>(DEFAULT_OUTREACH_CAMPAIGNS);
+    const [staffRoster, setStaffRoster] = useState<OutreachStaffMember[]>(DEFAULT_OUTREACH_STAFF);
     const [courses, setCourses] = useState<Array<{ id: string; title: string }>>([]);
     const [loading, setLoading] = useState(true);
 
     // TOP-LEVEL DASHBOARD SIEVE (Sieves KPIs, Charts, Table, and CSV Export!)
     // Values: 'ALL' | 'OUTREACH_ONLY' | 'GENERAL_ONLY' | specific campaign name
     const [dashboardSieve, setDashboardSieve] = useState<string>('ALL');
+
+    // STAFF / MOBILIZER AUDIT SIEVE (Sieves KPIs, Charts, Table, and CSV Export!)
+    // Values: 'ALL' | 'STAFF_ONLY' | 'SELF_ONLY' | specific staff member name
+    const [staffSieve, setStaffSieve] = useState<string>('ALL');
 
     // Table-level secondary filters & sorting
     const [searchQuery, setSearchQuery] = useState('');
@@ -245,6 +383,13 @@ const AdminRegistrations: React.FC = () => {
     const [newCampaignIsDefault, setNewCampaignIsDefault] = useState(false);
     const [savingCampaigns, setSavingCampaigns] = useState(false);
 
+    // Outreach Staff & Mobilizers Audit Manager Modal
+    const [showStaffModal, setShowStaffModal] = useState(false);
+    const [newStaffName, setNewStaffName] = useState('');
+    const [newStaffRole, setNewStaffRole] = useState('Outreach Mobilizer');
+    const [newStaffPhone, setNewStaffPhone] = useState('');
+    const [savingStaff, setSavingStaff] = useState(false);
+
     // Convert to Student modal state
     const [convertingLead, setConvertingLead] = useState<OutreachRegistrationRecord | null>(null);
     const [convertName, setConvertName] = useState('');
@@ -258,7 +403,141 @@ const AdminRegistrations: React.FC = () => {
     // Shareable QR Code Modal state
     const [showQrModal, setShowQrModal] = useState(false);
     const [qrEventName, setQrEventName] = useState('Nkumba University Outreach (Fri, 6th Nov 2026)');
+    const [qrStaffName, setQrStaffName] = useState('');
     const [copiedLink, setCopiedLink] = useState(false);
+
+    const loadStaffRoster = async (mailsData?: any[]) => {
+        try {
+            if (mailsData && mailsData.length > 0) {
+                const staffRows = mailsData
+                    .filter((m: any) => m.email === 'outreach-staff@system.welile.com')
+                    .sort((a: any, b: any) => new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime());
+                if (staffRows.length > 0) {
+                    const match = (staffRows[0].message || '').match(/<!--STAFF_JSON:([\s\S]+?)-->/);
+                    if (match && match[1]) {
+                        const parsed = JSON.parse(match[1]);
+                        if (Array.isArray(parsed) && parsed.length > 0) {
+                            setStaffRoster(parsed);
+                            localStorage.setItem(STAFF_STORAGE_KEY, JSON.stringify(parsed));
+                            return;
+                        }
+                    }
+                }
+            }
+
+            const cached = localStorage.getItem(STAFF_STORAGE_KEY);
+            if (cached) {
+                const parsed = JSON.parse(cached);
+                if (Array.isArray(parsed) && parsed.length > 0) {
+                    setStaffRoster(parsed);
+                    return;
+                }
+            }
+        } catch {
+            // fallback to default staff roster
+        }
+    };
+
+    const persistStaffRoster = async (nextStaff: OutreachStaffMember[]) => {
+        setSavingStaff(true);
+        setStaffRoster(nextStaff);
+        try {
+            localStorage.setItem(STAFF_STORAGE_KEY, JSON.stringify(nextStaff));
+        } catch {
+            // ignore
+        }
+
+        try {
+            const payloadStr = `[System Outreach Staff Roster]\n<!--STAFF_JSON:${JSON.stringify(nextStaff)}-->`;
+            const { data: existing } = await supabaseClient
+                .from('mails')
+                .select('id')
+                .eq('email', 'outreach-staff@system.welile.com');
+
+            if (existing && existing.length > 0) {
+                await supabaseClient
+                    .from('mails')
+                    .update({ message: payloadStr })
+                    .eq('id', existing[0].id);
+            } else {
+                await supabaseClient.from('mails').insert({
+                    name: 'Outreach Staff Roster Config',
+                    email: 'outreach-staff@system.welile.com',
+                    company_name: 'Welile System Config',
+                    message: payloadStr,
+                    type: 'SYSTEM_CONFIG'
+                });
+            }
+        } catch (err) {
+            console.error('Error persisting outreach staff roster:', err);
+        } finally {
+            setSavingStaff(false);
+        }
+    };
+
+    const handleAddStaff = async (e: React.FormEvent) => {
+        e.preventDefault();
+        const trimmed = newStaffName.trim();
+        if (!trimmed) return;
+        const codeNum = String(staffRoster.length + 1).padStart(3, '0');
+        const newMember: OutreachStaffMember = {
+            id: `stf-${Date.now()}`,
+            name: trimmed,
+            staffCode: `WSI-STF-${codeNum}`,
+            role: newStaffRole.trim() || 'Outreach Mobilizer',
+            phone: newStaffPhone.trim() || undefined,
+            isActive: true
+        };
+        const filtered = staffRoster.filter(s => s.name.toLowerCase() !== trimmed.toLowerCase());
+        await persistStaffRoster([newMember, ...filtered]);
+        setNewStaffName('');
+        setNewStaffPhone('');
+    };
+
+    const handleDeleteStaff = async (id: string, name: string) => {
+        if (staffRoster.length <= 1) return;
+        const remaining = staffRoster.filter(s => s.id !== id);
+        await persistStaffRoster(remaining);
+        if (staffSieve === name) {
+            setStaffSieve('ALL');
+        }
+    };
+
+    const ensureOfficialCoursesSeededInDb = async (existingCourses: any[]) => {
+        try {
+            const existingTitles = new Set(
+                (existingCourses || []).map((c: any) => String(c.title || '').trim().toLowerCase())
+            );
+            let addedAny = false;
+            for (const c of OFFICIAL_COURSE_CATALOG) {
+                if (!existingTitles.has(c.title.toLowerCase())) {
+                    const { error } = await supabaseClient.from('courses').insert({
+                        title: c.title,
+                        description: `Official Welile School of AI Course — ${c.displayFee}. Hands-on practical AI training at Katabi, Entebbe & Online.`,
+                        category: 'Artificial Intelligence',
+                        level: 'Intermediate',
+                        duration: '8 Weeks',
+                        is_draft: false
+                    });
+                    if (!error) addedAny = true;
+                }
+            }
+            if (addedAny) {
+                const { data: refreshed } = await supabaseClient
+                    .from('courses')
+                    .select('id, title, is_draft');
+                if (refreshed) {
+                    setCourses(
+                        refreshed
+                            .filter((c: any) => !c.is_draft && c.title)
+                            .map((c: any) => ({ id: c.id, title: c.title }))
+                    );
+                }
+            }
+        } catch {
+            // ignore
+        }
+    };
 
     const loadCampaigns = async (mailsData?: any[]) => {
         try {
@@ -323,6 +602,7 @@ const AdminRegistrations: React.FC = () => {
         }
 
         try {
+            // 1. Try syncing to outreach_campaigns table
             for (const c of nextCampaigns) {
                 await supabaseClient.from('outreach_campaigns').upsert(
                     {
@@ -337,6 +617,7 @@ const AdminRegistrations: React.FC = () => {
                 );
             }
 
+            // 2. Also store in mails config row so it works even before SQL migration is applied
             const payloadStr = `<!--CAMPAIGNS_JSON:${JSON.stringify(nextCampaigns)}-->`;
             const { data: existing } = await supabaseClient
                 .from('mails')
@@ -436,7 +717,11 @@ const AdminRegistrations: React.FC = () => {
                     .select('*')
             ]);
 
-            await loadCampaigns(mailsData || []);
+            await Promise.all([
+                loadCampaigns(mailsData || []),
+                loadStaffRoster(mailsData || []),
+                ensureOfficialCoursesSeededInDb(coursesData || [])
+            ]);
 
             let combinedList: OutreachRegistrationRecord[] = [];
             if (!regErr && regData && regData.length > 0) {
@@ -445,7 +730,7 @@ const AdminRegistrations: React.FC = () => {
                 const parsedFromMails: OutreachRegistrationRecord[] = [];
                 mailsData.forEach((m: any) => {
                     const msg: string = m.message || '';
-                    const match = msg.match(/<!--OUTREACH_JSON:(.+?)-->/);
+                    const match = msg.match(/<!--OUTREACH_JSON:([\s\S]+?)-->/);
                     if (match && match[1]) {
                         try {
                             const obj = JSON.parse(match[1]);
@@ -454,7 +739,7 @@ const AdminRegistrations: React.FC = () => {
                                 id: String(m.id),
                                 created_at: m.created_at || obj.created_at || new Date().toISOString(),
                                 status: obj.status || 'NEW',
-                                admin_notes: obj.admin_notes || null,
+                                admin_notes: obj.admin_notes || obj.admin_remarks || null,
                                 converted_profile_id: obj.converted_profile_id || null
                             });
                         } catch {
@@ -471,9 +756,10 @@ const AdminRegistrations: React.FC = () => {
             const initialDrafts: Record<string, Section8Draft> = {};
             combinedList.forEach((r: OutreachRegistrationRecord) => {
                 const defaultSchedule = `${(r.preferred_study_days || []).join(', ') || 'Mon, Wed, Fri'} • ${r.preferred_time_slot || 'Flexible'}`;
+                const defaultCourseFee = r.total_course_fee ?? getCoursePricing(r.course_interest).ugxPerMonth;
                 const autoPayStatus =
                     r.admin_payment_status ||
-                    ((r.amount_paid || 0) >= (r.total_course_fee || 600000)
+                    ((r.amount_paid || 0) >= defaultCourseFee
                         ? 'Fully Paid'
                         : (r.amount_paid || 0) > 0
                         ? 'Partially Paid'
@@ -482,13 +768,13 @@ const AdminRegistrations: React.FC = () => {
                         : 'Pending');
 
                 initialDrafts[r.id] = {
-                    approved_by: r.approved_by || APPROVER_PRESETS[0],
-                    approver_position: r.approver_position || POSITION_PRESETS[0],
+                    approved_by: r.approved_by || (r.registered_by_staff ? `${r.registered_by_staff} (Outreach Capture)` : APPROVER_PRESETS[0]),
+                    approver_position: r.approver_position || r.registered_by_role || POSITION_PRESETS[0],
                     assigned_instructor: r.assigned_instructor || INSTRUCTOR_CLASS_PRESETS[0],
                     confirmed_schedule: r.confirmed_schedule || defaultSchedule,
                     admin_payment_status: autoPayStatus,
                     admin_signature_date: r.admin_signature_date || new Date().toISOString().split('T')[0],
-                    admin_notes: r.admin_notes || ''
+                    admin_notes: r.admin_notes || r.admin_remarks || ''
                 };
             });
             setSection8Drafts(prev => ({ ...initialDrafts, ...prev }));
@@ -532,6 +818,7 @@ const AdminRegistrations: React.FC = () => {
         };
     }, []);
 
+    // Helper to classify whether a registration belongs to an OUTREACH event vs GENERAL walk-in/website
     const isGeneralRegistration = (r: OutreachRegistrationRecord): boolean => {
         const ev = (r.outreach_event || '').trim();
         if (!ev) return true;
@@ -543,19 +830,59 @@ const AdminRegistrations: React.FC = () => {
         return lower.includes('general') || lower.includes('website') || lower.includes('walk-in') || lower.includes('direct');
     };
 
+    const getEffectiveRegistrar = (r: OutreachRegistrationRecord): string => {
+        if (r.registered_by_staff && r.registered_by_staff.trim()) {
+            return r.registered_by_staff.trim();
+        }
+        if (r.approved_by && !r.approved_by.toLowerCase().includes('pending')) {
+            return r.approved_by.replace(/\s*\(Outreach Capture\)/i, '').trim();
+        }
+        return 'Self-Registered (Student Direct)';
+    };
+
+    const isSelfRegistered = (r: OutreachRegistrationRecord): boolean => {
+        const regBy = getEffectiveRegistrar(r).toLowerCase();
+        const mode = (r.registration_mode || '').toLowerCase();
+        return regBy.includes('self-registered') || mode.includes('self');
+    };
+
+    // 1. FIRST-STAGE SIEVE: Sieves the entire dashboard (KPIs, Charts, Table, CSV) by Outreach AND by Staff/Mobilizer Audit
     const sievedRegistrations = useMemo(() => {
         return registrations.filter(r => {
-            if (dashboardSieve === 'ALL') return true;
-            if (dashboardSieve === 'OUTREACH_ONLY') return !isGeneralRegistration(r);
-            if (dashboardSieve === 'GENERAL_ONLY') return isGeneralRegistration(r);
-            return (r.outreach_event || '').trim() === dashboardSieve;
-        });
-    }, [registrations, dashboardSieve, campaigns]);
+            // Campaign / Outreach Sieve
+            if (dashboardSieve === 'OUTREACH_ONLY' && isGeneralRegistration(r)) return false;
+            if (dashboardSieve === 'GENERAL_ONLY' && !isGeneralRegistration(r)) return false;
+            if (
+                dashboardSieve !== 'ALL' &&
+                dashboardSieve !== 'OUTREACH_ONLY' &&
+                dashboardSieve !== 'GENERAL_ONLY' &&
+                (r.outreach_event || '').trim() !== dashboardSieve
+            ) {
+                return false;
+            }
 
+            // Staff / Mobilizer Audit Sieve
+            if (staffSieve === 'STAFF_ONLY' && isSelfRegistered(r)) return false;
+            if (staffSieve === 'SELF_ONLY' && !isSelfRegistered(r)) return false;
+            if (
+                staffSieve !== 'ALL' &&
+                staffSieve !== 'STAFF_ONLY' &&
+                staffSieve !== 'SELF_ONLY' &&
+                getEffectiveRegistrar(r) !== staffSieve
+            ) {
+                return false;
+            }
+
+            return true;
+        });
+    }, [registrations, dashboardSieve, staffSieve, campaigns]);
+
+    // Distinct filter options
     const distinctCourses = useMemo(() => {
+        const official = OFFICIAL_COURSE_CATALOG.map(c => c.title);
         const fromRegs = registrations.map(r => r.course_interest).filter(Boolean);
         const fromCourses = courses.map(c => c.title).filter(Boolean);
-        return Array.from(new Set(['Coding With AI', ...fromRegs, ...fromCourses]));
+        return Array.from(new Set([...official, ...fromRegs, ...fromCourses]));
     }, [registrations, courses]);
 
     const distinctEvents = useMemo(() => {
@@ -566,11 +893,74 @@ const AdminRegistrations: React.FC = () => {
         return Array.from(new Set([...fromCampaigns, ...fromRegs]));
     }, [registrations, campaigns]);
 
+    const distinctStaff = useMemo(() => {
+        const fromRoster = staffRoster.map(s => s.name);
+        const fromRegs = registrations.map(r => getEffectiveRegistrar(r)).filter(Boolean);
+        return Array.from(new Set([...fromRoster, ...fromRegs]));
+    }, [registrations, staffRoster]);
+
+    // Staff & Mobilizer Audit Leaderboard (computed across current Outreach sieve)
+    const staffAuditLeaderboard = useMemo(() => {
+        const map: Record<
+            string,
+            {
+                staffName: string;
+                role: string;
+                total: number;
+                enrolled: number;
+                collectedUgx: number;
+                devices: Set<string>;
+                lastActive: string;
+            }
+        > = {};
+
+        registrations
+            .filter(r => {
+                if (dashboardSieve === 'ALL') return true;
+                if (dashboardSieve === 'OUTREACH_ONLY') return !isGeneralRegistration(r);
+                if (dashboardSieve === 'GENERAL_ONLY') return isGeneralRegistration(r);
+                return (r.outreach_event || '').trim() === dashboardSieve;
+            })
+            .forEach(r => {
+                const name = getEffectiveRegistrar(r);
+                const rosterMatch = staffRoster.find(s => s.name === name);
+                if (!map[name]) {
+                    map[name] = {
+                        staffName: name,
+                        role: r.registered_by_role || rosterMatch?.role || (name.includes('Self') ? 'Student Direct' : 'Outreach Staff'),
+                        total: 0,
+                        enrolled: 0,
+                        collectedUgx: 0,
+                        devices: new Set<string>(),
+                        lastActive: r.created_at
+                    };
+                }
+                map[name].total += 1;
+                if (r.status === 'ENROLLED') map[name].enrolled += 1;
+                map[name].collectedUgx += Number(r.amount_paid ?? 0);
+                if (r.device_audit_id) map[name].devices.add(r.device_audit_id);
+                if (new Date(r.created_at).getTime() > new Date(map[name].lastActive).getTime()) {
+                    map[name].lastActive = r.created_at;
+                }
+            });
+
+        return Object.values(map)
+            .map(item => ({
+                ...item,
+                deviceList: Array.from(item.devices)
+            }))
+            .sort((a, b) => b.total - a.total);
+    }, [registrations, dashboardSieve, staffRoster, campaigns]);
+
+    // Sieve counts for quick pill badges
     const sieveCounts = useMemo(() => {
         const all = registrations.length;
         let outreachOnly = 0;
         let generalOnly = 0;
+        let staffAssisted = 0;
+        let selfService = 0;
         const byEvent: Record<string, number> = {};
+        const byStaff: Record<string, number> = {};
 
         registrations.forEach(r => {
             const ev = (r.outreach_event || '').trim();
@@ -582,11 +972,19 @@ const AdminRegistrations: React.FC = () => {
             } else {
                 outreachOnly++;
             }
+            const stf = getEffectiveRegistrar(r);
+            byStaff[stf] = (byStaff[stf] || 0) + 1;
+            if (isSelfRegistered(r)) {
+                selfService++;
+            } else {
+                staffAssisted++;
+            }
         });
 
-        return { all, outreachOnly, generalOnly, byEvent };
+        return { all, outreachOnly, generalOnly, staffAssisted, selfService, byEvent, byStaff };
     }, [registrations, campaigns]);
 
+    // KPI computations (computed from sievedRegistrations!)
     const kpis = useMemo(() => {
         const total = sievedRegistrations.length;
         const oneWeekAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
@@ -606,7 +1004,8 @@ const AdminRegistrations: React.FC = () => {
             if (r.course_interest) {
                 courseCounts[r.course_interest] = (courseCounts[r.course_interest] || 0) + 1;
             }
-            const fee = Number(r.total_course_fee ?? 600000);
+            const defaultFee = getCoursePricing(r.course_interest).ugxPerMonth;
+            const fee = Number(r.total_course_fee ?? defaultFee);
             const paid = Number(r.amount_paid ?? 0);
             const bal = Number(r.outstanding_balance ?? Math.max(0, fee - paid));
             totalFeePipeline += fee;
@@ -614,7 +1013,7 @@ const AdminRegistrations: React.FC = () => {
             totalOutstanding += bal;
         });
 
-        let topCourse = 'Coding With AI';
+        let topCourse = 'Advanced Vibe Coding';
         let topCourseCount = 0;
         Object.entries(courseCounts).forEach(([course, count]) => {
             if (count > topCourseCount) {
@@ -636,6 +1035,7 @@ const AdminRegistrations: React.FC = () => {
         };
     }, [sievedRegistrations]);
 
+    // Chart 1: Registrations per day over the last 30 days (sieved)
     const dailyTrendData = useMemo(() => {
         const days: Array<{ dateKey: string; label: string; count: number }> = [];
         const now = new Date();
@@ -664,6 +1064,7 @@ const AdminRegistrations: React.FC = () => {
         return days;
     }, [sievedRegistrations]);
 
+    // Chart 2: Breakdown by Outreach Campaign / Event (or Course Interest)
     const outreachBreakdownData = useMemo(() => {
         const counts: Record<string, number> = {};
         sievedRegistrations.forEach(r => {
@@ -680,6 +1081,7 @@ const AdminRegistrations: React.FC = () => {
             .slice(0, 7);
     }, [sievedRegistrations]);
 
+    // Chart 3: Breakdown by Payment Plan & Study Mode
     const paymentPlanChartData = useMemo(() => {
         const counts: Record<string, number> = {};
         sievedRegistrations.forEach(r => {
@@ -691,6 +1093,7 @@ const AdminRegistrations: React.FC = () => {
             .sort((a, b) => b.count - a.count);
     }, [sievedRegistrations]);
 
+    // Filtered & Sorted Table Rows (applies secondary table filters on top of sievedRegistrations)
     const filteredRegistrations = useMemo(() => {
         return sievedRegistrations
             .filter(r => {
@@ -979,6 +1382,10 @@ const AdminRegistrations: React.FC = () => {
             'Student Reg No',
             'Registration Date',
             'Outreach Campaign / Channel',
+            'Registered By (Staff / Mobilizer Audit)',
+            'Registration Mode',
+            'Device Audit ID',
+            'Device Info',
             'Full Name',
             'Phone',
             'Email',
@@ -988,6 +1395,7 @@ const AdminRegistrations: React.FC = () => {
             'Parent/Guardian Name',
             'Parent/Guardian Phone',
             'Course / Programme',
+            'Official Monthly Rate',
             'Assigned Level',
             'Mode of Study',
             'Expected Start Date',
@@ -1028,10 +1436,15 @@ const AdminRegistrations: React.FC = () => {
 
         const rows = filteredRegistrations.map(r => {
             const s8 = section8Drafts[r.id];
+            const pricing = getCoursePricing(r.course_interest);
             return [
                 escapeCsv(r.student_reg_no || 'WSI/11/26/—'),
                 escapeCsv(r.registration_date || (r.created_at ? r.created_at.split('T')[0] : '')),
                 escapeCsv(r.outreach_event),
+                escapeCsv(getEffectiveRegistrar(r)),
+                escapeCsv(r.registration_mode || (isSelfRegistered(r) ? 'Student Self-Registration' : 'Staff Assisted')),
+                escapeCsv(r.device_audit_id || 'DEV-WEB'),
+                escapeCsv(r.device_info || 'Web Browser'),
                 escapeCsv(r.full_name),
                 escapeCsv(r.phone),
                 escapeCsv(r.email),
@@ -1041,6 +1454,7 @@ const AdminRegistrations: React.FC = () => {
                 escapeCsv(r.guardian_name),
                 escapeCsv(r.guardian_phone),
                 escapeCsv(r.course_interest),
+                escapeCsv(r.course_fee_display || pricing.displayFee),
                 escapeCsv(r.level),
                 escapeCsv(r.mode_preference),
                 escapeCsv(r.expected_start_date),
@@ -1050,12 +1464,12 @@ const AdminRegistrations: React.FC = () => {
                 escapeCsv(r.study_hours_per_session),
                 escapeCsv(r.sessions_per_week),
                 escapeCsv(r.alternative_study_time),
-                escapeCsv(r.total_course_fee ?? 600000),
+                escapeCsv(r.total_course_fee ?? pricing.ugxPerMonth),
                 escapeCsv(r.registration_fee || 'Not Applicable'),
                 escapeCsv(r.amount_paid ?? 0),
-                escapeCsv(r.outstanding_balance ?? 600000),
+                escapeCsv(r.outstanding_balance ?? pricing.ugxPerMonth),
                 escapeCsv(r.payment_plan),
-                escapeCsv(r.agreed_payment_amount),
+                escapeCsv(r.agreed_payment_amount ?? pricing.ugxPerMonth),
                 escapeCsv(r.next_payment_date),
                 escapeCsv(r.payment_due_date),
                 escapeCsv(r.payment_method),
@@ -1094,9 +1508,15 @@ const AdminRegistrations: React.FC = () => {
             .replace('instructor.', '')
             .replace(':4001', ':4002');
         const base = `${protocol}//${cleanHost}/register`;
-        return qrEventName.trim()
-            ? `${base}?event=${encodeURIComponent(qrEventName.trim())}`
-            : base;
+        const params = new URLSearchParams();
+        if (qrEventName.trim()) {
+            params.set('event', qrEventName.trim());
+        }
+        if (qrStaffName.trim()) {
+            params.set('staff', qrStaffName.trim());
+        }
+        const qs = params.toString();
+        return qs ? `${base}?${qs}` : base;
     };
 
     const publicRegisterUrl = getPublicRegisterUrl();
@@ -1120,10 +1540,10 @@ const AdminRegistrations: React.FC = () => {
                 <div>
                     <div className="flex flex-wrap items-center gap-2">
                         <h2 className="text-xl font-bold text-gray-900 dark:text-white">
-                            Official Student Registrations & Outreach Intelligence
+                            Official Student Registrations & Staff Audit Intelligence
                         </h2>
                         <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/50">
-                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping" /> Live 8-Section Form Sync
+                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping" /> Live 8-Section + Staff Audit Sync
                         </span>
                     </div>
                     <p className="text-xs text-gray-500 dark:text-slate-400 mt-1">
@@ -1147,6 +1567,15 @@ const AdminRegistrations: React.FC = () => {
 
                     <button
                         type="button"
+                        onClick={() => setShowStaffModal(true)}
+                        className="px-4 py-2.5 rounded-xl border border-emerald-200 dark:border-emerald-800/60 bg-emerald-50 dark:bg-emerald-950/40 hover:bg-emerald-100 dark:hover:bg-emerald-900/50 text-emerald-800 dark:text-emerald-300 text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer"
+                    >
+                        <UserCheck size={15} />
+                        Staff & Audit Roster ({staffRoster.length})
+                    </button>
+
+                    <button
+                        type="button"
                         onClick={() => setShowCampaignModal(true)}
                         className="px-4 py-2.5 rounded-xl border border-amber-200 dark:border-amber-800/60 bg-amber-50 dark:bg-amber-950/40 hover:bg-amber-100 dark:hover:bg-amber-900/50 text-amber-800 dark:text-amber-300 text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer"
                     >
@@ -1160,7 +1589,7 @@ const AdminRegistrations: React.FC = () => {
                         className="px-4 py-2.5 rounded-xl border border-violet-200 dark:border-violet-800/60 bg-violet-50 dark:bg-violet-950/40 hover:bg-violet-100 dark:hover:bg-violet-900/50 text-violet-700 dark:text-violet-300 text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer"
                     >
                         <QrCode size={15} />
-                        Booth QR Code
+                        Booth / Staff QR Code
                     </button>
 
                     <button
@@ -1174,84 +1603,264 @@ const AdminRegistrations: React.FC = () => {
                 </div>
             </div>
 
-            {/* TOP-LEVEL DASHBOARD STATS SIEVE BAR (Sieves KPIs, Charts, Table & Exports) */}
-            <div className="bg-white dark:bg-slate-900 p-4 rounded-2xl shadow-sm border border-violet-200/80 dark:border-violet-900/40 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-                <div className="flex flex-wrap items-center gap-2">
-                    <span className="text-[11px] font-extrabold uppercase tracking-wider text-violet-700 dark:text-violet-300 flex items-center gap-1.5 mr-1">
-                        <Layers size={14} /> Sieve Dashboard Stats:
-                    </span>
+            {/* TOP-LEVEL DASHBOARD STATS SIEVE BAR (Outreach Sieve + Staff/Mobilizer Audit Sieve) */}
+            <div className="bg-white dark:bg-slate-900 p-4 rounded-2xl shadow-sm border border-violet-200/80 dark:border-violet-900/40 space-y-3">
+                {/* Row 1: Outreach Campaign Sieve */}
+                <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 pb-3 border-b border-gray-100 dark:border-slate-800">
+                    <div className="flex flex-wrap items-center gap-2">
+                        <span className="text-[11px] font-extrabold uppercase tracking-wider text-violet-700 dark:text-violet-300 flex items-center gap-1.5 mr-1">
+                            <Layers size={14} /> 1. Sieve by Outreach:
+                        </span>
 
-                    <button
-                        type="button"
-                        onClick={() => setDashboardSieve('ALL')}
-                        className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                            dashboardSieve === 'ALL'
-                                ? 'bg-violet-600 text-white shadow-sm'
-                                : 'bg-gray-100 dark:bg-slate-800 text-gray-700 dark:text-slate-300 hover:bg-gray-200 dark:hover:bg-slate-700'
-                        }`}
-                    >
-                        All Combined ({sieveCounts.all})
-                    </button>
+                        <button
+                            type="button"
+                            onClick={() => setDashboardSieve('ALL')}
+                            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                                dashboardSieve === 'ALL'
+                                    ? 'bg-violet-600 text-white shadow-sm'
+                                    : 'bg-gray-100 dark:bg-slate-800 text-gray-700 dark:text-slate-300 hover:bg-gray-200 dark:hover:bg-slate-700'
+                            }`}
+                        >
+                            All Combined ({sieveCounts.all})
+                        </button>
 
-                    <button
-                        type="button"
-                        onClick={() => setDashboardSieve('Nkumba University Outreach (Fri, 6th Nov 2026)')}
-                        className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
-                            dashboardSieve === 'Nkumba University Outreach (Fri, 6th Nov 2026)'
-                                ? 'bg-violet-600 text-white shadow-sm'
-                                : 'bg-violet-50 dark:bg-violet-950/50 text-violet-700 dark:text-violet-300 border border-violet-200 dark:border-violet-800/60 hover:bg-violet-100'
-                        }`}
-                    >
-                        <Star size={12} className="fill-current" />
-                        Nkumba Outreach • Fri 6th Nov ({sieveCounts.byEvent['Nkumba University Outreach (Fri, 6th Nov 2026)'] || 0})
-                    </button>
+                        <button
+                            type="button"
+                            onClick={() => setDashboardSieve('Nkumba University Outreach (Fri, 6th Nov 2026)')}
+                            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
+                                dashboardSieve === 'Nkumba University Outreach (Fri, 6th Nov 2026)'
+                                    ? 'bg-violet-600 text-white shadow-sm'
+                                    : 'bg-violet-50 dark:bg-violet-950/50 text-violet-700 dark:text-violet-300 border border-violet-200 dark:border-violet-800/60 hover:bg-violet-100'
+                            }`}
+                        >
+                            <Star size={12} className="fill-current" />
+                            Nkumba Outreach • Fri 6th Nov ({sieveCounts.byEvent['Nkumba University Outreach (Fri, 6th Nov 2026)'] || 0})
+                        </button>
 
-                    <button
-                        type="button"
-                        onClick={() => setDashboardSieve('OUTREACH_ONLY')}
-                        className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                            dashboardSieve === 'OUTREACH_ONLY'
-                                ? 'bg-violet-600 text-white shadow-sm'
-                                : 'bg-gray-100 dark:bg-slate-800 text-gray-700 dark:text-slate-300 hover:bg-gray-200 dark:hover:bg-slate-700'
-                        }`}
-                    >
-                        All Outreaches Only ({sieveCounts.outreachOnly})
-                    </button>
+                        <button
+                            type="button"
+                            onClick={() => setDashboardSieve('OUTREACH_ONLY')}
+                            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                                dashboardSieve === 'OUTREACH_ONLY'
+                                    ? 'bg-violet-600 text-white shadow-sm'
+                                    : 'bg-gray-100 dark:bg-slate-800 text-gray-700 dark:text-slate-300 hover:bg-gray-200 dark:hover:bg-slate-700'
+                            }`}
+                        >
+                            All Outreaches Only ({sieveCounts.outreachOnly})
+                        </button>
 
-                    <button
-                        type="button"
-                        onClick={() => setDashboardSieve('GENERAL_ONLY')}
-                        className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                            dashboardSieve === 'GENERAL_ONLY'
-                                ? 'bg-violet-600 text-white shadow-sm'
-                                : 'bg-gray-100 dark:bg-slate-800 text-gray-700 dark:text-slate-300 hover:bg-gray-200 dark:hover:bg-slate-700'
-                        }`}
-                    >
-                        General / Walk-in ({sieveCounts.generalOnly})
-                    </button>
+                        <button
+                            type="button"
+                            onClick={() => setDashboardSieve('GENERAL_ONLY')}
+                            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                                dashboardSieve === 'GENERAL_ONLY'
+                                    ? 'bg-violet-600 text-white shadow-sm'
+                                    : 'bg-gray-100 dark:bg-slate-800 text-gray-700 dark:text-slate-300 hover:bg-gray-200 dark:hover:bg-slate-700'
+                            }`}
+                        >
+                            General / Walk-in ({sieveCounts.generalOnly})
+                        </button>
+                    </div>
+
+                    {/* Specific Outreach Campaign Dropdown Sieve */}
+                    <div className="flex items-center gap-2">
+                        <span className="text-xs font-bold text-gray-500 dark:text-slate-400 whitespace-nowrap">
+                            Outreach Dropdown:
+                        </span>
+                        <select
+                            value={dashboardSieve}
+                            onChange={(e) => setDashboardSieve(e.target.value)}
+                            className="px-3.5 py-2 rounded-xl bg-gray-50 dark:bg-slate-950 border border-gray-200 dark:border-slate-800 text-xs font-bold text-gray-900 dark:text-white focus:outline-none focus:border-violet-500 cursor-pointer"
+                        >
+                            <option value="ALL">All Registrations ({sieveCounts.all})</option>
+                            <option value="OUTREACH_ONLY">All Outreach Campaigns ({sieveCounts.outreachOnly})</option>
+                            <option value="GENERAL_ONLY">All General / Website / Walk-ins ({sieveCounts.generalOnly})</option>
+                            <optgroup label="Specific Outreach Campaigns & Channels">
+                                {distinctEvents.map(ev => (
+                                    <option key={ev} value={ev}>
+                                        {ev} ({sieveCounts.byEvent[ev] || 0})
+                                    </option>
+                                ))}
+                            </optgroup>
+                        </select>
+                    </div>
                 </div>
 
-                {/* Specific Outreach Campaign Dropdown Sieve */}
-                <div className="flex items-center gap-2">
-                    <span className="text-xs font-bold text-gray-500 dark:text-slate-400 whitespace-nowrap">
-                        Select Outreach Dropdown:
-                    </span>
-                    <select
-                        value={dashboardSieve}
-                        onChange={(e) => setDashboardSieve(e.target.value)}
-                        className="px-3.5 py-2 rounded-xl bg-gray-50 dark:bg-slate-950 border border-gray-200 dark:border-slate-800 text-xs font-bold text-gray-900 dark:text-white focus:outline-none focus:border-violet-500 cursor-pointer"
-                    >
-                        <option value="ALL">All Registrations ({sieveCounts.all})</option>
-                        <option value="OUTREACH_ONLY">All Outreach Campaigns ({sieveCounts.outreachOnly})</option>
-                        <option value="GENERAL_ONLY">All General / Website / Walk-ins ({sieveCounts.generalOnly})</option>
-                        <optgroup label="Specific Outreach Campaigns & Channels">
-                            {distinctEvents.map(ev => (
-                                <option key={ev} value={ev}>
-                                    {ev} ({sieveCounts.byEvent[ev] || 0})
-                                </option>
+                {/* Row 2: Staff / Mobilizer Audit Sieve */}
+                <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
+                    <div className="flex flex-wrap items-center gap-2">
+                        <span className="text-[11px] font-extrabold uppercase tracking-wider text-emerald-700 dark:text-emerald-400 flex items-center gap-1.5 mr-1">
+                            <UserCheck size={14} /> 2. Audit by Staff / Mobilizer:
+                        </span>
+
+                        <button
+                            type="button"
+                            onClick={() => setStaffSieve('ALL')}
+                            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                                staffSieve === 'ALL'
+                                    ? 'bg-emerald-600 text-white shadow-sm'
+                                    : 'bg-gray-100 dark:bg-slate-800 text-gray-700 dark:text-slate-300 hover:bg-gray-200 dark:hover:bg-slate-700'
+                            }`}
+                        >
+                            All Staff & Self ({sieveCounts.all})
+                        </button>
+
+                        <button
+                            type="button"
+                            onClick={() => setStaffSieve('STAFF_ONLY')}
+                            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                                staffSieve === 'STAFF_ONLY'
+                                    ? 'bg-emerald-600 text-white shadow-sm'
+                                    : 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/60'
+                            }`}
+                        >
+                            👤 Staff-Assisted Only ({sieveCounts.staffAssisted})
+                        </button>
+
+                        <button
+                            type="button"
+                            onClick={() => setStaffSieve('SELF_ONLY')}
+                            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                                staffSieve === 'SELF_ONLY'
+                                    ? 'bg-emerald-600 text-white shadow-sm'
+                                    : 'bg-gray-100 dark:bg-slate-800 text-gray-700 dark:text-slate-300 hover:bg-gray-200'
+                            }`}
+                        >
+                            🎓 Student Self-Registered ({sieveCounts.selfService})
+                        </button>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                        <span className="text-xs font-bold text-gray-500 dark:text-slate-400 whitespace-nowrap">
+                            Select Staff Member:
+                        </span>
+                        <select
+                            value={staffSieve}
+                            onChange={(e) => setStaffSieve(e.target.value)}
+                            className="px-3.5 py-2 rounded-xl bg-gray-50 dark:bg-slate-950 border border-emerald-300 dark:border-emerald-800 text-xs font-bold text-gray-900 dark:text-white focus:outline-none focus:border-emerald-500 cursor-pointer"
+                        >
+                            <option value="ALL">All Staff & Self-Registered ({sieveCounts.all})</option>
+                            <option value="STAFF_ONLY">All Staff-Assisted Registrations ({sieveCounts.staffAssisted})</option>
+                            <option value="SELF_ONLY">Student Self-Registrations Only ({sieveCounts.selfService})</option>
+                            <optgroup label="Individual Outreach Staff & Mobilizers">
+                                {distinctStaff.map(stf => (
+                                    <option key={stf} value={stf}>
+                                        {stf} ({sieveCounts.byStaff[stf] || 0})
+                                    </option>
+                                ))}
+                            </optgroup>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            {/* OFFICIAL COURSE FEES & STAFF AUDIT LEADERBOARD SUMMARY */}
+            <div className="grid grid-cols-1 xl:grid-cols-2 gap-5">
+                {/* Official 4 Courses & Monthly Rates Card */}
+                <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl shadow-sm border border-gray-150 dark:border-slate-800">
+                    <div className="flex items-center justify-between mb-3">
+                        <h3 className="text-xs font-extrabold uppercase tracking-wider text-violet-700 dark:text-violet-300 flex items-center gap-1.5">
+                            <BookOpen size={14} /> Official Courses & Monthly Fee Structure
+                        </h3>
+                        <span className="text-[10px] font-bold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/50 px-2 py-0.5 rounded-full">
+                            Live on /register & DB
+                        </span>
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                        {OFFICIAL_COURSE_CATALOG.map((c, i) => {
+                            const countForCourse = sievedRegistrations.filter(
+                                r => (r.course_interest || '').toLowerCase() === c.title.toLowerCase()
+                            ).length;
+                            return (
+                                <button
+                                    key={c.title}
+                                    type="button"
+                                    onClick={() => setCourseFilter(courseFilter === c.title ? 'ALL' : c.title)}
+                                    className={`p-3 rounded-xl border text-left transition-all cursor-pointer flex items-center justify-between gap-2 ${
+                                        courseFilter === c.title
+                                            ? 'bg-violet-600 text-white border-violet-600'
+                                            : 'bg-gray-50 dark:bg-slate-950/60 border-gray-200 dark:border-slate-800 hover:border-violet-400'
+                                    }`}
+                                >
+                                    <div className="min-w-0">
+                                        <div className="text-xs font-extrabold truncate">
+                                            {i + 1}. {c.title}
+                                        </div>
+                                        <div className={`text-[11px] font-bold ${
+                                            courseFilter === c.title ? 'text-violet-100' : 'text-emerald-600 dark:text-emerald-400'
+                                        }`}>
+                                            {c.displayFee}
+                                        </div>
+                                    </div>
+                                    <span className={`px-2 py-0.5 rounded-lg text-xs font-black shrink-0 ${
+                                        courseFilter === c.title
+                                            ? 'bg-white/20 text-white'
+                                            : 'bg-violet-100 dark:bg-violet-950/60 text-violet-700 dark:text-violet-300'
+                                    }`}>
+                                        {countForCourse}
+                                    </span>
+                                </button>
+                            );
+                        })}
+                    </div>
+                </div>
+
+                {/* Staff / Mobilizer Audit Accountability Leaderboard */}
+                <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl shadow-sm border border-gray-150 dark:border-slate-800">
+                    <div className="flex items-center justify-between mb-3">
+                        <h3 className="text-xs font-extrabold uppercase tracking-wider text-emerald-700 dark:text-emerald-400 flex items-center gap-1.5">
+                            <Award size={14} /> Staff / Mobilizer Registration Audit (Who Registered Whom)
+                        </h3>
+                        <button
+                            type="button"
+                            onClick={() => setShowStaffModal(true)}
+                            className="text-[11px] font-bold text-violet-600 dark:text-violet-400 hover:underline cursor-pointer"
+                        >
+                            + Add Staff / Get Staff QR
+                        </button>
+                    </div>
+
+                    {staffAuditLeaderboard.length === 0 ? (
+                        <div className="py-6 text-center text-xs text-gray-400">
+                            No registrations recorded yet for this outreach sieve.
+                        </div>
+                    ) : (
+                        <div className="space-y-2 max-h-36 overflow-y-auto pr-1">
+                            {staffAuditLeaderboard.map((stf) => (
+                                <div
+                                    key={stf.staffName}
+                                    onClick={() => setStaffSieve(staffSieve === stf.staffName ? 'ALL' : stf.staffName)}
+                                    className={`p-2.5 rounded-xl border text-xs flex items-center justify-between gap-2 cursor-pointer transition-all ${
+                                        staffSieve === stf.staffName
+                                            ? 'bg-emerald-600 text-white border-emerald-600'
+                                            : 'bg-gray-50 dark:bg-slate-950/60 border-gray-200 dark:border-slate-800 hover:border-emerald-400'
+                                    }`}
+                                >
+                                    <div className="min-w-0">
+                                        <div className="font-bold truncate flex items-center gap-1.5">
+                                            <span>{stf.staffName}</span>
+                                            <span className={`text-[10px] px-1.5 py-0.5 rounded font-semibold ${
+                                                staffSieve === stf.staffName
+                                                    ? 'bg-white/20 text-white'
+                                                    : 'bg-gray-200 dark:bg-slate-800 text-gray-600 dark:text-slate-400'
+                                            }`}>
+                                                {stf.role}
+                                            </span>
+                                        </div>
+                                        <div className={`text-[10px] mt-0.5 ${
+                                            staffSieve === stf.staffName ? 'text-emerald-100' : 'text-gray-500 dark:text-slate-400'
+                                        }`}>
+                                            Devices: {stf.deviceList.length > 0 ? stf.deviceList.join(', ') : 'Web'} • Collected: UGX {stf.collectedUgx.toLocaleString()}
+                                        </div>
+                                    </div>
+                                    <div className="text-right shrink-0">
+                                        <span className="font-black text-sm">{stf.total}</span>
+                                        <span className="block text-[10px] opacity-80">{stf.enrolled} enrolled</span>
+                                    </div>
+                                </div>
                             ))}
-                        </optgroup>
-                    </select>
+                        </div>
+                    )}
                 </div>
             </div>
 
@@ -1322,6 +1931,7 @@ const AdminRegistrations: React.FC = () => {
 
             {/* Recharts Analytics Section */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                {/* 30-Day Daily Registrations Area Chart */}
                 <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-slate-800 lg:col-span-3">
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
                         <div>
@@ -1369,6 +1979,7 @@ const AdminRegistrations: React.FC = () => {
                     </div>
                 </div>
 
+                {/* Breakdown by Outreach Event Bar Chart */}
                 <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-slate-800 lg:col-span-2">
                     <h3 className="text-sm font-bold text-gray-900 dark:text-white mb-1">
                         Registrations by Outreach Campaign / Channel
@@ -1413,6 +2024,7 @@ const AdminRegistrations: React.FC = () => {
                     )}
                 </div>
 
+                {/* Breakdown by Payment Plan */}
                 <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-slate-800">
                     <h3 className="text-sm font-bold text-gray-900 dark:text-white mb-1">
                         Payment Plan Breakdown (Sec 4)
@@ -1463,8 +2075,10 @@ const AdminRegistrations: React.FC = () => {
 
             {/* Filterable, Searchable, Sortable Registrations Table */}
             <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-gray-150 dark:border-slate-800 overflow-hidden transition-colors">
+                {/* Filter Bar */}
                 <div className="p-5 border-b border-gray-150 dark:border-slate-800 space-y-4">
                     <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
+                        {/* Search Input */}
                         <div className="relative flex-1 max-w-md">
                             <Search
                                 size={15}
@@ -1479,7 +2093,9 @@ const AdminRegistrations: React.FC = () => {
                             />
                         </div>
 
+                        {/* Secondary Filter Dropdowns */}
                         <div className="flex flex-wrap items-center gap-2.5">
+                            {/* Status Filter */}
                             <div className="flex items-center gap-1.5 bg-gray-50 dark:bg-slate-950 border border-gray-200 dark:border-slate-800 px-3 py-2 rounded-xl text-xs">
                                 <Filter size={12} className="text-gray-400" />
                                 <span className="text-gray-400 dark:text-slate-500">Status:</span>
@@ -1495,6 +2111,7 @@ const AdminRegistrations: React.FC = () => {
                                 </select>
                             </div>
 
+                            {/* Payment Status Filter (Section 8) */}
                             <div className="flex items-center gap-1.5 bg-gray-50 dark:bg-slate-950 border border-gray-200 dark:border-slate-800 px-3 py-2 rounded-xl text-xs">
                                 <span className="text-gray-400 dark:text-slate-500">Payment:</span>
                                 <select
@@ -1509,6 +2126,7 @@ const AdminRegistrations: React.FC = () => {
                                 </select>
                             </div>
 
+                            {/* Course Filter */}
                             <div className="flex items-center gap-1.5 bg-gray-50 dark:bg-slate-950 border border-gray-200 dark:border-slate-800 px-3 py-2 rounded-xl text-xs">
                                 <span className="text-gray-400 dark:text-slate-500">Course:</span>
                                 <select
@@ -1523,6 +2141,7 @@ const AdminRegistrations: React.FC = () => {
                                 </select>
                             </div>
 
+                            {/* Date Range Filters */}
                             <div className="flex items-center gap-1.5 bg-gray-50 dark:bg-slate-950 border border-gray-200 dark:border-slate-800 px-3 py-1.5 rounded-xl text-xs">
                                 <Calendar size={12} className="text-gray-400" />
                                 <input
@@ -1540,11 +2159,12 @@ const AdminRegistrations: React.FC = () => {
                                     className="bg-transparent text-gray-800 dark:text-slate-200 focus:outline-none text-[11px]"
                                     title="To Date"
                                 />
-                                {(dateFrom || dateTo || statusFilter !== 'ALL' || courseFilter !== 'ALL' || paymentStatusFilter !== 'ALL' || dashboardSieve !== 'ALL' || searchQuery) && (
+                                {(dateFrom || dateTo || statusFilter !== 'ALL' || courseFilter !== 'ALL' || paymentStatusFilter !== 'ALL' || dashboardSieve !== 'ALL' || staffSieve !== 'ALL' || searchQuery) && (
                                     <button
                                         type="button"
                                         onClick={() => {
                                             setDashboardSieve('ALL');
+                                            setStaffSieve('ALL');
                                             setStatusFilter('ALL');
                                             setPaymentStatusFilter('ALL');
                                             setCourseFilter('ALL');
@@ -1579,10 +2199,10 @@ const AdminRegistrations: React.FC = () => {
                                     onClick={() => handleSortToggle('course_interest')}
                                     className="py-3.5 px-4 cursor-pointer hover:text-gray-900 dark:hover:text-white select-none"
                                 >
-                                    Programme & Schedule {sortBy === 'course_interest' ? (sortOrder === 'asc' ? '↑' : '↓') : ''}
+                                    Programme & Fee {sortBy === 'course_interest' ? (sortOrder === 'asc' ? '↑' : '↓') : ''}
                                 </th>
                                 <th className="py-3.5 px-4">Fees & Plan (Sec 4)</th>
-                                <th className="py-3.5 px-4">Outreach Campaign</th>
+                                <th className="py-3.5 px-4">Outreach & Staff Audit</th>
                                 <th
                                     onClick={() => handleSortToggle('status')}
                                     className="py-3.5 px-4 cursor-pointer hover:text-gray-900 dark:hover:text-white select-none"
@@ -1609,6 +2229,10 @@ const AdminRegistrations: React.FC = () => {
                             ) : (
                                 filteredRegistrations.map((reg) => {
                                     const isExpanded = expandedRowId === reg.id;
+                                    const coursePricing = getCoursePricing(reg.course_interest);
+                                    const effectiveFee = Number(reg.total_course_fee ?? coursePricing.ugxPerMonth);
+                                    const effectiveBal = Number(reg.outstanding_balance ?? Math.max(0, effectiveFee - Number(reg.amount_paid ?? 0)));
+                                    const registrarName = getEffectiveRegistrar(reg);
                                     const s8 = section8Drafts[reg.id] || {
                                         approved_by: reg.approved_by || APPROVER_PRESETS[0],
                                         approver_position: reg.approver_position || POSITION_PRESETS[0],
@@ -1656,7 +2280,7 @@ const AdminRegistrations: React.FC = () => {
                                                 </td>
 
                                                 <td className="py-3.5 px-4 text-gray-700 dark:text-slate-300 whitespace-nowrap">
-                                                    <a href={`tel:${reg.phone}`} className="font-bold hover:text-violet-600 dark:hover:text-violet-400 block">
+                                                    <a href={`tel:${reg.phone}`} className="font-mono font-bold hover:text-violet-600 dark:hover:text-violet-400 block">
                                                         {reg.phone}
                                                     </a>
                                                     <span className="text-[11px] text-gray-400 dark:text-slate-500">
@@ -1668,6 +2292,9 @@ const AdminRegistrations: React.FC = () => {
                                                     <div className="font-bold text-violet-700 dark:text-violet-300 max-w-[200px] truncate" title={reg.course_interest}>
                                                         {reg.course_interest}
                                                     </div>
+                                                    <div className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400">
+                                                        {reg.course_fee_display || coursePricing.displayFee}
+                                                    </div>
                                                     <div className="text-[11px] text-gray-500 dark:text-slate-400">
                                                         {reg.level || 'Intermediate'} • {reg.mode_preference || 'Hybrid'}
                                                     </div>
@@ -1678,18 +2305,29 @@ const AdminRegistrations: React.FC = () => {
                                                         Paid: UGX {Number(reg.amount_paid ?? 0).toLocaleString()}
                                                     </div>
                                                     <div className="text-[11px] text-gray-500 dark:text-slate-400">
-                                                        {reg.payment_plan || 'Monthly'} • {s8.admin_payment_status}
+                                                        Fee: {effectiveFee.toLocaleString()} • {s8.admin_payment_status}
                                                     </div>
                                                 </td>
 
                                                 <td className="py-3.5 px-4 text-gray-600 dark:text-slate-400">
-                                                    {reg.outreach_event ? (
-                                                        <span className="px-2.5 py-1 rounded-lg bg-violet-50 dark:bg-violet-950/50 text-violet-700 dark:text-violet-300 border border-violet-200/60 dark:border-violet-800/50 font-bold text-[11px] inline-block max-w-[190px] truncate" title={reg.outreach_event}>
-                                                            {reg.outreach_event}
-                                                        </span>
-                                                    ) : (
-                                                        '—'
-                                                    )}
+                                                    <div className="space-y-1">
+                                                        {reg.outreach_event ? (
+                                                            <span className="px-2 py-0.5 rounded-lg bg-violet-50 dark:bg-violet-950/50 text-violet-700 dark:text-violet-300 border border-violet-200/60 dark:border-violet-800/50 font-bold text-[10px] inline-block max-w-[190px] truncate" title={reg.outreach_event}>
+                                                                {reg.outreach_event}
+                                                            </span>
+                                                        ) : null}
+                                                        <div className="flex items-center gap-1 text-[10px] font-bold text-emerald-700 dark:text-emerald-400">
+                                                            <UserCheck size={11} className="shrink-0" />
+                                                            <span className="truncate max-w-[165px]" title={`Registered by: ${registrarName}`}>
+                                                                {registrarName}
+                                                            </span>
+                                                        </div>
+                                                        {reg.device_audit_id && (
+                                                            <div className="text-[9px] font-mono text-gray-400 flex items-center gap-1">
+                                                                <Fingerprint size={9} /> {reg.device_audit_id}
+                                                            </div>
+                                                        )}
+                                                    </div>
                                                 </td>
 
                                                 <td className="py-3.5 px-4">
@@ -1720,7 +2358,7 @@ const AdminRegistrations: React.FC = () => {
                                                             onClick={() => setExpandedRowId(isExpanded ? null : reg.id)}
                                                             className="px-2.5 py-1.5 rounded-lg border border-gray-200 dark:border-slate-700 hover:bg-gray-100 dark:hover:bg-slate-800 text-gray-700 dark:text-slate-300 font-bold text-[11px] cursor-pointer"
                                                         >
-                                                            {isExpanded ? 'Hide Form' : '8-Sec Form'}
+                                                            {isExpanded ? 'Hide Form' : '8-Sec + Audit'}
                                                         </button>
                                                         <button
                                                             type="button"
@@ -1742,11 +2380,12 @@ const AdminRegistrations: React.FC = () => {
                                                 </td>
                                             </tr>
 
-                                            {/* Expandable Full 8-Section Official Form & Section 8 Admin Editor */}
+                                            {/* Expandable Full 8-Section Official Form, Staff Audit Provenance & Section 8 Admin Editor */}
                                             {isExpanded && (
                                                 <tr className="bg-gray-50/90 dark:bg-slate-950/70">
                                                     <td colSpan={8} className="p-6 border-b border-gray-200 dark:border-slate-800">
                                                         <div className="space-y-5">
+                                                            {/* Top Banner inside Expanded View */}
                                                             <div className="flex flex-wrap items-center justify-between gap-3 bg-white dark:bg-slate-900 p-4 rounded-2xl border border-violet-200 dark:border-violet-900/50">
                                                                 <div>
                                                                     <span className="text-[10px] font-extrabold uppercase tracking-widest text-violet-600 dark:text-violet-400">
@@ -1757,6 +2396,9 @@ const AdminRegistrations: React.FC = () => {
                                                                     </h4>
                                                                 </div>
                                                                 <div className="flex items-center gap-2">
+                                                                    <span className="px-3 py-1 rounded-lg bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 text-xs font-bold flex items-center gap-1">
+                                                                        <UserCheck size={13} /> Audited Registrar: {registrarName}
+                                                                    </span>
                                                                     <span className="px-3 py-1 rounded-lg bg-violet-50 dark:bg-violet-950/60 text-violet-700 dark:text-violet-300 font-mono text-xs font-bold">
                                                                         Reg No: {reg.student_reg_no || 'WSI/11/26/—'}
                                                                     </span>
@@ -1770,7 +2412,54 @@ const AdminRegistrations: React.FC = () => {
                                                                 </div>
                                                             </div>
 
+                                                            {/* STAFF & DEVICE PROVENANCE AUDIT BAR */}
+                                                            <div className="bg-emerald-50/70 dark:bg-emerald-950/20 p-4 rounded-2xl border border-emerald-200 dark:border-emerald-800/50 grid grid-cols-1 sm:grid-cols-4 gap-3 text-xs">
+                                                                <div>
+                                                                    <span className="text-[10px] font-extrabold uppercase text-emerald-700 dark:text-emerald-400 block">
+                                                                        Registered By (Staff / Mobilizer)
+                                                                    </span>
+                                                                    <span className="font-bold text-gray-900 dark:text-white">
+                                                                        {registrarName}
+                                                                    </span>
+                                                                    <span className="block text-[10px] text-gray-500">
+                                                                        {reg.registered_by_role || 'Outreach Capture'} ({reg.registered_by_staff_id || 'STF'})
+                                                                    </span>
+                                                                </div>
+                                                                <div>
+                                                                    <span className="text-[10px] font-extrabold uppercase text-emerald-700 dark:text-emerald-400 block">
+                                                                        Capture Mode & Outreach
+                                                                    </span>
+                                                                    <span className="font-bold text-gray-900 dark:text-white">
+                                                                        {reg.registration_mode || 'Staff Assisted (Booth/Field)'}
+                                                                    </span>
+                                                                    <span className="block text-[10px] text-gray-500 truncate">
+                                                                        {reg.outreach_event}
+                                                                    </span>
+                                                                </div>
+                                                                <div>
+                                                                    <span className="text-[10px] font-extrabold uppercase text-emerald-700 dark:text-emerald-400 block">
+                                                                        Device Fingerprint & OS
+                                                                    </span>
+                                                                    <span className="font-mono font-bold text-gray-900 dark:text-white">
+                                                                        {reg.device_audit_id || 'DEV-WEB'}
+                                                                    </span>
+                                                                    <span className="block text-[10px] text-gray-500">
+                                                                        {reg.device_info || 'Web Browser'} • {reg.submitted_from || 'web'}
+                                                                    </span>
+                                                                </div>
+                                                                <div>
+                                                                    <span className="text-[10px] font-extrabold uppercase text-emerald-700 dark:text-emerald-400 block">
+                                                                        Exact Timestamp
+                                                                    </span>
+                                                                    <span className="font-mono font-bold text-gray-900 dark:text-white">
+                                                                        {reg.created_at ? new Date(reg.created_at).toLocaleString() : '—'}
+                                                                    </span>
+                                                                </div>
+                                                            </div>
+
+                                                            {/* Sections 1 to 7 Grid */}
                                                             <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+                                                                {/* SEC 1 & SEC 2 */}
                                                                 <div className="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-gray-100 dark:border-slate-800 space-y-3">
                                                                     <div>
                                                                         <h5 className="text-[11px] font-extrabold uppercase tracking-wider text-violet-600 dark:text-violet-400 mb-1.5">
@@ -1791,13 +2480,15 @@ const AdminRegistrations: React.FC = () => {
                                                                         </h5>
                                                                         <div className="space-y-1 text-xs text-gray-700 dark:text-slate-300">
                                                                             <p><span className="font-semibold">Programme:</span> <span className="font-bold text-violet-600 dark:text-violet-400">{reg.course_interest}</span></p>
+                                                                            <p><span className="font-semibold">Official Monthly Rate:</span> <span className="font-bold text-emerald-600 dark:text-emerald-400">{reg.course_fee_display || coursePricing.displayFee}</span></p>
                                                                             <p><span className="font-semibold">Assigned Level:</span> {reg.level || 'Intermediate'}</p>
-                                                                            <p><span className="font-semibold">Mode of Study:</span> {reg.mode_preference || 'Hybrid'}</p>
+                                                                            <p><span className="font-semibold">Mode of Study:</span> {reg.mode_of_study_text || reg.mode_preference || 'Hybrid'}</p>
                                                                             <p><span className="font-semibold">Expected Start – Completion:</span> {reg.expected_start_date || '—'} to {reg.expected_completion_date || '—'}</p>
                                                                         </div>
                                                                     </div>
                                                                 </div>
 
+                                                                {/* SEC 3 & SEC 4 */}
                                                                 <div className="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-gray-100 dark:border-slate-800 space-y-3">
                                                                     <div>
                                                                         <h5 className="text-[11px] font-extrabold uppercase tracking-wider text-violet-600 dark:text-violet-400 mb-1.5">
@@ -1816,20 +2507,22 @@ const AdminRegistrations: React.FC = () => {
                                                                             4. Fees & Payment Agreement
                                                                         </h5>
                                                                         <div className="space-y-1 text-xs text-gray-700 dark:text-slate-300">
-                                                                            <p><span className="font-semibold">Total Course Fee:</span> UGX {Number(reg.total_course_fee ?? 600000).toLocaleString()} (Reg Fee: {reg.registration_fee || 'Not Applicable'})</p>
+                                                                            <p><span className="font-semibold">Total Course Fee:</span> UGX {effectiveFee.toLocaleString()} ({reg.course_fee_display || coursePricing.displayFee})</p>
+                                                                            <p><span className="font-semibold">Registration Fee:</span> {reg.registration_fee || 'Not Applicable'}</p>
                                                                             <p>
                                                                                 <span className="font-semibold">Amount Paid:</span>{' '}
                                                                                 <span className="font-bold text-emerald-600 dark:text-emerald-400">UGX {Number(reg.amount_paid ?? 0).toLocaleString()}</span>
                                                                                 {' '}• <span className="font-semibold">Balance:</span>{' '}
-                                                                                <span className="font-bold text-amber-600 dark:text-amber-400">UGX {Number(reg.outstanding_balance ?? 600000).toLocaleString()}</span>
+                                                                                <span className="font-bold text-amber-600 dark:text-amber-400">UGX {effectiveBal.toLocaleString()}</span>
                                                                             </p>
-                                                                            <p><span className="font-semibold">Payment Plan & Agreed Amt:</span> {reg.payment_plan || 'Monthly'} (UGX {Number(reg.agreed_payment_amount ?? 0).toLocaleString()})</p>
+                                                                            <p><span className="font-semibold">Payment Plan & Agreed Amt:</span> {reg.payment_plan || 'Monthly'} (UGX {Number(reg.agreed_payment_amount ?? effectiveFee).toLocaleString()})</p>
                                                                             <p><span className="font-semibold">Next / Due Date:</span> {reg.next_payment_date || '—'} / {reg.payment_due_date || '—'}</p>
                                                                             <p><span className="font-semibold">Method & Ref:</span> {reg.payment_method || 'Mobile Money'} ({reg.payment_reference || 'Pending'})</p>
                                                                         </div>
                                                                     </div>
                                                                 </div>
 
+                                                                {/* SEC 5, 6 & 7 */}
                                                                 <div className="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-gray-100 dark:border-slate-800 space-y-3">
                                                                     <div>
                                                                         <h5 className="text-[11px] font-extrabold uppercase tracking-wider text-violet-600 dark:text-violet-400 mb-1.5">
@@ -1839,7 +2532,7 @@ const AdminRegistrations: React.FC = () => {
                                                                             <p>
                                                                                 <span className="font-semibold">Commitments Accepted:</span>{' '}
                                                                                 <span className="text-emerald-600 dark:text-emerald-400 font-bold">
-                                                                                    {(reg.commitments_accepted || []).length || 8} / 8 Official Commitments Checked
+                                                                                    8 / 8 Official Commitments Checked ✓
                                                                                 </span>
                                                                             </p>
                                                                             <p><span className="font-semibold">Student Digital Signature:</span> <span className="italic font-bold">{reg.student_signature || reg.full_name}</span></p>
@@ -1864,6 +2557,7 @@ const AdminRegistrations: React.FC = () => {
                                                                 </div>
                                                             </div>
 
+                                                            {/* SECTION 8: SCHOOL / ADMINISTRATION USE ONLY (Interactive Official Editor) */}
                                                             <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl border-2 border-violet-500/30 dark:border-violet-500/40 space-y-4">
                                                                 <div className="flex flex-wrap items-center justify-between gap-2 border-b border-gray-100 dark:border-slate-800 pb-3">
                                                                     <div>
@@ -2041,6 +2735,7 @@ const AdminRegistrations: React.FC = () => {
                             </div>
                         </div>
 
+                        {/* Add New Outreach Campaign Form */}
                         <form onSubmit={handleAddCampaign} className="p-4 rounded-2xl bg-gray-50 dark:bg-slate-950 border border-gray-200 dark:border-slate-800 space-y-3 mb-5">
                             <h4 className="text-xs font-extrabold uppercase tracking-wider text-violet-600 dark:text-violet-400 flex items-center gap-1.5">
                                 <Plus size={14} /> Create New Outreach / Registration Channel
@@ -2118,6 +2813,7 @@ const AdminRegistrations: React.FC = () => {
                             </div>
                         </form>
 
+                        {/* Existing Campaigns List */}
                         <div className="space-y-2.5">
                             <h4 className="text-xs font-extrabold uppercase tracking-wider text-gray-500 dark:text-slate-400">
                                 Active Dropdown Options ({campaigns.length})
@@ -2223,6 +2919,7 @@ const AdminRegistrations: React.FC = () => {
                             </div>
                         </div>
 
+                        {/* Printable Document Content */}
                         <div className="space-y-4 text-xs leading-relaxed">
                             <div className="text-center border-b-2 border-gray-900 pb-3">
                                 <h1 className="text-lg font-black uppercase tracking-wide">WELILE SCHOOL OF AI</h1>
@@ -2321,9 +3018,134 @@ const AdminRegistrations: React.FC = () => {
                                     <p><strong>Confirmed Study Schedule:</strong> {printingRecord.confirmed_schedule || '—'}</p>
                                     <p><strong>Payment Status:</strong> {printingRecord.admin_payment_status || 'Pending'}</p>
                                     <p><strong>Admin Signature & Date:</strong> {printingRecord.admin_signature_date || '—'}</p>
+                                    <p><strong>Registered By (Staff Audit):</strong> {printingRecord.registered_by_staff || 'Self-Registered (Student)'} ({printingRecord.registered_by_role || 'Student'})</p>
+                                    <p><strong>Device Fingerprint:</strong> <span className="font-mono">{printingRecord.device_audit_id || 'N/A'}</span></p>
                                     <p className="col-span-2"><strong>Remarks:</strong> {printingRecord.admin_notes || '—'}</p>
                                 </div>
                             </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* MANAGE OUTREACH STAFF & AUDIT ROSTER MODAL */}
+            {showStaffModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+                    <div
+                        className="fixed inset-0 bg-black/60 backdrop-blur-sm"
+                        onClick={() => setShowStaffModal(false)}
+                    />
+                    <div className="bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 w-full max-w-lg rounded-3xl p-6 shadow-2xl relative z-10 text-gray-900 dark:text-white animate-in zoom-in-95 duration-200 max-h-[90vh] overflow-y-auto">
+                        <button
+                            type="button"
+                            onClick={() => setShowStaffModal(false)}
+                            className="absolute top-4 right-4 text-gray-400 hover:text-gray-700 dark:hover:text-white cursor-pointer"
+                        >
+                            <X size={20} />
+                        </button>
+
+                        <div className="flex items-center gap-3 mb-4">
+                            <div className="w-11 h-11 rounded-2xl bg-emerald-100 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
+                                <ShieldCheck size={22} />
+                            </div>
+                            <div>
+                                <h3 className="text-lg font-extrabold">Manage Staff & Mobilizer Audit Roster</h3>
+                                <p className="text-xs text-gray-500 dark:text-slate-400">
+                                    Staff added here appear in the &ldquo;Registered By (Staff Audit)&rdquo; dropdown on <code className="font-mono text-emerald-600 dark:text-emerald-400">/register</code> and can get personal QR attribution links.
+                                </p>
+                            </div>
+                        </div>
+
+                        <form onSubmit={handleAddStaff} className="p-4 rounded-2xl bg-gray-50 dark:bg-slate-950/70 border border-gray-200 dark:border-slate-800 space-y-3 mb-4">
+                            <div className="text-xs font-extrabold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">
+                                + Add New Staff / Mobilizer / Ambassador
+                            </div>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                                <div>
+                                    <label className="block text-[10px] font-bold uppercase text-gray-500 mb-1">Full Name *</label>
+                                    <input
+                                        type="text"
+                                        required
+                                        value={newStaffName}
+                                        onChange={(e) => setNewStaffName(e.target.value)}
+                                        placeholder="e.g. Sarah Namukasa"
+                                        className="w-full p-2.5 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-xl text-xs font-bold"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-[10px] font-bold uppercase text-gray-500 mb-1">Role / Title</label>
+                                    <select
+                                        value={newStaffRole}
+                                        onChange={(e) => setNewStaffRole(e.target.value)}
+                                        className="w-full p-2.5 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-xl text-xs font-bold"
+                                    >
+                                        <option value="Outreach Mobilizer">Outreach Mobilizer</option>
+                                        <option value="Lead Coordinator">Lead Coordinator</option>
+                                        <option value="Admissions Officer">Admissions Officer</option>
+                                        <option value="Campus Ambassador">Campus Ambassador</option>
+                                        <option value="Instructor">Instructor</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <input
+                                    type="tel"
+                                    value={newStaffPhone}
+                                    onChange={(e) => setNewStaffPhone(e.target.value.replace(/\D/g, '').slice(0, 10))}
+                                    placeholder="Phone (Optional, max 10 digits)"
+                                    maxLength={10}
+                                    className="flex-1 p-2.5 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-xl text-xs"
+                                />
+                                <button
+                                    type="submit"
+                                    className="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-extrabold flex items-center gap-1.5 cursor-pointer shrink-0 shadow-sm"
+                                >
+                                    <Plus size={14} /> Add to Roster
+                                </button>
+                            </div>
+                        </form>
+
+                        <div className="space-y-2 max-h-64 overflow-y-auto pr-1">
+                            {staffRoster.map(st => (
+                                <div
+                                    key={st.id}
+                                    className="flex items-center justify-between gap-2 p-3 rounded-xl bg-white dark:bg-slate-800/60 border border-gray-200 dark:border-slate-800"
+                                >
+                                    <div>
+                                        <div className="flex items-center gap-2">
+                                            <span className="text-xs font-extrabold text-gray-900 dark:text-white">{st.name}</span>
+                                            <span className="px-2 py-0.5 rounded-md bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 text-[10px] font-bold">
+                                                {st.role}
+                                            </span>
+                                        </div>
+                                        <div className="text-[10px] text-gray-400 font-mono mt-0.5">
+                                            ID: {st.id} {st.phone ? `• ${st.phone}` : ''}
+                                        </div>
+                                    </div>
+                                    <div className="flex items-center gap-1.5">
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                setQrStaffName(st.name);
+                                                setShowStaffModal(false);
+                                                setShowQrModal(true);
+                                            }}
+                                            className="px-2.5 py-1.5 rounded-lg bg-violet-50 dark:bg-violet-950/50 text-violet-700 dark:text-violet-300 text-[11px] font-bold flex items-center gap-1 cursor-pointer hover:bg-violet-100"
+                                            title="Generate personal QR link for this staff member"
+                                        >
+                                            <QrCode size={12} /> Staff QR
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => handleDeleteStaff(st.id)}
+                                            className="p-1.5 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/40 cursor-pointer"
+                                            title="Remove from roster"
+                                        >
+                                            <Trash2 size={14} />
+                                        </button>
+                                    </div>
+                                </div>
+                            ))}
                         </div>
                     </div>
                 </div>
@@ -2516,6 +3338,24 @@ const AdminRegistrations: React.FC = () => {
                                 </select>
                             </div>
 
+                            <div>
+                                <label className="block text-[11px] font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400 mb-1">
+                                    Select Staff / Mobilizer for QR Audit Attribution (Optional)
+                                </label>
+                                <select
+                                    value={qrStaffName}
+                                    onChange={(e) => setQrStaffName(e.target.value)}
+                                    className="w-full p-2.5 bg-gray-50 dark:bg-slate-800 border border-emerald-200 dark:border-emerald-900/50 rounded-xl text-xs font-bold"
+                                >
+                                    <option value="">— General Booth QR (No Specific Staff Pre-tagged) —</option>
+                                    {staffRoster.map(st => (
+                                        <option key={st.id} value={st.name}>
+                                            👤 {st.name} ({st.role})
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+
                             <div className="bg-white p-4 rounded-2xl border border-gray-200 flex flex-col items-center justify-center shadow-inner">
                                 <img
                                     src={qrCodeImageUrl}
@@ -2525,6 +3365,11 @@ const AdminRegistrations: React.FC = () => {
                                 {qrEventName.trim() && (
                                     <span className="mt-2 px-3 py-1 rounded-full bg-violet-100 text-violet-800 text-xs font-extrabold">
                                         {qrEventName.trim()}
+                                    </span>
+                                )}
+                                {qrStaffName.trim() && (
+                                    <span className="mt-1 px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[11px] font-extrabold">
+                                        👤 Attributed to: {qrStaffName.trim()}
                                     </span>
                                 )}
                             </div>

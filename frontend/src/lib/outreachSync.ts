@@ -3,7 +3,471 @@ import { supabase } from './supabaseClient';
 export const OUTREACH_QUEUE_KEY = 'outreach_pending_registrations';
 export const OUTREACH_LOCAL_CACHE_KEY = 'outreach_registrations_local_cache';
 export const OUTREACH_CAMPAIGNS_CACHE_KEY = 'welile_outreach_campaigns_v1';
+export const OUTREACH_STAFF_CACHE_KEY = 'welile_outreach_staff_v1';
+export const ACTIVE_STAFF_SESSION_KEY = 'welile_active_registrar_staff_v1';
+export const DEVICE_AUDIT_ID_KEY = 'welile_device_audit_id_v1';
 
+// ============================================================================
+// 1. OFFICIAL COURSES & MONTHLY PRICING CATALOG
+// ============================================================================
+export interface OfficialCoursePricing {
+    title: string;
+    usdPerMonth: number;
+    ugxPerMonth: number;
+    ugxWeekly: number;
+    displayFee: string;
+    shortBadge: string;
+}
+
+export const OFFICIAL_COURSE_CATALOG: OfficialCoursePricing[] = [
+    {
+        title: 'Advanced Vibe Coding',
+        usdPerMonth: 25,
+        ugxPerMonth: 100000,
+        ugxWeekly: 25000,
+        displayFee: '$25 | 100,000 UGX per month',
+        shortBadge: '$25 / 100,000 UGX mo'
+    },
+    {
+        title: 'Document with AI',
+        usdPerMonth: 25,
+        ugxPerMonth: 100000,
+        ugxWeekly: 25000,
+        displayFee: '$25 | 100,000 UGX per month',
+        shortBadge: '$25 / 100,000 UGX mo'
+    },
+    {
+        title: 'Agentic AI',
+        usdPerMonth: 50,
+        ugxPerMonth: 200000,
+        ugxWeekly: 50000,
+        displayFee: '$50 | 200,000 UGX per month',
+        shortBadge: '$50 / 200,000 UGX mo'
+    },
+    {
+        title: 'AI Security and Safety',
+        usdPerMonth: 35,
+        ugxPerMonth: 150000,
+        ugxWeekly: 37500,
+        displayFee: '$35 | 150,000 UGX per month',
+        shortBadge: '$35 / 150,000 UGX mo'
+    }
+];
+
+export function getCoursePricing(courseTitle: string): OfficialCoursePricing {
+    const clean = (courseTitle || '').trim().toLowerCase();
+    const matched = OFFICIAL_COURSE_CATALOG.find(
+        c => c.title.toLowerCase() === clean || clean.includes(c.title.toLowerCase())
+    );
+    if (matched) return matched;
+    return {
+        title: courseTitle || 'Advanced Vibe Coding',
+        usdPerMonth: 25,
+        ugxPerMonth: 100000,
+        ugxWeekly: 25000,
+        displayFee: '$25 | 100,000 UGX per month',
+        shortBadge: '$25 / 100,000 UGX mo'
+    };
+}
+
+export function formatUgx(amount: number | string | null | undefined): string {
+    const num = Number(String(amount ?? 0).replace(/[^0-9.-]/g, ''));
+    if (isNaN(num)) return '0';
+    return Math.max(0, Math.round(num)).toLocaleString('en-US');
+}
+
+export function sanitizeMoneyInput(raw: string, maxUgx = 20000000): number {
+    const digitsOnly = String(raw || '').replace(/[^0-9]/g, '');
+    if (!digitsOnly) return 0;
+    const parsed = parseInt(digitsOnly, 10);
+    if (isNaN(parsed) || parsed < 0) return 0;
+    return Math.min(parsed, maxUgx);
+}
+
+export function formatEquivalentUsd(ugxAmount: number, courseTitle?: string): string {
+    const num = Number(ugxAmount) || 0;
+    if (num <= 0) return '$0';
+    if (courseTitle) {
+        const pricing = getCoursePricing(courseTitle);
+        if (num === pricing.ugxPerMonth) {
+            return `$${pricing.usdPerMonth}`;
+        }
+    }
+    if (num === 100000) return '$25';
+    if (num === 150000) return '$35';
+    if (num === 200000) return '$50';
+    const approx = Math.round((num / 4000) * 10) / 10;
+    return `$${approx}`;
+}
+
+// ============================================================================
+// 2. CLEAN PHONE NUMBER SANITIZATION & VALIDATION (UGANDA & INTL)
+// ============================================================================
+export interface PhoneValidationResult {
+    valid: boolean;
+    normalized: string;
+    digitCount: number;
+    maxDigits: number;
+    formatLabel: string;
+    message: string;
+}
+
+/**
+ * Enforces strict digit caps while typing:
+ * - Local UG number starting with '0': strictly max 10 digits (e.g. 0772123456)
+ * - Intl UG number starting with '+256': strictly max 12 digits (+256772123456)
+ * - Intl UG number starting with '256': strictly max 12 digits (256772123456)
+ * - Number starting with '7' (missing leading 0): max 9 digits (772123456)
+ */
+export function sanitizePhoneInput(raw: string): string {
+    const trimmed = (raw || '').trimStart();
+    const hasLeadingPlus = trimmed.startsWith('+');
+    const digits = trimmed.replace(/[^0-9]/g, '');
+
+    if (!digits) {
+        return hasLeadingPlus ? '+' : '';
+    }
+
+    if (hasLeadingPlus) {
+        if (digits.startsWith('256')) {
+            // +256 + 9 subscriber digits = 12 digits total
+            return '+' + digits.slice(0, 12);
+        }
+        // Standard E.164 max 15 digits
+        return '+' + digits.slice(0, 15);
+    }
+
+    if (digits.startsWith('0')) {
+        // Local Uganda format 07XXXXXXXX = strictly 10 digits maximum
+        return digits.slice(0, 10);
+    }
+
+    if (digits.startsWith('256')) {
+        // 2567XXXXXXXX = strictly 12 digits maximum
+        return digits.slice(0, 12);
+    }
+
+    if (digits.startsWith('7')) {
+        // 7XXXXXXXX = 9 digits (will normalize to 07XXXXXXXX)
+        return digits.slice(0, 9);
+    }
+
+    return digits.slice(0, 10);
+}
+
+export function validateCleanPhone(raw: string): PhoneValidationResult {
+    const cleaned = sanitizePhoneInput(raw);
+    const digits = cleaned.replace(/[^0-9]/g, '');
+    const hasPlus = cleaned.startsWith('+');
+
+    if (!digits) {
+        return {
+            valid: false,
+            normalized: '',
+            digitCount: 0,
+            maxDigits: 10,
+            formatLabel: '0/10 digits',
+            message: 'Phone number is required (e.g. 0772123456).'
+        };
+    }
+
+    // Case 1: Local Uganda format starting with 0 (e.g. 0772123456)
+    if (!hasPlus && digits.startsWith('0')) {
+        const maxDigits = 10;
+        const validPrefix = /^0(7[0-9]|39|20)/.test(digits);
+        const isExact = digits.length === 10;
+        return {
+            valid: validPrefix && isExact,
+            normalized: digits,
+            digitCount: digits.length,
+            maxDigits,
+            formatLabel: `${digits.length}/${maxDigits} digits`,
+            message: !validPrefix && digits.length >= 2
+                ? 'Must start with a valid Uganda prefix (e.g. 070, 074, 075, 076, 077, 078).'
+                : !isExact
+                ? `Enter all 10 digits (${digits.length}/10 entered).`
+                : 'Valid 10-digit phone number ✓'
+        };
+    }
+
+    // Case 2: User started with 7 (9 digits, e.g. 772123456)
+    if (!hasPlus && digits.startsWith('7')) {
+        const maxDigits = 9;
+        const isExact = digits.length === 9;
+        const normalized = isExact ? `0${digits}` : digits;
+        return {
+            valid: isExact,
+            normalized,
+            digitCount: digits.length,
+            maxDigits,
+            formatLabel: `${digits.length}/${maxDigits} digits`,
+            message: isExact
+                ? `Valid phone number (normalized to ${normalized}) ✓`
+                : `Enter 9 digits after 7 or start with 07 (${digits.length}/9 entered).`
+        };
+    }
+
+    // Case 3: +256 or 256 format (12 digits total: 256 + 9 digits)
+    if (digits.startsWith('256')) {
+        const maxDigits = 12;
+        const validSub = /^256(7[0-9]|39|20)/.test(digits);
+        const isExact = digits.length === 12;
+        return {
+            valid: validSub && isExact,
+            normalized: `+${digits}`,
+            digitCount: digits.length,
+            maxDigits,
+            formatLabel: `${digits.length}/${maxDigits} digits`,
+            message: !validSub && digits.length >= 4
+                ? 'Must be +256 followed by 7X XXX XXXX.'
+                : !isExact
+                ? `Complete all 12 digits for +256 (${digits.length}/12 entered).`
+                : 'Valid +256 Uganda phone number ✓'
+        };
+    }
+
+    // Case 4: Other international number with +
+    if (hasPlus) {
+        const isOk = digits.length >= 10 && digits.length <= 15;
+        return {
+            valid: isOk,
+            normalized: `+${digits}`,
+            digitCount: digits.length,
+            maxDigits: 15,
+            formatLabel: `${digits.length} digits`,
+            message: isOk ? 'Valid international number ✓' : 'Enter between 10 and 15 digits.'
+        };
+    }
+
+    return {
+        valid: false,
+        normalized: cleaned,
+        digitCount: digits.length,
+        maxDigits: 10,
+        formatLabel: `${digits.length}/10 digits`,
+        message: 'Start phone number with 07 (10 digits) or +256 (12 digits).'
+    };
+}
+
+export function cleanPersonName(raw: string): string {
+    return (raw || '')
+        .replace(/\s+/g, ' ')
+        .trim()
+        .split(' ')
+        .filter(Boolean)
+        .map(w => w.charAt(0).toUpperCase() + w.slice(1))
+        .join(' ');
+}
+
+// ============================================================================
+// 3. STAFF / MOBILIZER AUDIT & PROVENANCE SYSTEM
+// ============================================================================
+export interface OutreachStaffMember {
+    id: string;
+    name: string;
+    staffCode: string;
+    role: string;
+    phone?: string;
+    isActive: boolean;
+}
+
+export const DEFAULT_OUTREACH_STAFF: OutreachStaffMember[] = [
+    {
+        id: 'stf-001',
+        name: 'Collines T.',
+        staffCode: 'WSI-STF-001',
+        role: 'Outreach Team Lead',
+        phone: '0772000001',
+        isActive: true
+    },
+    {
+        id: 'stf-002',
+        name: 'Nkumba Mobilizer 1 (Booth Desk A)',
+        staffCode: 'WSI-STF-002',
+        role: 'Outreach Mobilizer',
+        phone: '0772000002',
+        isActive: true
+    },
+    {
+        id: 'stf-003',
+        name: 'Nkumba Mobilizer 2 (Booth Desk B)',
+        staffCode: 'WSI-STF-003',
+        role: 'Outreach Mobilizer',
+        phone: '0772000003',
+        isActive: true
+    },
+    {
+        id: 'stf-004',
+        name: 'Katabi Admissions Office',
+        staffCode: 'WSI-STF-004',
+        role: 'Admissions Officer',
+        phone: '0700000004',
+        isActive: true
+    },
+    {
+        id: 'stf-005',
+        name: 'Welile Campus Ambassador',
+        staffCode: 'WSI-STF-005',
+        role: 'Campus Mobilizer',
+        phone: '0750000005',
+        isActive: true
+    },
+    {
+        id: 'stf-self',
+        name: 'Self-Registered (Student Direct)',
+        staffCode: 'SELF-WEB',
+        role: 'Student Self-Service',
+        isActive: true
+    }
+];
+
+export interface AuditLogEntry {
+    timestamp: string;
+    actor: string;
+    role: string;
+    action: string;
+    device_id: string;
+    details?: string;
+}
+
+export function getOrCreateDeviceAuditInfo(): { deviceId: string; deviceSummary: string } {
+    let deviceId = 'DEV-LOCAL';
+    try {
+        const existing = localStorage.getItem(DEVICE_AUDIT_ID_KEY);
+        if (existing) {
+            deviceId = existing;
+        } else {
+            const rand = Math.random().toString(36).substring(2, 6).toUpperCase() + '-' + Date.now().toString(36).slice(-4).toUpperCase();
+            deviceId = `DEV-${rand}`;
+            localStorage.setItem(DEVICE_AUDIT_ID_KEY, deviceId);
+        }
+    } catch {
+        // ignore storage errors
+    }
+
+    let deviceSummary = 'Web Browser';
+    if (typeof navigator !== 'undefined') {
+        const ua = navigator.userAgent || '';
+        const os = /iPhone|iPad|iPod/i.test(ua)
+            ? 'iOS (iPhone/iPad)'
+            : /Android/i.test(ua)
+            ? 'Android Phone'
+            : /Mac/i.test(ua)
+            ? 'MacOS'
+            : /Win/i.test(ua)
+            ? 'Windows'
+            : 'Linux/Other';
+        const browser = /CriOS|Chrome/i.test(ua) && !/Edg/i.test(ua)
+            ? 'Chrome'
+            : /Safari/i.test(ua) && !/Chrome/i.test(ua)
+            ? 'Safari'
+            : /Firefox/i.test(ua)
+            ? 'Firefox'
+            : /Edg/i.test(ua)
+            ? 'Edge'
+            : 'Browser';
+        deviceSummary = `${os} • ${browser}`;
+    }
+
+    return { deviceId, deviceSummary };
+}
+
+export async function fetchOutreachStaff(): Promise<OutreachStaffMember[]> {
+    try {
+        const { data: mailConfig } = await supabase
+            .from('mails')
+            .select('id, message')
+            .eq('email', 'outreach-staff@system.welile.com')
+            .limit(1);
+
+        if (mailConfig && mailConfig.length > 0 && mailConfig[0].message) {
+            const match = mailConfig[0].message.match(/<!--STAFF_JSON:([\s\S]+?)-->/);
+            if (match && match[1]) {
+                const parsed = JSON.parse(match[1]);
+                if (Array.isArray(parsed) && parsed.length > 0) {
+                    localStorage.setItem(OUTREACH_STAFF_CACHE_KEY, JSON.stringify(parsed));
+                    return parsed;
+                }
+            }
+        }
+    } catch {
+        // fallback to cache
+    }
+
+    try {
+        const cached = localStorage.getItem(OUTREACH_STAFF_CACHE_KEY);
+        if (cached) {
+            const parsed = JSON.parse(cached);
+            if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        }
+    } catch {
+        // ignore
+    }
+
+    return DEFAULT_OUTREACH_STAFF;
+}
+
+export async function saveOutreachStaff(staffList: OutreachStaffMember[]): Promise<void> {
+    try {
+        localStorage.setItem(OUTREACH_STAFF_CACHE_KEY, JSON.stringify(staffList));
+    } catch {
+        // ignore
+    }
+
+    try {
+        const msg = `[System Outreach Staff Roster]\n<!--STAFF_JSON:${JSON.stringify(staffList)}-->`;
+        const { data: existing } = await supabase
+            .from('mails')
+            .select('id')
+            .eq('email', 'outreach-staff@system.welile.com');
+
+        if (existing && existing.length > 0) {
+            await supabase
+                .from('mails')
+                .update({ message: msg })
+                .eq('id', existing[0].id);
+        } else {
+            await supabase.from('mails').insert({
+                name: 'Outreach Staff Roster Config',
+                email: 'outreach-staff@system.welile.com',
+                message: msg,
+                type: 'SYSTEM_CONFIG'
+            });
+        }
+    } catch (e) {
+        console.warn('Could not persist outreach staff roster to Supabase:', e);
+    }
+}
+
+export async function ensureOfficialCoursesSeeded(): Promise<void> {
+    try {
+        const { data: existing } = await supabase
+            .from('courses')
+            .select('id, title');
+        const existingTitles = new Set(
+            (existing || []).map((c: any) => String(c.title || '').trim().toLowerCase())
+        );
+
+        for (const course of OFFICIAL_COURSE_CATALOG) {
+            if (!existingTitles.has(course.title.toLowerCase())) {
+                await supabase.from('courses').insert({
+                    title: course.title,
+                    description: `Official Welile School of AI Programme — ${course.displayFee}. Practical hands-on AI training at Katabi, Entebbe & Online.`,
+                    category: 'Artificial Intelligence',
+                    level: 'Intermediate',
+                    duration: '8 Weeks',
+                    is_draft: false
+                });
+            }
+        }
+    } catch {
+        // non-blocking if user is anon and RLS restricts courses insert
+    }
+}
+
+// ============================================================================
+// 4. OUTREACH CAMPAIGNS & REGISTRATION PAYLOAD
+// ============================================================================
 export interface OutreachCampaign {
     id: string;
     name: string;
@@ -71,6 +535,8 @@ export interface OutreachRegistrationPayload {
 
     // 2. COURSE & PROGRAMME INFORMATION
     course_interest: string;
+    course_fee_usd?: number;
+    course_fee_display?: string;
     level?: string | null;
     mode_of_study_text?: string | null;
     mode_preference?: string | null;
@@ -105,9 +571,16 @@ export interface OutreachRegistrationPayload {
     guardian_consent_date?: string | null;
     consent_contact: boolean;
 
-    // ATTRIBUTION
+    // ATTRIBUTION & STAFF AUDIT TRAIL
     how_heard?: string | null;
     outreach_event?: string | null;
+    registered_by_staff?: string | null;
+    registered_by_staff_id?: string | null;
+    registered_by_role?: string | null;
+    registration_mode?: 'Staff Assisted (Booth/Field)' | 'Student Self-Registration' | string | null;
+    device_audit_id?: string | null;
+    device_info?: string | null;
+    audit_trail?: AuditLogEntry[];
 
     // 8. SCHOOL / ADMINISTRATION USE ONLY
     status?: 'NEW' | 'CONTACTED' | 'ENROLLED' | 'NOT_INTERESTED';
@@ -135,7 +608,6 @@ export function generateStudentRegNo(seqHint?: number): string {
 
 export async function fetchOutreachCampaigns(): Promise<OutreachCampaign[]> {
     try {
-        // 1. Try `outreach_campaigns` table if present
         const { data: campData, error: campErr } = await supabase
             .from('outreach_campaigns')
             .select('*')
@@ -157,7 +629,6 @@ export async function fetchOutreachCampaigns(): Promise<OutreachCampaign[]> {
             return mapped;
         }
 
-        // 2. Fallback: check `mails` table for stored OUTREACH_CAMPAIGNS_CONFIG record
         const { data: mailConfig } = await supabase
             .from('mails')
             .select('id, message')
@@ -263,6 +734,7 @@ export function removeQueuedOutreachRegistration(id: string): void {
 
 export async function logOutreachToMails(record: OutreachRegistrationPayload): Promise<boolean> {
     try {
+        const pricing = getCoursePricing(record.course_interest);
         const scheduleSummary = [
             record.mode_preference ? `Mode: ${record.mode_preference}` : null,
             record.preferred_study_days && record.preferred_study_days.length > 0
@@ -273,11 +745,13 @@ export async function logOutreachToMails(record: OutreachRegistrationPayload): P
         ].filter(Boolean).join(' | ');
 
         const paymentSummary = [
-            `Total Fee: UGX ${(record.total_course_fee ?? 600000).toLocaleString()}`,
+            `Course Fee: ${record.course_fee_display || pricing.displayFee} (UGX ${(record.total_course_fee ?? pricing.ugxPerMonth).toLocaleString()})`,
             `Paid: UGX ${(record.amount_paid ?? 0).toLocaleString()}`,
-            `Balance: UGX ${(record.outstanding_balance ?? 600000).toLocaleString()}`,
+            `Balance: UGX ${(record.outstanding_balance ?? pricing.ugxPerMonth).toLocaleString()}`,
             `Plan: ${record.payment_plan || 'Monthly'} (${record.payment_method || 'Mobile Money'})`
         ].join(' | ');
+
+        const auditSummary = `Audit Registrar: ${record.registered_by_staff || 'Self-Registered'} (${record.registration_mode || 'Staff Assisted'}) | Device: ${record.device_audit_id || 'DEV'} (${record.device_info || 'Web'})`;
 
         const guardianSummary = record.guardian_name
             ? `\nGuardian: ${record.guardian_name} (${record.guardian_phone || 'N/A'})`
@@ -293,9 +767,10 @@ export async function logOutreachToMails(record: OutreachRegistrationPayload): P
         const message = [
             `[Welile Student Registration & Payment Agreement — ${record.student_reg_no || 'WSI'}]`,
             `Outreach / Channel: ${record.outreach_event || 'Nkumba University Outreach (Fri, 6th Nov 2026)'}`,
+            auditSummary,
             `Name: ${record.full_name} (${record.class_level_year || record.age_range || 'Student'})`,
             `Phone: ${record.phone}${record.email ? ` | Email: ${record.email}` : ''}`,
-            `Course: ${record.course_interest} — Level: ${record.level || 'Intermediate'}`,
+            `Course: ${record.course_interest} (${record.course_fee_display || pricing.displayFee}) — Level: ${record.level || 'Intermediate'}`,
             scheduleSummary || null,
             paymentSummary,
             `Signed by: ${record.student_signature || record.full_name} on ${record.registration_date || new Date().toISOString().split('T')[0]}`,
@@ -323,7 +798,6 @@ export async function insertOutreachRegistrationLive(payload: OutreachRegistrati
         throw new Error('Browser is currently offline');
     }
 
-    // Attempt insert with core columns into outreach_registrations
     const coreDbRow: Record<string, any> = {
         full_name: payload.full_name,
         email: payload.email || null,
@@ -349,7 +823,7 @@ export async function insertOutreachRegistrationLive(payload: OutreachRegistrati
         .from('outreach_registrations')
         .insert([coreDbRow]);
 
-    // Always log the full structured 8-section registration into `mails` as well
+    // Always log the full structured 8-section + audit trail registration into `mails` as well
     const loggedToMails = await logOutreachToMails(payload);
 
     if (!error || loggedToMails) {
