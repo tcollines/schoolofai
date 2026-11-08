@@ -323,10 +323,24 @@ const STATUS_OPTIONS: Array<OutreachRegistrationRecord['status']> = [
     'NOT_INTERESTED'
 ];
 
+const STATUS_STAGE_LABELS: Record<OutreachRegistrationRecord['status'], string> = {
+    NEW: 'Pre-Registered (Follow-Up Needed)',
+    CONTACTED: 'Followed Up (Confirming Study)',
+    ENROLLED: 'Confirmed & Enrolled Student',
+    NOT_INTERESTED: 'Deferred / Declined'
+};
+
+const STATUS_SHORT_LABELS: Record<OutreachRegistrationRecord['status'], string> = {
+    NEW: 'Pre-Registered',
+    CONTACTED: 'Followed Up',
+    ENROLLED: 'Confirmed Student',
+    NOT_INTERESTED: 'Deferred'
+};
+
 const STATUS_BADGE_STYLES: Record<OutreachRegistrationRecord['status'], string> = {
-    NEW: 'bg-violet-100 text-violet-700 border-violet-200 dark:bg-violet-950/50 dark:text-violet-300 dark:border-violet-800/60',
-    CONTACTED: 'bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-950/50 dark:text-blue-300 dark:border-blue-800/60',
-    ENROLLED: 'bg-emerald-100 text-emerald-700 border-emerald-200 dark:bg-emerald-950/50 dark:text-emerald-300 dark:border-emerald-800/60',
+    NEW: 'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/50 dark:text-amber-300 dark:border-amber-800/60',
+    CONTACTED: 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/50 dark:text-blue-300 dark:border-blue-800/60',
+    ENROLLED: 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/50 dark:text-emerald-300 dark:border-emerald-800/60',
     NOT_INTERESTED: 'bg-gray-100 text-gray-600 border-gray-200 dark:bg-slate-800 dark:text-slate-400 dark:border-slate-700'
 };
 
@@ -400,8 +414,10 @@ const AdminRegistrations: React.FC = () => {
     const [sortBy, setSortBy] = useState<'created_at' | 'full_name' | 'course_interest' | 'status'>('created_at');
     const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
 
-    // Expandable row & Section 8 states
+    // Workspace View & Right Slide-Over Inspector Drawer states
+    const [activeWorkspaceView, setActiveWorkspaceView] = useState<'TABLE' | 'BOARD' | 'ANALYTICS' | 'AUDIT'>('TABLE');
     const [expandedRowId, setExpandedRowId] = useState<string | null>(null);
+    const [drawerTab, setDrawerTab] = useState<'OVERVIEW' | 'CONFIRMATION' | 'AUDIT'>('CONFIRMATION');
     const [section8Drafts, setSection8Drafts] = useState<Record<string, Section8Draft>>({});
     const [savingSection8Id, setSavingSection8Id] = useState<string | null>(null);
     const [savedSection8Id, setSavedSection8Id] = useState<string | null>(null);
@@ -1088,7 +1104,10 @@ const AdminRegistrations: React.FC = () => {
             r => new Date(r.created_at).getTime() >= oneWeekAgo
         ).length;
 
+        const awaitingFollowUpCount = sievedRegistrations.filter(r => r.status === 'NEW').length;
+        const followedUpCount = sievedRegistrations.filter(r => r.status === 'CONTACTED').length;
         const enrolledCount = sievedRegistrations.filter(r => r.status === 'ENROLLED').length;
+        const deferredCount = sievedRegistrations.filter(r => r.status === 'NOT_INTERESTED').length;
         const conversionRate = total > 0 ? Math.round((enrolledCount / total) * 100) : 0;
 
         let totalFeePipeline = 0;
@@ -1121,7 +1140,10 @@ const AdminRegistrations: React.FC = () => {
         return {
             total,
             newThisWeek,
+            awaitingFollowUpCount,
+            followedUpCount,
             enrolledCount,
+            deferredCount,
             conversionRate,
             topCourse,
             topCourseCount,
@@ -1631,150 +1653,205 @@ const AdminRegistrations: React.FC = () => {
     };
 
     const defaultCampaign = campaigns.find(c => c.is_default) || campaigns[0];
+    const selectedDrawerRecord = useMemo(
+        () => registrations.find(r => r.id === expandedRowId) || null,
+        [registrations, expandedRowId]
+    );
+
+    const buildWhatsAppFollowUpUrl = (reg: OutreachRegistrationRecord) => {
+        const cleanDigits = (reg.phone || '').replace(/\D/g, '');
+        const intlPhone = cleanDigits.startsWith('0')
+            ? `256${cleanDigits.slice(1)}`
+            : cleanDigits.startsWith('256')
+            ? cleanDigits
+            : `256${cleanDigits}`;
+        const firstName = (reg.full_name || 'Student').split(' ')[0];
+        const pricing = getCoursePricing(reg.course_interest);
+        const msg = `Hello ${firstName}, this is Welile School of AI (Katabi, Entebbe) following up on your provisional registration (${reg.student_reg_no || 'WSI'}) for *${reg.course_interest}* (${pricing.displayFee}). Would you like to confirm your study slot and preferred schedule (${(reg.preferred_study_days || []).join(', ') || 'Mon, Wed, Fri'} • ${reg.preferred_time_slot || 'Morning/Afternoon'}) for the upcoming cohort?`;
+        return `https://wa.me/${intlPhone}?text=${encodeURIComponent(msg)}`;
+    };
 
     return (
-        <div className="space-y-6">
-            {/* Page Header */}
-            <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl shadow-sm border border-gray-150 dark:border-slate-800 flex flex-col xl:flex-row xl:items-center justify-between gap-4 transition-colors">
+        <div className="space-y-5">
+            {/* Top CRM Header Bar */}
+            <div className="bg-white dark:bg-slate-900 px-5 py-4 rounded-2xl shadow-sm border border-gray-200/80 dark:border-slate-800 flex flex-col xl:flex-row xl:items-center justify-between gap-4">
                 <div>
-                    <div className="flex flex-wrap items-center gap-2">
-                        <h2 className="text-xl font-bold text-gray-900 dark:text-white">
-                            Official Student Registrations & Staff Audit Intelligence
+                    <div className="flex flex-wrap items-center gap-2.5">
+                        <h2 className="text-lg font-extrabold tracking-tight text-gray-900 dark:text-white">
+                            Admissions & Outreach Follow-Up CRM
                         </h2>
-                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/50">
-                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping" /> Live 8-Section + Staff Audit Sync
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/50">
+                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                            Live Supabase Sync
+                        </span>
+                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-amber-50 text-amber-800 dark:bg-amber-950/50 dark:text-amber-300 border border-amber-200/70 dark:border-amber-800/50">
+                            Provisional Pre-Registration → Follow-Up → Confirmed Student
                         </span>
                     </div>
                     <p className="text-xs text-gray-500 dark:text-slate-400 mt-1">
-                        Welile School of AI (Katabi, Entebbe) • Active Default Outreach:{' '}
-                        <span className="font-bold text-violet-600 dark:text-violet-400">
+                        Outreach registrations are <strong className="text-gray-700 dark:text-slate-200">provisional seat reservations</strong> until confirmed via follow-up call/WhatsApp • Active Booth:{' '}
+                        <span className="font-semibold text-violet-600 dark:text-violet-400">
                             {defaultCampaign?.name}
                         </span>
                     </p>
                 </div>
 
-                <div className="flex flex-wrap items-center gap-2.5">
+                <div className="flex flex-wrap items-center gap-2">
                     <button
                         type="button"
                         onClick={() => fetchRegistrations()}
-                        className="px-3.5 py-2.5 rounded-xl border border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-slate-800 hover:bg-gray-100 dark:hover:bg-slate-700 text-gray-700 dark:text-slate-200 text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer"
-                        title="Refresh Registrations"
+                        className="px-3 py-2 rounded-xl border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-gray-50 dark:hover:bg-slate-700 text-gray-700 dark:text-slate-200 text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer"
+                        title="Refresh Live Database"
                     >
-                        <RefreshCw size={14} className={loading ? 'animate-spin' : ''} />
+                        <RefreshCw size={13} className={loading ? 'animate-spin' : ''} />
                         Refresh
                     </button>
 
                     <button
                         type="button"
                         onClick={() => setShowStaffModal(true)}
-                        className="px-4 py-2.5 rounded-xl border border-emerald-200 dark:border-emerald-800/60 bg-emerald-50 dark:bg-emerald-950/40 hover:bg-emerald-100 dark:hover:bg-emerald-900/50 text-emerald-800 dark:text-emerald-300 text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer"
+                        className="px-3 py-2 rounded-xl border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-gray-50 dark:hover:bg-slate-700 text-gray-700 dark:text-slate-200 text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer"
                     >
-                        <UserCheck size={15} />
-                        Staff & Audit Roster ({staffRoster.length})
+                        <UserCheck size={14} className="text-emerald-600 dark:text-emerald-400" />
+                        Staff Roster ({staffRoster.length})
                     </button>
 
                     <button
                         type="button"
                         onClick={() => setShowCampaignModal(true)}
-                        className="px-4 py-2.5 rounded-xl border border-amber-200 dark:border-amber-800/60 bg-amber-50 dark:bg-amber-950/40 hover:bg-amber-100 dark:hover:bg-amber-900/50 text-amber-800 dark:text-amber-300 text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer"
+                        className="px-3 py-2 rounded-xl border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-gray-50 dark:hover:bg-slate-700 text-gray-700 dark:text-slate-200 text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer"
                     >
-                        <Megaphone size={15} />
-                        Manage Outreaches ({campaigns.length})
+                        <Megaphone size={14} className="text-amber-600 dark:text-amber-400" />
+                        Outreaches ({campaigns.length})
                     </button>
 
                     <button
                         type="button"
                         onClick={() => setShowQrModal(true)}
-                        className="px-4 py-2.5 rounded-xl border border-violet-200 dark:border-violet-800/60 bg-violet-50 dark:bg-violet-950/40 hover:bg-violet-100 dark:hover:bg-violet-900/50 text-violet-700 dark:text-violet-300 text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer"
+                        className="px-3 py-2 rounded-xl border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-gray-50 dark:hover:bg-slate-700 text-gray-700 dark:text-slate-200 text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer"
                     >
-                        <QrCode size={15} />
-                        Booth / Staff QR Code
+                        <QrCode size={14} className="text-violet-600 dark:text-violet-400" />
+                        Booth QR
                     </button>
 
                     <button
                         type="button"
                         onClick={handleExportCSV}
-                        className="px-4 py-2.5 rounded-xl bg-violet-600 hover:bg-violet-700 text-white text-xs font-bold flex items-center gap-1.5 shadow-sm transition-colors cursor-pointer"
+                        className="px-3.5 py-2 rounded-xl bg-violet-600 hover:bg-violet-700 text-white text-xs font-semibold flex items-center gap-1.5 shadow-sm transition-colors cursor-pointer"
                     >
-                        <Download size={15} />
+                        <Download size={14} />
                         Export CSV ({filteredRegistrations.length})
                     </button>
                 </div>
             </div>
 
-            {/* TOP-LEVEL DASHBOARD STATS SIEVE BAR (Outreach Sieve + Staff/Mobilizer Audit Sieve) */}
-            <div className="bg-white dark:bg-slate-900 p-4 rounded-2xl shadow-sm border border-violet-200/80 dark:border-violet-900/40 space-y-3">
-                {/* Row 1: Outreach Campaign Sieve */}
-                <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 pb-3 border-b border-gray-100 dark:border-slate-800">
-                    <div className="flex flex-wrap items-center gap-2">
-                        <span className="text-[11px] font-extrabold uppercase tracking-wider text-violet-700 dark:text-violet-300 flex items-center gap-1.5 mr-1">
-                            <Layers size={14} /> 1. Sieve by Outreach:
-                        </span>
-
-                        <button
-                            type="button"
-                            onClick={() => setDashboardSieve('ALL')}
-                            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                                dashboardSieve === 'ALL'
-                                    ? 'bg-violet-600 text-white shadow-sm'
-                                    : 'bg-gray-100 dark:bg-slate-800 text-gray-700 dark:text-slate-300 hover:bg-gray-200 dark:hover:bg-slate-700'
-                            }`}
-                        >
-                            All Combined ({sieveCounts.all})
-                        </button>
-
-                        <button
-                            type="button"
-                            onClick={() => setDashboardSieve('Nkumba University Outreach (Fri, 6th Nov 2026)')}
-                            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
-                                dashboardSieve === 'Nkumba University Outreach (Fri, 6th Nov 2026)'
-                                    ? 'bg-violet-600 text-white shadow-sm'
-                                    : 'bg-violet-50 dark:bg-violet-950/50 text-violet-700 dark:text-violet-300 border border-violet-200 dark:border-violet-800/60 hover:bg-violet-100'
-                            }`}
-                        >
-                            <Star size={12} className="fill-current" />
-                            Nkumba Outreach • Fri 6th Nov ({sieveCounts.byEvent['Nkumba University Outreach (Fri, 6th Nov 2026)'] || 0})
-                        </button>
-
-                        <button
-                            type="button"
-                            onClick={() => setDashboardSieve('OUTREACH_ONLY')}
-                            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                                dashboardSieve === 'OUTREACH_ONLY'
-                                    ? 'bg-violet-600 text-white shadow-sm'
-                                    : 'bg-gray-100 dark:bg-slate-800 text-gray-700 dark:text-slate-300 hover:bg-gray-200 dark:hover:bg-slate-700'
-                            }`}
-                        >
-                            All Outreaches Only ({sieveCounts.outreachOnly})
-                        </button>
-
-                        <button
-                            type="button"
-                            onClick={() => setDashboardSieve('GENERAL_ONLY')}
-                            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                                dashboardSieve === 'GENERAL_ONLY'
-                                    ? 'bg-violet-600 text-white shadow-sm'
-                                    : 'bg-gray-100 dark:bg-slate-800 text-gray-700 dark:text-slate-300 hover:bg-gray-200 dark:hover:bg-slate-700'
-                            }`}
-                        >
-                            General / Walk-in ({sieveCounts.generalOnly})
-                        </button>
+            {/* 4 Sleek Attio/Linear KPI Cards (Dynamically Sieved) */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div
+                    onClick={() => setStatusFilter(statusFilter === 'NEW' ? 'ALL' : 'NEW')}
+                    className="bg-white dark:bg-slate-900 p-4 rounded-2xl shadow-sm border border-gray-200/80 dark:border-slate-800 border-l-4 border-l-amber-500 cursor-pointer hover:border-amber-400 transition-all"
+                >
+                    <div className="flex items-center justify-between text-xs text-gray-500 dark:text-slate-400 font-medium">
+                        <span>1. Pre-Registered Leads</span>
+                        <Users size={15} className="text-amber-500" />
                     </div>
-
-                    {/* Specific Outreach Campaign Dropdown Sieve */}
-                    <div className="flex items-center gap-2">
-                        <span className="text-xs font-bold text-gray-500 dark:text-slate-400 whitespace-nowrap">
-                            Outreach Dropdown:
+                    <div className="mt-1.5 flex items-baseline gap-2">
+                        <span className="text-2xl font-extrabold text-gray-900 dark:text-white">{kpis.total}</span>
+                        <span className="text-xs font-semibold text-amber-600 dark:text-amber-400">
+                            {kpis.awaitingFollowUpCount} awaiting follow-up
                         </span>
+                    </div>
+                    <p className="text-[11px] text-gray-400 dark:text-slate-500 mt-1">
+                        +{kpis.newThisWeek} captured this week • Click to filter uncontacted
+                    </p>
+                </div>
+
+                <div
+                    onClick={() => setStatusFilter(statusFilter === 'CONTACTED' ? 'ALL' : 'CONTACTED')}
+                    className="bg-white dark:bg-slate-900 p-4 rounded-2xl shadow-sm border border-gray-200/80 dark:border-slate-800 border-l-4 border-l-blue-500 cursor-pointer hover:border-blue-400 transition-all"
+                >
+                    <div className="flex items-center justify-between text-xs text-gray-500 dark:text-slate-400 font-medium">
+                        <span>2. Follow-Up & Confirmation</span>
+                        <Phone size={15} className="text-blue-500" />
+                    </div>
+                    <div className="mt-1.5 flex items-baseline gap-2">
+                        <span className="text-2xl font-extrabold text-gray-900 dark:text-white">{kpis.followedUpCount}</span>
+                        <span className="text-xs font-semibold text-blue-600 dark:text-blue-400">
+                            in follow-up • {kpis.enrolledCount} confirmed ({kpis.conversionRate}%)
+                        </span>
+                    </div>
+                    <p className="text-[11px] text-gray-400 dark:text-slate-500 mt-1">
+                        Students confirm study & schedule during follow-up
+                    </p>
+                </div>
+
+                <div className="bg-white dark:bg-slate-900 p-4 rounded-2xl shadow-sm border border-gray-200/80 dark:border-slate-800 border-l-4 border-l-violet-500">
+                    <div className="flex items-center justify-between text-xs text-gray-500 dark:text-slate-400 font-medium">
+                        <span>3. Provisional Monthly Pipeline</span>
+                        <BookOpen size={15} className="text-violet-500" />
+                    </div>
+                    <div className="mt-1.5 flex items-baseline gap-2">
+                        <span className="text-xl font-extrabold text-gray-900 dark:text-white">
+                            UGX {kpis.totalFeePipeline.toLocaleString()}
+                        </span>
+                    </div>
+                    <p className="text-[11px] text-gray-400 dark:text-slate-500 mt-1 truncate" title={kpis.topCourse}>
+                        If all {kpis.total} leads confirm • Top: {kpis.topCourse} ({kpis.topCourseCount})
+                    </p>
+                </div>
+
+                <div
+                    onClick={() => setStatusFilter(statusFilter === 'ENROLLED' ? 'ALL' : 'ENROLLED')}
+                    className="bg-white dark:bg-slate-900 p-4 rounded-2xl shadow-sm border border-gray-200/80 dark:border-slate-800 border-l-4 border-l-emerald-500 cursor-pointer hover:border-emerald-400 transition-all"
+                >
+                    <div className="flex items-center justify-between text-xs text-gray-500 dark:text-slate-400 font-medium">
+                        <span>4. Confirmed & Paid Tuition</span>
+                        <CreditCard size={15} className="text-emerald-500" />
+                    </div>
+                    <div className="mt-1.5 flex items-baseline gap-2">
+                        <span className="text-xl font-extrabold text-emerald-600 dark:text-emerald-400">
+                            UGX {kpis.totalCollectedFees.toLocaleString()}
+                        </span>
+                    </div>
+                    <p className="text-[11px] text-gray-400 dark:text-slate-500 mt-1">
+                        Pending on confirmation: UGX {kpis.totalOutstanding.toLocaleString()}
+                    </p>
+                </div>
+            </div>
+
+            {/* Single-Row Unified Command Filter & View Switcher Bar */}
+            <div className="bg-white dark:bg-slate-900 p-3.5 rounded-2xl shadow-sm border border-gray-200/80 dark:border-slate-800 flex flex-col gap-3">
+                <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-3">
+                    {/* Left: Search + Sieve Dropdowns */}
+                    <div className="flex flex-wrap items-center gap-2 flex-1">
+                        <div className="relative min-w-[220px] flex-1 max-w-xs">
+                            <Search
+                                size={14}
+                                className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-slate-500"
+                            />
+                            <input
+                                type="text"
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                placeholder="Search student, phone, WSI ref..."
+                                className="w-full pl-9 pr-3 py-2 bg-gray-50 dark:bg-slate-950 border border-gray-200 dark:border-slate-800 rounded-xl text-xs text-gray-900 dark:text-white placeholder:text-gray-400 focus:outline-none focus:border-violet-500"
+                            />
+                        </div>
+
+                        {/* Campaign / Outreach Sieve */}
                         <select
                             value={dashboardSieve}
                             onChange={(e) => setDashboardSieve(e.target.value)}
-                            className="px-3.5 py-2 rounded-xl bg-gray-50 dark:bg-slate-950 border border-gray-200 dark:border-slate-800 text-xs font-bold text-gray-900 dark:text-white focus:outline-none focus:border-violet-500 cursor-pointer"
+                            className="px-3 py-2 rounded-xl bg-gray-50 dark:bg-slate-950 border border-gray-200 dark:border-slate-800 text-xs font-semibold text-gray-800 dark:text-slate-200 focus:outline-none focus:border-violet-500 cursor-pointer max-w-[230px] truncate"
+                            title="Sieve by Outreach Campaign"
                         >
-                            <option value="ALL">All Registrations ({sieveCounts.all})</option>
-                            <option value="OUTREACH_ONLY">All Outreach Campaigns ({sieveCounts.outreachOnly})</option>
-                            <option value="GENERAL_ONLY">All General / Website / Walk-ins ({sieveCounts.generalOnly})</option>
-                            <optgroup label="Specific Outreach Campaigns & Channels">
+                            <option value="ALL">All Channels ({sieveCounts.all})</option>
+                            <option value="Nkumba University Outreach (Fri, 6th Nov 2026)">
+                                ★ Nkumba Outreach ({sieveCounts.byEvent['Nkumba University Outreach (Fri, 6th Nov 2026)'] || 0})
+                            </option>
+                            <option value="OUTREACH_ONLY">All Outreaches ({sieveCounts.outreachOnly})</option>
+                            <option value="GENERAL_ONLY">General / Walk-In ({sieveCounts.generalOnly})</option>
+                            <optgroup label="Specific Campaigns">
                                 {distinctEvents.map(ev => (
                                     <option key={ev} value={ev}>
                                         {ev} ({sieveCounts.byEvent[ev] || 0})
@@ -1782,66 +1859,18 @@ const AdminRegistrations: React.FC = () => {
                                 ))}
                             </optgroup>
                         </select>
-                    </div>
-                </div>
 
-                {/* Row 2: Staff / Mobilizer Audit Sieve */}
-                <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
-                    <div className="flex flex-wrap items-center gap-2">
-                        <span className="text-[11px] font-extrabold uppercase tracking-wider text-emerald-700 dark:text-emerald-400 flex items-center gap-1.5 mr-1">
-                            <UserCheck size={14} /> 2. Audit by Staff / Mobilizer:
-                        </span>
-
-                        <button
-                            type="button"
-                            onClick={() => setStaffSieve('ALL')}
-                            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                                staffSieve === 'ALL'
-                                    ? 'bg-emerald-600 text-white shadow-sm'
-                                    : 'bg-gray-100 dark:bg-slate-800 text-gray-700 dark:text-slate-300 hover:bg-gray-200 dark:hover:bg-slate-700'
-                            }`}
-                        >
-                            All Staff & Self ({sieveCounts.all})
-                        </button>
-
-                        <button
-                            type="button"
-                            onClick={() => setStaffSieve('STAFF_ONLY')}
-                            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                                staffSieve === 'STAFF_ONLY'
-                                    ? 'bg-emerald-600 text-white shadow-sm'
-                                    : 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/60'
-                            }`}
-                        >
-                            👤 Staff-Assisted Only ({sieveCounts.staffAssisted})
-                        </button>
-
-                        <button
-                            type="button"
-                            onClick={() => setStaffSieve('SELF_ONLY')}
-                            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                                staffSieve === 'SELF_ONLY'
-                                    ? 'bg-emerald-600 text-white shadow-sm'
-                                    : 'bg-gray-100 dark:bg-slate-800 text-gray-700 dark:text-slate-300 hover:bg-gray-200'
-                            }`}
-                        >
-                            🎓 Student Self-Registered ({sieveCounts.selfService})
-                        </button>
-                    </div>
-
-                    <div className="flex items-center gap-2">
-                        <span className="text-xs font-bold text-gray-500 dark:text-slate-400 whitespace-nowrap">
-                            Select Staff Member:
-                        </span>
+                        {/* Staff / Mobilizer Audit Sieve */}
                         <select
                             value={staffSieve}
                             onChange={(e) => setStaffSieve(e.target.value)}
-                            className="px-3.5 py-2 rounded-xl bg-gray-50 dark:bg-slate-950 border border-emerald-300 dark:border-emerald-800 text-xs font-bold text-gray-900 dark:text-white focus:outline-none focus:border-emerald-500 cursor-pointer"
+                            className="px-3 py-2 rounded-xl bg-gray-50 dark:bg-slate-950 border border-gray-200 dark:border-slate-800 text-xs font-semibold text-gray-800 dark:text-slate-200 focus:outline-none focus:border-violet-500 cursor-pointer max-w-[210px] truncate"
+                            title="Audit by Staff / Mobilizer"
                         >
-                            <option value="ALL">All Staff & Self-Registered ({sieveCounts.all})</option>
-                            <option value="STAFF_ONLY">All Staff-Assisted Registrations ({sieveCounts.staffAssisted})</option>
-                            <option value="SELF_ONLY">Student Self-Registrations Only ({sieveCounts.selfService})</option>
-                            <optgroup label="Individual Outreach Staff & Mobilizers">
+                            <option value="ALL">All Registrars ({sieveCounts.all})</option>
+                            <option value="STAFF_ONLY">👤 Staff-Assisted ({sieveCounts.staffAssisted})</option>
+                            <option value="SELF_ONLY">🎓 Self-Registered ({sieveCounts.selfService})</option>
+                            <optgroup label="Staff & Mobilizers">
                                 {distinctStaff.map(stf => (
                                     <option key={stf} value={stf}>
                                         {stf} ({sieveCounts.byStaff[stf] || 0})
@@ -1849,489 +1878,488 @@ const AdminRegistrations: React.FC = () => {
                                 ))}
                             </optgroup>
                         </select>
+
+                        {/* Confirmation Stage Filter */}
+                        <select
+                            value={statusFilter}
+                            onChange={(e) => setStatusFilter(e.target.value)}
+                            className="px-3 py-2 rounded-xl bg-gray-50 dark:bg-slate-950 border border-gray-200 dark:border-slate-800 text-xs font-semibold text-gray-800 dark:text-slate-200 focus:outline-none focus:border-violet-500 cursor-pointer"
+                            title="Filter by Follow-Up Confirmation Stage"
+                        >
+                            <option value="ALL">All Stages ({sievedRegistrations.length})</option>
+                            {STATUS_OPTIONS.map(st => (
+                                <option key={st} value={st}>
+                                    {STATUS_STAGE_LABELS[st]}
+                                </option>
+                            ))}
+                        </select>
+
+                        {/* Course Filter */}
+                        <select
+                            value={courseFilter}
+                            onChange={(e) => setCourseFilter(e.target.value)}
+                            className="px-3 py-2 rounded-xl bg-gray-50 dark:bg-slate-950 border border-gray-200 dark:border-slate-800 text-xs font-semibold text-gray-800 dark:text-slate-200 focus:outline-none focus:border-violet-500 cursor-pointer max-w-[180px] truncate"
+                        >
+                            <option value="ALL">All 4 Courses</option>
+                            {distinctCourses.map(c => (
+                                <option key={c} value={c}>{c}</option>
+                            ))}
+                        </select>
+
+                        {(dateFrom || dateTo || statusFilter !== 'ALL' || courseFilter !== 'ALL' || paymentStatusFilter !== 'ALL' || dashboardSieve !== 'ALL' || staffSieve !== 'ALL' || searchQuery) && (
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    setDashboardSieve('ALL');
+                                    setStaffSieve('ALL');
+                                    setStatusFilter('ALL');
+                                    setPaymentStatusFilter('ALL');
+                                    setCourseFilter('ALL');
+                                    setDateFrom('');
+                                    setDateTo('');
+                                    setSearchQuery('');
+                                }}
+                                className="px-2.5 py-1.5 rounded-lg text-xs font-semibold text-violet-600 dark:text-violet-400 hover:bg-violet-50 dark:hover:bg-violet-950/40 cursor-pointer"
+                            >
+                                Reset
+                            </button>
+                        )}
+                    </div>
+
+                    {/* Right: Workspace View Switcher Tabs */}
+                    <div className="inline-flex items-center bg-gray-100 dark:bg-slate-950 p-1 rounded-xl border border-gray-200/70 dark:border-slate-800 shrink-0">
+                        <button
+                            type="button"
+                            onClick={() => setActiveWorkspaceView('TABLE')}
+                            className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                                activeWorkspaceView === 'TABLE'
+                                    ? 'bg-white dark:bg-slate-800 text-gray-900 dark:text-white shadow-sm'
+                                    : 'text-gray-600 dark:text-slate-400 hover:text-gray-900 dark:hover:text-white'
+                            }`}
+                        >
+                            📋 Pipeline Table ({filteredRegistrations.length})
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => setActiveWorkspaceView('BOARD')}
+                            className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                                activeWorkspaceView === 'BOARD'
+                                    ? 'bg-white dark:bg-slate-800 text-gray-900 dark:text-white shadow-sm'
+                                    : 'text-gray-600 dark:text-slate-400 hover:text-gray-900 dark:hover:text-white'
+                            }`}
+                        >
+                            🗂️ Follow-Up Board
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => setActiveWorkspaceView('ANALYTICS')}
+                            className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                                activeWorkspaceView === 'ANALYTICS'
+                                    ? 'bg-white dark:bg-slate-800 text-gray-900 dark:text-white shadow-sm'
+                                    : 'text-gray-600 dark:text-slate-400 hover:text-gray-900 dark:hover:text-white'
+                            }`}
+                        >
+                            📊 Analytics & Courses
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => setActiveWorkspaceView('AUDIT')}
+                            className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                                activeWorkspaceView === 'AUDIT'
+                                    ? 'bg-white dark:bg-slate-800 text-gray-900 dark:text-white shadow-sm'
+                                    : 'text-gray-600 dark:text-slate-400 hover:text-gray-900 dark:hover:text-white'
+                            }`}
+                        >
+                            🛡️ Staff Audit ({staffAuditLeaderboard.length})
+                        </button>
                     </div>
                 </div>
             </div>
 
-            {/* OFFICIAL COURSE FEES & STAFF AUDIT LEADERBOARD SUMMARY */}
-            <div className="grid grid-cols-1 xl:grid-cols-2 gap-5">
-                {/* Official 4 Courses & Monthly Rates Card */}
-                <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl shadow-sm border border-gray-150 dark:border-slate-800">
-                    <div className="flex items-center justify-between mb-3">
-                        <h3 className="text-xs font-extrabold uppercase tracking-wider text-violet-700 dark:text-violet-300 flex items-center gap-1.5">
-                            <BookOpen size={14} /> Official Courses & Monthly Fee Structure
-                        </h3>
-                        <span className="text-[10px] font-bold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/50 px-2 py-0.5 rounded-full">
-                            Live on /register & DB
-                        </span>
-                    </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                        {OFFICIAL_COURSE_CATALOG.map((c, i) => {
-                            const countForCourse = sievedRegistrations.filter(
-                                r => (r.course_interest || '').toLowerCase() === c.title.toLowerCase()
-                            ).length;
-                            return (
-                                <button
-                                    key={c.title}
-                                    type="button"
-                                    onClick={() => setCourseFilter(courseFilter === c.title ? 'ALL' : c.title)}
-                                    className={`p-3 rounded-xl border text-left transition-all cursor-pointer flex items-center justify-between gap-2 ${
-                                        courseFilter === c.title
-                                            ? 'bg-violet-600 text-white border-violet-600'
-                                            : 'bg-gray-50 dark:bg-slate-950/60 border-gray-200 dark:border-slate-800 hover:border-violet-400'
-                                    }`}
-                                >
-                                    <div className="min-w-0">
-                                        <div className="text-xs font-extrabold truncate">
-                                            {i + 1}. {c.title}
-                                        </div>
-                                        <div className={`text-[11px] font-bold ${
-                                            courseFilter === c.title ? 'text-violet-100' : 'text-emerald-600 dark:text-emerald-400'
-                                        }`}>
-                                            {c.displayFee}
-                                        </div>
+            {/* WORKSPACE VIEW 2: 4-COLUMN FOLLOW-UP KANBAN BOARD */}
+            {activeWorkspaceView === 'BOARD' && (
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+                    {STATUS_OPTIONS.map((stage) => {
+                        const stageLeads = filteredRegistrations.filter(r => r.status === stage);
+                        return (
+                            <div
+                                key={stage}
+                                className="bg-gray-50/80 dark:bg-slate-900/60 rounded-2xl border border-gray-200/80 dark:border-slate-800 p-3.5 flex flex-col max-h-[72vh]"
+                            >
+                                <div className="flex items-center justify-between gap-2 pb-3 mb-3 border-b border-gray-200/70 dark:border-slate-800">
+                                    <div>
+                                        <span className={`inline-block px-2.5 py-0.5 rounded-full text-[11px] font-bold border ${STATUS_BADGE_STYLES[stage]}`}>
+                                            {STATUS_SHORT_LABELS[stage]}
+                                        </span>
+                                        <p className="text-[10px] text-gray-500 dark:text-slate-400 mt-1">
+                                            {STATUS_STAGE_LABELS[stage]}
+                                        </p>
                                     </div>
-                                    <span className={`px-2 py-0.5 rounded-lg text-xs font-black shrink-0 ${
-                                        courseFilter === c.title
-                                            ? 'bg-white/20 text-white'
-                                            : 'bg-violet-100 dark:bg-violet-950/60 text-violet-700 dark:text-violet-300'
-                                    }`}>
-                                        {countForCourse}
+                                    <span className="px-2 py-0.5 rounded-lg bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 text-xs font-bold text-gray-700 dark:text-slate-200">
+                                        {stageLeads.length}
                                     </span>
-                                </button>
-                            );
-                        })}
+                                </div>
+
+                                <div className="space-y-2.5 overflow-y-auto pr-1 flex-1">
+                                    {stageLeads.length === 0 ? (
+                                        <div className="py-10 text-center text-xs text-gray-400 dark:text-slate-500">
+                                            No leads in this stage
+                                        </div>
+                                    ) : (
+                                        stageLeads.map(reg => {
+                                            const pricing = getCoursePricing(reg.course_interest);
+                                            const registrar = getEffectiveRegistrar(reg);
+                                            return (
+                                                <div
+                                                    key={reg.id}
+                                                    onClick={() => {
+                                                        setExpandedRowId(reg.id);
+                                                        setDrawerTab('CONFIRMATION');
+                                                    }}
+                                                    className="bg-white dark:bg-slate-900 p-3.5 rounded-xl border border-gray-200/80 dark:border-slate-800 shadow-xs hover:border-violet-400 dark:hover:border-violet-600 transition-all cursor-pointer space-y-2"
+                                                >
+                                                    <div className="flex items-start justify-between gap-2">
+                                                        <div>
+                                                            <div className="font-bold text-xs text-gray-900 dark:text-white">
+                                                                {reg.full_name}
+                                                            </div>
+                                                            <div className="text-[11px] font-mono text-gray-500 dark:text-slate-400">
+                                                                {reg.phone} • {reg.class_level_year || 'Student'}
+                                                            </div>
+                                                        </div>
+                                                        <span className="font-mono text-[10px] font-semibold text-violet-600 dark:text-violet-400 bg-violet-50 dark:bg-violet-950/50 px-1.5 py-0.5 rounded">
+                                                            {(reg.student_reg_no || 'WSI').replace(/^Pending \((.+)\)$/, '$1')}
+                                                        </span>
+                                                    </div>
+
+                                                    <div className="text-[11px] font-semibold text-violet-700 dark:text-violet-300 truncate">
+                                                        {reg.course_interest} ({pricing.displayFee})
+                                                    </div>
+
+                                                    <div className="flex items-center justify-between text-[10px] text-gray-500 dark:text-slate-400 pt-1 border-t border-gray-100 dark:border-slate-800/80">
+                                                        <span className="truncate max-w-[130px]" title={registrar}>
+                                                            👤 {registrar}
+                                                        </span>
+                                                        <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
+                                                            <a
+                                                                href={buildWhatsAppFollowUpUrl(reg)}
+                                                                target="_blank"
+                                                                rel="noreferrer"
+                                                                className="px-2 py-0.5 rounded bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 font-bold hover:bg-emerald-100"
+                                                                title="Send WhatsApp Follow-Up to Confirm Seat"
+                                                            >
+                                                                WhatsApp
+                                                            </a>
+                                                            {stage === 'NEW' && (
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() => handleStatusChange(reg.id, 'CONTACTED')}
+                                                                    className="px-2 py-0.5 rounded bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 font-bold hover:bg-blue-100 cursor-pointer"
+                                                                >
+                                                                    Mark Followed Up
+                                                                </button>
+                                                            )}
+                                                            {stage === 'CONTACTED' && (
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() => openConvertModal(reg)}
+                                                                    className="px-2 py-0.5 rounded bg-violet-600 text-white font-bold hover:bg-violet-700 cursor-pointer"
+                                                                >
+                                                                    Confirm
+                                                                </button>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            );
+                                        })
+                                    )}
+                                </div>
+                            </div>
+                        );
+                    })}
+                </div>
+            )}
+
+            {/* WORKSPACE VIEW 3: ANALYTICS & OFFICIAL COURSE CATALOG */}
+            {activeWorkspaceView === 'ANALYTICS' && (
+                <div className="space-y-5">
+                    <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl shadow-sm border border-gray-200/80 dark:border-slate-800">
+                        <div className="flex items-center justify-between mb-3">
+                            <h3 className="text-xs font-extrabold uppercase tracking-wider text-violet-700 dark:text-violet-300 flex items-center gap-1.5">
+                                <BookOpen size={14} /> Official 4 Courses & Monthly Fee Structure (Click to Filter)
+                            </h3>
+                            <span className="text-[11px] font-semibold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/50 px-2.5 py-0.5 rounded-full">
+                                No Upfront Payment Required at Outreach • Paid Upon Confirmation
+                            </span>
+                        </div>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                            {OFFICIAL_COURSE_CATALOG.map((c, i) => {
+                                const countForCourse = sievedRegistrations.filter(
+                                    r => (r.course_interest || '').toLowerCase() === c.title.toLowerCase()
+                                ).length;
+                                return (
+                                    <button
+                                        key={c.title}
+                                        type="button"
+                                        onClick={() => {
+                                            setCourseFilter(courseFilter === c.title ? 'ALL' : c.title);
+                                            setActiveWorkspaceView('TABLE');
+                                        }}
+                                        className={`p-3.5 rounded-xl border text-left transition-all cursor-pointer flex items-center justify-between gap-2 ${
+                                            courseFilter === c.title
+                                                ? 'bg-violet-600 text-white border-violet-600'
+                                                : 'bg-gray-50 dark:bg-slate-950/60 border-gray-200 dark:border-slate-800 hover:border-violet-400'
+                                        }`}
+                                    >
+                                        <div className="min-w-0">
+                                            <div className="text-xs font-bold truncate">
+                                                {i + 1}. {c.title}
+                                            </div>
+                                            <div className={`text-[11px] font-semibold mt-0.5 ${
+                                                courseFilter === c.title ? 'text-violet-100' : 'text-emerald-600 dark:text-emerald-400'
+                                            }`}>
+                                                {c.displayFee}
+                                            </div>
+                                        </div>
+                                        <span className={`px-2.5 py-1 rounded-lg text-xs font-extrabold shrink-0 ${
+                                            courseFilter === c.title
+                                                ? 'bg-white/20 text-white'
+                                                : 'bg-violet-100 dark:bg-violet-950/60 text-violet-700 dark:text-violet-300'
+                                        }`}>
+                                            {countForCourse}
+                                        </span>
+                                    </button>
+                                );
+                            })}
+                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+                        <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl shadow-sm border border-gray-200/80 dark:border-slate-800 lg:col-span-3">
+                            <h3 className="text-sm font-bold text-gray-900 dark:text-white mb-1">
+                                Daily Registration Trend (Last 30 Days)
+                            </h3>
+                            <p className="text-xs text-gray-500 dark:text-slate-400 mb-4">
+                                Active Sieve: <span className="font-semibold text-violet-600 dark:text-violet-400">{dashboardSieve}</span>
+                            </p>
+                            <div className="h-52 w-full">
+                                <ResponsiveContainer width="100%" height="100%">
+                                    <AreaChart data={dailyTrendData} margin={{ top: 10, right: 16, left: -20, bottom: 0 }}>
+                                        <defs>
+                                            <linearGradient id="welilePurpleGrad" x1="0" y1="0" x2="0" y2="1">
+                                                <stop offset="5%" stopColor="#a855f7" stopOpacity={0.35} />
+                                                <stop offset="95%" stopColor="#a855f7" stopOpacity={0.0} />
+                                            </linearGradient>
+                                        </defs>
+                                        <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" opacity={0.35} />
+                                        <XAxis dataKey="label" tick={{ fontSize: 11, fill: '#94a3b8' }} interval={4} />
+                                        <YAxis allowDecimals={false} tick={{ fontSize: 11, fill: '#94a3b8' }} />
+                                        <Tooltip
+                                            contentStyle={{
+                                                backgroundColor: '#0f172a',
+                                                borderColor: '#334155',
+                                                borderRadius: '12px',
+                                                color: '#f8fafc',
+                                                fontSize: '12px'
+                                            }}
+                                        />
+                                        <Area
+                                            type="monotone"
+                                            dataKey="count"
+                                            name="Registrations"
+                                            stroke="#a855f7"
+                                            strokeWidth={2.5}
+                                            fillOpacity={1}
+                                            fill="url(#welilePurpleGrad)"
+                                        />
+                                    </AreaChart>
+                                </ResponsiveContainer>
+                            </div>
+                        </div>
+
+                        <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl shadow-sm border border-gray-200/80 dark:border-slate-800 lg:col-span-2">
+                            <h3 className="text-sm font-bold text-gray-900 dark:text-white mb-1">
+                                Registrations by Outreach Campaign / Channel
+                            </h3>
+                            <p className="text-xs text-gray-500 dark:text-slate-400 mb-4">
+                                Compare Nkumba Outreach (Fri 6th Nov) against other outreaches & walk-ins
+                            </p>
+                            <div className="h-56 w-full">
+                                <ResponsiveContainer width="100%" height="100%">
+                                    <BarChart data={outreachBreakdownData} margin={{ top: 5, right: 16, left: -20, bottom: 25 }}>
+                                        <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" opacity={0.35} />
+                                        <XAxis dataKey="name" tick={{ fontSize: 10, fill: '#94a3b8' }} angle={-12} textAnchor="end" interval={0} />
+                                        <YAxis allowDecimals={false} tick={{ fontSize: 11, fill: '#94a3b8' }} />
+                                        <Tooltip
+                                            contentStyle={{
+                                                backgroundColor: '#0f172a',
+                                                borderColor: '#334155',
+                                                borderRadius: '12px',
+                                                color: '#f8fafc',
+                                                fontSize: '12px'
+                                            }}
+                                        />
+                                        <Bar dataKey="count" name="Students" radius={[8, 8, 0, 0]}>
+                                            {outreachBreakdownData.map((_, idx) => (
+                                                <Cell key={idx} fill={CHART_COLORS[idx % CHART_COLORS.length]} />
+                                            ))}
+                                        </Bar>
+                                    </BarChart>
+                                </ResponsiveContainer>
+                            </div>
+                        </div>
+
+                        <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl shadow-sm border border-gray-200/80 dark:border-slate-800">
+                            <h3 className="text-sm font-bold text-gray-900 dark:text-white mb-1">
+                                Preferred Payment Plan (When Confirmed)
+                            </h3>
+                            <p className="text-xs text-gray-500 dark:text-slate-400 mb-4">
+                                Monthly vs Weekly vs Full billing preference
+                            </p>
+                            <div className="h-56 w-full">
+                                <ResponsiveContainer width="100%" height="100%">
+                                    <BarChart data={paymentPlanChartData} layout="vertical" margin={{ top: 5, right: 16, left: 10, bottom: 5 }}>
+                                        <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" opacity={0.35} />
+                                        <XAxis type="number" allowDecimals={false} tick={{ fontSize: 11, fill: '#94a3b8' }} />
+                                        <YAxis type="category" dataKey="name" width={100} tick={{ fontSize: 11, fill: '#94a3b8' }} />
+                                        <Tooltip
+                                            contentStyle={{
+                                                backgroundColor: '#0f172a',
+                                                borderColor: '#334155',
+                                                borderRadius: '12px',
+                                                color: '#f8fafc',
+                                                fontSize: '12px'
+                                            }}
+                                        />
+                                        <Bar dataKey="count" name="Students" radius={[0, 8, 8, 0]}>
+                                            {paymentPlanChartData.map((_, idx) => (
+                                                <Cell key={idx} fill={CHART_COLORS[idx % CHART_COLORS.length]} />
+                                            ))}
+                                        </Bar>
+                                    </BarChart>
+                                </ResponsiveContainer>
+                            </div>
+                        </div>
                     </div>
                 </div>
+            )}
 
-                {/* Staff / Mobilizer Audit Accountability Leaderboard */}
-                <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl shadow-sm border border-gray-150 dark:border-slate-800">
-                    <div className="flex items-center justify-between mb-3">
-                        <h3 className="text-xs font-extrabold uppercase tracking-wider text-emerald-700 dark:text-emerald-400 flex items-center gap-1.5">
-                            <Award size={14} /> Staff / Mobilizer Registration Audit (Who Registered Whom)
-                        </h3>
+            {/* WORKSPACE VIEW 4: STAFF & MOBILIZER ACCOUNTABILITY LEADERBOARD */}
+            {activeWorkspaceView === 'AUDIT' && (
+                <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl shadow-sm border border-gray-200/80 dark:border-slate-800 space-y-4">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                        <div>
+                            <h3 className="text-sm font-bold text-gray-900 dark:text-white flex items-center gap-1.5">
+                                <Award size={16} className="text-emerald-600 dark:text-emerald-400" />
+                                Staff & Mobilizer Registration Audit (Who Registered Whom)
+                            </h3>
+                            <p className="text-xs text-gray-500 dark:text-slate-400">
+                                Click any staff member to filter the pipeline table to their captured registrations
+                            </p>
+                        </div>
                         <button
                             type="button"
                             onClick={() => setShowStaffModal(true)}
-                            className="text-[11px] font-bold text-violet-600 dark:text-violet-400 hover:underline cursor-pointer"
+                            className="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold cursor-pointer"
                         >
-                            + Add Staff / Get Staff QR
+                            + Add Staff / Generate Staff QR
                         </button>
                     </div>
 
-                    {staffAuditLeaderboard.length === 0 ? (
-                        <div className="py-6 text-center text-xs text-gray-400">
-                            No registrations recorded yet for this outreach sieve.
-                        </div>
-                    ) : (
-                        <div className="space-y-2 max-h-36 overflow-y-auto pr-1">
-                            {staffAuditLeaderboard.map((stf) => (
-                                <div
-                                    key={stf.staffName}
-                                    onClick={() => setStaffSieve(staffSieve === stf.staffName ? 'ALL' : stf.staffName)}
-                                    className={`p-2.5 rounded-xl border text-xs flex items-center justify-between gap-2 cursor-pointer transition-all ${
-                                        staffSieve === stf.staffName
-                                            ? 'bg-emerald-600 text-white border-emerald-600'
-                                            : 'bg-gray-50 dark:bg-slate-950/60 border-gray-200 dark:border-slate-800 hover:border-emerald-400'
-                                    }`}
-                                >
-                                    <div className="min-w-0">
-                                        <div className="font-bold truncate flex items-center gap-1.5">
-                                            <span>{stf.staffName}</span>
-                                            <span className={`text-[10px] px-1.5 py-0.5 rounded font-semibold ${
-                                                staffSieve === stf.staffName
-                                                    ? 'bg-white/20 text-white'
-                                                    : 'bg-gray-200 dark:bg-slate-800 text-gray-600 dark:text-slate-400'
-                                            }`}>
-                                                {stf.role}
-                                            </span>
-                                        </div>
-                                        <div className={`text-[10px] mt-0.5 ${
-                                            staffSieve === stf.staffName ? 'text-emerald-100' : 'text-gray-500 dark:text-slate-400'
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                        {staffAuditLeaderboard.map((stf) => (
+                            <div
+                                key={stf.staffName}
+                                onClick={() => {
+                                    setStaffSieve(staffSieve === stf.staffName ? 'ALL' : stf.staffName);
+                                    setActiveWorkspaceView('TABLE');
+                                }}
+                                className={`p-4 rounded-xl border text-xs flex items-center justify-between gap-3 cursor-pointer transition-all ${
+                                    staffSieve === stf.staffName
+                                        ? 'bg-emerald-600 text-white border-emerald-600'
+                                        : 'bg-gray-50 dark:bg-slate-950/60 border-gray-200 dark:border-slate-800 hover:border-emerald-400'
+                                }`}
+                            >
+                                <div className="min-w-0">
+                                    <div className="font-bold truncate flex items-center gap-1.5">
+                                        <span>{stf.staffName}</span>
+                                        <span className={`text-[10px] px-1.5 py-0.5 rounded font-semibold ${
+                                            staffSieve === stf.staffName
+                                                ? 'bg-white/20 text-white'
+                                                : 'bg-gray-200 dark:bg-slate-800 text-gray-600 dark:text-slate-400'
                                         }`}>
-                                            Devices: {stf.deviceList.length > 0 ? stf.deviceList.join(', ') : 'Web'} • Collected: UGX {stf.collectedUgx.toLocaleString()}
-                                        </div>
+                                            {stf.role}
+                                        </span>
                                     </div>
-                                    <div className="text-right shrink-0">
-                                        <span className="font-black text-sm">{stf.total}</span>
-                                        <span className="block text-[10px] opacity-80">{stf.enrolled} enrolled</span>
+                                    <div className={`text-[11px] mt-1 ${
+                                        staffSieve === stf.staffName ? 'text-emerald-100' : 'text-gray-500 dark:text-slate-400'
+                                    }`}>
+                                        Devices: {stf.deviceList.length > 0 ? stf.deviceList.join(', ') : 'Web'} • Deposits: UGX {stf.collectedUgx.toLocaleString()}
                                     </div>
                                 </div>
-                            ))}
-                        </div>
-                    )}
-                </div>
-            </div>
-
-            {/* KPI Stat Cards (Dynamically Sieved!) */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-                <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-slate-800 flex items-center gap-4">
-                    <div className="w-12 h-12 bg-violet-100 dark:bg-violet-950/60 text-violet-600 dark:text-violet-400 rounded-xl flex items-center justify-center shrink-0">
-                        <Users size={24} />
-                    </div>
-                    <div className="min-w-0">
-                        <p className="text-xs text-gray-500 dark:text-slate-400 font-medium truncate">
-                            {dashboardSieve === 'ALL' ? 'Total Registrations' : 'Sieved Registrations'}
-                        </p>
-                        <p className="text-2xl font-bold text-gray-900 dark:text-white">
-                            {kpis.total}
-                            <span className="text-xs font-normal text-emerald-600 dark:text-emerald-400 ml-2">
-                                +{kpis.newThisWeek} this wk
-                            </span>
-                        </p>
-                    </div>
-                </div>
-
-                <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-slate-800 flex items-center gap-4">
-                    <div className="w-12 h-12 bg-emerald-100 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 rounded-xl flex items-center justify-center shrink-0">
-                        <TrendingUp size={24} />
-                    </div>
-                    <div>
-                        <p className="text-xs text-gray-500 dark:text-slate-400 font-medium">Conversion Rate</p>
-                        <p className="text-2xl font-bold text-gray-900 dark:text-white">
-                            {kpis.conversionRate}%
-                            <span className="text-xs font-normal text-gray-400 dark:text-slate-500 ml-1.5">
-                                ({kpis.enrolledCount} enrolled)
-                            </span>
-                        </p>
-                    </div>
-                </div>
-
-                <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-slate-800 flex items-center gap-4 min-w-0">
-                    <div className="w-12 h-12 bg-blue-100 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 rounded-xl flex items-center justify-center shrink-0">
-                        <CreditCard size={24} />
-                    </div>
-                    <div className="min-w-0">
-                        <p className="text-xs text-gray-500 dark:text-slate-400 font-medium">Fees Collected (Sec 4)</p>
-                        <p className="text-base font-extrabold text-gray-900 dark:text-white truncate">
-                            UGX {kpis.totalCollectedFees.toLocaleString()}
-                        </p>
-                        <p className="text-[11px] text-amber-600 dark:text-amber-400 font-semibold truncate">
-                            Bal: UGX {kpis.totalOutstanding.toLocaleString()}
-                        </p>
-                    </div>
-                </div>
-
-                <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-slate-800 flex items-center gap-4 min-w-0">
-                    <div className="w-12 h-12 bg-amber-100 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 rounded-xl flex items-center justify-center shrink-0">
-                        <BookOpen size={24} />
-                    </div>
-                    <div className="min-w-0">
-                        <p className="text-xs text-gray-500 dark:text-slate-400 font-medium">Top Programme</p>
-                        <p className="text-sm font-bold text-gray-900 dark:text-white truncate" title={kpis.topCourse}>
-                            {kpis.topCourse}
-                        </p>
-                        <p className="text-[11px] text-violet-600 dark:text-violet-400 font-semibold">
-                            {kpis.topCourseCount} student{kpis.topCourseCount === 1 ? '' : 's'}
-                        </p>
-                    </div>
-                </div>
-            </div>
-
-            {/* Recharts Analytics Section */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                {/* 30-Day Daily Registrations Area Chart */}
-                <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-slate-800 lg:col-span-3">
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
-                        <div>
-                            <h3 className="text-sm font-bold text-gray-900 dark:text-white">
-                                Daily Registration Trend (Last 30 Days)
-                            </h3>
-                            <p className="text-xs text-gray-500 dark:text-slate-400">
-                                Showing trend for sieve:{' '}
-                                <span className="font-bold text-violet-600 dark:text-violet-400">{dashboardSieve}</span>
-                            </p>
-                        </div>
-                    </div>
-                    <div className="h-52 w-full">
-                        <ResponsiveContainer width="100%" height="100%">
-                            <AreaChart data={dailyTrendData} margin={{ top: 10, right: 16, left: -20, bottom: 0 }}>
-                                <defs>
-                                    <linearGradient id="welilePurpleGrad" x1="0" y1="0" x2="0" y2="1">
-                                        <stop offset="5%" stopColor="#a855f7" stopOpacity={0.35} />
-                                        <stop offset="95%" stopColor="#a855f7" stopOpacity={0.0} />
-                                    </linearGradient>
-                                </defs>
-                                <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" opacity={0.35} />
-                                <XAxis dataKey="label" tick={{ fontSize: 11, fill: '#94a3b8' }} interval={4} />
-                                <YAxis allowDecimals={false} tick={{ fontSize: 11, fill: '#94a3b8' }} />
-                                <Tooltip
-                                    contentStyle={{
-                                        backgroundColor: '#0f172a',
-                                        borderColor: '#334155',
-                                        borderRadius: '12px',
-                                        color: '#f8fafc',
-                                        fontSize: '12px'
-                                    }}
-                                />
-                                <Area
-                                    type="monotone"
-                                    dataKey="count"
-                                    name="Registrations"
-                                    stroke="#a855f7"
-                                    strokeWidth={2.5}
-                                    fillOpacity={1}
-                                    fill="url(#welilePurpleGrad)"
-                                />
-                            </AreaChart>
-                        </ResponsiveContainer>
-                    </div>
-                </div>
-
-                {/* Breakdown by Outreach Event Bar Chart */}
-                <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-slate-800 lg:col-span-2">
-                    <h3 className="text-sm font-bold text-gray-900 dark:text-white mb-1">
-                        Registrations by Outreach Campaign / Channel
-                    </h3>
-                    <p className="text-xs text-gray-500 dark:text-slate-400 mb-4">
-                        Compare Nkumba Outreach (Fri 6th Nov) against other outreaches & general walk-ins
-                    </p>
-                    {outreachBreakdownData.length === 0 ? (
-                        <div className="h-52 flex items-center justify-center text-xs text-gray-400">
-                            No registrations recorded for this sieve yet.
-                        </div>
-                    ) : (
-                        <div className="h-56 w-full">
-                            <ResponsiveContainer width="100%" height="100%">
-                                <BarChart data={outreachBreakdownData} margin={{ top: 5, right: 16, left: -20, bottom: 25 }}>
-                                    <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" opacity={0.35} />
-                                    <XAxis
-                                        dataKey="name"
-                                        tick={{ fontSize: 10, fill: '#94a3b8' }}
-                                        angle={-12}
-                                        textAnchor="end"
-                                        interval={0}
-                                    />
-                                    <YAxis allowDecimals={false} tick={{ fontSize: 11, fill: '#94a3b8' }} />
-                                    <Tooltip
-                                        contentStyle={{
-                                            backgroundColor: '#0f172a',
-                                            borderColor: '#334155',
-                                            borderRadius: '12px',
-                                            color: '#f8fafc',
-                                            fontSize: '12px'
-                                        }}
-                                    />
-                                    <Bar dataKey="count" name="Students" radius={[8, 8, 0, 0]}>
-                                        {outreachBreakdownData.map((_, idx) => (
-                                            <Cell key={idx} fill={CHART_COLORS[idx % CHART_COLORS.length]} />
-                                        ))}
-                                    </Bar>
-                                </BarChart>
-                            </ResponsiveContainer>
-                        </div>
-                    )}
-                </div>
-
-                {/* Breakdown by Payment Plan */}
-                <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-slate-800">
-                    <h3 className="text-sm font-bold text-gray-900 dark:text-white mb-1">
-                        Payment Plan Breakdown (Sec 4)
-                    </h3>
-                    <p className="text-xs text-gray-500 dark:text-slate-400 mb-4">
-                        Full vs Weekly vs Monthly payment agreements
-                    </p>
-                    {paymentPlanChartData.length === 0 ? (
-                        <div className="h-52 flex items-center justify-center text-xs text-gray-400">
-                            No payment plan data yet.
-                        </div>
-                    ) : (
-                        <div className="h-56 w-full">
-                            <ResponsiveContainer width="100%" height="100%">
-                                <BarChart
-                                    data={paymentPlanChartData}
-                                    layout="vertical"
-                                    margin={{ top: 5, right: 16, left: 10, bottom: 5 }}
-                                >
-                                    <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" opacity={0.35} />
-                                    <XAxis type="number" allowDecimals={false} tick={{ fontSize: 11, fill: '#94a3b8' }} />
-                                    <YAxis
-                                        type="category"
-                                        dataKey="name"
-                                        width={100}
-                                        tick={{ fontSize: 11, fill: '#94a3b8' }}
-                                    />
-                                    <Tooltip
-                                        contentStyle={{
-                                            backgroundColor: '#0f172a',
-                                            borderColor: '#334155',
-                                            borderRadius: '12px',
-                                            color: '#f8fafc',
-                                            fontSize: '12px'
-                                        }}
-                                    />
-                                    <Bar dataKey="count" name="Students" radius={[0, 8, 8, 0]}>
-                                        {paymentPlanChartData.map((_, idx) => (
-                                            <Cell key={idx} fill={CHART_COLORS[idx % CHART_COLORS.length]} />
-                                        ))}
-                                    </Bar>
-                                </BarChart>
-                            </ResponsiveContainer>
-                        </div>
-                    )}
-                </div>
-            </div>
-
-            {/* Filterable, Searchable, Sortable Registrations Table */}
-            <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-gray-150 dark:border-slate-800 overflow-hidden transition-colors">
-                {/* Filter Bar */}
-                <div className="p-5 border-b border-gray-150 dark:border-slate-800 space-y-4">
-                    <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
-                        {/* Search Input */}
-                        <div className="relative flex-1 max-w-md">
-                            <Search
-                                size={15}
-                                className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 dark:text-slate-500"
-                            />
-                            <input
-                                type="text"
-                                value={searchQuery}
-                                onChange={(e) => setSearchQuery(e.target.value)}
-                                placeholder="Search by Reg No (WSI/...), student name, phone, email..."
-                                className="w-full pl-10 pr-4 py-2.5 bg-gray-50 dark:bg-slate-950 border border-gray-200 dark:border-slate-800 rounded-xl text-xs text-gray-900 dark:text-white placeholder:text-gray-400 focus:outline-none focus:border-violet-500"
-                            />
-                        </div>
-
-                        {/* Secondary Filter Dropdowns */}
-                        <div className="flex flex-wrap items-center gap-2.5">
-                            {/* Status Filter */}
-                            <div className="flex items-center gap-1.5 bg-gray-50 dark:bg-slate-950 border border-gray-200 dark:border-slate-800 px-3 py-2 rounded-xl text-xs">
-                                <Filter size={12} className="text-gray-400" />
-                                <span className="text-gray-400 dark:text-slate-500">Status:</span>
-                                <select
-                                    value={statusFilter}
-                                    onChange={(e) => setStatusFilter(e.target.value)}
-                                    className="bg-transparent font-bold text-gray-800 dark:text-slate-200 focus:outline-none cursor-pointer dark:bg-slate-950"
-                                >
-                                    <option value="ALL">All Statuses</option>
-                                    {STATUS_OPTIONS.map(st => (
-                                        <option key={st} value={st}>{st}</option>
-                                    ))}
-                                </select>
+                                <div className="text-right shrink-0">
+                                    <span className="font-extrabold text-base">{stf.total}</span>
+                                    <span className="block text-[10px] opacity-80">{stf.enrolled} confirmed</span>
+                                </div>
                             </div>
-
-                            {/* Payment Status Filter (Section 8) */}
-                            <div className="flex items-center gap-1.5 bg-gray-50 dark:bg-slate-950 border border-gray-200 dark:border-slate-800 px-3 py-2 rounded-xl text-xs">
-                                <span className="text-gray-400 dark:text-slate-500">Payment:</span>
-                                <select
-                                    value={paymentStatusFilter}
-                                    onChange={(e) => setPaymentStatusFilter(e.target.value)}
-                                    className="bg-transparent font-bold text-gray-800 dark:text-slate-200 focus:outline-none cursor-pointer dark:bg-slate-950"
-                                >
-                                    <option value="ALL">All Payment States</option>
-                                    {ADMIN_PAYMENT_STATUS_OPTIONS.map(ps => (
-                                        <option key={ps} value={ps}>{ps}</option>
-                                    ))}
-                                </select>
-                            </div>
-
-                            {/* Course Filter */}
-                            <div className="flex items-center gap-1.5 bg-gray-50 dark:bg-slate-950 border border-gray-200 dark:border-slate-800 px-3 py-2 rounded-xl text-xs">
-                                <span className="text-gray-400 dark:text-slate-500">Course:</span>
-                                <select
-                                    value={courseFilter}
-                                    onChange={(e) => setCourseFilter(e.target.value)}
-                                    className="bg-transparent font-bold text-gray-800 dark:text-slate-200 focus:outline-none cursor-pointer max-w-[160px] truncate dark:bg-slate-950"
-                                >
-                                    <option value="ALL">All Courses</option>
-                                    {distinctCourses.map(c => (
-                                        <option key={c} value={c}>{c}</option>
-                                    ))}
-                                </select>
-                            </div>
-
-                            {/* Date Range Filters */}
-                            <div className="flex items-center gap-1.5 bg-gray-50 dark:bg-slate-950 border border-gray-200 dark:border-slate-800 px-3 py-1.5 rounded-xl text-xs">
-                                <Calendar size={12} className="text-gray-400" />
-                                <input
-                                    type="date"
-                                    value={dateFrom}
-                                    onChange={(e) => setDateFrom(e.target.value)}
-                                    className="bg-transparent text-gray-800 dark:text-slate-200 focus:outline-none text-[11px]"
-                                    title="From Date"
-                                />
-                                <span className="text-gray-400">–</span>
-                                <input
-                                    type="date"
-                                    value={dateTo}
-                                    onChange={(e) => setDateTo(e.target.value)}
-                                    className="bg-transparent text-gray-800 dark:text-slate-200 focus:outline-none text-[11px]"
-                                    title="To Date"
-                                />
-                                {(dateFrom || dateTo || statusFilter !== 'ALL' || courseFilter !== 'ALL' || paymentStatusFilter !== 'ALL' || dashboardSieve !== 'ALL' || staffSieve !== 'ALL' || searchQuery) && (
-                                    <button
-                                        type="button"
-                                        onClick={() => {
-                                            setDashboardSieve('ALL');
-                                            setStaffSieve('ALL');
-                                            setStatusFilter('ALL');
-                                            setPaymentStatusFilter('ALL');
-                                            setCourseFilter('ALL');
-                                            setDateFrom('');
-                                            setDateTo('');
-                                            setSearchQuery('');
-                                        }}
-                                        className="ml-1 text-[11px] font-bold text-violet-600 dark:text-violet-400 hover:underline cursor-pointer"
-                                    >
-                                        Reset All
-                                    </button>
-                                )}
-                            </div>
-                        </div>
+                        ))}
                     </div>
                 </div>
+            )}
 
-                {/* Table */}
+            {/* WORKSPACE VIEW 1 (DEFAULT): HIGH-DENSITY PIPELINE TABLE */}
+            <div className={`${activeWorkspaceView === 'TABLE' ? 'block' : 'hidden'} bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-gray-200/80 dark:border-slate-800 overflow-hidden transition-colors`}>
                 <div className="overflow-x-auto">
                     <table className="w-full text-left border-collapse">
-                        <thead className="bg-gray-50 dark:bg-slate-950/60">
-                            <tr className="text-gray-500 dark:text-slate-400 text-[11px] uppercase tracking-wider font-bold border-b border-gray-150 dark:border-slate-800">
-                                <th className="py-3.5 px-4">Reg No.</th>
+                        <thead className="bg-gray-50/80 dark:bg-slate-950/60">
+                            <tr className="text-gray-500 dark:text-slate-400 text-[11px] uppercase tracking-wider font-semibold border-b border-gray-200/80 dark:border-slate-800">
+                                <th className="py-3 px-4">Ref / Date</th>
                                 <th
                                     onClick={() => handleSortToggle('full_name')}
-                                    className="py-3.5 px-4 cursor-pointer hover:text-gray-900 dark:hover:text-white select-none"
+                                    className="py-3 px-4 cursor-pointer hover:text-gray-900 dark:hover:text-white select-none"
                                 >
-                                    Student {sortBy === 'full_name' ? (sortOrder === 'asc' ? '↑' : '↓') : ''}
+                                    Student & Contact {sortBy === 'full_name' ? (sortOrder === 'asc' ? '↑' : '↓') : ''}
                                 </th>
-                                <th className="py-3.5 px-4">Phone & Class</th>
                                 <th
                                     onClick={() => handleSortToggle('course_interest')}
-                                    className="py-3.5 px-4 cursor-pointer hover:text-gray-900 dark:hover:text-white select-none"
+                                    className="py-3 px-4 cursor-pointer hover:text-gray-900 dark:hover:text-white select-none"
                                 >
-                                    Programme & Fee {sortBy === 'course_interest' ? (sortOrder === 'asc' ? '↑' : '↓') : ''}
+                                    Selected Course & Schedule {sortBy === 'course_interest' ? (sortOrder === 'asc' ? '↑' : '↓') : ''}
                                 </th>
-                                <th className="py-3.5 px-4">Fees & Plan (Sec 4)</th>
-                                <th className="py-3.5 px-4">Outreach & Staff Audit</th>
+                                <th className="py-3 px-4">Tuition & Plan</th>
+                                <th className="py-3 px-4">Outreach & Registrar</th>
                                 <th
                                     onClick={() => handleSortToggle('status')}
-                                    className="py-3.5 px-4 cursor-pointer hover:text-gray-900 dark:hover:text-white select-none"
+                                    className="py-3 px-4 cursor-pointer hover:text-gray-900 dark:hover:text-white select-none"
                                 >
-                                    Status {sortBy === 'status' ? (sortOrder === 'asc' ? '↑' : '↓') : ''}
+                                    Confirmation Stage {sortBy === 'status' ? (sortOrder === 'asc' ? '↑' : '↓') : ''}
                                 </th>
-                                <th className="py-3.5 px-4 text-right">Actions</th>
+                                <th className="py-3 px-4 text-right">Follow-Up & Actions</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-100 dark:divide-slate-800/80 text-xs">
                             {loading ? (
                                 <tr>
-                                    <td colSpan={8} className="py-12 text-center text-gray-500 dark:text-slate-400">
+                                    <td colSpan={7} className="py-12 text-center text-gray-500 dark:text-slate-400">
                                         <Loader2 className="w-6 h-6 animate-spin mx-auto mb-2 text-violet-500" />
-                                        Loading official student registrations...
+                                        Loading live outreach registrations...
                                     </td>
                                 </tr>
                             ) : filteredRegistrations.length === 0 ? (
                                 <tr>
-                                    <td colSpan={8} className="py-12 text-center text-gray-500 dark:text-slate-400">
+                                    <td colSpan={7} className="py-12 text-center text-gray-500 dark:text-slate-400">
                                         No student registrations match your current sieve or search filters.
                                     </td>
                                 </tr>
                             ) : (
                                 filteredRegistrations.map((reg) => {
-                                    const isExpanded = expandedRowId === reg.id;
+                                    const isSelected = expandedRowId === reg.id;
                                     const coursePricing = getCoursePricing(reg.course_interest);
                                     const effectiveFee = Number(reg.total_course_fee ?? coursePricing.ugxPerMonth);
-                                    const effectiveBal = Number(reg.outstanding_balance ?? Math.max(0, effectiveFee - Number(reg.amount_paid ?? 0)));
+                                    const paidAmt = Number(reg.amount_paid ?? 0);
                                     const registrarName = getEffectiveRegistrar(reg);
+                                    const cleanRef = (reg.student_reg_no || 'WSI/11/26/—').replace(/^Pending \((.+)\)$/, '$1');
                                     const s8 = section8Drafts[reg.id] || {
                                         approved_by: reg.approved_by || APPROVER_PRESETS[0],
                                         approver_position: reg.approver_position || POSITION_PRESETS[0],
@@ -2343,461 +2371,133 @@ const AdminRegistrations: React.FC = () => {
                                     };
 
                                     return (
-                                        <React.Fragment key={reg.id}>
-                                            <tr className="hover:bg-gray-50/70 dark:hover:bg-slate-800/40 transition-colors">
-                                                <td className="py-3.5 px-4 font-mono text-[11px] font-bold text-violet-700 dark:text-violet-300 whitespace-nowrap">
-                                                    <div className="flex items-center gap-1.5">
-                                                        <button
-                                                            type="button"
-                                                            onClick={() => setExpandedRowId(isExpanded ? null : reg.id)}
-                                                            className="p-1 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-800 text-gray-400 hover:text-violet-600 cursor-pointer"
-                                                            title="Toggle 8-Section Official Form"
-                                                        >
-                                                            {isExpanded ? <ChevronUp size={15} /> : <ChevronDown size={15} />}
-                                                        </button>
-                                                        <div>
-                                                            <div>{reg.student_reg_no || 'WSI/11/26/—'}</div>
-                                                            <div className="text-[10px] font-sans font-normal text-gray-400">
-                                                                {reg.registration_date || (reg.created_at ? reg.created_at.split('T')[0] : '')}
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </td>
+                                        <tr
+                                            key={reg.id}
+                                            onClick={() => setExpandedRowId(reg.id)}
+                                            className={`transition-colors cursor-pointer ${
+                                                isSelected
+                                                    ? 'bg-violet-50/70 dark:bg-violet-950/30'
+                                                    : 'hover:bg-gray-50/80 dark:hover:bg-slate-800/40'
+                                            }`}
+                                        >
+                                            <td className="py-3 px-4 whitespace-nowrap">
+                                                <div className="font-mono text-[11px] font-bold text-violet-700 dark:text-violet-300">
+                                                    {cleanRef}
+                                                </div>
+                                                <div className="text-[10px] text-gray-400 dark:text-slate-500">
+                                                    {reg.registration_date || (reg.created_at ? reg.created_at.split('T')[0] : '')} •{' '}
+                                                    {reg.status === 'ENROLLED' ? 'Confirmed ID' : 'Provisional'}
+                                                </div>
+                                            </td>
 
-                                                <td className="py-3.5 px-4 font-bold text-gray-900 dark:text-white">
-                                                    <div>{reg.full_name}</div>
-                                                    {reg.email && (
-                                                        <div className="text-[11px] font-normal text-gray-400 dark:text-slate-500">
-                                                            {reg.email}
-                                                        </div>
-                                                    )}
+                                            <td className="py-3 px-4">
+                                                <div className="font-bold text-gray-900 dark:text-white flex items-center gap-1.5">
+                                                    <span>{reg.full_name}</span>
                                                     {reg.age_range === 'Under 18' && (
-                                                        <span className="inline-block mt-0.5 px-1.5 py-0.2 bg-amber-100 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 rounded text-[10px] font-bold">
-                                                            Under 18 (Sec 7 Guardian)
+                                                        <span className="px-1.5 py-0.2 bg-amber-100 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 rounded text-[10px] font-semibold">
+                                                            Under 18
                                                         </span>
                                                     )}
-                                                </td>
+                                                </div>
+                                                <div className="text-[11px] text-gray-500 dark:text-slate-400 flex items-center gap-2 mt-0.5">
+                                                    <span className="font-mono font-semibold text-gray-700 dark:text-slate-300">{reg.phone}</span>
+                                                    <span>•</span>
+                                                    <span className="truncate max-w-[160px]">{reg.class_level_year || reg.location || reg.email || '—'}</span>
+                                                </div>
+                                            </td>
 
-                                                <td className="py-3.5 px-4 text-gray-700 dark:text-slate-300 whitespace-nowrap">
-                                                    <a href={`tel:${reg.phone}`} className="font-mono font-bold hover:text-violet-600 dark:hover:text-violet-400 block">
-                                                        {reg.phone}
-                                                    </a>
-                                                    <span className="text-[11px] text-gray-400 dark:text-slate-500">
-                                                        {reg.class_level_year || reg.location || '—'}
-                                                    </span>
-                                                </td>
+                                            <td className="py-3 px-4">
+                                                <div className="font-bold text-gray-900 dark:text-white max-w-[200px] truncate" title={reg.course_interest}>
+                                                    {reg.course_interest}
+                                                </div>
+                                                <div className="text-[11px] text-gray-500 dark:text-slate-400">
+                                                    {(reg.preferred_study_days || []).join(', ') || 'Mon, Wed, Fri'} • {reg.preferred_time_slot || reg.mode_preference || 'Hybrid'}
+                                                </div>
+                                            </td>
 
-                                                <td className="py-3.5 px-4">
-                                                    <div className="font-bold text-violet-700 dark:text-violet-300 max-w-[200px] truncate" title={reg.course_interest}>
-                                                        {reg.course_interest}
-                                                    </div>
-                                                    <div className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400">
-                                                        {reg.course_fee_display || coursePricing.displayFee}
-                                                    </div>
-                                                    <div className="text-[11px] text-gray-500 dark:text-slate-400">
-                                                        {reg.level || 'Intermediate'} • {reg.mode_preference || 'Hybrid'}
-                                                    </div>
-                                                </td>
+                                            <td className="py-3 px-4 whitespace-nowrap">
+                                                <div className="font-semibold text-gray-900 dark:text-white">
+                                                    {coursePricing.displayFee}
+                                                </div>
+                                                <div className="text-[11px] text-gray-500 dark:text-slate-400">
+                                                    {paidAmt > 0 ? (
+                                                        <span className="text-emerald-600 dark:text-emerald-400 font-semibold">
+                                                            Paid: UGX {paidAmt.toLocaleString()}
+                                                        </span>
+                                                    ) : (
+                                                        <span>UGX 0 at booth • Pay on confirm ({reg.payment_plan || 'Monthly'})</span>
+                                                    )}
+                                                </div>
+                                            </td>
 
-                                                <td className="py-3.5 px-4 whitespace-nowrap">
-                                                    <div className="font-bold text-gray-900 dark:text-white">
-                                                        Paid: UGX {Number(reg.amount_paid ?? 0).toLocaleString()}
-                                                    </div>
-                                                    <div className="text-[11px] text-gray-500 dark:text-slate-400">
-                                                        Fee: {effectiveFee.toLocaleString()} • {s8.admin_payment_status}
-                                                    </div>
-                                                </td>
+                                            <td className="py-3 px-4">
+                                                <div className="text-[11px] font-semibold text-gray-800 dark:text-slate-200 truncate max-w-[185px]" title={reg.outreach_event || 'General'}>
+                                                    {reg.outreach_event || 'General / Direct'}
+                                                </div>
+                                                <div className="text-[10px] font-medium text-emerald-700 dark:text-emerald-400 flex items-center gap-1 mt-0.5">
+                                                    <UserCheck size={11} className="shrink-0" />
+                                                    <span className="truncate max-w-[165px]">{registrarName}</span>
+                                                </div>
+                                            </td>
 
-                                                <td className="py-3.5 px-4 text-gray-600 dark:text-slate-400">
-                                                    <div className="space-y-1">
-                                                        {reg.outreach_event ? (
-                                                            <span className="px-2 py-0.5 rounded-lg bg-violet-50 dark:bg-violet-950/50 text-violet-700 dark:text-violet-300 border border-violet-200/60 dark:border-violet-800/50 font-bold text-[10px] inline-block max-w-[190px] truncate" title={reg.outreach_event}>
-                                                                {reg.outreach_event}
-                                                            </span>
-                                                        ) : null}
-                                                        <div className="flex items-center gap-1 text-[10px] font-bold text-emerald-700 dark:text-emerald-400">
-                                                            <UserCheck size={11} className="shrink-0" />
-                                                            <span className="truncate max-w-[165px]" title={`Registered by: ${registrarName}`}>
-                                                                {registrarName}
-                                                            </span>
-                                                        </div>
-                                                        {reg.device_audit_id && (
-                                                            <div className="text-[9px] font-mono text-gray-400 flex items-center gap-1">
-                                                                <Fingerprint size={9} /> {reg.device_audit_id}
-                                                            </div>
-                                                        )}
-                                                    </div>
-                                                </td>
+                                            <td className="py-3 px-4" onClick={(e) => e.stopPropagation()}>
+                                                <select
+                                                    value={reg.status}
+                                                    onChange={(e) =>
+                                                        handleStatusChange(
+                                                            reg.id,
+                                                            e.target.value as OutreachRegistrationRecord['status']
+                                                        )
+                                                    }
+                                                    className={`px-2.5 py-1 rounded-full text-[11px] font-bold border cursor-pointer focus:outline-none ${
+                                                        STATUS_BADGE_STYLES[reg.status] || STATUS_BADGE_STYLES.NEW
+                                                    }`}
+                                                >
+                                                    {STATUS_OPTIONS.map(st => (
+                                                        <option key={st} value={st} className="bg-white dark:bg-slate-900 text-gray-900 dark:text-white">
+                                                            {STATUS_SHORT_LABELS[st]}
+                                                        </option>
+                                                    ))}
+                                                </select>
+                                            </td>
 
-                                                <td className="py-3.5 px-4">
-                                                    <select
-                                                        value={reg.status}
-                                                        onChange={(e) =>
-                                                            handleStatusChange(
-                                                                reg.id,
-                                                                e.target.value as OutreachRegistrationRecord['status']
-                                                            )
-                                                        }
-                                                        className={`px-2.5 py-1 rounded-full text-[11px] font-bold border cursor-pointer focus:outline-none ${
-                                                            STATUS_BADGE_STYLES[reg.status] || STATUS_BADGE_STYLES.NEW
-                                                        }`}
+                                            <td className="py-3 px-4 text-right whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
+                                                <div className="inline-flex items-center gap-1.5">
+                                                    <a
+                                                        href={buildWhatsAppFollowUpUrl(reg)}
+                                                        target="_blank"
+                                                        rel="noreferrer"
+                                                        className="px-2.5 py-1.5 rounded-lg bg-emerald-50 dark:bg-emerald-950/60 hover:bg-emerald-100 text-emerald-700 dark:text-emerald-300 border border-emerald-200/70 dark:border-emerald-800/60 font-semibold text-[11px] cursor-pointer"
+                                                        title="Send Follow-Up WhatsApp Message to Confirm Seat"
                                                     >
-                                                        {STATUS_OPTIONS.map(st => (
-                                                            <option key={st} value={st} className="bg-white dark:bg-slate-900 text-gray-900 dark:text-white">
-                                                                {st}
-                                                            </option>
-                                                        ))}
-                                                    </select>
-                                                </td>
-
-                                                <td className="py-3.5 px-4 text-right whitespace-nowrap">
-                                                    <div className="inline-flex items-center gap-1.5">
-                                                        <button
-                                                            type="button"
-                                                            onClick={() => setExpandedRowId(isExpanded ? null : reg.id)}
-                                                            className="px-2.5 py-1.5 rounded-lg border border-gray-200 dark:border-slate-700 hover:bg-gray-100 dark:hover:bg-slate-800 text-gray-700 dark:text-slate-300 font-bold text-[11px] cursor-pointer"
-                                                        >
-                                                            {isExpanded ? 'Hide Form' : '8-Sec + Audit'}
-                                                        </button>
-                                                        <button
-                                                            type="button"
-                                                            onClick={() => setPrintingRecord({ ...reg, ...s8 })}
-                                                            className="p-1.5 rounded-lg border border-gray-200 dark:border-slate-700 hover:bg-gray-100 dark:hover:bg-slate-800 text-gray-600 dark:text-slate-300 cursor-pointer"
-                                                            title="Print Official 8-Section Form"
-                                                        >
-                                                            <Printer size={13} />
-                                                        </button>
-                                                        <button
-                                                            type="button"
-                                                            onClick={() => openConvertModal(reg)}
-                                                            className="px-3 py-1.5 rounded-lg bg-violet-600 hover:bg-violet-700 text-white font-bold text-[11px] inline-flex items-center gap-1 shadow-sm cursor-pointer"
-                                                        >
-                                                            <UserPlus size={12} />
-                                                            {reg.status === 'ENROLLED' ? 'Re-Enroll' : 'Convert'}
-                                                        </button>
-                                                    </div>
-                                                </td>
-                                            </tr>
-
-                                            {/* Expandable Full 8-Section Official Form, Staff Audit Provenance & Section 8 Admin Editor */}
-                                            {isExpanded && (
-                                                <tr className="bg-gray-50/90 dark:bg-slate-950/70">
-                                                    <td colSpan={8} className="p-6 border-b border-gray-200 dark:border-slate-800">
-                                                        <div className="space-y-5">
-                                                            {/* Top Banner inside Expanded View */}
-                                                            <div className="flex flex-wrap items-center justify-between gap-3 bg-white dark:bg-slate-900 p-4 rounded-2xl border border-violet-200 dark:border-violet-900/50">
-                                                                <div>
-                                                                    <span className="text-[10px] font-extrabold uppercase tracking-widest text-violet-600 dark:text-violet-400">
-                                                                        WELILE SCHOOL OF AI • KATABI, ENTEBBE, UGANDA
-                                                                    </span>
-                                                                    <h4 className="text-sm font-black text-gray-900 dark:text-white">
-                                                                        OFFICIAL 8-SECTION STUDENT REGISTRATION, STUDY SCHEDULE & PAYMENT AGREEMENT
-                                                                    </h4>
-                                                                </div>
-                                                                <div className="flex items-center gap-2">
-                                                                    <span className="px-3 py-1 rounded-lg bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 text-xs font-bold flex items-center gap-1">
-                                                                        <UserCheck size={13} /> Audited Registrar: {registrarName}
-                                                                    </span>
-                                                                    <span className="px-3 py-1 rounded-lg bg-violet-50 dark:bg-violet-950/60 text-violet-700 dark:text-violet-300 font-mono text-xs font-bold">
-                                                                        Reg No: {reg.student_reg_no || 'WSI/11/26/—'}
-                                                                    </span>
-                                                                    <button
-                                                                        type="button"
-                                                                        onClick={() => setPrintingRecord({ ...reg, ...s8 })}
-                                                                        className="px-3.5 py-1.5 rounded-xl bg-gray-900 dark:bg-white text-white dark:text-gray-900 text-xs font-bold inline-flex items-center gap-1.5 cursor-pointer"
-                                                                    >
-                                                                        <Printer size={13} /> Print Official Form
-                                                                    </button>
-                                                                </div>
-                                                            </div>
-
-                                                            {/* STAFF & DEVICE PROVENANCE AUDIT BAR */}
-                                                            <div className="bg-emerald-50/70 dark:bg-emerald-950/20 p-4 rounded-2xl border border-emerald-200 dark:border-emerald-800/50 grid grid-cols-1 sm:grid-cols-4 gap-3 text-xs">
-                                                                <div>
-                                                                    <span className="text-[10px] font-extrabold uppercase text-emerald-700 dark:text-emerald-400 block">
-                                                                        Registered By (Staff / Mobilizer)
-                                                                    </span>
-                                                                    <span className="font-bold text-gray-900 dark:text-white">
-                                                                        {registrarName}
-                                                                    </span>
-                                                                    <span className="block text-[10px] text-gray-500">
-                                                                        {reg.registered_by_role || 'Outreach Capture'} ({reg.registered_by_staff_id || 'STF'})
-                                                                    </span>
-                                                                </div>
-                                                                <div>
-                                                                    <span className="text-[10px] font-extrabold uppercase text-emerald-700 dark:text-emerald-400 block">
-                                                                        Capture Mode & Outreach
-                                                                    </span>
-                                                                    <span className="font-bold text-gray-900 dark:text-white">
-                                                                        {reg.registration_mode || 'Staff Assisted (Booth/Field)'}
-                                                                    </span>
-                                                                    <span className="block text-[10px] text-gray-500 truncate">
-                                                                        {reg.outreach_event}
-                                                                    </span>
-                                                                </div>
-                                                                <div>
-                                                                    <span className="text-[10px] font-extrabold uppercase text-emerald-700 dark:text-emerald-400 block">
-                                                                        Device Fingerprint & OS
-                                                                    </span>
-                                                                    <span className="font-mono font-bold text-gray-900 dark:text-white">
-                                                                        {reg.device_audit_id || 'DEV-WEB'}
-                                                                    </span>
-                                                                    <span className="block text-[10px] text-gray-500">
-                                                                        {reg.device_info || 'Web Browser'} • {reg.submitted_from || 'web'}
-                                                                    </span>
-                                                                </div>
-                                                                <div>
-                                                                    <span className="text-[10px] font-extrabold uppercase text-emerald-700 dark:text-emerald-400 block">
-                                                                        Exact Timestamp
-                                                                    </span>
-                                                                    <span className="font-mono font-bold text-gray-900 dark:text-white">
-                                                                        {reg.created_at ? new Date(reg.created_at).toLocaleString() : '—'}
-                                                                    </span>
-                                                                </div>
-                                                            </div>
-
-                                                            {/* Sections 1 to 7 Grid */}
-                                                            <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
-                                                                {/* SEC 1 & SEC 2 */}
-                                                                <div className="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-gray-100 dark:border-slate-800 space-y-3">
-                                                                    <div>
-                                                                        <h5 className="text-[11px] font-extrabold uppercase tracking-wider text-violet-600 dark:text-violet-400 mb-1.5">
-                                                                            1. Student Information
-                                                                        </h5>
-                                                                        <div className="space-y-1 text-xs text-gray-700 dark:text-slate-300">
-                                                                            <p><span className="font-semibold">Full Name:</span> {reg.full_name}</p>
-                                                                            <p><span className="font-semibold">Email:</span> {reg.email || '—'}</p>
-                                                                            <p><span className="font-semibold">Phone:</span> {reg.phone}</p>
-                                                                            <p><span className="font-semibold">Class / Level / Year:</span> {reg.class_level_year || '—'}</p>
-                                                                            <p><span className="font-semibold">Age Range & Location:</span> {reg.age_range || '—'} • {reg.location || '—'}</p>
-                                                                        </div>
-                                                                    </div>
-
-                                                                    <div className="pt-2 border-t border-gray-100 dark:border-slate-800">
-                                                                        <h5 className="text-[11px] font-extrabold uppercase tracking-wider text-violet-600 dark:text-violet-400 mb-1.5">
-                                                                            2. Course & Programme Information
-                                                                        </h5>
-                                                                        <div className="space-y-1 text-xs text-gray-700 dark:text-slate-300">
-                                                                            <p><span className="font-semibold">Programme:</span> <span className="font-bold text-violet-600 dark:text-violet-400">{reg.course_interest}</span></p>
-                                                                            <p><span className="font-semibold">Official Monthly Rate:</span> <span className="font-bold text-emerald-600 dark:text-emerald-400">{reg.course_fee_display || coursePricing.displayFee}</span></p>
-                                                                            <p><span className="font-semibold">Assigned Level:</span> {reg.level || 'Intermediate'}</p>
-                                                                            <p><span className="font-semibold">Mode of Study:</span> {reg.mode_of_study_text || reg.mode_preference || 'Hybrid'}</p>
-                                                                            <p><span className="font-semibold">Expected Start – Completion:</span> {reg.expected_start_date || '—'} to {reg.expected_completion_date || '—'}</p>
-                                                                        </div>
-                                                                    </div>
-                                                                </div>
-
-                                                                {/* SEC 3 & SEC 4 */}
-                                                                <div className="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-gray-100 dark:border-slate-800 space-y-3">
-                                                                    <div>
-                                                                        <h5 className="text-[11px] font-extrabold uppercase tracking-wider text-violet-600 dark:text-violet-400 mb-1.5">
-                                                                            3. Study Schedule
-                                                                        </h5>
-                                                                        <div className="space-y-1 text-xs text-gray-700 dark:text-slate-300">
-                                                                            <p><span className="font-semibold">Preferred Days:</span> {(reg.preferred_study_days || []).join(', ') || '—'}</p>
-                                                                            <p><span className="font-semibold">Chosen Time:</span> {reg.preferred_time_slot || '—'}</p>
-                                                                            <p><span className="font-semibold">Hours / Sessions:</span> {reg.study_hours_per_session || '2 Hours'} • {reg.sessions_per_week || '3 Sessions / Week'}</p>
-                                                                            <p><span className="font-semibold">Alternative Time:</span> {reg.alternative_study_time || '—'}</p>
-                                                                        </div>
-                                                                    </div>
-
-                                                                    <div className="pt-2 border-t border-gray-100 dark:border-slate-800">
-                                                                        <h5 className="text-[11px] font-extrabold uppercase tracking-wider text-violet-600 dark:text-violet-400 mb-1.5">
-                                                                            4. Fees & Payment Agreement
-                                                                        </h5>
-                                                                        <div className="space-y-1 text-xs text-gray-700 dark:text-slate-300">
-                                                                            <p><span className="font-semibold">Total Course Fee:</span> UGX {effectiveFee.toLocaleString()} ({reg.course_fee_display || coursePricing.displayFee})</p>
-                                                                            <p><span className="font-semibold">Registration Fee:</span> {reg.registration_fee || 'Not Applicable'}</p>
-                                                                            <p>
-                                                                                <span className="font-semibold">Amount Paid:</span>{' '}
-                                                                                <span className="font-bold text-emerald-600 dark:text-emerald-400">UGX {Number(reg.amount_paid ?? 0).toLocaleString()}</span>
-                                                                                {' '}• <span className="font-semibold">Balance:</span>{' '}
-                                                                                <span className="font-bold text-amber-600 dark:text-amber-400">UGX {effectiveBal.toLocaleString()}</span>
-                                                                            </p>
-                                                                            <p><span className="font-semibold">Payment Plan & Agreed Amt:</span> {reg.payment_plan || 'Monthly'} (UGX {Number(reg.agreed_payment_amount ?? effectiveFee).toLocaleString()})</p>
-                                                                            <p><span className="font-semibold">Next / Due Date:</span> {reg.next_payment_date || '—'} / {reg.payment_due_date || '—'}</p>
-                                                                            <p><span className="font-semibold">Method & Ref:</span> {reg.payment_method || 'Mobile Money'} ({reg.payment_reference || 'Pending'})</p>
-                                                                        </div>
-                                                                    </div>
-                                                                </div>
-
-                                                                {/* SEC 5, 6 & 7 */}
-                                                                <div className="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-gray-100 dark:border-slate-800 space-y-3">
-                                                                    <div>
-                                                                        <h5 className="text-[11px] font-extrabold uppercase tracking-wider text-violet-600 dark:text-violet-400 mb-1.5">
-                                                                            5 & 6. Commitment & Student Declaration
-                                                                        </h5>
-                                                                        <div className="space-y-1 text-xs text-gray-700 dark:text-slate-300">
-                                                                            <p>
-                                                                                <span className="font-semibold">Commitments Accepted:</span>{' '}
-                                                                                <span className="text-emerald-600 dark:text-emerald-400 font-bold">
-                                                                                    8 / 8 Official Commitments Checked ✓
-                                                                                </span>
-                                                                            </p>
-                                                                            <p><span className="font-semibold">Student Digital Signature:</span> <span className="italic font-bold">{reg.student_signature || reg.full_name}</span></p>
-                                                                            <p><span className="font-semibold">Declaration Date:</span> {reg.student_declaration_date || reg.registration_date || '—'}</p>
-                                                                        </div>
-                                                                    </div>
-
-                                                                    <div className="pt-2 border-t border-gray-100 dark:border-slate-800">
-                                                                        <h5 className="text-[11px] font-extrabold uppercase tracking-wider text-amber-600 dark:text-amber-400 mb-1.5">
-                                                                            7. Parent / Guardian Consent
-                                                                        </h5>
-                                                                        {reg.guardian_name ? (
-                                                                            <div className="space-y-1 text-xs text-gray-700 dark:text-slate-300">
-                                                                                <p><span className="font-semibold">Guardian Name:</span> {reg.guardian_name}</p>
-                                                                                <p><span className="font-semibold">Guardian Phone:</span> {reg.guardian_phone || '—'}</p>
-                                                                                <p><span className="font-semibold">Guardian Signature:</span> <span className="italic">{reg.guardian_signature || reg.guardian_name}</span> ({reg.guardian_consent_date || '—'})</p>
-                                                                            </div>
-                                                                        ) : (
-                                                                            <p className="text-xs text-gray-400 italic">Adult student (18+) — Guardian section optional.</p>
-                                                                        )}
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-
-                                                            {/* SECTION 8: SCHOOL / ADMINISTRATION USE ONLY (Interactive Official Editor) */}
-                                                            <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl border-2 border-violet-500/30 dark:border-violet-500/40 space-y-4">
-                                                                <div className="flex flex-wrap items-center justify-between gap-2 border-b border-gray-100 dark:border-slate-800 pb-3">
-                                                                    <div>
-                                                                        <h4 className="text-xs font-black uppercase tracking-wider text-violet-700 dark:text-violet-300 flex items-center gap-1.5">
-                                                                            <ShieldCheck size={15} /> 8. SCHOOL / ADMINISTRATION USE ONLY (Official Endorsement)
-                                                                        </h4>
-                                                                        <p className="text-[11px] text-gray-500 dark:text-slate-400">
-                                                                            Complete Section 8 to approve this student's registration, assign an instructor/cohort, and confirm their payment status.
-                                                                        </p>
-                                                                    </div>
-
-                                                                    <div className="flex items-center gap-2">
-                                                                        {savedSection8Id === reg.id && (
-                                                                            <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
-                                                                                <CheckCircle2 size={14} /> Saved to Official Record!
-                                                                            </span>
-                                                                        )}
-                                                                        <button
-                                                                            type="button"
-                                                                            onClick={() => handleSaveSection8(reg.id)}
-                                                                            disabled={savingSection8Id === reg.id}
-                                                                            className="px-4 py-2 rounded-xl bg-violet-600 hover:bg-violet-700 text-white text-xs font-bold inline-flex items-center gap-1.5 shadow-sm cursor-pointer disabled:opacity-60"
-                                                                        >
-                                                                            {savingSection8Id === reg.id ? (
-                                                                                <>
-                                                                                    <Loader2 size={13} className="animate-spin" /> Saving...
-                                                                                </>
-                                                                            ) : (
-                                                                                <>
-                                                                                    <Check size={13} /> Save Section 8 Record
-                                                                                </>
-                                                                            )}
-                                                                        </button>
-                                                                    </div>
-                                                                </div>
-
-                                                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 text-xs">
-                                                                    <div>
-                                                                        <label className="block font-bold text-gray-600 dark:text-slate-300 mb-1">
-                                                                            Registration Approved By
-                                                                        </label>
-                                                                        <select
-                                                                            value={s8.approved_by}
-                                                                            onChange={(e) => updateSection8Field(reg.id, 'approved_by', e.target.value)}
-                                                                            className="w-full p-2.5 rounded-xl bg-gray-50 dark:bg-slate-950 border border-gray-200 dark:border-slate-800 text-gray-900 dark:text-white font-semibold"
-                                                                        >
-                                                                            {APPROVER_PRESETS.map(ap => (
-                                                                                <option key={ap} value={ap}>{ap}</option>
-                                                                            ))}
-                                                                        </select>
-                                                                    </div>
-
-                                                                    <div>
-                                                                        <label className="block font-bold text-gray-600 dark:text-slate-300 mb-1">
-                                                                            Position
-                                                                        </label>
-                                                                        <select
-                                                                            value={s8.approver_position}
-                                                                            onChange={(e) => updateSection8Field(reg.id, 'approver_position', e.target.value)}
-                                                                            className="w-full p-2.5 rounded-xl bg-gray-50 dark:bg-slate-950 border border-gray-200 dark:border-slate-800 text-gray-900 dark:text-white font-semibold"
-                                                                        >
-                                                                            {POSITION_PRESETS.map(pos => (
-                                                                                <option key={pos} value={pos}>{pos}</option>
-                                                                            ))}
-                                                                        </select>
-                                                                    </div>
-
-                                                                    <div>
-                                                                        <label className="block font-bold text-gray-600 dark:text-slate-300 mb-1">
-                                                                            Assigned Class / Instructor
-                                                                        </label>
-                                                                        <select
-                                                                            value={s8.assigned_instructor}
-                                                                            onChange={(e) => updateSection8Field(reg.id, 'assigned_instructor', e.target.value)}
-                                                                            className="w-full p-2.5 rounded-xl bg-gray-50 dark:bg-slate-950 border border-gray-200 dark:border-slate-800 text-gray-900 dark:text-white font-semibold"
-                                                                        >
-                                                                            {INSTRUCTOR_CLASS_PRESETS.map(cls => (
-                                                                                <option key={cls} value={cls}>{cls}</option>
-                                                                            ))}
-                                                                        </select>
-                                                                    </div>
-
-                                                                    <div>
-                                                                        <label className="block font-bold text-gray-600 dark:text-slate-300 mb-1">
-                                                                            Confirmed Study Schedule
-                                                                        </label>
-                                                                        <input
-                                                                            type="text"
-                                                                            value={s8.confirmed_schedule}
-                                                                            onChange={(e) => updateSection8Field(reg.id, 'confirmed_schedule', e.target.value)}
-                                                                            className="w-full p-2.5 rounded-xl bg-gray-50 dark:bg-slate-950 border border-gray-200 dark:border-slate-800 text-gray-900 dark:text-white font-semibold"
-                                                                        />
-                                                                    </div>
-
-                                                                    <div>
-                                                                        <label className="block font-bold text-gray-600 dark:text-slate-300 mb-1">
-                                                                            Official Payment Status (Sec 8)
-                                                                        </label>
-                                                                        <select
-                                                                            value={s8.admin_payment_status}
-                                                                            onChange={(e) => updateSection8Field(reg.id, 'admin_payment_status', e.target.value)}
-                                                                            className="w-full p-2.5 rounded-xl bg-gray-50 dark:bg-slate-950 border border-gray-200 dark:border-slate-800 text-gray-900 dark:text-white font-bold"
-                                                                        >
-                                                                            {ADMIN_PAYMENT_STATUS_OPTIONS.map(st => (
-                                                                                <option key={st} value={st}>{st}</option>
-                                                                            ))}
-                                                                        </select>
-                                                                    </div>
-
-                                                                    <div>
-                                                                        <label className="block font-bold text-gray-600 dark:text-slate-300 mb-1">
-                                                                            Administrator Signature Date
-                                                                        </label>
-                                                                        <input
-                                                                            type="date"
-                                                                            value={s8.admin_signature_date}
-                                                                            onChange={(e) => updateSection8Field(reg.id, 'admin_signature_date', e.target.value)}
-                                                                            className="w-full p-2.5 rounded-xl bg-gray-50 dark:bg-slate-950 border border-gray-200 dark:border-slate-800 text-gray-900 dark:text-white font-semibold"
-                                                                        />
-                                                                    </div>
-
-                                                                    <div className="sm:col-span-2 lg:col-span-3">
-                                                                        <label className="block font-bold text-gray-600 dark:text-slate-300 mb-1">
-                                                                            Official Remarks / Follow-up Notes
-                                                                        </label>
-                                                                        <textarea
-                                                                            rows={2}
-                                                                            value={s8.admin_notes}
-                                                                            onChange={(e) => updateSection8Field(reg.id, 'admin_notes', e.target.value)}
-                                                                            onBlur={() => handleSaveSection8(reg.id)}
-                                                                            placeholder="Enter official registrar remarks, installment verification, or scholarship notes..."
-                                                                            className="w-full p-2.5 rounded-xl bg-gray-50 dark:bg-slate-950 border border-gray-200 dark:border-slate-800 text-gray-900 dark:text-white"
-                                                                        />
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    </td>
-                                                </tr>
-                                            )}
-                                        </React.Fragment>
+                                                        WhatsApp
+                                                    </a>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => setExpandedRowId(reg.id)}
+                                                        className="px-2.5 py-1.5 rounded-lg border border-gray-200 dark:border-slate-700 hover:bg-gray-100 dark:hover:bg-slate-800 text-gray-700 dark:text-slate-300 font-semibold text-[11px] cursor-pointer"
+                                                    >
+                                                        Inspect
+                                                    </button>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => setPrintingRecord({ ...reg, ...s8 })}
+                                                        className="p-1.5 rounded-lg border border-gray-200 dark:border-slate-700 hover:bg-gray-100 dark:hover:bg-slate-800 text-gray-600 dark:text-slate-300 cursor-pointer"
+                                                        title="Print Official 8-Section Form"
+                                                    >
+                                                        <Printer size={13} />
+                                                    </button>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => openConvertModal(reg)}
+                                                        className="px-2.5 py-1.5 rounded-lg bg-violet-600 hover:bg-violet-700 text-white font-semibold text-[11px] inline-flex items-center gap-1 shadow-xs cursor-pointer"
+                                                    >
+                                                        <UserPlus size={12} />
+                                                        {reg.status === 'ENROLLED' ? 'Enrolled' : 'Confirm'}
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
                                     );
                                 })
                             )}
@@ -2805,6 +2505,343 @@ const AdminRegistrations: React.FC = () => {
                     </table>
                 </div>
             </div>
+
+            {/* RIGHT SLIDE-OVER STUDENT INSPECTOR & CONFIRMATION DRAWER */}
+            {selectedDrawerRecord && (() => {
+                const reg = selectedDrawerRecord;
+                const coursePricing = getCoursePricing(reg.course_interest);
+                const effectiveFee = Number(reg.total_course_fee ?? coursePricing.ugxPerMonth);
+                const effectiveBal = Number(reg.outstanding_balance ?? Math.max(0, effectiveFee - Number(reg.amount_paid ?? 0)));
+                const registrarName = getEffectiveRegistrar(reg);
+                const s8 = section8Drafts[reg.id] || {
+                    approved_by: reg.approved_by || APPROVER_PRESETS[0],
+                    approver_position: reg.approver_position || POSITION_PRESETS[0],
+                    assigned_instructor: reg.assigned_instructor || INSTRUCTOR_CLASS_PRESETS[0],
+                    confirmed_schedule: reg.confirmed_schedule || `${(reg.preferred_study_days || []).join(', ')} • ${reg.preferred_time_slot || ''}`,
+                    admin_payment_status: reg.admin_payment_status || 'Pending',
+                    admin_signature_date: reg.admin_signature_date || new Date().toISOString().split('T')[0],
+                    admin_notes: reg.admin_notes || ''
+                };
+
+                return (
+                    <div className="fixed inset-0 z-50 flex justify-end">
+                        <div
+                            className="fixed inset-0 bg-black/40 backdrop-blur-xs"
+                            onClick={() => setExpandedRowId(null)}
+                        />
+                        <div className="relative z-10 w-full max-w-xl bg-white dark:bg-slate-900 h-full shadow-2xl border-l border-gray-200 dark:border-slate-800 flex flex-col overflow-hidden animate-in slide-in-from-right duration-200">
+                            {/* Drawer Header */}
+                            <div className="p-5 border-b border-gray-200 dark:border-slate-800 bg-gray-50/70 dark:bg-slate-950/60">
+                                <div className="flex items-start justify-between gap-3">
+                                    <div>
+                                        <div className="flex items-center gap-2 flex-wrap">
+                                            <span className="font-mono text-xs font-bold text-violet-700 dark:text-violet-300 bg-violet-100/80 dark:bg-violet-950/70 px-2 py-0.5 rounded-md">
+                                                {reg.student_reg_no || 'WSI/11/26/—'}
+                                            </span>
+                                            <span className={`px-2.5 py-0.5 rounded-full text-[11px] font-bold border ${STATUS_BADGE_STYLES[reg.status]}`}>
+                                                {STATUS_STAGE_LABELS[reg.status]}
+                                            </span>
+                                        </div>
+                                        <h3 className="text-lg font-extrabold text-gray-900 dark:text-white mt-1.5">
+                                            {reg.full_name}
+                                        </h3>
+                                        <p className="text-xs text-gray-500 dark:text-slate-400">
+                                            {reg.course_interest} ({coursePricing.displayFee}) • {reg.class_level_year || reg.location || 'Student'}
+                                        </p>
+                                    </div>
+                                    <button
+                                        type="button"
+                                        onClick={() => setExpandedRowId(null)}
+                                        className="p-2 rounded-xl text-gray-400 hover:text-gray-700 hover:bg-gray-100 dark:hover:bg-slate-800 cursor-pointer"
+                                    >
+                                        <X size={18} />
+                                    </button>
+                                </div>
+
+                                {/* Quick Follow-Up & Confirmation Bar */}
+                                <div className="flex flex-wrap items-center gap-2 mt-4 pt-3 border-t border-gray-200/70 dark:border-slate-800">
+                                    <a
+                                        href={`tel:${reg.phone}`}
+                                        className="px-3 py-1.5 rounded-xl bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 text-gray-800 dark:text-slate-200 text-xs font-semibold inline-flex items-center gap-1.5 hover:bg-gray-50"
+                                    >
+                                        <Phone size={13} className="text-blue-600" /> Call {reg.phone}
+                                    </a>
+                                    <a
+                                        href={buildWhatsAppFollowUpUrl(reg)}
+                                        target="_blank"
+                                        rel="noreferrer"
+                                        onClick={() => {
+                                            if (reg.status === 'NEW') {
+                                                handleStatusChange(reg.id, 'CONTACTED');
+                                            }
+                                        }}
+                                        className="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold inline-flex items-center gap-1.5 shadow-xs"
+                                    >
+                                        💬 WhatsApp Follow-Up
+                                    </a>
+                                    <button
+                                        type="button"
+                                        onClick={() => setPrintingRecord({ ...reg, ...s8 })}
+                                        className="px-3 py-1.5 rounded-xl bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 text-gray-700 dark:text-slate-200 text-xs font-semibold inline-flex items-center gap-1.5 cursor-pointer hover:bg-gray-50"
+                                    >
+                                        <Printer size={13} /> Print 8-Sec PDF
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => openConvertModal(reg)}
+                                        className="px-3.5 py-1.5 rounded-xl bg-violet-600 hover:bg-violet-700 text-white text-xs font-semibold inline-flex items-center gap-1.5 shadow-xs cursor-pointer ml-auto"
+                                    >
+                                        <UserPlus size={13} />
+                                        {reg.status === 'ENROLLED' ? 'Update Enrollment' : 'Confirm & Enroll'}
+                                    </button>
+                                </div>
+
+                                {/* Drawer Sub-Tabs */}
+                                <div className="grid grid-cols-3 gap-1 bg-gray-200/70 dark:bg-slate-900 p-1 rounded-xl mt-4 text-xs font-semibold">
+                                    <button
+                                        type="button"
+                                        onClick={() => setDrawerTab('CONFIRMATION')}
+                                        className={`py-1.5 rounded-lg cursor-pointer transition-all ${
+                                            drawerTab === 'CONFIRMATION'
+                                                ? 'bg-white dark:bg-slate-800 text-gray-900 dark:text-white shadow-xs'
+                                                : 'text-gray-600 dark:text-slate-400'
+                                        }`}
+                                    >
+                                        1. Follow-Up & Sec 8
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => setDrawerTab('OVERVIEW')}
+                                        className={`py-1.5 rounded-lg cursor-pointer transition-all ${
+                                            drawerTab === 'OVERVIEW'
+                                                ? 'bg-white dark:bg-slate-800 text-gray-900 dark:text-white shadow-xs'
+                                                : 'text-gray-600 dark:text-slate-400'
+                                        }`}
+                                    >
+                                        2. Sections 1–7 Details
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => setDrawerTab('AUDIT')}
+                                        className={`py-1.5 rounded-lg cursor-pointer transition-all ${
+                                            drawerTab === 'AUDIT'
+                                                ? 'bg-white dark:bg-slate-800 text-gray-900 dark:text-white shadow-xs'
+                                                : 'text-gray-600 dark:text-slate-400'
+                                        }`}
+                                    >
+                                        3. Staff & Device Audit
+                                    </button>
+                                </div>
+                            </div>
+
+                            {/* Drawer Body */}
+                            <div className="p-5 overflow-y-auto flex-1 space-y-4 text-xs">
+                                {drawerTab === 'CONFIRMATION' && (
+                                    <div className="space-y-4">
+                                        <div className="p-3.5 rounded-xl bg-amber-50/80 dark:bg-amber-950/30 border border-amber-200/80 dark:border-amber-800/50 text-amber-900 dark:text-amber-200">
+                                            <div className="font-bold text-xs mb-1">
+                                                Follow-Up Confirmation Workflow
+                                            </div>
+                                            <p className="text-[11px] leading-relaxed">
+                                                At outreach events, students reserve a provisional seat with <strong>UGX 0 upfront</strong>. Call or WhatsApp the student to confirm if they are ready to study, update their stage below, and save Section 8 endorsement.
+                                            </p>
+                                            <div className="mt-2.5 flex items-center gap-2">
+                                                <span className="text-[11px] font-bold">Confirmation Stage:</span>
+                                                <select
+                                                    value={reg.status}
+                                                    onChange={(e) =>
+                                                        handleStatusChange(
+                                                            reg.id,
+                                                            e.target.value as OutreachRegistrationRecord['status']
+                                                        )
+                                                    }
+                                                    className="px-3 py-1.5 rounded-lg bg-white dark:bg-slate-900 border border-amber-300 dark:border-amber-700 font-bold text-xs text-gray-900 dark:text-white cursor-pointer"
+                                                >
+                                                    {STATUS_OPTIONS.map(st => (
+                                                        <option key={st} value={st}>{STATUS_STAGE_LABELS[st]}</option>
+                                                    ))}
+                                                </select>
+                                            </div>
+                                        </div>
+
+                                        <div className="bg-gray-50 dark:bg-slate-950/70 p-4 rounded-2xl border border-gray-200 dark:border-slate-800 space-y-3">
+                                            <div className="flex items-center justify-between">
+                                                <h4 className="font-extrabold uppercase tracking-wider text-violet-700 dark:text-violet-300 flex items-center gap-1.5">
+                                                    <ShieldCheck size={14} /> Section 8: Official Administration Endorsement
+                                                </h4>
+                                                {savedSection8Id === reg.id && (
+                                                    <span className="text-emerald-600 dark:text-emerald-400 font-bold flex items-center gap-1">
+                                                        <CheckCircle2 size={13} /> Saved!
+                                                    </span>
+                                                )}
+                                            </div>
+
+                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                                <div>
+                                                    <label className="block font-semibold text-gray-600 dark:text-slate-300 mb-1">
+                                                        Registration Approved By
+                                                    </label>
+                                                    <select
+                                                        value={s8.approved_by}
+                                                        onChange={(e) => updateSection8Field(reg.id, 'approved_by', e.target.value)}
+                                                        className="w-full p-2 rounded-xl bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 font-semibold"
+                                                    >
+                                                        {APPROVER_PRESETS.map(ap => (
+                                                            <option key={ap} value={ap}>{ap}</option>
+                                                        ))}
+                                                    </select>
+                                                </div>
+
+                                                <div>
+                                                    <label className="block font-semibold text-gray-600 dark:text-slate-300 mb-1">
+                                                        Position
+                                                    </label>
+                                                    <select
+                                                        value={s8.approver_position}
+                                                        onChange={(e) => updateSection8Field(reg.id, 'approver_position', e.target.value)}
+                                                        className="w-full p-2 rounded-xl bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 font-semibold"
+                                                    >
+                                                        {POSITION_PRESETS.map(pos => (
+                                                            <option key={pos} value={pos}>{pos}</option>
+                                                        ))}
+                                                    </select>
+                                                </div>
+
+                                                <div className="sm:col-span-2">
+                                                    <label className="block font-semibold text-gray-600 dark:text-slate-300 mb-1">
+                                                        Assigned Cohort / Instructor
+                                                    </label>
+                                                    <select
+                                                        value={s8.assigned_instructor}
+                                                        onChange={(e) => updateSection8Field(reg.id, 'assigned_instructor', e.target.value)}
+                                                        className="w-full p-2 rounded-xl bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 font-semibold"
+                                                    >
+                                                        {INSTRUCTOR_CLASS_PRESETS.map(cls => (
+                                                            <option key={cls} value={cls}>{cls}</option>
+                                                        ))}
+                                                    </select>
+                                                </div>
+
+                                                <div>
+                                                    <label className="block font-semibold text-gray-600 dark:text-slate-300 mb-1">
+                                                        Confirmed Study Schedule
+                                                    </label>
+                                                    <input
+                                                        type="text"
+                                                        value={s8.confirmed_schedule}
+                                                        onChange={(e) => updateSection8Field(reg.id, 'confirmed_schedule', e.target.value)}
+                                                        className="w-full p-2 rounded-xl bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 font-semibold"
+                                                    />
+                                                </div>
+
+                                                <div>
+                                                    <label className="block font-semibold text-gray-600 dark:text-slate-300 mb-1">
+                                                        Official Payment Status
+                                                    </label>
+                                                    <select
+                                                        value={s8.admin_payment_status}
+                                                        onChange={(e) => updateSection8Field(reg.id, 'admin_payment_status', e.target.value)}
+                                                        className="w-full p-2 rounded-xl bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 font-bold"
+                                                    >
+                                                        {ADMIN_PAYMENT_STATUS_OPTIONS.map(st => (
+                                                            <option key={st} value={st}>{st}</option>
+                                                        ))}
+                                                    </select>
+                                                </div>
+
+                                                <div className="sm:col-span-2">
+                                                    <label className="block font-semibold text-gray-600 dark:text-slate-300 mb-1">
+                                                        Follow-Up Call Notes & Registrar Remarks
+                                                    </label>
+                                                    <textarea
+                                                        rows={3}
+                                                        value={s8.admin_notes}
+                                                        onChange={(e) => updateSection8Field(reg.id, 'admin_notes', e.target.value)}
+                                                        placeholder="Record outcome of follow-up call, confirmed start date, or payment promise..."
+                                                        className="w-full p-2.5 rounded-xl bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700"
+                                                    />
+                                                </div>
+                                            </div>
+
+                                            <div className="flex justify-end pt-1">
+                                                <button
+                                                    type="button"
+                                                    onClick={() => handleSaveSection8(reg.id)}
+                                                    disabled={savingSection8Id === reg.id}
+                                                    className="px-4 py-2 rounded-xl bg-violet-600 hover:bg-violet-700 text-white font-bold inline-flex items-center gap-1.5 cursor-pointer disabled:opacity-60"
+                                                >
+                                                    {savingSection8Id === reg.id ? (
+                                                        <>
+                                                            <Loader2 size={13} className="animate-spin" /> Saving...
+                                                        </>
+                                                    ) : (
+                                                        <>
+                                                            <Check size={13} /> Save Follow-Up & Section 8
+                                                        </>
+                                                    )}
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {drawerTab === 'OVERVIEW' && (
+                                    <div className="space-y-3">
+                                        <div className="p-3.5 rounded-xl bg-gray-50 dark:bg-slate-950/60 border border-gray-200 dark:border-slate-800 space-y-1.5">
+                                            <div className="font-bold uppercase text-[10px] text-violet-600 dark:text-violet-400">
+                                                1. Student Information
+                                            </div>
+                                            <p><strong>Full Name:</strong> {reg.full_name}</p>
+                                            <p><strong>Phone:</strong> {reg.phone} • <strong>Email:</strong> {reg.email || '—'}</p>
+                                            <p><strong>Class / Level / Year:</strong> {reg.class_level_year || '—'} • <strong>Age:</strong> {reg.age_range || '18–24'}</p>
+                                            <p><strong>Location:</strong> {reg.location || 'Entebbe / Kampala'}</p>
+                                        </div>
+
+                                        <div className="p-3.5 rounded-xl bg-gray-50 dark:bg-slate-950/60 border border-gray-200 dark:border-slate-800 space-y-1.5">
+                                            <div className="font-bold uppercase text-[10px] text-violet-600 dark:text-violet-400">
+                                                2 & 3. Course & Preferred Schedule
+                                            </div>
+                                            <p><strong>Programme:</strong> {reg.course_interest} ({coursePricing.displayFee})</p>
+                                            <p><strong>Level & Mode:</strong> {reg.level || 'Beginner'} • {reg.mode_preference || 'Hybrid'}</p>
+                                            <p><strong>Preferred Days & Time:</strong> {(reg.preferred_study_days || []).join(', ') || 'Mon, Wed, Fri'} • {reg.preferred_time_slot || '—'}</p>
+                                            <p><strong>Tentative Dates:</strong> {reg.expected_start_date || '—'} to {reg.expected_completion_date || '—'}</p>
+                                        </div>
+
+                                        <div className="p-3.5 rounded-xl bg-gray-50 dark:bg-slate-950/60 border border-gray-200 dark:border-slate-800 space-y-1.5">
+                                            <div className="font-bold uppercase text-[10px] text-violet-600 dark:text-violet-400">
+                                                4, 5, 6 & 7. Provisional Fee Plan & Pledge
+                                            </div>
+                                            <p><strong>Monthly Course Fee:</strong> UGX {effectiveFee.toLocaleString()}</p>
+                                            <p><strong>Paid at Booth:</strong> UGX {Number(reg.amount_paid ?? 0).toLocaleString()} • <strong>Balance on Confirmation:</strong> UGX {effectiveBal.toLocaleString()}</p>
+                                            <p><strong>Preferred Billing Plan:</strong> {reg.payment_plan || 'Monthly'} via {reg.payment_method || 'Mobile Money'}</p>
+                                            <p><strong>Digital Signature:</strong> <em>{reg.student_signature || reg.full_name}</em> ({reg.student_declaration_date || '—'})</p>
+                                            {reg.guardian_name && (
+                                                <p><strong>Guardian (Sec 7):</strong> {reg.guardian_name} ({reg.guardian_phone || '—'})</p>
+                                            )}
+                                        </div>
+                                    </div>
+                                )}
+
+                                {drawerTab === 'AUDIT' && (
+                                    <div className="space-y-3">
+                                        <div className="p-4 rounded-xl bg-emerald-50/70 dark:bg-emerald-950/25 border border-emerald-200 dark:border-emerald-800/50 space-y-2">
+                                            <div className="font-bold uppercase text-[10px] text-emerald-700 dark:text-emerald-400">
+                                                Staff & Device Provenance Audit
+                                            </div>
+                                            <p><strong>Registered By:</strong> {registrarName} ({reg.registered_by_role || 'Outreach Capture'})</p>
+                                            <p><strong>Capture Mode:</strong> {reg.registration_mode || 'Staff Assisted (Booth/Field)'}</p>
+                                            <p><strong>Outreach Channel:</strong> {reg.outreach_event || 'General'}</p>
+                                            <p><strong>Device Fingerprint:</strong> <span className="font-mono">{reg.device_audit_id || 'DEV-WEB'}</span> ({reg.device_info || 'Web Browser'})</p>
+                                            <p><strong>Submitted Timestamp:</strong> {reg.created_at ? new Date(reg.created_at).toLocaleString() : '—'}</p>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                );
+            })()}
+
 
             {/* MANAGE OUTREACH CAMPAIGNS & DROPDOWNS MODAL */}
             {showCampaignModal && (
