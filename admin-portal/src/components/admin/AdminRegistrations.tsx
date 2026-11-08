@@ -34,7 +34,8 @@ import {
     Layers,
     UserCheck,
     Fingerprint,
-    Award
+    Award,
+    Eye
 } from 'lucide-react';
 import {
     ResponsiveContainer,
@@ -927,6 +928,48 @@ const AdminRegistrations: React.FC = () => {
         }
     };
 
+    const REMOVED_TEST_REG_NOS = new Set([
+        'WSI/11/26/397',
+        'WSI/11/26/629',
+        'WSI/11/26/786',
+        'Pending (WSI/11/26/397)',
+        'Pending (WSI/11/26/629)',
+        'Pending (WSI/11/26/786)'
+    ]);
+    const REMOVED_TEST_PHONES = new Set(['0788834946', '0788828454', '0778315407']);
+    const REMOVED_TEST_NAMES = new Set(['eden kats', 'kato chris', 'timothy christian waniaye']);
+
+    const isRemovedTestRegistration = (r: Partial<OutreachRegistrationRecord>) => {
+        const regNo = String(r.student_reg_no || '').trim();
+        const cleanRegNo = regNo.replace(/^Pending \((.+)\)$/, '$1');
+        const phone = String(r.phone || '').trim();
+        const nameLower = String(r.full_name || '').trim().toLowerCase();
+        return (
+            REMOVED_TEST_REG_NOS.has(regNo) ||
+            REMOVED_TEST_REG_NOS.has(cleanRegNo) ||
+            REMOVED_TEST_PHONES.has(phone) ||
+            REMOVED_TEST_NAMES.has(nameLower)
+        );
+    };
+
+    const handleDeleteRegistration = async (reg: OutreachRegistrationRecord) => {
+        if (!window.confirm(`Remove student registration for "${reg.full_name}" (${reg.student_reg_no || reg.phone})?`)) {
+            return;
+        }
+        setRegistrations(prev => prev.filter(r => r.id !== reg.id));
+        if (expandedRowId === reg.id) {
+            setExpandedRowId(null);
+        }
+        try {
+            await Promise.all([
+                supabaseClient.from('courses').delete().eq('id', reg.id),
+                supabaseClient.from('outreach_registrations').delete().eq('id', reg.id)
+            ]);
+        } catch (err) {
+            console.error('Error deleting registration:', err);
+        }
+    };
+
     const fetchRegistrations = async (silent = false) => {
         if (!silent) setLoading(true);
         try {
@@ -949,6 +992,8 @@ const AdminRegistrations: React.FC = () => {
             ]);
 
             const byIdMap = new Map<string, OutreachRegistrationRecord>();
+            const testCourseIdsToDelete: string[] = [];
+            const testOutreachIdsToDelete: string[] = [];
 
             // 1. Load records stored in live Supabase courses ledger (`category === '__OUTREACH_REGISTRATION__'`)
             if (coursesData && coursesData.length > 0) {
@@ -959,6 +1004,10 @@ const AdminRegistrations: React.FC = () => {
                     ) {
                         const obj = c.sections?.outreach_record || {};
                         const id = String(c.id || obj.id);
+                        if (isRemovedTestRegistration(obj)) {
+                            if (c.id) testCourseIdsToDelete.push(String(c.id));
+                            return;
+                        }
                         if (id && obj.full_name) {
                             byIdMap.set(id, {
                                 ...obj,
@@ -979,6 +1028,11 @@ const AdminRegistrations: React.FC = () => {
             if (!regErr && regData && regData.length > 0) {
                 regData.forEach((row: any) => {
                     const id = String(row.id);
+                    if (isRemovedTestRegistration(row)) {
+                        testOutreachIdsToDelete.push(id);
+                        byIdMap.delete(id);
+                        return;
+                    }
                     const existing = byIdMap.get(id);
                     byIdMap.set(id, {
                         ...(existing || {}),
@@ -986,6 +1040,22 @@ const AdminRegistrations: React.FC = () => {
                         id
                     });
                 });
+            }
+
+            // Permanently purge the 3 test student registrations if found in live DB
+            if (testCourseIdsToDelete.length > 0) {
+                supabaseClient
+                    .from('courses')
+                    .delete()
+                    .in('id', testCourseIdsToDelete)
+                    .then(() => {});
+            }
+            if (testOutreachIdsToDelete.length > 0) {
+                supabaseClient
+                    .from('outreach_registrations')
+                    .delete()
+                    .in('id', testOutreachIdsToDelete)
+                    .then(() => {});
             }
 
             const combinedList = Array.from(byIdMap.values()).sort(
@@ -2458,57 +2528,45 @@ const AdminRegistrations: React.FC = () => {
                 </div>
             )}
 
-            {/* WORKSPACE VIEW 1 (DEFAULT): HIGH-DENSITY PIPELINE TABLE */}
+            {/* WORKSPACE VIEW 1 (DEFAULT): HIGH-DENSITY PIPELINE TABLE (ZERO HORIZONTAL SCROLL) */}
             <div className={`${activeWorkspaceView === 'TABLE' ? 'block' : 'hidden'} bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-gray-200/80 dark:border-slate-800 overflow-hidden transition-colors`}>
-                <div className="overflow-x-auto">
+                <div className="w-full">
                     <table className="w-full text-left border-collapse">
                         <thead className="bg-gray-50/80 dark:bg-slate-950/60">
                             <tr className="text-gray-500 dark:text-slate-400 text-[11px] uppercase tracking-wider font-semibold border-b border-gray-200/80 dark:border-slate-800">
-                                <th className="py-3 px-4">Ref / Date</th>
+                                <th className="py-3 px-3 sm:px-4">Ref / Date</th>
                                 <th
                                     onClick={() => handleSortToggle('full_name')}
-                                    className="py-3 px-4 cursor-pointer hover:text-gray-900 dark:hover:text-white select-none"
+                                    className="py-3 px-3 sm:px-4 cursor-pointer hover:text-gray-900 dark:hover:text-white select-none"
                                 >
                                     Student & Contact {sortBy === 'full_name' ? (sortOrder === 'asc' ? '↑' : '↓') : ''}
                                 </th>
                                 <th
-                                    onClick={() => handleSortToggle('course_interest')}
-                                    className="py-3 px-4 cursor-pointer hover:text-gray-900 dark:hover:text-white select-none"
-                                >
-                                    Selected Course & Schedule {sortBy === 'course_interest' ? (sortOrder === 'asc' ? '↑' : '↓') : ''}
-                                </th>
-                                <th className="py-3 px-4">Tuition & Plan</th>
-                                <th className="py-3 px-4">Outreach & Registrar</th>
-                                <th
                                     onClick={() => handleSortToggle('status')}
-                                    className="py-3 px-4 cursor-pointer hover:text-gray-900 dark:hover:text-white select-none"
+                                    className="py-3 px-3 sm:px-4 cursor-pointer hover:text-gray-900 dark:hover:text-white select-none"
                                 >
                                     Confirmation Stage {sortBy === 'status' ? (sortOrder === 'asc' ? '↑' : '↓') : ''}
                                 </th>
-                                <th className="py-3 px-4 text-right">Follow-Up & Actions</th>
+                                <th className="py-3 px-3 sm:px-4 text-right">Follow-Up & Actions</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-100 dark:divide-slate-800/80 text-xs">
                             {loading ? (
                                 <tr>
-                                    <td colSpan={7} className="py-12 text-center text-gray-500 dark:text-slate-400">
+                                    <td colSpan={4} className="py-12 text-center text-gray-500 dark:text-slate-400">
                                         <Loader2 className="w-6 h-6 animate-spin mx-auto mb-2 text-violet-500" />
                                         Loading live outreach registrations...
                                     </td>
                                 </tr>
                             ) : filteredRegistrations.length === 0 ? (
                                 <tr>
-                                    <td colSpan={7} className="py-12 text-center text-gray-500 dark:text-slate-400">
+                                    <td colSpan={4} className="py-12 text-center text-gray-500 dark:text-slate-400">
                                         No student registrations match your current sieve or search filters.
                                     </td>
                                 </tr>
                             ) : (
                                 filteredRegistrations.map((reg) => {
                                     const isSelected = expandedRowId === reg.id;
-                                    const coursePricing = getCoursePricing(reg.course_interest);
-                                    const effectiveFee = Number(reg.total_course_fee ?? coursePricing.ugxPerMonth);
-                                    const paidAmt = Number(reg.amount_paid ?? 0);
-                                    const registrarName = getEffectiveRegistrar(reg);
                                     const cleanRef = (reg.student_reg_no || 'WSI/11/26/—').replace(/^Pending \((.+)\)$/, '$1');
                                     const s8 = section8Drafts[reg.id] || {
                                         approved_by: reg.approved_by || APPROVER_PRESETS[0],
@@ -2530,7 +2588,7 @@ const AdminRegistrations: React.FC = () => {
                                                     : 'hover:bg-gray-50/80 dark:hover:bg-slate-800/40'
                                             }`}
                                         >
-                                            <td className="py-3 px-4 whitespace-nowrap">
+                                            <td className="py-3 px-3 sm:px-4 align-middle">
                                                 <div className="font-mono text-[11px] font-bold text-violet-700 dark:text-violet-300">
                                                     {cleanRef}
                                                 </div>
@@ -2540,8 +2598,8 @@ const AdminRegistrations: React.FC = () => {
                                                 </div>
                                             </td>
 
-                                            <td className="py-3 px-4">
-                                                <div className="font-bold text-gray-900 dark:text-white flex items-center gap-1.5">
+                                            <td className="py-3 px-3 sm:px-4 align-middle">
+                                                <div className="font-bold text-gray-900 dark:text-white flex items-center gap-1.5 flex-wrap">
                                                     <span>{reg.full_name}</span>
                                                     {reg.age_range === 'Under 18' && (
                                                         <span className="px-1.5 py-0.2 bg-amber-100 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 rounded text-[10px] font-semibold">
@@ -2549,48 +2607,14 @@ const AdminRegistrations: React.FC = () => {
                                                         </span>
                                                     )}
                                                 </div>
-                                                <div className="text-[11px] text-gray-500 dark:text-slate-400 flex items-center gap-2 mt-0.5">
+                                                <div className="text-[11px] text-gray-500 dark:text-slate-400 flex items-center gap-1.5 flex-wrap mt-0.5">
                                                     <span className="font-mono font-semibold text-gray-700 dark:text-slate-300">{reg.phone}</span>
                                                     <span>•</span>
-                                                    <span className="truncate max-w-[160px]">{reg.class_level_year || reg.location || reg.email || '—'}</span>
+                                                    <span className="truncate max-w-[180px] sm:max-w-[240px]">{reg.class_level_year || reg.location || reg.email || '—'}</span>
                                                 </div>
                                             </td>
 
-                                            <td className="py-3 px-4">
-                                                <div className="font-bold text-gray-900 dark:text-white max-w-[200px] truncate" title={reg.course_interest}>
-                                                    {reg.course_interest}
-                                                </div>
-                                                <div className="text-[11px] text-gray-500 dark:text-slate-400">
-                                                    {(reg.preferred_study_days || []).join(', ') || 'Mon, Wed, Fri'} • {reg.preferred_time_slot || reg.mode_preference || 'Hybrid'}
-                                                </div>
-                                            </td>
-
-                                            <td className="py-3 px-4 whitespace-nowrap">
-                                                <div className="font-semibold text-gray-900 dark:text-white">
-                                                    {coursePricing.displayFee}
-                                                </div>
-                                                <div className="text-[11px] text-gray-500 dark:text-slate-400">
-                                                    {paidAmt > 0 ? (
-                                                        <span className="text-emerald-600 dark:text-emerald-400 font-semibold">
-                                                            Paid: UGX {paidAmt.toLocaleString()}
-                                                        </span>
-                                                    ) : (
-                                                        <span>UGX 0 at booth • Pay on confirm ({reg.payment_plan || 'Monthly'})</span>
-                                                    )}
-                                                </div>
-                                            </td>
-
-                                            <td className="py-3 px-4">
-                                                <div className="text-[11px] font-semibold text-gray-800 dark:text-slate-200 truncate max-w-[185px]" title={reg.outreach_event || 'General'}>
-                                                    {reg.outreach_event || 'General / Direct'}
-                                                </div>
-                                                <div className="text-[10px] font-medium text-emerald-700 dark:text-emerald-400 flex items-center gap-1 mt-0.5">
-                                                    <UserCheck size={11} className="shrink-0" />
-                                                    <span className="truncate max-w-[165px]">{registrarName}</span>
-                                                </div>
-                                            </td>
-
-                                            <td className="py-3 px-4" onClick={(e) => e.stopPropagation()}>
+                                            <td className="py-3 px-3 sm:px-4 align-middle" onClick={(e) => e.stopPropagation()}>
                                                 <select
                                                     value={reg.status}
                                                     onChange={(e) =>
@@ -2599,7 +2623,7 @@ const AdminRegistrations: React.FC = () => {
                                                             e.target.value as OutreachRegistrationRecord['status']
                                                         )
                                                     }
-                                                    className={`px-2.5 py-1 rounded-full text-[11px] font-bold border cursor-pointer focus:outline-none ${
+                                                    className={`px-2.5 py-1 rounded-full text-[11px] font-bold border cursor-pointer focus:outline-none max-w-full ${
                                                         STATUS_BADGE_STYLES[reg.status] || STATUS_BADGE_STYLES.NEW
                                                     }`}
                                                 >
@@ -2611,8 +2635,8 @@ const AdminRegistrations: React.FC = () => {
                                                 </select>
                                             </td>
 
-                                            <td className="py-3 px-4 text-right whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
-                                                <div className="inline-flex items-center gap-1.5">
+                                            <td className="py-3 px-3 sm:px-4 text-right align-middle" onClick={(e) => e.stopPropagation()}>
+                                                <div className="inline-flex flex-wrap items-center justify-end gap-1.5">
                                                     <a
                                                         href={buildWhatsAppFollowUpUrl(reg)}
                                                         target="_blank"
@@ -2625,9 +2649,11 @@ const AdminRegistrations: React.FC = () => {
                                                     <button
                                                         type="button"
                                                         onClick={() => setExpandedRowId(reg.id)}
-                                                        className="px-2.5 py-1.5 rounded-lg border border-gray-200 dark:border-slate-700 hover:bg-gray-100 dark:hover:bg-slate-800 text-gray-700 dark:text-slate-300 font-semibold text-[11px] cursor-pointer"
+                                                        className="px-2.5 py-1.5 rounded-lg border border-violet-200 dark:border-violet-800 bg-violet-50/70 dark:bg-violet-950/50 hover:bg-violet-100 dark:hover:bg-violet-900/60 text-violet-700 dark:text-violet-300 font-bold text-[11px] inline-flex items-center gap-1 cursor-pointer"
+                                                        title="View All Student Registration Details"
                                                     >
-                                                        Inspect
+                                                        <Eye size={13} />
+                                                        View
                                                     </button>
                                                     <button
                                                         type="button"
@@ -2656,12 +2682,13 @@ const AdminRegistrations: React.FC = () => {
                 </div>
             </div>
 
-            {/* RIGHT SLIDE-OVER STUDENT INSPECTOR & CONFIRMATION DRAWER */}
+            {/* CENTERED SCREEN STUDENT VIEW & CONFIRMATION MODAL */}
             {selectedDrawerRecord && (() => {
                 const reg = selectedDrawerRecord;
                 const coursePricing = getCoursePricing(reg.course_interest);
                 const effectiveFee = Number(reg.total_course_fee ?? coursePricing.ugxPerMonth);
-                const effectiveBal = Number(reg.outstanding_balance ?? Math.max(0, effectiveFee - Number(reg.amount_paid ?? 0)));
+                const paidAmt = Number(reg.amount_paid ?? 0);
+                const effectiveBal = Number(reg.outstanding_balance ?? Math.max(0, effectiveFee - paidAmt));
                 const registrarName = getEffectiveRegistrar(reg);
                 const s8 = section8Drafts[reg.id] || {
                     approved_by: reg.approved_by || APPROVER_PRESETS[0],
@@ -2674,38 +2701,98 @@ const AdminRegistrations: React.FC = () => {
                 };
 
                 return (
-                    <div className="fixed inset-0 z-50 flex justify-end">
+                    <div className="fixed inset-0 z-50 flex items-center justify-center p-2.5 sm:p-5">
                         <div
-                            className="fixed inset-0 bg-black/40 backdrop-blur-xs"
+                            className="fixed inset-0 bg-black/60 backdrop-blur-xs"
                             onClick={() => setExpandedRowId(null)}
                         />
-                        <div className="relative z-10 w-full max-w-xl bg-white dark:bg-slate-900 h-full shadow-2xl border-l border-gray-200 dark:border-slate-800 flex flex-col overflow-hidden animate-in slide-in-from-right duration-200">
-                            {/* Drawer Header */}
-                            <div className="p-5 border-b border-gray-200 dark:border-slate-800 bg-gray-50/70 dark:bg-slate-950/60">
+                        <div className="relative z-10 w-full max-w-3xl bg-white dark:bg-slate-900 max-h-[92vh] rounded-3xl shadow-2xl border border-gray-200 dark:border-slate-800 flex flex-col overflow-hidden animate-in zoom-in-95 duration-200">
+                            {/* Centered Modal Header */}
+                            <div className="p-4 sm:p-6 border-b border-gray-200 dark:border-slate-800 bg-gray-50/70 dark:bg-slate-950/60">
                                 <div className="flex items-start justify-between gap-3">
-                                    <div>
+                                    <div className="min-w-0">
                                         <div className="flex items-center gap-2 flex-wrap">
-                                            <span className="font-mono text-xs font-bold text-violet-700 dark:text-violet-300 bg-violet-100/80 dark:bg-violet-950/70 px-2 py-0.5 rounded-md">
-                                                {reg.student_reg_no || 'WSI/11/26/—'}
+                                            <span className="font-mono text-xs font-bold text-violet-700 dark:text-violet-300 bg-violet-100/80 dark:bg-violet-950/70 px-2.5 py-0.5 rounded-md">
+                                                {(reg.student_reg_no || 'WSI/11/26/—').replace(/^Pending \((.+)\)$/, '$1')}
                                             </span>
                                             <span className={`px-2.5 py-0.5 rounded-full text-[11px] font-bold border ${STATUS_BADGE_STYLES[reg.status]}`}>
                                                 {STATUS_STAGE_LABELS[reg.status]}
                                             </span>
+                                            <span className="text-[11px] text-gray-500 dark:text-slate-400">
+                                                {reg.registration_date || (reg.created_at ? reg.created_at.split('T')[0] : '')}
+                                            </span>
                                         </div>
-                                        <h3 className="text-lg font-extrabold text-gray-900 dark:text-white mt-1.5">
+                                        <h3 className="text-lg sm:text-xl font-extrabold text-gray-900 dark:text-white mt-1.5">
                                             {reg.full_name}
                                         </h3>
-                                        <p className="text-xs text-gray-500 dark:text-slate-400">
-                                            {reg.course_interest} ({coursePricing.displayFee}) • {reg.class_level_year || reg.location || 'Student'}
+                                        <p className="text-xs text-gray-500 dark:text-slate-400 mt-0.5">
+                                            {reg.phone} • {reg.class_level_year || reg.location || 'Student'} {reg.email ? `• ${reg.email}` : ''}
                                         </p>
                                     </div>
-                                    <button
-                                        type="button"
-                                        onClick={() => setExpandedRowId(null)}
-                                        className="p-2 rounded-xl text-gray-400 hover:text-gray-700 hover:bg-gray-100 dark:hover:bg-slate-800 cursor-pointer"
-                                    >
-                                        <X size={18} />
-                                    </button>
+                                    <div className="flex items-center gap-1.5 shrink-0">
+                                        <button
+                                            type="button"
+                                            onClick={() => handleDeleteRegistration(reg)}
+                                            className="p-2 rounded-xl text-rose-500 hover:text-rose-700 hover:bg-rose-50 dark:hover:bg-rose-950/50 cursor-pointer"
+                                            title="Remove Registration"
+                                        >
+                                            <Trash2 size={16} />
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => setExpandedRowId(null)}
+                                            className="p-2 rounded-xl text-gray-400 hover:text-gray-700 hover:bg-gray-100 dark:hover:bg-slate-800 cursor-pointer"
+                                            title="Close View"
+                                        >
+                                            <X size={20} />
+                                        </button>
+                                    </div>
+                                </div>
+
+                                {/* Key Summary Cards (Selected Course & Schedule, Tuition & Plan, Outreach & Registrar) */}
+                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 mt-4">
+                                    <div className="p-3 rounded-2xl bg-white dark:bg-slate-900 border border-gray-200/80 dark:border-slate-800">
+                                        <div className="text-[10px] font-bold uppercase tracking-wider text-violet-600 dark:text-violet-400">
+                                            Selected Course & Schedule
+                                        </div>
+                                        <div className="text-xs font-extrabold text-gray-900 dark:text-white mt-0.5">
+                                            {reg.course_interest}
+                                        </div>
+                                        <div className="text-[11px] text-gray-500 dark:text-slate-400 mt-0.5">
+                                            {(reg.preferred_study_days || []).join(', ') || 'Mon, Wed, Fri'} • {reg.preferred_time_slot || reg.mode_preference || 'Hybrid'}
+                                        </div>
+                                    </div>
+
+                                    <div className="p-3 rounded-2xl bg-white dark:bg-slate-900 border border-gray-200/80 dark:border-slate-800">
+                                        <div className="text-[10px] font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">
+                                            Tuition & Plan
+                                        </div>
+                                        <div className="text-xs font-extrabold text-gray-900 dark:text-white mt-0.5">
+                                            {coursePricing.displayFee}
+                                        </div>
+                                        <div className="text-[11px] text-gray-500 dark:text-slate-400 mt-0.5">
+                                            {paidAmt > 0 ? (
+                                                <span className="text-emerald-600 dark:text-emerald-400 font-semibold">
+                                                    Paid: UGX {paidAmt.toLocaleString()} • Bal: UGX {effectiveBal.toLocaleString()}
+                                                </span>
+                                            ) : (
+                                                <span>UGX 0 at booth • Pay on confirm ({reg.payment_plan || 'Monthly'})</span>
+                                            )}
+                                        </div>
+                                    </div>
+
+                                    <div className="p-3 rounded-2xl bg-white dark:bg-slate-900 border border-gray-200/80 dark:border-slate-800">
+                                        <div className="text-[10px] font-bold uppercase tracking-wider text-amber-600 dark:text-amber-400">
+                                            Outreach & Registrar
+                                        </div>
+                                        <div className="text-xs font-extrabold text-gray-900 dark:text-white mt-0.5 truncate" title={reg.outreach_event || 'General / Direct'}>
+                                            {reg.outreach_event || 'General / Direct'}
+                                        </div>
+                                        <div className="text-[11px] font-medium text-emerald-700 dark:text-emerald-400 flex items-center gap-1 mt-0.5">
+                                            <UserCheck size={12} className="shrink-0" />
+                                            <span className="truncate">{registrarName}</span>
+                                        </div>
+                                    </div>
                                 </div>
 
                                 {/* Quick Follow-Up & Confirmation Bar */}
@@ -2739,19 +2826,19 @@ const AdminRegistrations: React.FC = () => {
                                     <button
                                         type="button"
                                         onClick={() => openConvertModal(reg)}
-                                        className="px-3.5 py-1.5 rounded-xl bg-violet-600 hover:bg-violet-700 text-white text-xs font-semibold inline-flex items-center gap-1.5 shadow-xs cursor-pointer ml-auto"
+                                        className="px-3.5 py-1.5 rounded-xl bg-violet-600 hover:bg-violet-700 text-white text-xs font-semibold inline-flex items-center gap-1.5 shadow-xs cursor-pointer sm:ml-auto"
                                     >
                                         <UserPlus size={13} />
                                         {reg.status === 'ENROLLED' ? 'Update Enrollment' : 'Confirm & Enroll'}
                                     </button>
                                 </div>
 
-                                {/* Drawer Sub-Tabs */}
-                                <div className="grid grid-cols-3 gap-1 bg-gray-200/70 dark:bg-slate-900 p-1 rounded-xl mt-4 text-xs font-semibold">
+                                {/* Modal Sub-Tabs */}
+                                <div className="grid grid-cols-3 gap-1 bg-gray-200/70 dark:bg-slate-900 p-1 rounded-xl mt-4 text-[11px] sm:text-xs font-semibold">
                                     <button
                                         type="button"
                                         onClick={() => setDrawerTab('CONFIRMATION')}
-                                        className={`py-1.5 rounded-lg cursor-pointer transition-all ${
+                                        className={`py-1.5 px-2 rounded-lg cursor-pointer transition-all ${
                                             drawerTab === 'CONFIRMATION'
                                                 ? 'bg-white dark:bg-slate-800 text-gray-900 dark:text-white shadow-xs'
                                                 : 'text-gray-600 dark:text-slate-400'
@@ -2762,18 +2849,18 @@ const AdminRegistrations: React.FC = () => {
                                     <button
                                         type="button"
                                         onClick={() => setDrawerTab('OVERVIEW')}
-                                        className={`py-1.5 rounded-lg cursor-pointer transition-all ${
+                                        className={`py-1.5 px-2 rounded-lg cursor-pointer transition-all ${
                                             drawerTab === 'OVERVIEW'
                                                 ? 'bg-white dark:bg-slate-800 text-gray-900 dark:text-white shadow-xs'
                                                 : 'text-gray-600 dark:text-slate-400'
                                         }`}
                                     >
-                                        2. Sections 1–7 Details
+                                        2. All Details (Sec 1–7)
                                     </button>
                                     <button
                                         type="button"
                                         onClick={() => setDrawerTab('AUDIT')}
-                                        className={`py-1.5 rounded-lg cursor-pointer transition-all ${
+                                        className={`py-1.5 px-2 rounded-lg cursor-pointer transition-all ${
                                             drawerTab === 'AUDIT'
                                                 ? 'bg-white dark:bg-slate-800 text-gray-900 dark:text-white shadow-xs'
                                                 : 'text-gray-600 dark:text-slate-400'
@@ -2784,8 +2871,8 @@ const AdminRegistrations: React.FC = () => {
                                 </div>
                             </div>
 
-                            {/* Drawer Body */}
-                            <div className="p-5 overflow-y-auto flex-1 space-y-4 text-xs">
+                            {/* Centered Modal Body */}
+                            <div className="p-4 sm:p-6 overflow-y-auto flex-1 space-y-4 text-xs">
                                 {drawerTab === 'CONFIRMATION' && (
                                     <div className="space-y-4">
                                         <div className="p-3.5 rounded-xl bg-amber-50/80 dark:bg-amber-950/30 border border-amber-200/80 dark:border-amber-800/50 text-amber-900 dark:text-amber-200">
@@ -2795,7 +2882,7 @@ const AdminRegistrations: React.FC = () => {
                                             <p className="text-[11px] leading-relaxed">
                                                 At outreach events, students reserve a provisional seat with <strong>UGX 0 upfront</strong>. Call or WhatsApp the student to confirm if they are ready to study, update their stage below, and save Section 8 endorsement.
                                             </p>
-                                            <div className="mt-2.5 flex items-center gap-2">
+                                            <div className="mt-2.5 flex flex-wrap items-center gap-2">
                                                 <span className="text-[11px] font-bold">Confirmation Stage:</span>
                                                 <select
                                                     value={reg.status}
@@ -2936,7 +3023,7 @@ const AdminRegistrations: React.FC = () => {
                                 )}
 
                                 {drawerTab === 'OVERVIEW' && (
-                                    <div className="space-y-3">
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                         <div className="p-3.5 rounded-xl bg-gray-50 dark:bg-slate-950/60 border border-gray-200 dark:border-slate-800 space-y-1.5">
                                             <div className="font-bold uppercase text-[10px] text-violet-600 dark:text-violet-400">
                                                 1. Student Information
@@ -2949,7 +3036,7 @@ const AdminRegistrations: React.FC = () => {
 
                                         <div className="p-3.5 rounded-xl bg-gray-50 dark:bg-slate-950/60 border border-gray-200 dark:border-slate-800 space-y-1.5">
                                             <div className="font-bold uppercase text-[10px] text-violet-600 dark:text-violet-400">
-                                                2 & 3. Course & Preferred Schedule
+                                                2 & 3. Selected Course & Preferred Schedule
                                             </div>
                                             <p><strong>Programme:</strong> {reg.course_interest} ({coursePricing.displayFee})</p>
                                             <p><strong>Level & Mode:</strong> {reg.level || 'Beginner'} • {reg.mode_preference || 'Hybrid'}</p>
@@ -2957,12 +3044,12 @@ const AdminRegistrations: React.FC = () => {
                                             <p><strong>Tentative Dates:</strong> {reg.expected_start_date || '—'} to {reg.expected_completion_date || '—'}</p>
                                         </div>
 
-                                        <div className="p-3.5 rounded-xl bg-gray-50 dark:bg-slate-950/60 border border-gray-200 dark:border-slate-800 space-y-1.5">
+                                        <div className="p-3.5 rounded-xl bg-gray-50 dark:bg-slate-950/60 border border-gray-200 dark:border-slate-800 space-y-1.5 sm:col-span-2">
                                             <div className="font-bold uppercase text-[10px] text-violet-600 dark:text-violet-400">
-                                                4, 5, 6 & 7. Provisional Fee Plan & Pledge
+                                                4, 5, 6 & 7. Tuition, Payment Plan & Student Pledge
                                             </div>
-                                            <p><strong>Monthly Course Fee:</strong> UGX {effectiveFee.toLocaleString()}</p>
-                                            <p><strong>Paid at Booth:</strong> UGX {Number(reg.amount_paid ?? 0).toLocaleString()} • <strong>Balance on Confirmation:</strong> UGX {effectiveBal.toLocaleString()}</p>
+                                            <p><strong>Monthly Course Fee:</strong> UGX {effectiveFee.toLocaleString()} ({coursePricing.displayFee})</p>
+                                            <p><strong>Paid at Booth:</strong> UGX {paidAmt.toLocaleString()} • <strong>Balance on Confirmation:</strong> UGX {effectiveBal.toLocaleString()}</p>
                                             <p><strong>Preferred Billing Plan:</strong> {reg.payment_plan || 'Monthly'} via {reg.payment_method || 'Mobile Money'}</p>
                                             <p><strong>Digital Signature:</strong> <em>{reg.student_signature || reg.full_name}</em> ({reg.student_declaration_date || '—'})</p>
                                             {reg.guardian_name && (
