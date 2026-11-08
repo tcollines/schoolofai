@@ -3745,7 +3745,7 @@ const AdminRegistrations: React.FC = () => {
                                         Show &ldquo;{websiteButtonLabel || 'Join an Outreach Event'}&rdquo; Button on Public Website
                                     </h4>
                                     <p className="text-xs text-gray-500 dark:text-slate-400 mt-0.5">
-                                        When OFF, the outreach buttons in the website navbar, hero section, and footer are hidden from visitors, while <code className="font-mono text-violet-600 dark:text-violet-400">/register</code> and Booth QR codes remain 100% functional.
+                                        When OFF, the &ldquo;Join an Outreach Event&rdquo; hero button on the website is hidden, while &ldquo;Register Now&rdquo; in the navbar, the footer link, and <code className="font-mono text-violet-600 dark:text-violet-400">/register</code> remain active as usual.
                                     </p>
                                 </div>
 

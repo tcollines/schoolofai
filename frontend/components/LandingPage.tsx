@@ -178,12 +178,10 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLoginClick, onSignupClick, 
                             <a href="#features" className="text-gray-600 dark:text-slate-300 hover:text-gray-900 dark:hover:text-white font-medium text-sm transition-colors">Features</a>
                             <a href="#advantages" className="text-gray-600 dark:text-slate-300 hover:text-gray-900 dark:hover:text-white font-medium text-sm transition-colors">Why AI?</a>
                             <a href="#pricing" className="text-gray-600 dark:text-slate-300 hover:text-gray-900 dark:hover:text-white font-medium text-sm transition-colors">Pricing</a>
-                            {outreachButtonVisible && (
-                                <Link to={outreachTargetUrl} className="text-violet-600 dark:text-violet-400 hover:text-violet-700 dark:hover:text-violet-300 font-bold text-sm transition-colors flex items-center gap-1">
-                                    <Sparkles size={14} />
-                                    {outreachButtonLabel}
-                                </Link>
-                            )}
+                            <Link to="/register" className="text-violet-600 dark:text-violet-400 hover:text-violet-700 dark:hover:text-violet-300 font-bold text-sm transition-colors flex items-center gap-1">
+                                <Sparkles size={14} />
+                                Register Now
+                            </Link>
                         </div>
                         <div className="flex items-center space-x-3">
                             <button
@@ -798,11 +796,9 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLoginClick, onSignupClick, 
                         <img src="/schoolofai-logo.png" alt="School of AI Logo" className="h-12 object-contain" />
                     </div>
                     <div className="flex flex-wrap gap-6 items-center justify-center">
-                        {outreachButtonVisible && (
-                            <Link to={outreachTargetUrl} className="text-sm font-bold text-violet-600 dark:text-violet-400 hover:underline">
-                                Outreach Registration Form
-                            </Link>
-                        )}
+                        <Link to="/register" className="text-sm font-bold text-violet-600 dark:text-violet-400 hover:underline">
+                            Outreach Registration Form
+                        </Link>
                         <div className="text-sm text-gray-500 dark:text-slate-400">
                             © 2024 Welile School. All rights reserved.
                         </div>
