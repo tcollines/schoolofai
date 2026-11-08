@@ -39,6 +39,56 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLoginClick, onSignupClick, 
     });
 
     const [currency, setCurrency] = useState<CurrencyType>(getCurrencyPreference);
+    const [outreachButtonVisible, setOutreachButtonVisible] = useState<boolean>(false);
+    const [outreachButtonLabel, setOutreachButtonLabel] = useState<string>('Join an Outreach Event');
+    const [outreachTargetUrl, setOutreachTargetUrl] = useState<string>('/register');
+
+    useEffect(() => {
+        const applyPortalSettings = (ps: any) => {
+            if (!ps || typeof ps !== 'object') return;
+            setOutreachButtonVisible(Boolean(ps.website_button_visible));
+            if (ps.website_button_label && String(ps.website_button_label).trim()) {
+                setOutreachButtonLabel(String(ps.website_button_label).trim());
+            }
+            if (ps.active_campaign_name && String(ps.active_campaign_name).trim()) {
+                setOutreachTargetUrl(`/register?event=${encodeURIComponent(String(ps.active_campaign_name).trim())}`);
+            } else {
+                setOutreachTargetUrl('/register');
+            }
+        };
+
+        try {
+            const cached = localStorage.getItem('welile_outreach_portal_settings_v1');
+            if (cached) {
+                applyPortalSettings(JSON.parse(cached));
+            }
+        } catch {
+            // ignore
+        }
+
+        const loadRemotePortalSettings = async () => {
+            try {
+                const { data } = await supabase
+                    .from('courses')
+                    .select('sections')
+                    .eq('category', '__OUTREACH_CONFIG__')
+                    .limit(1);
+                const ps = data?.[0]?.sections?.portal_settings;
+                if (ps) {
+                    applyPortalSettings(ps);
+                    localStorage.setItem('welile_outreach_portal_settings_v1', JSON.stringify(ps));
+                }
+            } catch {
+                // ignore
+            }
+        };
+
+        loadRemotePortalSettings();
+        window.addEventListener('outreach-portal-settings-update', loadRemotePortalSettings);
+        return () => {
+            window.removeEventListener('outreach-portal-settings-update', loadRemotePortalSettings);
+        };
+    }, []);
 
     useEffect(() => {
         const handleCurrencyChange = () => {
@@ -128,10 +178,12 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLoginClick, onSignupClick, 
                             <a href="#features" className="text-gray-600 dark:text-slate-300 hover:text-gray-900 dark:hover:text-white font-medium text-sm transition-colors">Features</a>
                             <a href="#advantages" className="text-gray-600 dark:text-slate-300 hover:text-gray-900 dark:hover:text-white font-medium text-sm transition-colors">Why AI?</a>
                             <a href="#pricing" className="text-gray-600 dark:text-slate-300 hover:text-gray-900 dark:hover:text-white font-medium text-sm transition-colors">Pricing</a>
-                            <Link to="/register" className="text-violet-600 dark:text-violet-400 hover:text-violet-700 dark:hover:text-violet-300 font-bold text-sm transition-colors flex items-center gap-1">
-                                <Sparkles size={14} />
-                                Register Now
-                            </Link>
+                            {outreachButtonVisible && (
+                                <Link to={outreachTargetUrl} className="text-violet-600 dark:text-violet-400 hover:text-violet-700 dark:hover:text-violet-300 font-bold text-sm transition-colors flex items-center gap-1">
+                                    <Sparkles size={14} />
+                                    {outreachButtonLabel}
+                                </Link>
+                            )}
                         </div>
                         <div className="flex items-center space-x-3">
                             <button
@@ -206,13 +258,15 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLoginClick, onSignupClick, 
                                 Start Learning Now
                                 <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1.5 transition-transform" />
                             </button>
-                            <Link
-                                to="/register"
-                                className="w-full sm:w-auto px-7 py-4 bg-violet-600 hover:bg-violet-700 text-white rounded-full font-bold text-[15px] sm:text-lg transition-all shadow-xl shadow-violet-600/25 hover:shadow-2xl hover:-translate-y-0.5 flex items-center justify-center gap-2"
-                            >
-                                <Sparkles className="w-5 h-5" />
-                                Join an Outreach Event
-                            </Link>
+                            {outreachButtonVisible && (
+                                <Link
+                                    to={outreachTargetUrl}
+                                    className="w-full sm:w-auto px-7 py-4 bg-violet-600 hover:bg-violet-700 text-white rounded-full font-bold text-[15px] sm:text-lg transition-all shadow-xl shadow-violet-600/25 hover:shadow-2xl hover:-translate-y-0.5 flex items-center justify-center gap-2"
+                                >
+                                    <Sparkles className="w-5 h-5" />
+                                    {outreachButtonLabel}
+                                </Link>
+                            )}
                         </div>
                     </div>
                 </div>
@@ -744,9 +798,11 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLoginClick, onSignupClick, 
                         <img src="/schoolofai-logo.png" alt="School of AI Logo" className="h-12 object-contain" />
                     </div>
                     <div className="flex flex-wrap gap-6 items-center justify-center">
-                        <Link to="/register" className="text-sm font-bold text-violet-600 dark:text-violet-400 hover:underline">
-                            Outreach Registration Form
-                        </Link>
+                        {outreachButtonVisible && (
+                            <Link to={outreachTargetUrl} className="text-sm font-bold text-violet-600 dark:text-violet-400 hover:underline">
+                                Outreach Registration Form
+                            </Link>
+                        )}
                         <div className="text-sm text-gray-500 dark:text-slate-400">
                             © 2024 Welile School. All rights reserved.
                         </div>

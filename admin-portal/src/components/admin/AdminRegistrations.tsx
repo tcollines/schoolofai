@@ -457,6 +457,141 @@ const AdminRegistrations: React.FC = () => {
     const [qrStaffName, setQrStaffName] = useState('');
     const [copiedLink, setCopiedLink] = useState(false);
 
+    // Unified Outreach Activation, Website Button & Mobilizer Team Control Modal state
+    const [showLaunchControlModal, setShowLaunchControlModal] = useState(false);
+    const [websiteButtonVisible, setWebsiteButtonVisible] = useState<boolean>(false);
+    const [websiteButtonLabel, setWebsiteButtonLabel] = useState<string>('Join an Outreach Event');
+    const [activeOutreachName, setActiveOutreachName] = useState<string>('Nkumba University Outreach (Fri, 6th Nov 2026)');
+    const [defaultRegistrarName, setDefaultRegistrarName] = useState<string>('Timothy Christian Waniaye');
+    const [activeStaffIds, setActiveStaffIds] = useState<string[]>(() => DEFAULT_OUTREACH_STAFF.map(s => s.id));
+    const [savingLaunchSettings, setSavingLaunchSettings] = useState(false);
+    const [savedLaunchSettings, setSavedLaunchSettings] = useState(false);
+
+    const loadPortalSettings = (coursesData?: any[]) => {
+        try {
+            const configCourse = (coursesData || []).find((c: any) => c.category === '__OUTREACH_CONFIG__');
+            const ps = configCourse?.sections?.portal_settings;
+            if (ps && typeof ps === 'object') {
+                setWebsiteButtonVisible(Boolean(ps.website_button_visible));
+                if (ps.website_button_label) setWebsiteButtonLabel(String(ps.website_button_label));
+                if (ps.active_campaign_name) setActiveOutreachName(String(ps.active_campaign_name));
+                if (ps.default_registrar_name) setDefaultRegistrarName(String(ps.default_registrar_name));
+                if (Array.isArray(ps.active_staff_ids) && ps.active_staff_ids.length > 0) {
+                    setActiveStaffIds(ps.active_staff_ids.map(String));
+                }
+                localStorage.setItem('welile_outreach_portal_settings_v1', JSON.stringify(ps));
+                return;
+            }
+
+            const cached = localStorage.getItem('welile_outreach_portal_settings_v1');
+            if (cached) {
+                const parsed = JSON.parse(cached);
+                setWebsiteButtonVisible(Boolean(parsed.website_button_visible));
+                if (parsed.website_button_label) setWebsiteButtonLabel(String(parsed.website_button_label));
+                if (parsed.active_campaign_name) setActiveOutreachName(String(parsed.active_campaign_name));
+                if (parsed.default_registrar_name) setDefaultRegistrarName(String(parsed.default_registrar_name));
+                if (Array.isArray(parsed.active_staff_ids) && parsed.active_staff_ids.length > 0) {
+                    setActiveStaffIds(parsed.active_staff_ids.map(String));
+                }
+            }
+        } catch {
+            // fallback to defaults
+        }
+    };
+
+    const handleSaveLaunchSettings = async (overrideButtonVisible?: boolean) => {
+        setSavingLaunchSettings(true);
+        const nextVisible = typeof overrideButtonVisible === 'boolean' ? overrideButtonVisible : websiteButtonVisible;
+        if (typeof overrideButtonVisible === 'boolean') {
+            setWebsiteButtonVisible(overrideButtonVisible);
+        }
+
+        const nextPortalSettings = {
+            website_button_visible: nextVisible,
+            website_button_label: websiteButtonLabel.trim() || 'Join an Outreach Event',
+            active_campaign_name: activeOutreachName,
+            default_registrar_name: defaultRegistrarName,
+            active_staff_ids: activeStaffIds,
+            updated_at: new Date().toISOString()
+        };
+
+        const updatedCampaigns = campaigns.map(c => ({
+            ...c,
+            is_default: c.name === activeOutreachName
+        }));
+        setCampaigns(updatedCampaigns);
+
+        const activeSet = new Set(activeStaffIds);
+        const updatedStaff = staffRoster.map(s => ({
+            ...s,
+            isActive: activeSet.has(s.id) || s.id === 'stf-self'
+        }));
+        setStaffRoster(updatedStaff);
+
+        try {
+            localStorage.setItem('welile_outreach_portal_settings_v1', JSON.stringify(nextPortalSettings));
+            localStorage.setItem(CAMPAIGNS_STORAGE_KEY, JSON.stringify(updatedCampaigns));
+            localStorage.setItem(STAFF_STORAGE_KEY, JSON.stringify(updatedStaff));
+            window.dispatchEvent(new Event('outreach-portal-settings-update'));
+        } catch {
+            // ignore
+        }
+
+        try {
+            const { data: existingConfig } = await supabaseClient
+                .from('courses')
+                .select('id, sections')
+                .eq('category', '__OUTREACH_CONFIG__')
+                .limit(1);
+
+            if (existingConfig && existingConfig.length > 0) {
+                const currentSections = existingConfig[0].sections || {};
+                await supabaseClient
+                    .from('courses')
+                    .update({
+                        sections: {
+                            ...currentSections,
+                            campaigns: updatedCampaigns,
+                            staff: updatedStaff,
+                            portal_settings: nextPortalSettings
+                        }
+                    })
+                    .eq('id', existingConfig[0].id);
+            } else {
+                await supabaseClient.from('courses').insert([{
+                    title: '__OUTREACH_SYSTEM_CONFIG__',
+                    category: '__OUTREACH_CONFIG__',
+                    instructor: 'Welile System',
+                    duration: 'System',
+                    description: 'Outreach Campaigns, Staff Roster & Website Button Configuration',
+                    price: 0,
+                    status: 'SYSTEM_CONFIG',
+                    is_draft: true,
+                    is_verified: false,
+                    platform: 'Welile',
+                    accessTier: 'FREE',
+                    sections: {
+                        campaigns: updatedCampaigns,
+                        staff: updatedStaff,
+                        portal_settings: nextPortalSettings
+                    }
+                }]);
+            }
+            setSavedLaunchSettings(true);
+            setTimeout(() => setSavedLaunchSettings(false), 2500);
+        } catch (err) {
+            console.error('Error saving outreach launch settings:', err);
+        } finally {
+            setSavingLaunchSettings(false);
+        }
+    };
+
+    const toggleStaffIdInLaunch = (id: string) => {
+        setActiveStaffIds(prev =>
+            prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]
+        );
+    };
+
     const loadStaffRoster = async (coursesData?: any[]) => {
         try {
             // 1. Check dedicated outreach_staff table first
@@ -806,6 +941,7 @@ const AdminRegistrations: React.FC = () => {
                     .order('created_at', { ascending: false })
             ]);
 
+            loadPortalSettings(coursesData || []);
             await Promise.all([
                 loadCampaigns(coursesData || []),
                 loadStaffRoster(coursesData || []),
@@ -1697,6 +1833,20 @@ const AdminRegistrations: React.FC = () => {
                 </div>
 
                 <div className="flex flex-wrap items-center gap-2">
+                    <button
+                        type="button"
+                        onClick={() => setShowLaunchControlModal(true)}
+                        className={`px-3.5 py-2 rounded-xl border text-xs font-bold flex items-center gap-2 transition-all cursor-pointer shadow-xs ${
+                            websiteButtonVisible
+                                ? 'bg-emerald-50 dark:bg-emerald-950/60 border-emerald-300 dark:border-emerald-700 text-emerald-800 dark:text-emerald-200 hover:bg-emerald-100'
+                                : 'bg-gray-900 dark:bg-white text-white dark:text-slate-950 border-gray-900 dark:border-white hover:opacity-90'
+                        }`}
+                        title="Activate or Hide the Public Website Outreach Button, Configure Active Outreach & Assign Mobilizers"
+                    >
+                        <span className={`w-2 h-2 rounded-full ${websiteButtonVisible ? 'bg-emerald-500 animate-ping' : 'bg-amber-400'}`} />
+                        {websiteButtonVisible ? 'Website Outreach: LIVE (Manage)' : 'Activate Outreach & Website Button'}
+                    </button>
+
                     <button
                         type="button"
                         onClick={() => fetchRegistrations()}
@@ -3546,6 +3696,246 @@ const AdminRegistrations: React.FC = () => {
                                     className="flex-1 py-2.5 rounded-xl bg-gray-900 dark:bg-white text-white dark:text-gray-900 text-xs font-bold cursor-pointer"
                                 >
                                     Done
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* UNIFIED OUTREACH ACTIVATION, WEBSITE BUTTON & MOBILIZER TEAM CONTROL MODAL */}
+            {showLaunchControlModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+                    <div
+                        className="fixed inset-0 bg-black/60 backdrop-blur-xs"
+                        onClick={() => setShowLaunchControlModal(false)}
+                    />
+                    <div className="bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 w-full max-w-2xl rounded-3xl p-6 shadow-2xl relative z-10 text-gray-900 dark:text-white max-h-[92vh] overflow-y-auto animate-in zoom-in-95 duration-200 space-y-5">
+                        <div className="flex items-start justify-between gap-3 pb-4 border-b border-gray-200 dark:border-slate-800">
+                            <div className="flex items-center gap-3">
+                                <div className="w-11 h-11 rounded-2xl bg-violet-100 dark:bg-violet-950/60 text-violet-600 dark:text-violet-400 flex items-center justify-center shrink-0">
+                                    <Sparkles size={22} />
+                                </div>
+                                <div>
+                                    <h3 className="text-base font-extrabold">
+                                        Outreach Activation, Website Button & Mobilizer Team Control
+                                    </h3>
+                                    <p className="text-xs text-gray-500 dark:text-slate-400 mt-0.5">
+                                        Control whether the Outreach button appears on the public website, select the active outreach campaign, and assign the staff/mobilizers registering students.
+                                    </p>
+                                </div>
+                            </div>
+                            <button
+                                type="button"
+                                onClick={() => setShowLaunchControlModal(false)}
+                                className="p-2 rounded-xl text-gray-400 hover:text-gray-700 hover:bg-gray-100 dark:hover:bg-slate-800 cursor-pointer"
+                            >
+                                <X size={18} />
+                            </button>
+                        </div>
+
+                        {/* STEP 1: PUBLIC WEBSITE BUTTON VISIBILITY */}
+                        <div className="p-4 rounded-2xl bg-gray-50 dark:bg-slate-950/70 border border-gray-200 dark:border-slate-800 space-y-3">
+                            <div className="flex items-center justify-between gap-3">
+                                <div>
+                                    <span className="text-[11px] font-extrabold uppercase tracking-wider text-violet-600 dark:text-violet-400">
+                                        Step 1 • Public Website Outreach Button Visibility
+                                    </span>
+                                    <h4 className="text-sm font-bold text-gray-900 dark:text-white mt-0.5">
+                                        Show &ldquo;{websiteButtonLabel || 'Join an Outreach Event'}&rdquo; Button on Public Website
+                                    </h4>
+                                    <p className="text-xs text-gray-500 dark:text-slate-400 mt-0.5">
+                                        When OFF, the outreach buttons in the website navbar, hero section, and footer are hidden from visitors, while <code className="font-mono text-violet-600 dark:text-violet-400">/register</code> and Booth QR codes remain 100% functional.
+                                    </p>
+                                </div>
+
+                                <button
+                                    type="button"
+                                    onClick={() => handleSaveLaunchSettings(!websiteButtonVisible)}
+                                    className={`px-4 py-2.5 rounded-xl text-xs font-extrabold flex items-center gap-2 shrink-0 cursor-pointer transition-all shadow-xs ${
+                                        websiteButtonVisible
+                                            ? 'bg-emerald-600 hover:bg-emerald-700 text-white'
+                                            : 'bg-gray-200 dark:bg-slate-800 hover:bg-gray-300 dark:hover:bg-slate-700 text-gray-800 dark:text-slate-200'
+                                    }`}
+                                >
+                                    <span className={`w-2.5 h-2.5 rounded-full ${websiteButtonVisible ? 'bg-white' : 'bg-gray-500'}`} />
+                                    {websiteButtonVisible ? 'ON (Visible on Website)' : 'OFF (Hidden on Website)'}
+                                </button>
+                            </div>
+
+                            {websiteButtonVisible && (
+                                <div className="pt-2 border-t border-gray-200/70 dark:border-slate-800">
+                                    <label className="block text-[11px] font-bold text-gray-500 dark:text-slate-400 mb-1">
+                                        Public Website Button Text
+                                    </label>
+                                    <input
+                                        type="text"
+                                        value={websiteButtonLabel}
+                                        onChange={(e) => setWebsiteButtonLabel(e.target.value)}
+                                        placeholder="Join an Outreach Event"
+                                        className="w-full p-2.5 rounded-xl bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 text-xs font-bold"
+                                    />
+                                </div>
+                            )}
+                        </div>
+
+                        {/* STEP 2: ACTIVE OUTREACH CAMPAIGN */}
+                        <div className="p-4 rounded-2xl bg-gray-50 dark:bg-slate-950/70 border border-gray-200 dark:border-slate-800 space-y-3">
+                            <div className="flex items-center justify-between gap-2">
+                                <div>
+                                    <span className="text-[11px] font-extrabold uppercase tracking-wider text-amber-600 dark:text-amber-400">
+                                        Step 2 • Active Outreach Event
+                                    </span>
+                                    <h4 className="text-sm font-bold text-gray-900 dark:text-white mt-0.5">
+                                        Select Active Outreach Campaign for Registration Form
+                                    </h4>
+                                </div>
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        setShowLaunchControlModal(false);
+                                        setShowCampaignModal(true);
+                                    }}
+                                    className="text-xs font-bold text-violet-600 dark:text-violet-400 hover:underline cursor-pointer"
+                                >
+                                    + Create / Manage Outreaches
+                                </button>
+                            </div>
+
+                            <select
+                                value={activeOutreachName}
+                                onChange={(e) => setActiveOutreachName(e.target.value)}
+                                className="w-full p-2.5 rounded-xl bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 text-xs font-bold"
+                            >
+                                {campaigns.map(c => (
+                                    <option key={c.name} value={c.name}>
+                                        {c.name} ({c.location} • {c.event_date})
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
+
+                        {/* STEP 3: MOBILIZATION TEAM (PEOPLE REGISTERING STUDENTS) */}
+                        <div className="p-4 rounded-2xl bg-gray-50 dark:bg-slate-950/70 border border-gray-200 dark:border-slate-800 space-y-3">
+                            <div className="flex items-center justify-between gap-2">
+                                <div>
+                                    <span className="text-[11px] font-extrabold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">
+                                        Step 3 • Active Mobilization Staff (People Registering Students)
+                                    </span>
+                                    <h4 className="text-sm font-bold text-gray-900 dark:text-white mt-0.5">
+                                        Select Staff & Mobilizers on Duty for This Outreach
+                                    </h4>
+                                </div>
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        setShowLaunchControlModal(false);
+                                        setShowStaffModal(true);
+                                    }}
+                                    className="text-xs font-bold text-emerald-600 dark:text-emerald-400 hover:underline cursor-pointer"
+                                >
+                                    + Add New Staff Member
+                                </button>
+                            </div>
+
+                            <div>
+                                <label className="block text-[11px] font-bold text-gray-500 dark:text-slate-400 mb-1">
+                                    Default Pre-selected Booth Registrar on <code className="font-mono">/register</code>
+                                </label>
+                                <select
+                                    value={defaultRegistrarName}
+                                    onChange={(e) => setDefaultRegistrarName(e.target.value)}
+                                    className="w-full p-2.5 rounded-xl bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 text-xs font-bold"
+                                >
+                                    {staffRoster.map(st => (
+                                        <option key={st.id} value={st.name}>
+                                            👤 {st.name} — {st.role} ({st.staffCode})
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+
+                            <div className="space-y-1.5 max-h-48 overflow-y-auto pr-1 pt-1">
+                                {staffRoster.map(st => {
+                                    const isChecked = activeStaffIds.includes(st.id);
+                                    return (
+                                        <div
+                                            key={st.id}
+                                            onClick={() => toggleStaffIdInLaunch(st.id)}
+                                            className={`p-2.5 rounded-xl border text-xs flex items-center justify-between gap-2 cursor-pointer transition-all ${
+                                                isChecked
+                                                    ? 'bg-white dark:bg-slate-900 border-emerald-300 dark:border-emerald-800/70'
+                                                    : 'bg-gray-100/60 dark:bg-slate-900/40 border-gray-200 dark:border-slate-800 opacity-60'
+                                            }`}
+                                        >
+                                            <div className="flex items-center gap-2.5">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={isChecked}
+                                                    onChange={() => {}}
+                                                    className="rounded text-emerald-600 focus:ring-emerald-500"
+                                                />
+                                                <div>
+                                                    <span className="font-bold text-gray-900 dark:text-white">{st.name}</span>
+                                                    <span className="ml-2 px-1.5 py-0.5 rounded bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 text-[10px] font-semibold">
+                                                        {st.role}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                            <button
+                                                type="button"
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    setQrEventName(activeOutreachName);
+                                                    setQrStaffName(st.name);
+                                                    setShowLaunchControlModal(false);
+                                                    setShowQrModal(true);
+                                                }}
+                                                className="px-2 py-1 rounded-lg bg-violet-50 dark:bg-violet-950/50 text-violet-700 dark:text-violet-300 text-[10px] font-bold hover:bg-violet-100 cursor-pointer flex items-center gap-1"
+                                            >
+                                                <QrCode size={11} /> QR Link
+                                            </button>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        </div>
+
+                        <div className="flex items-center justify-between gap-3 pt-2 border-t border-gray-200 dark:border-slate-800">
+                            <div className="text-xs">
+                                {savedLaunchSettings ? (
+                                    <span className="text-emerald-600 dark:text-emerald-400 font-bold flex items-center gap-1">
+                                        <CheckCircle2 size={14} /> Live Outreach & Website Settings Saved!
+                                    </span>
+                                ) : (
+                                    <span className="text-gray-500 dark:text-slate-400">
+                                        Direct link: <code className="font-mono text-violet-600 dark:text-violet-400">/register</code> is always active for QR & staff tablets
+                                    </span>
+                                )}
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <button
+                                    type="button"
+                                    onClick={() => setShowLaunchControlModal(false)}
+                                    className="px-4 py-2 rounded-xl border border-gray-200 dark:border-slate-700 text-xs font-semibold text-gray-600 dark:text-slate-300 cursor-pointer"
+                                >
+                                    Close
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => handleSaveLaunchSettings()}
+                                    disabled={savingLaunchSettings}
+                                    className="px-5 py-2.5 rounded-xl bg-violet-600 hover:bg-violet-700 text-white text-xs font-bold flex items-center gap-1.5 shadow-sm cursor-pointer disabled:opacity-60"
+                                >
+                                    {savingLaunchSettings ? (
+                                        <>
+                                            <Loader2 size={14} className="animate-spin" /> Saving Live...
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Check size={14} /> Save & Apply Live Settings
+                                        </>
+                                    )}
                                 </button>
                             </div>
                         </div>

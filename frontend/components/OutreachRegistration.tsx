@@ -426,9 +426,28 @@ const OutreachRegistration: React.FC = () => {
                 await ensureOfficialCoursesSeeded();
                 const { data: coursesData } = await supabase
                     .from('courses')
-                    .select('title, is_draft, category');
+                    .select('title, is_draft, category, sections');
 
                 if (coursesData && coursesData.length > 0) {
+                    const configRow = coursesData.find((c: any) => c.category === '__OUTREACH_CONFIG__');
+                    const ps = configRow?.sections?.portal_settings;
+                    if (ps && typeof ps === 'object') {
+                        localStorage.setItem('welile_outreach_portal_settings_v1', JSON.stringify(ps));
+                        if (!initialEventFromUrl && ps.active_campaign_name) {
+                            setOutreachEvent(String(ps.active_campaign_name));
+                        }
+                        if (!initialStaffFromUrl && ps.default_registrar_name) {
+                            setRegisteredByStaff(String(ps.default_registrar_name));
+                        }
+                        if (Array.isArray(ps.active_staff_ids) && ps.active_staff_ids.length > 0) {
+                            const activeSet = new Set(ps.active_staff_ids.map(String));
+                            const filteredRoster = activeStaff.filter(s => activeSet.has(s.id) || s.id === 'stf-self');
+                            if (filteredRoster.length > 0) {
+                                setStaffRoster(filteredRoster);
+                            }
+                        }
+                    }
+
                     const dbTitles = coursesData
                         .filter((c: any) => !c.is_draft && c.title && !String(c.category || '').startsWith('__OUTREACH_'))
                         .map((c: any) => String(c.title).trim())
