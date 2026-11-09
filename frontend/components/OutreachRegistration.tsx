@@ -157,6 +157,25 @@ const OutreachRegistration: React.FC = () => {
     const [showInitialDepositBox, setShowInitialDepositBox] = useState(false);
     const [showCommitmentsAccordion, setShowCommitmentsAccordion] = useState(false);
 
+    // By default, registration is a clean Normal Student Registration (without outreach/staff fields),
+    // and only shows Outreach & Staff Mobilizer fields when an Outreach is explicitly selected/enabled.
+    const [isOutreachMode, setIsOutreachMode] = useState<boolean>(() => {
+        if (initialEventFromUrl || initialStaffFromUrl) return true;
+        try {
+            const cachedPortal = localStorage.getItem('welile_outreach_portal_settings_v1');
+            if (cachedPortal) {
+                const parsed = JSON.parse(cachedPortal);
+                if (typeof parsed.outreach_mode_enabled === 'boolean') {
+                    return parsed.outreach_mode_enabled;
+                }
+            }
+        } catch {
+            // ignore
+        }
+        return false;
+    });
+    const [newOutreachNameInline, setNewOutreachNameInline] = useState('');
+
     const [courseOptions, setCourseOptions] = useState<string[]>(DEFAULT_COURSES);
     const [campaigns, setCampaigns] = useState<OutreachCampaign[]>(DEFAULT_OUTREACH_CAMPAIGNS);
     const [staffRoster, setStaffRoster] = useState<OutreachStaffMember[]>(DEFAULT_OUTREACH_STAFF);
@@ -166,6 +185,7 @@ const OutreachRegistration: React.FC = () => {
 
     // Staff / Mobilizer Attribution State
     const [registrationMode, setRegistrationMode] = useState<'Staff Assisted (Booth/Field)' | 'Student Self-Registration'>(() => {
+        if (initialStaffFromUrl) return 'Staff Assisted (Booth/Field)';
         try {
             const saved = localStorage.getItem(ACTIVE_STAFF_SESSION_KEY);
             if (saved) {
@@ -175,7 +195,7 @@ const OutreachRegistration: React.FC = () => {
         } catch {
             // ignore
         }
-        return 'Staff Assisted (Booth/Field)';
+        return 'Student Self-Registration';
     });
 
     const [registeredByStaff, setRegisteredByStaff] = useState<string>(() => {
@@ -279,8 +299,12 @@ const OutreachRegistration: React.FC = () => {
     const phoneValidation = validateCleanPhone(phone);
     const guardianPhoneValidation = guardianPhone.trim() ? validateCleanPhone(guardianPhone) : null;
 
+    const effectiveOutreachEvent = isOutreachMode
+        ? (outreachEvent.trim() || 'Nkumba University Outreach (Fri, 6th Nov 2026)')
+        : 'General / Website Registration';
+
     const effectiveStaffName =
-        registrationMode === 'Student Self-Registration'
+        !isOutreachMode || registrationMode === 'Student Self-Registration'
             ? 'Self-Registered (Student Direct)'
             : registeredByStaff === 'CUSTOM'
             ? (customStaffName.trim() || 'Outreach Staff Member')
@@ -305,14 +329,14 @@ const OutreachRegistration: React.FC = () => {
 
     // Sync Section 8 Approved By & Position when Staff Registrar changes
     useEffect(() => {
-        if (registrationMode === 'Student Self-Registration') {
+        if (!isOutreachMode || registrationMode === 'Student Self-Registration') {
             setApprovedBy('Self-Registered — Pending Staff Follow-Up');
             setApproverPosition('Admissions Office — Katabi Campus');
         } else {
             setApprovedBy(`${effectiveStaffName} (Outreach Capture)`);
             setApproverPosition(matchedStaffObj?.role || 'Outreach Mobilizer');
         }
-    }, [effectiveStaffName, registrationMode, matchedStaffObj]);
+    }, [effectiveStaffName, registrationMode, matchedStaffObj, isOutreachMode]);
 
     const handleCourseSelect = (selectedTitle: string) => {
         setCourseInterest(selectedTitle);
@@ -433,6 +457,12 @@ const OutreachRegistration: React.FC = () => {
                     const ps = configRow?.sections?.portal_settings;
                     if (ps && typeof ps === 'object') {
                         localStorage.setItem('welile_outreach_portal_settings_v1', JSON.stringify(ps));
+                        if (!initialEventFromUrl && !initialStaffFromUrl && typeof ps.outreach_mode_enabled === 'boolean') {
+                            setIsOutreachMode(ps.outreach_mode_enabled);
+                            if (ps.outreach_mode_enabled) {
+                                setRegistrationMode('Staff Assisted (Booth/Field)');
+                            }
+                        }
                         if (!initialEventFromUrl && ps.active_campaign_name) {
                             setOutreachEvent(String(ps.active_campaign_name));
                         }
@@ -671,12 +701,14 @@ const OutreachRegistration: React.FC = () => {
             consent_contact: true,
 
             // Outreach Attribution & Staff Audit
-            how_heard: howHeard,
-            outreach_event: outreachEvent.trim() || 'Nkumba University Outreach (Fri, 6th Nov 2026)',
+            how_heard: isOutreachMode ? howHeard : 'Website / Direct',
+            outreach_event: effectiveOutreachEvent,
             registered_by_staff: effectiveStaffName,
-            registered_by_staff_id: matchedStaffObj?.staffCode || 'CUSTOM-STAFF',
-            registered_by_role: matchedStaffObj?.role || (registrationMode === 'Student Self-Registration' ? 'Student' : 'Outreach Mobilizer'),
-            registration_mode: registrationMode,
+            registered_by_staff_id: !isOutreachMode ? 'SELF-DIRECT' : (matchedStaffObj?.staffCode || 'CUSTOM-STAFF'),
+            registered_by_role: !isOutreachMode
+                ? 'Student'
+                : (matchedStaffObj?.role || (registrationMode === 'Student Self-Registration' ? 'Student' : 'Outreach Mobilizer')),
+            registration_mode: !isOutreachMode ? 'Student Self-Registration' : registrationMode,
             device_audit_id: deviceAudit.deviceId,
             device_info: deviceAudit.deviceSummary,
             audit_trail: [initialAuditEntry],
@@ -756,24 +788,36 @@ const OutreachRegistration: React.FC = () => {
                         </div>
                     </Link>
 
-                    {/* Compact Interactive Booth / Event Pill */}
+                    {/* Compact Interactive Booth / Event Pill (Only shows outreach & registrar details when Outreach Mode is active) */}
                     <div className="flex items-center gap-2">
-                        <button
-                            type="button"
-                            onClick={() => setShowBoothSettingsModal(true)}
-                            className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-100 hover:bg-slate-200/80 dark:bg-slate-900 dark:hover:bg-slate-800 border border-slate-200/90 dark:border-slate-800 text-xs font-semibold text-slate-700 dark:text-slate-200 transition-all cursor-pointer max-w-[230px] sm:max-w-md"
-                            title="Configure Outreach Event & Staff Attribution"
-                        >
-                            <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0 animate-pulse" />
-                            <span className="truncate font-bold text-violet-600 dark:text-violet-400">
-                                {outreachEvent.split('(')[0].trim()}
-                            </span>
-                            <span className="text-slate-300 dark:text-slate-700">•</span>
-                            <span className="truncate text-slate-600 dark:text-slate-300">
-                                {registrationMode === 'Student Self-Registration' ? 'Self-Service' : effectiveStaffName}
-                            </span>
-                            <SlidersHorizontal size={12} className="text-slate-400 shrink-0 ml-0.5" />
-                        </button>
+                        {isOutreachMode ? (
+                            <button
+                                type="button"
+                                onClick={() => setShowBoothSettingsModal(true)}
+                                className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-100 hover:bg-slate-200/80 dark:bg-slate-900 dark:hover:bg-slate-800 border border-slate-200/90 dark:border-slate-800 text-xs font-semibold text-slate-700 dark:text-slate-200 transition-all cursor-pointer max-w-[230px] sm:max-w-md"
+                                title="Configure Outreach Event & Staff Attribution"
+                            >
+                                <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0 animate-pulse" />
+                                <span className="truncate font-bold text-violet-600 dark:text-violet-400">
+                                    {outreachEvent.split('(')[0].trim()}
+                                </span>
+                                <span className="text-slate-300 dark:text-slate-700">•</span>
+                                <span className="truncate text-slate-600 dark:text-slate-300">
+                                    {registrationMode === 'Student Self-Registration' ? 'Self-Service' : effectiveStaffName}
+                                </span>
+                                <SlidersHorizontal size={12} className="text-slate-400 shrink-0 ml-0.5" />
+                            </button>
+                        ) : (
+                            <button
+                                type="button"
+                                onClick={() => setShowBoothSettingsModal(true)}
+                                className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-100/80 hover:bg-slate-200/80 dark:bg-slate-900 dark:hover:bg-slate-800 border border-slate-200/80 dark:border-slate-800 text-[11px] font-medium text-slate-500 dark:text-slate-400 transition-all cursor-pointer"
+                                title="Switch to Outreach Event Capture Mode"
+                            >
+                                <SlidersHorizontal size={12} className="text-slate-400 shrink-0" />
+                                <span>Outreach Mode</span>
+                            </button>
+                        )}
 
                         <button
                             type="button"
@@ -829,7 +873,7 @@ const OutreachRegistration: React.FC = () => {
                                     <Info size={18} className="text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
                                     <div className="text-xs text-amber-900 dark:text-amber-200 leading-relaxed">
                                         <span className="font-bold block mb-0.5">What happens next? (Confirmation Follow-Up)</span>
-                                        This outreach registration reserves your provisional preference. Our admissions team will contact you on <span className="font-bold">{submittedRecord.phone}</span> to confirm when you are ready to start classes and finalize your enrollment.
+                                        This registration reserves your provisional preference. Our admissions team will contact you on <span className="font-bold">{submittedRecord.phone}</span> to confirm when you are ready to start classes and finalize your enrollment.
                                     </div>
                                 </div>
 
@@ -853,18 +897,20 @@ const OutreachRegistration: React.FC = () => {
                                             {submittedRecord.mode_preference} • {(submittedRecord.preferred_study_days || []).join(', ')}
                                         </span>
                                     </div>
-                                    <div className="flex items-center justify-between pb-2.5 border-b border-slate-200/70 dark:border-slate-800">
+                                    <div className={`flex items-center justify-between ${isOutreachMode ? 'pb-2.5 border-b border-slate-200/70 dark:border-slate-800' : ''}`}>
                                         <span className="text-slate-500 dark:text-slate-400">Preferred Time Slot</span>
                                         <span className="font-semibold text-slate-800 dark:text-slate-200">
                                             {submittedRecord.preferred_time_slot}
                                         </span>
                                     </div>
-                                    <div className="flex items-center justify-between">
-                                        <span className="text-slate-500 dark:text-slate-400">Recorded By (Audit)</span>
-                                        <span className="font-semibold text-emerald-600 dark:text-emerald-400">
-                                            {submittedRecord.registered_by_staff} ({submittedRecord.registered_by_role})
-                                        </span>
-                                    </div>
+                                    {isOutreachMode && (
+                                        <div className="flex items-center justify-between">
+                                            <span className="text-slate-500 dark:text-slate-400">Recorded By (Audit)</span>
+                                            <span className="font-semibold text-emerald-600 dark:text-emerald-400">
+                                                {submittedRecord.registered_by_staff} ({submittedRecord.registered_by_role})
+                                            </span>
+                                        </div>
+                                    )}
                                 </div>
 
                                 {/* Actions */}
@@ -875,7 +921,7 @@ const OutreachRegistration: React.FC = () => {
                                         className="flex-1 py-3.5 px-5 rounded-xl bg-violet-600 hover:bg-violet-700 text-white font-bold text-sm shadow-lg shadow-violet-600/20 flex items-center justify-center gap-2 transition-all cursor-pointer"
                                     >
                                         <RotateCcw size={16} />
-                                        Register Next Person
+                                        Register Another Student
                                     </button>
                                     <Link
                                         to="/"
@@ -898,7 +944,7 @@ const OutreachRegistration: React.FC = () => {
                                 <div>
                                     <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-violet-50 dark:bg-violet-950/60 border border-violet-200/70 dark:border-violet-800/60 text-violet-700 dark:text-violet-300 text-[11px] font-bold mb-3">
                                         <Sparkles size={12} />
-                                        Outreach Pre-Registration
+                                        {isOutreachMode ? 'Outreach Pre-Registration' : 'Student Registration'}
                                     </div>
                                     <h1 className="text-xl sm:text-2xl font-extrabold tracking-tight text-slate-900 dark:text-white">
                                         Reserve Your AI Study Slot
@@ -919,15 +965,25 @@ const OutreachRegistration: React.FC = () => {
                                                 {courseInterest}
                                             </h3>
                                         </div>
-                                        <span className="px-2.5 py-1 rounded-lg bg-violet-100 dark:bg-violet-950/80 text-violet-700 dark:text-violet-300 text-xs font-extrabold shrink-0">
-                                            ${activeCoursePricing.usdPerMonth}/mo
+                                        <span className={`px-2.5 py-1 rounded-lg text-xs font-extrabold shrink-0 ${
+                                            activeCoursePricing.usdPerMonth === 0
+                                                ? 'bg-emerald-100 dark:bg-emerald-950/80 text-emerald-700 dark:text-emerald-300'
+                                                : 'bg-violet-100 dark:bg-violet-950/80 text-violet-700 dark:text-violet-300'
+                                        }`}>
+                                            {activeCoursePricing.usdPerMonth === 0 ? 'FREE' : `$${activeCoursePricing.usdPerMonth}/mo`}
                                         </span>
                                     </div>
 
                                     <div className="flex items-baseline justify-between pt-2 border-t border-slate-200/70 dark:border-slate-800/80">
                                         <span className="text-xs text-slate-500 dark:text-slate-400">Monthly Tuition</span>
                                         <span className="text-sm font-black text-slate-900 dark:text-white">
-                                            UGX {formatUgx(activeCoursePricing.ugxPerMonth)} <span className="text-xs font-normal text-slate-400">/ month</span>
+                                            {activeCoursePricing.ugxPerMonth === 0 ? (
+                                                <span className="text-emerald-600 dark:text-emerald-400">Free (UGX 0)</span>
+                                            ) : (
+                                                <>
+                                                    UGX {formatUgx(activeCoursePricing.ugxPerMonth)} <span className="text-xs font-normal text-slate-400">/ month</span>
+                                                </>
+                                            )}
                                         </span>
                                     </div>
 
@@ -945,7 +1001,7 @@ const OutreachRegistration: React.FC = () => {
                                     </div>
                                 </div>
 
-                                {/* All 4 Official Courses Reference List */}
+                                {/* All 5 Official Courses Reference List */}
                                 <div className="space-y-2">
                                     <div className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
                                         Official Courses & Monthly Rates
@@ -967,8 +1023,10 @@ const OutreachRegistration: React.FC = () => {
                                                     <span className="truncate pr-2">
                                                         {i + 1}. {c.title}
                                                     </span>
-                                                    <span className="font-mono text-[11px] font-semibold shrink-0">
-                                                        ${c.usdPerMonth} | {formatUgx(c.ugxPerMonth)} UGX
+                                                    <span className={`font-mono text-[11px] font-semibold shrink-0 ${
+                                                        c.usdPerMonth === 0 ? 'text-emerald-600 dark:text-emerald-400 font-bold' : ''
+                                                    }`}>
+                                                        {c.usdPerMonth === 0 ? 'Free (0 UGX)' : `$${c.usdPerMonth} | ${formatUgx(c.ugxPerMonth)} UGX`}
                                                     </span>
                                                 </button>
                                             );
@@ -978,10 +1036,14 @@ const OutreachRegistration: React.FC = () => {
 
                                 {/* Subtle Attribution Footer inside Summary Card */}
                                 <div className="pt-3 border-t border-slate-200/70 dark:border-slate-800 flex items-center justify-between text-[11px] text-slate-400">
-                                    <span className="flex items-center gap-1.5">
-                                        <UserCheck size={13} className="text-emerald-500" />
-                                        Registrar: <strong className="text-slate-600 dark:text-slate-300">{effectiveStaffName}</strong>
-                                    </span>
+                                    {isOutreachMode ? (
+                                        <span className="flex items-center gap-1.5">
+                                            <UserCheck size={13} className="text-emerald-500" />
+                                            Registrar: <strong className="text-slate-600 dark:text-slate-300">{effectiveStaffName}</strong>
+                                        </span>
+                                    ) : (
+                                        <span>Direct Student Registration</span>
+                                    )}
                                     <span className="font-mono">{studentRegNo}</span>
                                 </div>
                             </div>
@@ -1323,8 +1385,12 @@ const OutreachRegistration: React.FC = () => {
                                                                 <p className="text-[11px] text-slate-500 dark:text-slate-400 line-clamp-2 mb-2.5">
                                                                     {c.shortDescription}
                                                                 </p>
-                                                                <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 text-[11px] font-extrabold text-violet-700 dark:text-violet-300">
-                                                                    ${c.usdPerMonth} | {formatUgx(c.ugxPerMonth)} UGX / mo
+                                                                <div className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 text-[11px] font-extrabold ${
+                                                                    c.usdPerMonth === 0
+                                                                        ? 'text-emerald-600 dark:text-emerald-400'
+                                                                        : 'text-violet-700 dark:text-violet-300'
+                                                                }`}>
+                                                                    {c.usdPerMonth === 0 ? 'FREE • 0 UGX' : `$${c.usdPerMonth} | ${formatUgx(c.ugxPerMonth)} UGX / mo`}
                                                                 </div>
                                                             </button>
                                                         );
@@ -1571,17 +1637,27 @@ const OutreachRegistration: React.FC = () => {
                                                         {courseInterest} — Standard Tuition
                                                     </span>
                                                     <div className="text-lg font-black text-slate-900 dark:text-white mt-0.5">
-                                                        ${activeCoursePricing.usdPerMonth} <span className="text-slate-400 font-normal">|</span> UGX {formatUgx(activeCoursePricing.ugxPerMonth)}{' '}
-                                                        <span className="text-xs font-semibold text-slate-500">per month</span>
+                                                        {activeCoursePricing.ugxPerMonth === 0 ? (
+                                                            <span className="text-emerald-600 dark:text-emerald-400">
+                                                                FREE (UGX 0)
+                                                            </span>
+                                                        ) : (
+                                                            <>
+                                                                ${activeCoursePricing.usdPerMonth} <span className="text-slate-400 font-normal">|</span> UGX {formatUgx(activeCoursePricing.ugxPerMonth)}{' '}
+                                                                <span className="text-xs font-semibold text-slate-500">per month</span>
+                                                            </>
+                                                        )}
                                                     </div>
                                                 </div>
                                                 <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white dark:bg-slate-900 border border-violet-200 dark:border-violet-800 text-xs font-bold text-emerald-600 dark:text-emerald-400 shrink-0">
                                                     <CheckCircle2 size={14} />
-                                                    UGX 0 Due Today (Pay on Confirmation)
+                                                    {activeCoursePricing.ugxPerMonth === 0 ? '100% Free Course' : 'UGX 0 Due Today (Pay on Confirmation)'}
                                                 </span>
                                             </div>
 
-                                            {/* Preferred Payment Plan & Method */}
+                                            {/* Preferred Payment Plan & Method (Only shown for paid courses) */}
+                                            {activeCoursePricing.ugxPerMonth > 0 && (
+                                            <>
                                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                                 <div>
                                                     <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-2">
@@ -1636,7 +1712,7 @@ const OutreachRegistration: React.FC = () => {
                                                     className="flex items-center gap-1.5 text-xs font-semibold text-slate-500 hover:text-violet-600 dark:text-slate-400 cursor-pointer"
                                                 >
                                                     {showInitialDepositBox ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
-                                                    Paying a commitment deposit at the booth today? (Optional — Default is UGX 0)
+                                                    Paying a commitment deposit today? (Optional — Default is UGX 0)
                                                 </button>
 
                                                 {showInitialDepositBox && (
@@ -1676,6 +1752,8 @@ const OutreachRegistration: React.FC = () => {
                                                     </div>
                                                 )}
                                             </div>
+                                            </>
+                                            )}
 
                                             {/* Digital Signature & Programme Commitments Accordion */}
                                             <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200/80 dark:border-slate-800 space-y-3">
@@ -1778,7 +1856,7 @@ const OutreachRegistration: React.FC = () => {
             </footer>
 
             {/* =========================================================
-               BOOTH / EVENT & STAFF AUDIT POPOVER MODAL
+               REGISTRATION MODE / OUTREACH & STAFF AUDIT POPOVER MODAL
                ========================================================= */}
             {showBoothSettingsModal && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
@@ -1789,15 +1867,15 @@ const OutreachRegistration: React.FC = () => {
                     <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 w-full max-w-md rounded-3xl p-6 shadow-2xl relative z-10 space-y-4 animate-in zoom-in-95 duration-200">
                         <div className="flex items-center justify-between">
                             <div className="flex items-center gap-2.5">
-                                <div className="w-9 h-9 rounded-xl bg-emerald-100 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
-                                    <UserCheck size={18} />
+                                <div className="w-9 h-9 rounded-xl bg-violet-100 dark:bg-violet-950/60 text-violet-600 dark:text-violet-400 flex items-center justify-center">
+                                    <SlidersHorizontal size={18} />
                                 </div>
                                 <div>
                                     <h3 className="text-sm font-extrabold text-slate-900 dark:text-white">
-                                        Outreach Event & Staff Audit
+                                        Registration Mode
                                     </h3>
                                     <p className="text-[11px] text-slate-500 dark:text-slate-400">
-                                        Saved on this device for back-to-back booth capture
+                                        Normal registration by default • Enable Outreach Mode only for outreach events
                                     </p>
                                 </div>
                             </div>
@@ -1810,99 +1888,154 @@ const OutreachRegistration: React.FC = () => {
                             </button>
                         </div>
 
-                        {/* Capture Mode */}
+                        {/* Normal Registration vs Outreach Mode Selector */}
                         <div>
                             <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1.5">
-                                Registration Mode
+                                Select Registration Type
                             </label>
                             <div className="grid grid-cols-2 gap-2">
                                 <button
                                     type="button"
-                                    onClick={() => setRegistrationMode('Staff Assisted (Booth/Field)')}
+                                    onClick={() => {
+                                        setIsOutreachMode(false);
+                                        setRegistrationMode('Student Self-Registration');
+                                    }}
                                     className={`py-2.5 px-3 rounded-xl text-xs font-bold border cursor-pointer ${
-                                        registrationMode === 'Staff Assisted (Booth/Field)'
-                                            ? 'bg-emerald-600 text-white border-emerald-600'
-                                            : 'bg-slate-50 dark:bg-slate-950 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-800'
-                                    }`}
-                                >
-                                    👤 Staff / Mobilizer
-                                </button>
-                                <button
-                                    type="button"
-                                    onClick={() => setRegistrationMode('Student Self-Registration')}
-                                    className={`py-2.5 px-3 rounded-xl text-xs font-bold border cursor-pointer ${
-                                        registrationMode === 'Student Self-Registration'
+                                        !isOutreachMode
                                             ? 'bg-violet-600 text-white border-violet-600'
                                             : 'bg-slate-50 dark:bg-slate-950 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-800'
                                     }`}
                                 >
-                                    🎓 Student Self-Service
+                                    🎓 Normal Registration
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        setIsOutreachMode(true);
+                                        setRegistrationMode('Staff Assisted (Booth/Field)');
+                                    }}
+                                    className={`py-2.5 px-3 rounded-xl text-xs font-bold border cursor-pointer ${
+                                        isOutreachMode
+                                            ? 'bg-emerald-600 text-white border-emerald-600'
+                                            : 'bg-slate-50 dark:bg-slate-950 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-800'
+                                    }`}
+                                >
+                                    📣 Outreach Event
                                 </button>
                             </div>
                         </div>
 
-                        {/* Staff Selector */}
-                        {registrationMode === 'Staff Assisted (Booth/Field)' && (
-                            <div>
-                                <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1.5">
-                                    Registered By (Mobilizer / Staff Audit)
-                                </label>
-                                <select
-                                    value={registeredByStaff}
-                                    onChange={(e) => setRegisteredByStaff(e.target.value)}
-                                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-xs font-bold"
-                                >
-                                    {staffRoster
-                                        .filter(s => s.id !== 'stf-self')
-                                        .map(st => (
-                                            <option key={st.id} value={st.name}>
-                                                👤 {st.name} — {st.role}
+                        {/* Outreach Event & People Registering (ONLY visible when Outreach Event Mode is selected) */}
+                        {isOutreachMode && (
+                            <div className="space-y-4 pt-2 border-t border-slate-200 dark:border-slate-800 animate-in fade-in duration-200">
+                                {/* Active Outreach Campaign / Create New Outreach */}
+                                <div>
+                                    <label className="block text-[11px] font-bold uppercase tracking-wider text-amber-600 dark:text-amber-400 mb-1.5">
+                                        Outreach Campaign / Event
+                                    </label>
+                                    <select
+                                        value={outreachEvent}
+                                        onChange={(e) => setOutreachEvent(e.target.value)}
+                                        className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-xs font-bold"
+                                    >
+                                        {campaigns.map(c => (
+                                            <option key={c.id} value={c.name}>
+                                                {c.name}
                                             </option>
                                         ))}
-                                    <option value="CUSTOM">+ Enter Custom Staff / Mobilizer Name...</option>
-                                </select>
-                                {registeredByStaff === 'CUSTOM' && (
+                                        <option value="__CREATE_NEW__">+ Create / Enter New Outreach Event...</option>
+                                    </select>
+                                    {outreachEvent === '__CREATE_NEW__' && (
+                                        <input
+                                            type="text"
+                                            value={newOutreachNameInline}
+                                            onChange={(e) => {
+                                                setNewOutreachNameInline(e.target.value);
+                                                setOutreachEvent(e.target.value);
+                                            }}
+                                            placeholder="Enter new outreach event name"
+                                            className="w-full mt-2 px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-xs font-bold"
+                                        />
+                                    )}
+                                </div>
+
+                                {/* Capture Mode inside Outreach */}
+                                <div>
+                                    <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1.5">
+                                        Who is Registering?
+                                    </label>
+                                    <div className="grid grid-cols-2 gap-2">
+                                        <button
+                                            type="button"
+                                            onClick={() => setRegistrationMode('Staff Assisted (Booth/Field)')}
+                                            className={`py-2 px-3 rounded-xl text-xs font-bold border cursor-pointer ${
+                                                registrationMode === 'Staff Assisted (Booth/Field)'
+                                                    ? 'bg-emerald-600 text-white border-emerald-600'
+                                                    : 'bg-slate-50 dark:bg-slate-950 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-800'
+                                            }`}
+                                        >
+                                            👤 Staff / Mobilizer
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => setRegistrationMode('Student Self-Registration')}
+                                            className={`py-2 px-3 rounded-xl text-xs font-bold border cursor-pointer ${
+                                                registrationMode === 'Student Self-Registration'
+                                                    ? 'bg-violet-600 text-white border-violet-600'
+                                                    : 'bg-slate-50 dark:bg-slate-950 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-800'
+                                            }`}
+                                        >
+                                            🎓 Student Self-Scan
+                                        </button>
+                                    </div>
+                                </div>
+
+                                {/* Staff Selector */}
+                                {registrationMode === 'Staff Assisted (Booth/Field)' && (
+                                    <div>
+                                        <label className="block text-[11px] font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400 mb-1.5">
+                                            Registered By (Mobilizer / Staff Audit)
+                                        </label>
+                                        <select
+                                            value={registeredByStaff}
+                                            onChange={(e) => setRegisteredByStaff(e.target.value)}
+                                            className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-xs font-bold"
+                                        >
+                                            {staffRoster
+                                                .filter(s => s.id !== 'stf-self')
+                                                .map(st => (
+                                                    <option key={st.id} value={st.name}>
+                                                        👤 {st.name} — {st.role}
+                                                    </option>
+                                                ))}
+                                            <option value="CUSTOM">+ Enter Custom Staff / Mobilizer Name...</option>
+                                        </select>
+                                        {registeredByStaff === 'CUSTOM' && (
+                                            <input
+                                                type="text"
+                                                value={customStaffName}
+                                                onChange={(e) => setCustomStaffName(e.target.value)}
+                                                placeholder="Enter staff full name"
+                                                className="w-full mt-2 px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-xs font-bold"
+                                            />
+                                        )}
+                                    </div>
+                                )}
+
+                                {/* Optional Staff Office Note */}
+                                <div>
+                                    <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1.5">
+                                        Follow-Up Note / Remarks (Section 8)
+                                    </label>
                                     <input
                                         type="text"
-                                        value={customStaffName}
-                                        onChange={(e) => setCustomStaffName(e.target.value)}
-                                        placeholder="Enter staff full name"
-                                        className="w-full mt-2 px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-xs font-bold"
+                                        value={adminRemarks}
+                                        onChange={(e) => setAdminRemarks(e.target.value)}
+                                        className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-xs"
                                     />
-                                )}
+                                </div>
                             </div>
                         )}
-
-                        {/* Active Outreach Campaign */}
-                        <div>
-                            <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1.5">
-                                Outreach Campaign / Event
-                            </label>
-                            <select
-                                value={outreachEvent}
-                                onChange={(e) => setOutreachEvent(e.target.value)}
-                                className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-xs font-bold"
-                            >
-                                {campaigns.map(c => (
-                                    <option key={c.id} value={c.name}>
-                                        {c.name}
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
-
-                        {/* Optional Staff Office Note */}
-                        <div>
-                            <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1.5">
-                                Follow-Up Note / Remarks (Section 8)
-                            </label>
-                            <input
-                                type="text"
-                                value={adminRemarks}
-                                onChange={(e) => setAdminRemarks(e.target.value)}
-                                className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-xs"
-                            />
-                        </div>
 
                         <div className="pt-2 flex justify-end">
                             <button

@@ -17,16 +17,27 @@ export interface OfficialCoursePricing {
     ugxWeekly: number;
     displayFee: string;
     shortBadge: string;
+    shortDescription?: string;
 }
 
 export const OFFICIAL_COURSE_CATALOG: OfficialCoursePricing[] = [
+    {
+        title: 'Fundamentals of AI',
+        usdPerMonth: 0,
+        ugxPerMonth: 0,
+        ugxWeekly: 0,
+        displayFee: 'Free (UGX 0)',
+        shortBadge: 'Free (0 UGX)',
+        shortDescription: 'Core AI foundations, prompting & everyday productivity workflows — 100% Free'
+    },
     {
         title: 'Advanced Vibe Coding',
         usdPerMonth: 25,
         ugxPerMonth: 100000,
         ugxWeekly: 25000,
         displayFee: '$25 | 100,000 UGX per month',
-        shortBadge: '$25 / 100,000 UGX mo'
+        shortBadge: '$25 / 100,000 UGX mo',
+        shortDescription: 'Build full-stack web & mobile apps rapidly with AI coding assistants'
     },
     {
         title: 'Document with AI',
@@ -34,7 +45,8 @@ export const OFFICIAL_COURSE_CATALOG: OfficialCoursePricing[] = [
         ugxPerMonth: 100000,
         ugxWeekly: 25000,
         displayFee: '$25 | 100,000 UGX per month',
-        shortBadge: '$25 / 100,000 UGX mo'
+        shortBadge: '$25 / 100,000 UGX mo',
+        shortDescription: 'Master AI-powered research, reports, proposals & business documentation'
     },
     {
         title: 'Agentic AI',
@@ -42,7 +54,8 @@ export const OFFICIAL_COURSE_CATALOG: OfficialCoursePricing[] = [
         ugxPerMonth: 200000,
         ugxWeekly: 50000,
         displayFee: '$50 | 200,000 UGX per month',
-        shortBadge: '$50 / 200,000 UGX mo'
+        shortBadge: '$50 / 200,000 UGX mo',
+        shortDescription: 'Design autonomous AI agents, multi-step workflows & tool integrations'
     },
     {
         title: 'AI Security and Safety',
@@ -50,7 +63,8 @@ export const OFFICIAL_COURSE_CATALOG: OfficialCoursePricing[] = [
         ugxPerMonth: 150000,
         ugxWeekly: 37500,
         displayFee: '$35 | 150,000 UGX per month',
-        shortBadge: '$35 / 150,000 UGX mo'
+        shortBadge: '$35 / 150,000 UGX mo',
+        shortDescription: 'Secure AI deployments, governance, red-teaming & data privacy'
     }
 ];
 
@@ -536,7 +550,7 @@ export async function ensureOfficialCoursesSeeded(): Promise<void> {
                     price: course.usdPerMonth,
                     instructor: 'Welile AI Faculty',
                     platform: 'Welile',
-                    accessTier: 'PAID',
+                    accessTier: course.usdPerMonth === 0 ? 'FREE' : 'PAID',
                     status: 'Published',
                     is_draft: false,
                     is_verified: true

@@ -59,6 +59,12 @@ export interface OfficialCoursePricing {
 
 export const OFFICIAL_COURSE_CATALOG: OfficialCoursePricing[] = [
     {
+        title: 'Fundamentals of AI',
+        usdPerMonth: 0,
+        ugxPerMonth: 0,
+        displayFee: 'Free (UGX 0)'
+    },
+    {
         title: 'Advanced Vibe Coding',
         usdPerMonth: 25,
         ugxPerMonth: 100000,
@@ -458,10 +464,11 @@ const AdminRegistrations: React.FC = () => {
     const [qrStaffName, setQrStaffName] = useState('');
     const [copiedLink, setCopiedLink] = useState(false);
 
-    // Unified Outreach Activation, Website Button & Mobilizer Team Control Modal state
+    // Unified Registration Activation, Website Button & Optional Outreach / Mobilizer Control Modal state
     const [showLaunchControlModal, setShowLaunchControlModal] = useState(false);
     const [websiteButtonVisible, setWebsiteButtonVisible] = useState<boolean>(false);
-    const [websiteButtonLabel, setWebsiteButtonLabel] = useState<string>('Join an Outreach Event');
+    const [websiteButtonLabel, setWebsiteButtonLabel] = useState<string>('Register for AI Classes');
+    const [outreachModeEnabled, setOutreachModeEnabled] = useState<boolean>(false);
     const [activeOutreachName, setActiveOutreachName] = useState<string>('Nkumba University Outreach (Fri, 6th Nov 2026)');
     const [defaultRegistrarName, setDefaultRegistrarName] = useState<string>('Timothy Christian Waniaye');
     const [activeStaffIds, setActiveStaffIds] = useState<string[]>(() => DEFAULT_OUTREACH_STAFF.map(s => s.id));
@@ -474,6 +481,9 @@ const AdminRegistrations: React.FC = () => {
             const ps = configCourse?.sections?.portal_settings;
             if (ps && typeof ps === 'object') {
                 setWebsiteButtonVisible(Boolean(ps.website_button_visible));
+                if (typeof ps.outreach_mode_enabled === 'boolean') {
+                    setOutreachModeEnabled(ps.outreach_mode_enabled);
+                }
                 if (ps.website_button_label) setWebsiteButtonLabel(String(ps.website_button_label));
                 if (ps.active_campaign_name) setActiveOutreachName(String(ps.active_campaign_name));
                 if (ps.default_registrar_name) setDefaultRegistrarName(String(ps.default_registrar_name));
@@ -488,6 +498,9 @@ const AdminRegistrations: React.FC = () => {
             if (cached) {
                 const parsed = JSON.parse(cached);
                 setWebsiteButtonVisible(Boolean(parsed.website_button_visible));
+                if (typeof parsed.outreach_mode_enabled === 'boolean') {
+                    setOutreachModeEnabled(parsed.outreach_mode_enabled);
+                }
                 if (parsed.website_button_label) setWebsiteButtonLabel(String(parsed.website_button_label));
                 if (parsed.active_campaign_name) setActiveOutreachName(String(parsed.active_campaign_name));
                 if (parsed.default_registrar_name) setDefaultRegistrarName(String(parsed.default_registrar_name));
@@ -500,16 +513,21 @@ const AdminRegistrations: React.FC = () => {
         }
     };
 
-    const handleSaveLaunchSettings = async (overrideButtonVisible?: boolean) => {
+    const handleSaveLaunchSettings = async (overrideButtonVisible?: boolean, overrideOutreachMode?: boolean) => {
         setSavingLaunchSettings(true);
         const nextVisible = typeof overrideButtonVisible === 'boolean' ? overrideButtonVisible : websiteButtonVisible;
+        const nextOutreachMode = typeof overrideOutreachMode === 'boolean' ? overrideOutreachMode : outreachModeEnabled;
         if (typeof overrideButtonVisible === 'boolean') {
             setWebsiteButtonVisible(overrideButtonVisible);
+        }
+        if (typeof overrideOutreachMode === 'boolean') {
+            setOutreachModeEnabled(overrideOutreachMode);
         }
 
         const nextPortalSettings = {
             website_button_visible: nextVisible,
-            website_button_label: websiteButtonLabel.trim() || 'Join an Outreach Event',
+            outreach_mode_enabled: nextOutreachMode,
+            website_button_label: websiteButtonLabel.trim() || (nextOutreachMode ? 'Join an Outreach Event' : 'Register for AI Classes'),
             active_campaign_name: activeOutreachName,
             default_registrar_name: defaultRegistrarName,
             active_staff_ids: activeStaffIds,
@@ -742,7 +760,7 @@ const AdminRegistrations: React.FC = () => {
                         price: c.usdPerMonth,
                         instructor: 'Welile AI Faculty',
                         platform: 'Welile',
-                        accessTier: 'PAID',
+                        accessTier: c.usdPerMonth === 0 ? 'FREE' : 'PAID',
                         status: 'Published',
                         is_draft: false,
                         is_verified: true
@@ -1895,9 +1913,9 @@ const AdminRegistrations: React.FC = () => {
                         </span>
                     </div>
                     <p className="text-xs text-gray-500 dark:text-slate-400 mt-1">
-                        Outreach registrations are <strong className="text-gray-700 dark:text-slate-200">provisional seat reservations</strong> until confirmed via follow-up call/WhatsApp • Active Booth:{' '}
+                        Registrations are <strong className="text-gray-700 dark:text-slate-200">provisional seat reservations</strong> until confirmed via follow-up call/WhatsApp • Mode:{' '}
                         <span className="font-semibold text-violet-600 dark:text-violet-400">
-                            {defaultCampaign?.name}
+                            {outreachModeEnabled ? `Outreach (${defaultCampaign?.name})` : 'Normal Student Registration'}
                         </span>
                     </p>
                 </div>
@@ -1911,10 +1929,10 @@ const AdminRegistrations: React.FC = () => {
                                 ? 'bg-emerald-50 dark:bg-emerald-950/60 border-emerald-300 dark:border-emerald-700 text-emerald-800 dark:text-emerald-200 hover:bg-emerald-100'
                                 : 'bg-gray-900 dark:bg-white text-white dark:text-slate-950 border-gray-900 dark:border-white hover:opacity-90'
                         }`}
-                        title="Activate or Hide the Public Website Outreach Button, Configure Active Outreach & Assign Mobilizers"
+                        title="Activate Registration, Toggle Normal vs Outreach Mode & Manage Mobilizers"
                     >
                         <span className={`w-2 h-2 rounded-full ${websiteButtonVisible ? 'bg-emerald-500 animate-ping' : 'bg-amber-400'}`} />
-                        {websiteButtonVisible ? 'Website Outreach: LIVE (Manage)' : 'Activate Outreach & Website Button'}
+                        {websiteButtonVisible ? 'Registration: LIVE (Manage)' : 'Activate Registration'}
                     </button>
 
                     <button
@@ -2307,13 +2325,13 @@ const AdminRegistrations: React.FC = () => {
                     <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl shadow-sm border border-gray-200/80 dark:border-slate-800">
                         <div className="flex items-center justify-between mb-3">
                             <h3 className="text-xs font-extrabold uppercase tracking-wider text-violet-700 dark:text-violet-300 flex items-center gap-1.5">
-                                <BookOpen size={14} /> Official 4 Courses & Monthly Fee Structure (Click to Filter)
+                                <BookOpen size={14} /> Official 5 Courses & Monthly Fee Structure (Click to Filter)
                             </h3>
                             <span className="text-[11px] font-semibold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/50 px-2.5 py-0.5 rounded-full">
-                                No Upfront Payment Required at Outreach • Paid Upon Confirmation
+                                No Upfront Payment Required at Registration • Paid Upon Confirmation
                             </span>
                         </div>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
                             {OFFICIAL_COURSE_CATALOG.map((c, i) => {
                                 const countForCourse = sievedRegistrations.filter(
                                     r => (r.course_interest || '').toLowerCase() === c.title.toLowerCase()
@@ -3790,7 +3808,7 @@ const AdminRegistrations: React.FC = () => {
                 </div>
             )}
 
-            {/* UNIFIED OUTREACH ACTIVATION, WEBSITE BUTTON & MOBILIZER TEAM CONTROL MODAL */}
+            {/* ACTIVATE REGISTRATION & OPTIONAL OUTREACH / MOBILIZER CONTROL MODAL */}
             {showLaunchControlModal && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
                     <div
@@ -3805,10 +3823,10 @@ const AdminRegistrations: React.FC = () => {
                                 </div>
                                 <div>
                                     <h3 className="text-base font-extrabold">
-                                        Outreach Activation, Website Button & Mobilizer Team Control
+                                        Activate Registration
                                     </h3>
                                     <p className="text-xs text-gray-500 dark:text-slate-400 mt-0.5">
-                                        Control whether the Outreach button appears on the public website, select the active outreach campaign, and assign the staff/mobilizers registering students.
+                                        Activate standard student registration on the website, or switch to an Outreach Event when running field mobilization.
                                     </p>
                                 </div>
                             </div>
@@ -3821,18 +3839,18 @@ const AdminRegistrations: React.FC = () => {
                             </button>
                         </div>
 
-                        {/* STEP 1: PUBLIC WEBSITE BUTTON VISIBILITY */}
+                        {/* STEP 1: PUBLIC WEBSITE REGISTRATION BUTTON VISIBILITY */}
                         <div className="p-4 rounded-2xl bg-gray-50 dark:bg-slate-950/70 border border-gray-200 dark:border-slate-800 space-y-3">
                             <div className="flex items-center justify-between gap-3">
                                 <div>
                                     <span className="text-[11px] font-extrabold uppercase tracking-wider text-violet-600 dark:text-violet-400">
-                                        Step 1 • Public Website Outreach Button Visibility
+                                        1 • Public Website Registration Button
                                     </span>
                                     <h4 className="text-sm font-bold text-gray-900 dark:text-white mt-0.5">
-                                        Show &ldquo;{websiteButtonLabel || 'Join an Outreach Event'}&rdquo; Button on Public Website
+                                        Activate Hero Registration Button on Public Website
                                     </h4>
                                     <p className="text-xs text-gray-500 dark:text-slate-400 mt-0.5">
-                                        When OFF, the &ldquo;Join an Outreach Event&rdquo; hero button on the website is hidden, while &ldquo;Register Now&rdquo; in the navbar, the footer link, and <code className="font-mono text-violet-600 dark:text-violet-400">/register</code> remain active as usual.
+                                        When OFF, the secondary hero button is hidden while &ldquo;Register Now&rdquo; in the navbar, the footer link, and <code className="font-mono text-violet-600 dark:text-violet-400">/register</code> remain active.
                                     </p>
                                 </div>
 
@@ -3846,157 +3864,225 @@ const AdminRegistrations: React.FC = () => {
                                     }`}
                                 >
                                     <span className={`w-2.5 h-2.5 rounded-full ${websiteButtonVisible ? 'bg-white' : 'bg-gray-500'}`} />
-                                    {websiteButtonVisible ? 'ON (Visible on Website)' : 'OFF (Hidden on Website)'}
+                                    {websiteButtonVisible ? 'ACTIVE (Visible on Website)' : 'OFF (Hidden on Website)'}
                                 </button>
                             </div>
 
                             {websiteButtonVisible && (
                                 <div className="pt-2 border-t border-gray-200/70 dark:border-slate-800">
                                     <label className="block text-[11px] font-bold text-gray-500 dark:text-slate-400 mb-1">
-                                        Public Website Button Text
+                                        Website Hero Button Label
                                     </label>
                                     <input
                                         type="text"
                                         value={websiteButtonLabel}
                                         onChange={(e) => setWebsiteButtonLabel(e.target.value)}
-                                        placeholder="Join an Outreach Event"
+                                        placeholder={outreachModeEnabled ? 'Join an Outreach Event' : 'Register for AI Classes'}
                                         className="w-full p-2.5 rounded-xl bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 text-xs font-bold"
                                     />
                                 </div>
                             )}
                         </div>
 
-                        {/* STEP 2: ACTIVE OUTREACH CAMPAIGN */}
+                        {/* STEP 2: NORMAL REGISTRATION (DEFAULT) VS OUTREACH EVENT MODE */}
                         <div className="p-4 rounded-2xl bg-gray-50 dark:bg-slate-950/70 border border-gray-200 dark:border-slate-800 space-y-3">
-                            <div className="flex items-center justify-between gap-2">
-                                <div>
-                                    <span className="text-[11px] font-extrabold uppercase tracking-wider text-amber-600 dark:text-amber-400">
-                                        Step 2 • Active Outreach Event
-                                    </span>
-                                    <h4 className="text-sm font-bold text-gray-900 dark:text-white mt-0.5">
-                                        Select Active Outreach Campaign for Registration Form
-                                    </h4>
-                                </div>
-                                <button
-                                    type="button"
-                                    onClick={() => {
-                                        setShowLaunchControlModal(false);
-                                        setShowCampaignModal(true);
-                                    }}
-                                    className="text-xs font-bold text-violet-600 dark:text-violet-400 hover:underline cursor-pointer"
-                                >
-                                    + Create / Manage Outreaches
-                                </button>
-                            </div>
-
-                            <select
-                                value={activeOutreachName}
-                                onChange={(e) => setActiveOutreachName(e.target.value)}
-                                className="w-full p-2.5 rounded-xl bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 text-xs font-bold"
-                            >
-                                {campaigns.map(c => (
-                                    <option key={c.name} value={c.name}>
-                                        {c.name} ({c.location} • {c.event_date})
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
-
-                        {/* STEP 3: MOBILIZATION TEAM (PEOPLE REGISTERING STUDENTS) */}
-                        <div className="p-4 rounded-2xl bg-gray-50 dark:bg-slate-950/70 border border-gray-200 dark:border-slate-800 space-y-3">
-                            <div className="flex items-center justify-between gap-2">
-                                <div>
-                                    <span className="text-[11px] font-extrabold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">
-                                        Step 3 • Active Mobilization Staff (People Registering Students)
-                                    </span>
-                                    <h4 className="text-sm font-bold text-gray-900 dark:text-white mt-0.5">
-                                        Select Staff & Mobilizers on Duty for This Outreach
-                                    </h4>
-                                </div>
-                                <button
-                                    type="button"
-                                    onClick={() => {
-                                        setShowLaunchControlModal(false);
-                                        setShowStaffModal(true);
-                                    }}
-                                    className="text-xs font-bold text-emerald-600 dark:text-emerald-400 hover:underline cursor-pointer"
-                                >
-                                    + Add New Staff Member
-                                </button>
-                            </div>
-
                             <div>
-                                <label className="block text-[11px] font-bold text-gray-500 dark:text-slate-400 mb-1">
-                                    Default Pre-selected Booth Registrar on <code className="font-mono">/register</code>
-                                </label>
-                                <select
-                                    value={defaultRegistrarName}
-                                    onChange={(e) => setDefaultRegistrarName(e.target.value)}
-                                    className="w-full p-2.5 rounded-xl bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 text-xs font-bold"
-                                >
-                                    {staffRoster.map(st => (
-                                        <option key={st.id} value={st.name}>
-                                            👤 {st.name} — {st.role} ({st.staffCode})
-                                        </option>
-                                    ))}
-                                </select>
+                                <span className="text-[11px] font-extrabold uppercase tracking-wider text-violet-600 dark:text-violet-400">
+                                    2 • Registration Type
+                                </span>
+                                <h4 className="text-sm font-bold text-gray-900 dark:text-white mt-0.5">
+                                    Choose Normal Registration or Create / Select an Outreach
+                                </h4>
+                                <p className="text-xs text-gray-500 dark:text-slate-400 mt-0.5">
+                                    Ideally keep this on <strong>Normal Student Registration</strong> (no outreach or staff fields). Select <strong>Outreach Event</strong> only when running an outreach with mobilizers.
+                                </p>
                             </div>
 
-                            <div className="space-y-1.5 max-h-48 overflow-y-auto pr-1 pt-1">
-                                {staffRoster.map(st => {
-                                    const isChecked = activeStaffIds.includes(st.id);
-                                    return (
-                                        <div
-                                            key={st.id}
-                                            onClick={() => toggleStaffIdInLaunch(st.id)}
-                                            className={`p-2.5 rounded-xl border text-xs flex items-center justify-between gap-2 cursor-pointer transition-all ${
-                                                isChecked
-                                                    ? 'bg-white dark:bg-slate-900 border-emerald-300 dark:border-emerald-800/70'
-                                                    : 'bg-gray-100/60 dark:bg-slate-900/40 border-gray-200 dark:border-slate-800 opacity-60'
-                                            }`}
-                                        >
-                                            <div className="flex items-center gap-2.5">
-                                                <input
-                                                    type="checkbox"
-                                                    checked={isChecked}
-                                                    onChange={() => {}}
-                                                    className="rounded text-emerald-600 focus:ring-emerald-500"
-                                                />
-                                                <div>
-                                                    <span className="font-bold text-gray-900 dark:text-white">{st.name}</span>
-                                                    <span className="ml-2 px-1.5 py-0.5 rounded bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 text-[10px] font-semibold">
-                                                        {st.role}
-                                                    </span>
-                                                </div>
-                                            </div>
-                                            <button
-                                                type="button"
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    setQrEventName(activeOutreachName);
-                                                    setQrStaffName(st.name);
-                                                    setShowLaunchControlModal(false);
-                                                    setShowQrModal(true);
-                                                }}
-                                                className="px-2 py-1 rounded-lg bg-violet-50 dark:bg-violet-950/50 text-violet-700 dark:text-violet-300 text-[10px] font-bold hover:bg-violet-100 cursor-pointer flex items-center gap-1"
-                                            >
-                                                <QrCode size={11} /> QR Link
-                                            </button>
-                                        </div>
-                                    );
-                                })}
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        setOutreachModeEnabled(false);
+                                        if (websiteButtonLabel === 'Join an Outreach Event') {
+                                            setWebsiteButtonLabel('Register for AI Classes');
+                                        }
+                                    }}
+                                    className={`p-3.5 rounded-2xl border text-left transition-all cursor-pointer ${
+                                        !outreachModeEnabled
+                                            ? 'bg-violet-600 text-white border-violet-600 shadow-sm'
+                                            : 'bg-white dark:bg-slate-900 text-gray-700 dark:text-slate-300 border-gray-200 dark:border-slate-800 hover:border-violet-400'
+                                    }`}
+                                >
+                                    <div className="text-xs font-extrabold flex items-center justify-between">
+                                        <span>🎓 Normal Student Registration</span>
+                                        {!outreachModeEnabled && <Check size={14} />}
+                                    </div>
+                                    <p className={`text-[11px] mt-1 ${!outreachModeEnabled ? 'text-violet-100' : 'text-gray-500 dark:text-slate-400'}`}>
+                                        Standard registration without outreach or staff mobilizer fields (Recommended Default)
+                                    </p>
+                                </button>
+
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        setOutreachModeEnabled(true);
+                                        if (websiteButtonLabel === 'Register for AI Classes') {
+                                            setWebsiteButtonLabel('Join an Outreach Event');
+                                        }
+                                    }}
+                                    className={`p-3.5 rounded-2xl border text-left transition-all cursor-pointer ${
+                                        outreachModeEnabled
+                                            ? 'bg-emerald-600 text-white border-emerald-600 shadow-sm'
+                                            : 'bg-white dark:bg-slate-900 text-gray-700 dark:text-slate-300 border-gray-200 dark:border-slate-800 hover:border-emerald-400'
+                                    }`}
+                                >
+                                    <div className="text-xs font-extrabold flex items-center justify-between">
+                                        <span>📣 Create / Select an Outreach</span>
+                                        {outreachModeEnabled && <Check size={14} />}
+                                    </div>
+                                    <p className={`text-[11px] mt-1 ${outreachModeEnabled ? 'text-emerald-100' : 'text-gray-500 dark:text-slate-400'}`}>
+                                        Reveals outreach campaign & people registering (mobilizers/staff)
+                                    </p>
+                                </button>
                             </div>
                         </div>
+
+                        {/* OUTREACH & PEOPLE REGISTERING SECTIONS — ONLY VISIBLE WHEN OUTREACH MODE IS SELECTED */}
+                        {outreachModeEnabled && (
+                            <div className="space-y-4 animate-in fade-in duration-200">
+                                {/* ACTIVE OUTREACH CAMPAIGN */}
+                                <div className="p-4 rounded-2xl bg-amber-50/50 dark:bg-slate-950/70 border border-amber-200/80 dark:border-slate-800 space-y-3">
+                                    <div className="flex items-center justify-between gap-2">
+                                        <div>
+                                            <span className="text-[11px] font-extrabold uppercase tracking-wider text-amber-600 dark:text-amber-400">
+                                                Outreach Event • Select or Create Outreach
+                                            </span>
+                                            <h4 className="text-sm font-bold text-gray-900 dark:text-white mt-0.5">
+                                                Active Outreach Campaign for Registration
+                                            </h4>
+                                        </div>
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                setShowLaunchControlModal(false);
+                                                setShowCampaignModal(true);
+                                            }}
+                                            className="text-xs font-bold text-violet-600 dark:text-violet-400 hover:underline cursor-pointer"
+                                        >
+                                            + Create New Outreach
+                                        </button>
+                                    </div>
+
+                                    <select
+                                        value={activeOutreachName}
+                                        onChange={(e) => setActiveOutreachName(e.target.value)}
+                                        className="w-full p-2.5 rounded-xl bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 text-xs font-bold"
+                                    >
+                                        {campaigns.map(c => (
+                                            <option key={c.name} value={c.name}>
+                                                {c.name} ({c.location} • {c.event_date})
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
+
+                                {/* MOBILIZATION TEAM (PEOPLE REGISTERING STUDENTS) */}
+                                <div className="p-4 rounded-2xl bg-emerald-50/40 dark:bg-slate-950/70 border border-emerald-200/80 dark:border-slate-800 space-y-3">
+                                    <div className="flex items-center justify-between gap-2">
+                                        <div>
+                                            <span className="text-[11px] font-extrabold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">
+                                                Mobilization Team • People Registering Students
+                                            </span>
+                                            <h4 className="text-sm font-bold text-gray-900 dark:text-white mt-0.5">
+                                                Select Staff & Mobilizers on Duty for This Outreach
+                                            </h4>
+                                        </div>
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                setShowLaunchControlModal(false);
+                                                setShowStaffModal(true);
+                                            }}
+                                            className="text-xs font-bold text-emerald-600 dark:text-emerald-400 hover:underline cursor-pointer"
+                                        >
+                                            + Add New Staff Member
+                                        </button>
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-[11px] font-bold text-gray-500 dark:text-slate-400 mb-1">
+                                            Default Pre-selected Booth Registrar on <code className="font-mono">/register</code>
+                                        </label>
+                                        <select
+                                            value={defaultRegistrarName}
+                                            onChange={(e) => setDefaultRegistrarName(e.target.value)}
+                                            className="w-full p-2.5 rounded-xl bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 text-xs font-bold"
+                                        >
+                                            {staffRoster.map(st => (
+                                                <option key={st.id} value={st.name}>
+                                                    👤 {st.name} — {st.role} ({st.staffCode})
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </div>
+
+                                    <div className="space-y-1.5 max-h-48 overflow-y-auto pr-1 pt-1">
+                                        {staffRoster.map(st => {
+                                            const isChecked = activeStaffIds.includes(st.id);
+                                            return (
+                                                <div
+                                                    key={st.id}
+                                                    onClick={() => toggleStaffIdInLaunch(st.id)}
+                                                    className={`p-2.5 rounded-xl border text-xs flex items-center justify-between gap-2 cursor-pointer transition-all ${
+                                                        isChecked
+                                                            ? 'bg-white dark:bg-slate-900 border-emerald-300 dark:border-emerald-800/70'
+                                                            : 'bg-gray-100/60 dark:bg-slate-900/40 border-gray-200 dark:border-slate-800 opacity-60'
+                                                    }`}
+                                                >
+                                                    <div className="flex items-center gap-2.5">
+                                                        <input
+                                                            type="checkbox"
+                                                            checked={isChecked}
+                                                            onChange={() => {}}
+                                                            className="rounded text-emerald-600 focus:ring-emerald-500"
+                                                        />
+                                                        <div>
+                                                            <span className="font-bold text-gray-900 dark:text-white">{st.name}</span>
+                                                            <span className="ml-2 px-1.5 py-0.5 rounded bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 text-[10px] font-semibold">
+                                                                {st.role}
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                    <button
+                                                        type="button"
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            setQrEventName(activeOutreachName);
+                                                            setQrStaffName(st.name);
+                                                            setShowLaunchControlModal(false);
+                                                            setShowQrModal(true);
+                                                        }}
+                                                        className="px-2 py-1 rounded-lg bg-violet-50 dark:bg-violet-950/50 text-violet-700 dark:text-violet-300 text-[10px] font-bold hover:bg-violet-100 cursor-pointer flex items-center gap-1"
+                                                    >
+                                                        <QrCode size={11} /> QR Link
+                                                    </button>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                </div>
+                            </div>
+                        )}
 
                         <div className="flex items-center justify-between gap-3 pt-2 border-t border-gray-200 dark:border-slate-800">
                             <div className="text-xs">
                                 {savedLaunchSettings ? (
                                     <span className="text-emerald-600 dark:text-emerald-400 font-bold flex items-center gap-1">
-                                        <CheckCircle2 size={14} /> Live Outreach & Website Settings Saved!
+                                        <CheckCircle2 size={14} /> Live Registration Settings Saved!
                                     </span>
                                 ) : (
                                     <span className="text-gray-500 dark:text-slate-400">
-                                        Direct link: <code className="font-mono text-violet-600 dark:text-violet-400">/register</code> is always active for QR & staff tablets
+                                        Current mode: <strong className="text-violet-600 dark:text-violet-400">{outreachModeEnabled ? 'Outreach Event' : 'Normal Registration'}</strong>
                                     </span>
                                 )}
                             </div>

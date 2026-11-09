@@ -40,7 +40,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLoginClick, onSignupClick, 
 
     const [currency, setCurrency] = useState<CurrencyType>(getCurrencyPreference);
     const [outreachButtonVisible, setOutreachButtonVisible] = useState<boolean>(false);
-    const [outreachButtonLabel, setOutreachButtonLabel] = useState<string>('Join an Outreach Event');
+    const [outreachButtonLabel, setOutreachButtonLabel] = useState<string>('Register for AI Classes');
     const [outreachTargetUrl, setOutreachTargetUrl] = useState<string>('/register');
 
     useEffect(() => {
@@ -49,8 +49,10 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLoginClick, onSignupClick, 
             setOutreachButtonVisible(Boolean(ps.website_button_visible));
             if (ps.website_button_label && String(ps.website_button_label).trim()) {
                 setOutreachButtonLabel(String(ps.website_button_label).trim());
+            } else {
+                setOutreachButtonLabel(ps.outreach_mode_enabled ? 'Join an Outreach Event' : 'Register for AI Classes');
             }
-            if (ps.active_campaign_name && String(ps.active_campaign_name).trim()) {
+            if (ps.outreach_mode_enabled && ps.active_campaign_name && String(ps.active_campaign_name).trim()) {
                 setOutreachTargetUrl(`/register?event=${encodeURIComponent(String(ps.active_campaign_name).trim())}`);
             } else {
                 setOutreachTargetUrl('/register');
