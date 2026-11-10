@@ -4,7 +4,7 @@ import {
     Loader2, Sparkles, ArrowRight, TrendingUp, Tag, Lock, BookOpen,
     Building2, Crown, ChevronDown, ChevronUp, PhoneCall
 } from 'lucide-react';
-import { formatAmount, getExchangeRate, getBaseExchangeRate, getMarkup, fetchLiveExchangeRate } from '../../src/lib/currency';
+import { formatAmount, getExchangeRate, getBaseExchangeRate, getMarkup, fetchLiveExchangeRate, getCurrencyPreference, setCurrencyPreference, CurrencyType } from '../../src/lib/currency';
 import { supabaseClient } from '../../src/lib/supabaseClient';
 
 interface MarzPayCheckoutModalProps {
@@ -37,6 +37,7 @@ export const MarzPayCheckoutModal: React.FC<MarzPayCheckoutModalProps> = ({
     const [phoneNumber, setPhoneNumber] = useState('');
     const [premiumOption, setPremiumOption] = useState<'full' | 'installment'>('full');
     const [showPromoBox, setShowPromoBox] = useState(false);
+    const [displayCurrency, setDisplayCurrency] = useState<CurrencyType>(getCurrencyPreference);
 
     // Live exchange rate state (Base rate + 300 UGX increase)
     const [effectiveRate, setEffectiveRate] = useState<number>(getExchangeRate);
@@ -100,10 +101,16 @@ export const MarzPayCheckoutModal: React.FC<MarzPayCheckoutModalProps> = ({
         const handleRateChange = () => {
             setEffectiveRate(getExchangeRate());
             setBaseRate(getBaseExchangeRate());
+            setDisplayCurrency(getCurrencyPreference());
         };
         window.addEventListener('currency-change', handleRateChange);
         return () => window.removeEventListener('currency-change', handleRateChange);
     }, []);
+
+    const handleSwitchCurrency = (cur: CurrencyType) => {
+        setDisplayCurrency(cur);
+        setCurrencyPreference(cur);
+    };
 
     const getCountryDialCode = (c: string) => {
         switch (c) {
@@ -574,10 +581,19 @@ export const MarzPayCheckoutModal: React.FC<MarzPayCheckoutModalProps> = ({
                                             {isPromoApplied ? (
                                                 <div className="flex sm:flex-col items-baseline sm:items-end gap-2 sm:gap-0">
                                                     <span className="text-xs line-through text-slate-400">
-                                                        UGX {baseUgxAmount.toLocaleString()}
+                                                        {displayCurrency === 'USD' ? `$${usdPrice} USD` : `UGX ${baseUgxAmount.toLocaleString()}`}
                                                     </span>
                                                     <span className="text-lg sm:text-xl font-black text-emerald-400">
-                                                        UGX 1,000
+                                                        {displayCurrency === 'USD' ? `$${(1000 / effectiveRate).toFixed(2)} USD` : 'UGX 1,000'}
+                                                    </span>
+                                                </div>
+                                            ) : displayCurrency === 'USD' ? (
+                                                <div className="flex sm:flex-col items-baseline sm:items-end gap-2 sm:gap-0">
+                                                    <span className="text-lg sm:text-xl font-black text-white">
+                                                        ${(!isPro && !isCorp && premiumOption === 'installment') ? Math.round(usdPrice / 3) : usdPrice} USD
+                                                    </span>
+                                                    <span className="text-[11px] font-semibold text-violet-300">
+                                                        ≈ UGX {baseUgxAmount.toLocaleString()}
                                                     </span>
                                                 </div>
                                             ) : (
@@ -586,7 +602,7 @@ export const MarzPayCheckoutModal: React.FC<MarzPayCheckoutModalProps> = ({
                                                         UGX {baseUgxAmount.toLocaleString()}
                                                     </span>
                                                     <span className="text-[11px] font-semibold text-violet-300">
-                                                        ${usdPrice} USD
+                                                        ≈ ${(!isPro && !isCorp && premiumOption === 'installment') ? Math.round(usdPrice / 3) : usdPrice} USD
                                                     </span>
                                                 </div>
                                             )}
@@ -594,15 +610,36 @@ export const MarzPayCheckoutModal: React.FC<MarzPayCheckoutModalProps> = ({
                                     </div>
                                 </div>
 
-                                {/* Compact Live Rate Footer inside Summary Card */}
+                                {/* Compact Live Rate Footer + Interactive USD / UGX Conversion Toggle */}
                                 <div className="relative z-10 mt-3 pt-2.5 border-t border-white/10 flex flex-wrap items-center justify-between gap-2 text-[11px] text-slate-300">
-                                    <span className="flex items-center gap-1.5 text-slate-400">
+                                    <span className="flex items-center gap-1.5 text-slate-300">
                                         <TrendingUp size={12} className="text-emerald-400 shrink-0" />
-                                        <span>Exchange Rate:</span>
+                                        <span className="font-mono font-semibold">$1 USD = UGX {effectiveRate.toLocaleString()}</span>
                                     </span>
-                                    <span className="font-mono font-semibold text-slate-200">
-                                        $1 USD = UGX {effectiveRate.toLocaleString()}
-                                    </span>
+                                    <div className="inline-flex items-center bg-white/10 p-0.5 rounded-lg border border-white/15">
+                                        <button
+                                            type="button"
+                                            onClick={() => handleSwitchCurrency('UGX')}
+                                            className={`px-2 py-0.5 rounded-md text-[10px] font-extrabold transition-all cursor-pointer ${
+                                                displayCurrency === 'UGX'
+                                                    ? 'bg-violet-500 text-white shadow-sm'
+                                                    : 'text-slate-300 hover:text-white'
+                                            }`}
+                                        >
+                                            UGX
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => handleSwitchCurrency('USD')}
+                                            className={`px-2 py-0.5 rounded-md text-[10px] font-extrabold transition-all cursor-pointer ${
+                                                displayCurrency === 'USD'
+                                                    ? 'bg-violet-500 text-white shadow-sm'
+                                                    : 'text-slate-300 hover:text-white'
+                                            }`}
+                                        >
+                                            USD ($)
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
 
@@ -897,7 +934,9 @@ export const MarzPayCheckoutModal: React.FC<MarzPayCheckoutModalProps> = ({
                                             Total Due Today
                                         </span>
                                         <span className="text-base sm:text-lg font-black text-slate-900 dark:text-white">
-                                            UGX {finalPayableUgx.toLocaleString()}
+                                            {displayCurrency === 'USD'
+                                                ? `$${isPromoApplied ? (1000 / effectiveRate).toFixed(2) : (!isPro && !isCorp && premiumOption === 'installment' ? Math.round(usdPrice / 3) : usdPrice)} USD (UGX ${finalPayableUgx.toLocaleString()})`
+                                                : `UGX ${finalPayableUgx.toLocaleString()} ($${isPromoApplied ? (1000 / effectiveRate).toFixed(2) : (!isPro && !isCorp && premiumOption === 'installment' ? Math.round(usdPrice / 3) : usdPrice)})`}
                                         </span>
                                     </div>
                                 </div>
@@ -917,7 +956,9 @@ export const MarzPayCheckoutModal: React.FC<MarzPayCheckoutModalProps> = ({
                                         <>
                                             <Lock size={15} className="shrink-0" />
                                             <span className="truncate">
-                                                Pay UGX {finalPayableUgx.toLocaleString()} via {method === 'mobile_money' ? 'Mobile Money' : 'Card'}
+                                                Pay {displayCurrency === 'USD'
+                                                    ? `$${isPromoApplied ? (1000 / effectiveRate).toFixed(2) : (!isPro && !isCorp && premiumOption === 'installment' ? Math.round(usdPrice / 3) : usdPrice)} USD`
+                                                    : `UGX ${finalPayableUgx.toLocaleString()}`} via {method === 'mobile_money' ? 'Mobile Money' : 'Card'}
                                             </span>
                                             <ArrowRight size={16} className="shrink-0" />
                                         </>

@@ -98,11 +98,14 @@ if (typeof window !== 'undefined') {
 }
 
 export const getCurrencyPreference = (): CurrencyType => {
-  return (localStorage.getItem('schoolofai-currency') as CurrencyType) || 'USD';
+  return (localStorage.getItem('schoolofai-currency') as CurrencyType) ||
+         (localStorage.getItem('user_currency_preference') as CurrencyType) ||
+         'USD';
 };
 
 export const setCurrencyPreference = (currency: CurrencyType) => {
   localStorage.setItem('schoolofai-currency', currency);
+  localStorage.setItem('user_currency_preference', currency);
   window.dispatchEvent(new Event('currency-change'));
 };
 

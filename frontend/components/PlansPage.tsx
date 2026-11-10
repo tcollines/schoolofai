@@ -4,7 +4,7 @@ import { CheckCircle, Sparkles, X, Loader, Star, Smartphone, Landmark, TrendingU
 import { UserRole } from '../types';
 import { useTranslation } from './translations';
 import { supabaseClient } from '../src/lib/supabaseClient';
-import { formatAmount, getCurrencyPreference, CurrencyType, getExchangeRate } from '../src/lib/currency';
+import { formatAmount, getCurrencyPreference, setCurrencyPreference, CurrencyType, getExchangeRate } from '../src/lib/currency';
 import MarzPayCheckoutModal from './payments/MarzPayCheckoutModal';
 
 interface PlansPageProps {
@@ -97,14 +97,30 @@ const PlansPage: React.FC<PlansPageProps> = ({ user, currentPlan, onUpgrade, onB
 
     return (
         <div className="max-w-6xl mx-auto">
-            <div className="flex items-center justify-between mb-8">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
                 <div>
-                    <div className="flex items-center gap-3">
+                    <div className="flex flex-wrap items-center gap-3">
                         <h2 className="text-3xl font-bold text-gray-900 dark:text-white">{t('subscription_plans')}</h2>
-                        <span className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1 bg-violet-50 dark:bg-violet-950/40 border border-violet-200 dark:border-violet-900/50 rounded-full text-xs font-bold text-violet-700 dark:text-violet-300">
+                        <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-violet-50 dark:bg-violet-950/40 border border-violet-200 dark:border-violet-900/50 rounded-full text-xs font-bold text-violet-700 dark:text-violet-300">
                             <TrendingUp size={13} />
                             Live Rate: $1 USD = {getExchangeRate().toLocaleString()} UGX
                         </span>
+                        <div className="inline-flex items-center gap-1 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 p-1 rounded-xl shadow-sm text-xs font-bold">
+                            <button
+                                type="button"
+                                onClick={() => setCurrencyPreference('USD')}
+                                className={`px-3 py-1 rounded-lg transition-all cursor-pointer ${currency === 'USD' ? 'bg-violet-600 text-white shadow' : 'text-gray-500 dark:text-slate-400 hover:text-gray-900 dark:hover:text-white'}`}
+                            >
+                                USD ($)
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => setCurrencyPreference('UGX')}
+                                className={`px-3 py-1 rounded-lg transition-all cursor-pointer ${currency === 'UGX' ? 'bg-violet-600 text-white shadow' : 'text-gray-500 dark:text-slate-400 hover:text-gray-900 dark:hover:text-white'}`}
+                            >
+                                UGX (USh)
+                            </button>
+                        </div>
                     </div>
                     <p className="text-gray-500 dark:text-slate-400 mt-2">{t('choose_plan')}</p>
                 </div>
@@ -346,7 +362,7 @@ const PlansPage: React.FC<PlansPageProps> = ({ user, currentPlan, onUpgrade, onB
                                 <span className="text-sm font-medium text-gray-500 dark:text-slate-400">/ seat</span>
                             </div>
                             <p className="text-xs text-gray-500 dark:text-slate-400 mb-6 min-h-[32px]">
-                                10–49 seats: $20/seat • 50+ seats: $15/seat.
+                                10–49 seats: {formatAmount(20)}/seat • 50+ seats: {formatAmount(15)}/seat.
                             </p>
 
                             <div className="mb-6 space-y-2">

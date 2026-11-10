@@ -208,7 +208,7 @@ const CourseOverview: React.FC<CourseOverviewProps> = ({ courses, onEnroll, onUn
                     <div className="w-full md:w-auto flex flex-col items-center md:items-end gap-3 border-t md:border-t-0 pt-6 md:pt-0 border-gray-100 dark:border-slate-800">
                         <div className="text-center md:text-right">
                             <span className={`text-3xl font-black ${course.accessTier === 'PAID' ? 'text-amber-600 dark:text-amber-400' : 'text-gray-900 dark:text-white'}`}>
-                                {course.accessTier === 'PAID' ? 'Premium' : course.price === 0 ? 'Free' : `$${course.price}`}
+                                {course.accessTier === 'PAID' ? (course.price ? formatAmount(course.price) : 'Premium') : course.price === 0 ? 'Free' : formatAmount(course.price)}
                             </span>
                             <p className="text-xs text-gray-500 dark:text-slate-400 font-medium">
                                 {course.accessTier === 'PAID' ? 'Requires Subscription' : 'Lifetime Access'}
@@ -227,7 +227,7 @@ const CourseOverview: React.FC<CourseOverviewProps> = ({ courses, onEnroll, onUn
                                     }}
                                     className="w-full md:w-auto px-6 py-3.5 rounded-xl text-base font-bold transition-colors flex items-center justify-center gap-2 shadow-sm bg-violet-600 hover:bg-violet-750 text-white cursor-pointer"
                                 >
-                                    Buy Course (${course.price || 49})
+                                    Buy Course ({formatAmount(course.price || 49)})
                                 </button>
                             )}
                             <button

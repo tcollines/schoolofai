@@ -25,7 +25,7 @@ import {
     Building2,
     TrendingUp
 } from 'lucide-react';
-import { formatAmount, getCurrencyPreference, getExchangeRate, CurrencyType } from '../src/lib/currency';
+import { formatAmount, getCurrencyPreference, setCurrencyPreference, getExchangeRate, CurrencyType } from '../src/lib/currency';
 
 interface LandingPageProps {
     onLoginClick?: () => void;
@@ -104,8 +104,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLoginClick, onSignupClick, 
 
     const handleCurrencyToggle = (cur: CurrencyType) => {
         setCurrency(cur);
-        localStorage.setItem('user_currency_preference', cur);
-        window.dispatchEvent(new Event('currency-change'));
+        setCurrencyPreference(cur);
     };
 
     const [showInquiryModal, setShowInquiryModal] = useState(false);
@@ -662,7 +661,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLoginClick, onSignupClick, 
                                     <span className="text-sm font-medium text-gray-500 dark:text-slate-400">/ seat</span>
                                 </div>
                                 <p className="text-xs text-gray-500 dark:text-slate-400 mb-6 min-h-[32px]">
-                                    10–49 seats: $20/seat • 50+ seats: $15/seat.
+                                    10–49 seats: {formatAmount(20)}/seat • 50+ seats: {formatAmount(15)}/seat.
                                 </p>
 
                                 <div className="mb-6 space-y-2">

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { supabase } from '../../src/lib/supabaseClient';
 import { Check, ArrowRight, Loader2, Star, AlertTriangle, Sparkles, Zap, Building2, Users } from 'lucide-react';
 import MarzPayCheckoutModal from '../payments/MarzPayCheckoutModal';
+import { formatAmount, getCurrencyPreference, setCurrencyPreference, CurrencyType } from '../../src/lib/currency';
 
 const PaymentPlanSetup: React.FC = () => {
     const navigate = useNavigate();
@@ -10,6 +11,13 @@ const PaymentPlanSetup: React.FC = () => {
     const [error, setError] = useState<string | null>(null);
     const [currentUser, setCurrentUser] = useState<any>(null);
     const [selectedPaidPlan, setSelectedPaidPlan] = useState<'pro' | 'premium' | null>(null);
+    const [currency, setCurrency] = useState<CurrencyType>(getCurrencyPreference);
+
+    useEffect(() => {
+        const handleCurrencyChange = () => setCurrency(getCurrencyPreference());
+        window.addEventListener('currency-change', handleCurrencyChange);
+        return () => window.removeEventListener('currency-change', handleCurrencyChange);
+    }, []);
 
     useEffect(() => {
         supabase.auth.getUser().then(({ data: { user } }) => {
@@ -63,9 +71,25 @@ const PaymentPlanSetup: React.FC = () => {
                 <div className="text-center mb-14">
                     <h2 className="text-xs sm:text-sm font-extrabold text-violet-600 dark:text-violet-400 tracking-widest uppercase mb-2">Pricing Plans</h2>
                     <h1 className="text-3xl sm:text-5xl font-black text-gray-900 dark:text-white mb-4 tracking-tight">Choose your learning path</h1>
-                    <p className="text-base sm:text-lg text-gray-500 dark:text-slate-400 max-w-2xl mx-auto">
+                    <p className="text-base sm:text-lg text-gray-500 dark:text-slate-400 max-w-2xl mx-auto mb-5">
                         Unlock your full potential with our flexible learning plans. Upgrade anytime.
                     </p>
+                    <div className="inline-flex items-center gap-1 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 p-1 rounded-xl shadow-sm text-xs font-bold">
+                        <button
+                            type="button"
+                            onClick={() => setCurrencyPreference('USD')}
+                            className={`px-3.5 py-1.5 rounded-lg transition-all cursor-pointer ${currency === 'USD' ? 'bg-violet-600 text-white shadow' : 'text-gray-500 dark:text-slate-400 hover:text-gray-900 dark:hover:text-white'}`}
+                        >
+                            USD ($)
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => setCurrencyPreference('UGX')}
+                            className={`px-3.5 py-1.5 rounded-lg transition-all cursor-pointer ${currency === 'UGX' ? 'bg-violet-600 text-white shadow' : 'text-gray-500 dark:text-slate-400 hover:text-gray-900 dark:hover:text-white'}`}
+                        >
+                            UGX (USh)
+                        </button>
+                    </div>
                 </div>
 
                 {error && (
@@ -122,7 +146,7 @@ const PaymentPlanSetup: React.FC = () => {
                                 <p className="text-gray-500 dark:text-slate-400 text-sm">Full monthly access for dedicated learners</p>
                             </div>
                             <div className="mb-8 flex items-baseline gap-2">
-                                <span className="text-5xl font-black text-gray-900 dark:text-white">$25</span>
+                                <span className="text-4xl sm:text-5xl font-black text-gray-900 dark:text-white">{formatAmount(25)}</span>
                                 <span className="text-gray-500 dark:text-slate-400 font-semibold">/ month</span>
                             </div>
                             <ul className="space-y-4 mb-8">
@@ -164,7 +188,7 @@ const PaymentPlanSetup: React.FC = () => {
                                 <p className="text-violet-200 text-sm">One-time payment • Lifetime access</p>
                             </div>
                             <div className="mb-8 flex items-baseline gap-2">
-                                <span className="text-5xl font-black text-white">$150</span>
+                                <span className="text-4xl sm:text-5xl font-black text-white">{formatAmount(150)}</span>
                                 <span className="text-violet-200 font-semibold">/ one time</span>
                             </div>
                             <ul className="space-y-4 mb-8">
@@ -211,7 +235,7 @@ const PaymentPlanSetup: React.FC = () => {
                                 <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-violet-100 dark:bg-violet-950/60 text-violet-700 dark:text-violet-300">CORPORATE</span>
                             </div>
                             <p className="text-sm text-gray-500 dark:text-slate-400">
-                                Corporate plans start at <strong>$20/seat</strong> for 10+ seats or <strong>$15/seat</strong> for 50+ people with dedicated branding, email seat invites & live progress reporting.
+                                Corporate plans start at <strong>{formatAmount(20)}/seat</strong> for 10+ seats or <strong>{formatAmount(15)}/seat</strong> for 50+ people with dedicated branding, email seat invites & live progress reporting.
                             </p>
                         </div>
                     </div>
