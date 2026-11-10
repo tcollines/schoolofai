@@ -309,6 +309,7 @@ function App() {
                   courses={courses} 
                   isAuthenticated={isAuthenticated} 
                   userRole={userProfile?.role}
+                  user={userProfile}
                   onLoginClick={() => window.location.href = '/login'} 
                   onEnroll={async (courseId) => {
                     if (!session?.user?.id) return;

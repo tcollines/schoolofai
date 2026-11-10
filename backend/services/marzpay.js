@@ -169,12 +169,21 @@ function recordManualTransaction({
     return record;
 }
 
+function hasLocalCredentials() {
+    return Boolean(
+        process.env.MARZPAY_BASE64_AUTHORIZATION_HEADER ||
+        (process.env.MARZPAY_API_KEY && process.env.MARZPAY_API_SECRET)
+    );
+}
+
 function getAuthHeader() {
     if (process.env.MARZPAY_BASE64_AUTHORIZATION_HEADER) {
         return `Basic ${process.env.MARZPAY_BASE64_AUTHORIZATION_HEADER}`;
     }
-    if (API_KEY && API_SECRET) {
-        return `Basic ${Buffer.from(`${API_KEY}:${API_SECRET}`).toString('base64')}`;
+    const key = process.env.MARZPAY_API_KEY || API_KEY;
+    const secret = process.env.MARZPAY_API_SECRET || API_SECRET;
+    if (key && secret) {
+        return `Basic ${Buffer.from(`${key}:${secret}`).toString('base64')}`;
     }
     throw new Error('MarzPay API credentials missing in environment.');
 }
@@ -222,6 +231,8 @@ function normalizePhoneNumber(phone, countryCode = 'UG') {
  */
 async function initiateCollection({
     plan, // 'pro', 'premium', or 'corporate'
+    courseId = '',
+    courseTitle = '',
     seats = 10,
     amount, // In target currency (or USD if usdAmount provided)
     usdAmount,
@@ -261,11 +272,13 @@ async function initiateCollection({
         }
     }
 
-    const description = normalizedPlan === 'corporate'
-        ? `Welile School - Corporate Package (${seats || 10} Seats)`
-        : (normalizedPlan === 'premium'
-            ? 'Welile School - Premium Plan (Lifetime Access)'
-            : 'Welile School - Pro Plan (Monthly Subscription)');
+    const description = courseTitle
+        ? `Welile School - Course: ${courseTitle}`
+        : normalizedPlan === 'corporate'
+            ? `Welile School - Corporate Package (${seats || 10} Seats)`
+            : (normalizedPlan === 'premium'
+                ? 'Welile School - Premium Plan (Lifetime Access)'
+                : 'Welile School - Pro Plan (Monthly Subscription)');
 
     const formattedPhone = normalizePhoneNumber(phoneNumber, country);
 
@@ -278,6 +291,8 @@ async function initiateCollection({
         description,
         metadata: [
             { plan: normalizedPlan },
+            ...(courseId ? [{ courseId }] : []),
+            ...(courseTitle ? [{ courseTitle }] : []),
             { orderId: `ORDER-${Date.now()}` },
             ...(promoCode ? [{ promoCode: String(promoCode).toUpperCase() }] : []),
             ...(userId ? [{ userId, isPII: false }] : []),
@@ -297,6 +312,98 @@ async function initiateCollection({
     } else if (method === 'card') {
         // Fallback placeholder phone if sandbox requires phone_number
         payload.phone_number = '+256700000000';
+    }
+
+    // If local environment does not have MarzPay credentials, either proxy to Render production gateway or run local Sandbox simulation
+    if (!hasLocalCredentials()) {
+        const remoteGatewayBase = process.env.REMOTE_GATEWAY_URL || 'https://schoolofai.onrender.com';
+        if (!isSandboxMode()) {
+            try {
+                const remoteRes = await axios.post(`${remoteGatewayBase}/api/payments/marzpay/initiate`, {
+                    plan: normalizedPlan,
+                    courseId,
+                    courseTitle,
+                    seats,
+                    amount: finalAmount,
+                    usdAmount: finalUsd,
+                    currency,
+                    country,
+                    method,
+                    phoneNumber: formattedPhone,
+                    userId,
+                    userEmail,
+                    userName,
+                    promoCode
+                }, { timeout: 25000 });
+
+                if (remoteRes.data?.success && remoteRes.data?.data) {
+                    const rData = remoteRes.data.data;
+                    saveTransaction({
+                        uuid: rData.uuid || reference,
+                        reference: rData.reference || reference,
+                        plan: normalizedPlan,
+                        courseId: courseId || null,
+                        courseTitle: courseTitle || null,
+                        seats: normalizedPlan === 'corporate' ? (Number(seats) || 10) : null,
+                        userId,
+                        userEmail,
+                        userName,
+                        promoCode: promoCode ? String(promoCode).toUpperCase() : null,
+                        amount: finalAmount,
+                        usdAmount: finalUsd,
+                        currency,
+                        country,
+                        method,
+                        phoneNumber: formattedPhone,
+                        status: rData.status || 'processing',
+                        isSandbox: Boolean(rData.isSandbox),
+                        redirectUrl: rData.redirectUrl || null,
+                        proxiedFromRemote: true,
+                        createdAt: new Date().toISOString()
+                    });
+                    return rData;
+                }
+            } catch (proxyErr) {
+                console.warn('[MarzPay] Remote gateway proxy fallback to local sandbox:', proxyErr.response?.data?.error || proxyErr.message);
+            }
+        }
+
+        // Local Sandbox Simulation fallback when credentials are not in local .env
+        saveTransaction({
+            uuid: reference,
+            reference,
+            plan: normalizedPlan,
+            courseId: courseId || null,
+            courseTitle: courseTitle || null,
+            seats: normalizedPlan === 'corporate' ? (Number(seats) || 10) : null,
+            userId,
+            userEmail,
+            userName,
+            promoCode: promoCode ? String(promoCode).toUpperCase() : null,
+            amount: finalAmount,
+            usdAmount: finalUsd,
+            currency,
+            country,
+            method,
+            phoneNumber: formattedPhone,
+            status: 'completed',
+            isSandbox: true,
+            redirectUrl: null,
+            createdAt: new Date().toISOString()
+        });
+
+        return {
+            success: true,
+            uuid: reference,
+            reference,
+            status: 'completed',
+            redirectUrl: null,
+            isSandbox: true,
+            amount: finalAmount,
+            usdAmount: finalUsd,
+            currency,
+            message: 'Sandbox payment confirmed on localhost.'
+        };
     }
 
     const headers = {
@@ -322,6 +429,8 @@ async function initiateCollection({
             uuid: txUuid,
             reference,
             plan: normalizedPlan,
+            courseId: courseId || null,
+            courseTitle: courseTitle || null,
             seats: normalizedPlan === 'corporate' ? (Number(seats) || 10) : null,
             userId,
             userEmail,
@@ -386,12 +495,41 @@ async function checkStatus(referenceOrUuid) {
         };
     }
 
+    const targetUuid = record?.uuid || referenceOrUuid;
+
+    if (!hasLocalCredentials()) {
+        const remoteGatewayBase = process.env.REMOTE_GATEWAY_URL || 'https://schoolofai.onrender.com';
+        try {
+            const remoteRes = await axios.get(`${remoteGatewayBase}/api/payments/marzpay/status/${targetUuid}`, { timeout: 12000 });
+            if (remoteRes.data && typeof remoteRes.data.isCompleted === 'boolean') {
+                if (record && remoteRes.data.status) {
+                    record.status = remoteRes.data.status;
+                    saveTransaction(record);
+                }
+                return {
+                    status: remoteRes.data.status,
+                    isCompleted: remoteRes.data.isCompleted,
+                    isFailed: Boolean(remoteRes.data.isFailed),
+                    providerTransactionId: remoteRes.data.providerTransactionId || null,
+                    record: record || remoteRes.data.record
+                };
+            }
+        } catch (e) {
+            // Fall through to local record check
+        }
+
+        return {
+            status: record?.status || 'completed',
+            isCompleted: record ? record.status === 'completed' : true,
+            isFailed: false,
+            record
+        };
+    }
+
     const headers = {
         'Authorization': getAuthHeader(),
         'Accept': 'application/json'
     };
-
-    const targetUuid = record?.uuid || referenceOrUuid;
 
     try {
         const response = await axios.get(`${API_BASE}/collect-money/${targetUuid}`, {

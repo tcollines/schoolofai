@@ -405,7 +405,7 @@ const marzpayService = require('./services/marzpay');
 const corporateService = require('./services/corporate');
 
 // Helper to upgrade user role upon confirmed payment
-async function upgradeUserRole(userId, plan, txRef = '', userEmail = '', seats = 10) {
+async function upgradeUserRole(userId, plan, txRef = '', userEmail = '', seats = 10, courseId = '') {
     if (!userId) return;
     const isCorp = (plan || '').toUpperCase() === 'CORPORATE';
     const targetRole = isCorp ? 'SPONSORED' : ((plan || '').toUpperCase() === 'PREMIUM' ? 'PREMIUM' : 'PRO');
@@ -437,6 +437,18 @@ async function upgradeUserRole(userId, plan, txRef = '', userEmail = '', seats =
             console.log(`[MarzPay] Successfully upgraded user ${userId} profile to ${targetRole}`);
         }
 
+        // If a specific course was purchased, enroll the user in it
+        if (courseId) {
+            await supabase
+                .from('enrollments')
+                .insert({
+                    user_id: userId,
+                    course_id: courseId,
+                    status: 'IN_PROGRESS',
+                    progress: 0
+                });
+        }
+
         // Sync to Auth metadata if admin is available
         if (supabase.auth?.admin?.updateUserById) {
             await supabase.auth.admin.updateUserById(userId, {
@@ -452,6 +464,8 @@ app.post('/api/payments/marzpay/initiate', async (req, res) => {
     try {
         const {
             plan = 'pro',
+            courseId = '',
+            courseTitle = '',
             seats = 10,
             amount,
             usdAmount,
@@ -483,6 +497,8 @@ app.post('/api/payments/marzpay/initiate', async (req, res) => {
 
         const result = await marzpayService.initiateCollection({
             plan,
+            courseId,
+            courseTitle,
             seats,
             amount: effectiveAmount,
             usdAmount,
@@ -499,7 +515,7 @@ app.post('/api/payments/marzpay/initiate', async (req, res) => {
 
         // If transaction completed immediately (e.g. Sandbox mode), upgrade user right away
         if (result.status === 'completed' && userId) {
-            await upgradeUserRole(userId, plan, result.reference, userEmail, seats);
+            await upgradeUserRole(userId, plan, result.reference, userEmail, seats, courseId);
         }
 
         res.json({
@@ -523,7 +539,8 @@ app.get('/api/payments/marzpay/status/:referenceOrUuid', async (req, res) => {
                 result.record.plan, 
                 result.record.reference || referenceOrUuid,
                 result.record.userEmail,
-                result.record.seats || 10
+                result.record.seats || 10,
+                result.record.courseId || ''
             );
         }
 
@@ -557,10 +574,12 @@ app.post('/api/payments/marzpay/webhook', async (req, res) => {
         const metadataArray = payload.metadata || body.metadata || [];
         let plan = '';
         let userId = '';
+        let courseId = '';
         if (Array.isArray(metadataArray)) {
             for (const item of metadataArray) {
                 if (item.plan) plan = item.plan;
                 if (item.userId) userId = item.userId;
+                if (item.courseId) courseId = item.courseId;
             }
         }
 
@@ -575,11 +594,12 @@ app.post('/api/payments/marzpay/webhook', async (req, res) => {
                 marzpayService.saveTransaction(existing);
                 if (!userId && existing.userId) userId = existing.userId;
                 if (!plan && existing.plan) plan = existing.plan;
+                if (!courseId && existing.courseId) courseId = existing.courseId;
             }
         }
 
         if (isSuccess && userId && plan) {
-            await upgradeUserRole(userId, plan, providerTxId || reference);
+            await upgradeUserRole(userId, plan, providerTxId || reference, '', 10, courseId);
         }
 
         // Return HTTP 200 quickly per webhook conventions

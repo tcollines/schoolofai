@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import { Course, CourseStatus, UserRole } from '../types';
 import { formatAmount, getCurrencyPreference, CurrencyType } from '../src/lib/currency';
+import MarzPayCheckoutModal from './payments/MarzPayCheckoutModal';
 
 // Helper to calculate exact calendar date for a scheduled lesson
 const calculateLessonSchedule = (
@@ -72,12 +73,13 @@ interface CourseOverviewProps {
     onUnenroll?: (courseId: string) => void;
     isAuthenticated: boolean;
     userRole?: UserRole;
+    user?: any;
     onLoginClick: () => void;
     walletBalance?: number;
     onBuyCourse?: (courseId: string) => Promise<boolean>;
 }
 
-const CourseOverview: React.FC<CourseOverviewProps> = ({ courses, onEnroll, onUnenroll, isAuthenticated, userRole, onLoginClick, walletBalance, onBuyCourse }) => {
+const CourseOverview: React.FC<CourseOverviewProps> = ({ courses, onEnroll, onUnenroll, isAuthenticated, userRole, user, onLoginClick, walletBalance, onBuyCourse }) => {
     const { courseId } = useParams<{ courseId: string }>();
     const navigate = useNavigate();
     const [isBuyModalOpen, setIsBuyModalOpen] = useState(false);
@@ -564,8 +566,25 @@ const CourseOverview: React.FC<CourseOverviewProps> = ({ courses, onEnroll, onUn
                 </div>
             </div>
 
-            {/* Purchase Course Modal */}
-            {isBuyModalOpen && (
+            {/* Purchase Course via MarzPay Payment Gateway (Mobile Money & Card) */}
+            <MarzPayCheckoutModal
+                isOpen={isBuyModalOpen}
+                onClose={() => setIsBuyModalOpen(false)}
+                plan="pro"
+                course={{
+                    id: course.id,
+                    title: course.title,
+                    price: course.price || 49
+                }}
+                user={user}
+                onSuccess={() => {
+                    setIsBuyModalOpen(false);
+                    navigate('/courses');
+                }}
+            />
+
+            {/* Legacy Wallet Purchase Modal (retained for reference) */}
+            {false && isBuyModalOpen && (
                 <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
                     <div className="bg-white dark:bg-slate-900 border border-gray-150 dark:border-slate-800 rounded-3xl w-full max-w-md overflow-hidden shadow-2xl p-6 relative">
                         <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4">Confirm Course Purchase</h3>
