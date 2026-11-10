@@ -768,15 +768,15 @@ const OutreachRegistration: React.FC = () => {
     };
 
     return (
-        <div className="min-h-screen bg-[#F8FAFC] dark:bg-[#0B0F17] text-slate-900 dark:text-slate-100 font-sans transition-colors duration-200 flex flex-col justify-between">
+        <div className="min-h-screen w-full overflow-x-hidden bg-[#F8FAFC] dark:bg-[#0B0F17] text-slate-900 dark:text-slate-100 font-sans transition-colors duration-200 flex flex-col justify-between">
             {/* SLEEK MINIMALIST TOP BAR (Stripe / Luma Inspired) */}
-            <header className="sticky top-0 z-40 bg-white/85 dark:bg-[#0B0F17]/85 backdrop-blur-xl border-b border-slate-200/80 dark:border-slate-800/80">
-                <div className="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-3">
-                    <Link to="/" className="flex items-center gap-2.5 shrink-0">
+            <header className="sticky top-0 z-40 w-full bg-white/85 dark:bg-[#0B0F17]/85 backdrop-blur-xl border-b border-slate-200/80 dark:border-slate-800/80">
+                <div className="max-w-6xl mx-auto px-3 sm:px-6 h-14 sm:h-16 flex items-center justify-between gap-2 sm:gap-3">
+                    <Link to="/" className="flex items-center gap-2 sm:gap-2.5 shrink-0 min-w-0">
                         <img
                             src={isDark ? '/logo-white.svg' : '/logo.svg'}
                             alt="Welile School of AI"
-                            className="h-8 w-auto object-contain"
+                            className="h-7 sm:h-8 w-auto object-contain shrink-0"
                         />
                         <div className="hidden sm:block border-l border-slate-200 dark:border-slate-800 pl-2.5">
                             <span className="text-xs font-bold tracking-tight text-slate-900 dark:text-white block leading-none">
@@ -789,20 +789,20 @@ const OutreachRegistration: React.FC = () => {
                     </Link>
 
                     {/* Compact Interactive Booth / Event Pill (Only shows outreach & registrar details when Outreach Mode is active) */}
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-1.5 sm:gap-2 min-w-0">
                         {isOutreachMode ? (
                             <button
                                 type="button"
                                 onClick={() => setShowBoothSettingsModal(true)}
-                                className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-100 hover:bg-slate-200/80 dark:bg-slate-900 dark:hover:bg-slate-800 border border-slate-200/90 dark:border-slate-800 text-xs font-semibold text-slate-700 dark:text-slate-200 transition-all cursor-pointer max-w-[230px] sm:max-w-md"
+                                className="flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1.5 rounded-full bg-slate-100 hover:bg-slate-200/80 dark:bg-slate-900 dark:hover:bg-slate-800 border border-slate-200/90 dark:border-slate-800 text-[11px] sm:text-xs font-semibold text-slate-700 dark:text-slate-200 transition-all cursor-pointer max-w-[190px] sm:max-w-md min-w-0"
                                 title="Configure Outreach Event & Staff Attribution"
                             >
                                 <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0 animate-pulse" />
                                 <span className="truncate font-bold text-violet-600 dark:text-violet-400">
                                     {outreachEvent.split('(')[0].trim()}
                                 </span>
-                                <span className="text-slate-300 dark:text-slate-700">•</span>
-                                <span className="truncate text-slate-600 dark:text-slate-300">
+                                <span className="text-slate-300 dark:text-slate-700 hidden xs:inline">•</span>
+                                <span className="truncate text-slate-600 dark:text-slate-300 hidden xs:inline">
                                     {registrationMode === 'Student Self-Registration' ? 'Self-Service' : effectiveStaffName}
                                 </span>
                                 <SlidersHorizontal size={12} className="text-slate-400 shrink-0 ml-0.5" />
@@ -811,7 +811,7 @@ const OutreachRegistration: React.FC = () => {
                             <button
                                 type="button"
                                 onClick={() => setShowBoothSettingsModal(true)}
-                                className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-100/80 hover:bg-slate-200/80 dark:bg-slate-900 dark:hover:bg-slate-800 border border-slate-200/80 dark:border-slate-800 text-[11px] font-medium text-slate-500 dark:text-slate-400 transition-all cursor-pointer"
+                                className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-full bg-slate-100/80 hover:bg-slate-200/80 dark:bg-slate-900 dark:hover:bg-slate-800 border border-slate-200/80 dark:border-slate-800 text-[11px] font-medium text-slate-500 dark:text-slate-400 transition-all cursor-pointer shrink-0"
                                 title="Switch to Outreach Event Capture Mode"
                             >
                                 <SlidersHorizontal size={12} className="text-slate-400 shrink-0" />
@@ -822,7 +822,7 @@ const OutreachRegistration: React.FC = () => {
                         <button
                             type="button"
                             onClick={toggleTheme}
-                            className="p-2 rounded-full text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+                            className="p-2 rounded-full text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer shrink-0"
                             aria-label="Toggle theme"
                         >
                             {isDark ? <Sun size={17} /> : <Moon size={17} />}
@@ -832,34 +832,34 @@ const OutreachRegistration: React.FC = () => {
             </header>
 
             {/* MAIN CONTENT */}
-            <main className="flex-1 w-full max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-10">
+            <main className="flex-1 w-full max-w-6xl mx-auto px-3 sm:px-6 py-4 sm:py-8 lg:py-10">
                 {submittedRecord ? (
                     /* =========================================================
                        DIGITAL PROVISIONAL PASS (LUMA / STRIPE SUCCESS SCREEN)
                        ========================================================= */
-                    <div className="max-w-xl mx-auto animate-in fade-in zoom-in-95 duration-300">
-                        <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/90 dark:border-slate-800 shadow-xl overflow-hidden">
+                    <div className="max-w-xl mx-auto animate-in fade-in zoom-in-95 duration-300 w-full">
+                        <div className="bg-white dark:bg-slate-900 rounded-2xl sm:rounded-3xl border border-slate-200/90 dark:border-slate-800 shadow-xl overflow-hidden">
                             {/* Top Status Banner */}
-                            <div className="bg-gradient-to-r from-violet-600 to-purple-600 px-6 py-6 text-white">
-                                <div className="flex items-center justify-between mb-3">
-                                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/15 backdrop-blur-sm text-[11px] font-bold uppercase tracking-wider">
+                            <div className="bg-gradient-to-r from-violet-600 to-purple-600 px-4 sm:px-6 py-5 sm:py-6 text-white">
+                                <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
+                                    <span className="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1 rounded-full bg-white/15 backdrop-blur-sm text-[10px] sm:text-[11px] font-bold uppercase tracking-wider">
                                         {submittedMode === 'online' ? (
                                             <>
-                                                <CheckCircle2 size={13} className="text-lime-300" />
+                                                <CheckCircle2 size={13} className="text-lime-300 shrink-0" />
                                                 Saved to Live Database
                                             </>
                                         ) : (
                                             <>
-                                                <WifiOff size={13} className="text-amber-300" />
+                                                <WifiOff size={13} className="text-amber-300 shrink-0" />
                                                 Queued Offline — Auto-Syncs
                                             </>
                                         )}
                                     </span>
-                                    <span className="font-mono text-xs font-bold text-violet-100">
+                                    <span className="font-mono text-[11px] sm:text-xs font-bold text-violet-100">
                                         Ref: {submittedRecord.student_reg_no}
                                     </span>
                                 </div>
-                                <h1 className="text-xl sm:text-2xl font-extrabold tracking-tight">
+                                <h1 className="text-lg sm:text-2xl font-extrabold tracking-tight">
                                     Interest & Schedule Recorded!
                                 </h1>
                                 <p className="text-xs sm:text-sm text-violet-100 mt-1">
@@ -867,46 +867,46 @@ const OutreachRegistration: React.FC = () => {
                                 </p>
                             </div>
 
-                            <div className="p-6 space-y-5">
+                            <div className="p-4 sm:p-6 space-y-4 sm:space-y-5">
                                 {/* Follow-up Context Callout */}
-                                <div className="p-4 rounded-2xl bg-amber-50/90 dark:bg-amber-950/30 border border-amber-200/80 dark:border-amber-800/50 flex items-start gap-3">
+                                <div className="p-3.5 sm:p-4 rounded-2xl bg-amber-50/90 dark:bg-amber-950/30 border border-amber-200/80 dark:border-amber-800/50 flex items-start gap-2.5 sm:gap-3">
                                     <Info size={18} className="text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
-                                    <div className="text-xs text-amber-900 dark:text-amber-200 leading-relaxed">
+                                    <div className="text-xs text-amber-900 dark:text-amber-200 leading-relaxed min-w-0">
                                         <span className="font-bold block mb-0.5">What happens next? (Confirmation Follow-Up)</span>
                                         This registration reserves your provisional preference. Our admissions team will contact you on <span className="font-bold">{submittedRecord.phone}</span> to confirm when you are ready to start classes and finalize your enrollment.
                                     </div>
                                 </div>
 
                                 {/* Summary Grid */}
-                                <div className="rounded-2xl bg-slate-50 dark:bg-slate-950/60 border border-slate-200/80 dark:border-slate-800 p-4 space-y-3 text-xs">
-                                    <div className="flex items-center justify-between pb-2.5 border-b border-slate-200/70 dark:border-slate-800">
-                                        <span className="text-slate-500 dark:text-slate-400">Selected Programme</span>
-                                        <span className="font-bold text-violet-600 dark:text-violet-400">
+                                <div className="rounded-2xl bg-slate-50 dark:bg-slate-950/60 border border-slate-200/80 dark:border-slate-800 p-3.5 sm:p-4 space-y-3 text-xs">
+                                    <div className="flex items-start justify-between gap-3 pb-2.5 border-b border-slate-200/70 dark:border-slate-800">
+                                        <span className="text-slate-500 dark:text-slate-400 shrink-0">Selected Programme</span>
+                                        <span className="font-bold text-violet-600 dark:text-violet-400 text-right break-words">
                                             {submittedRecord.course_interest}
                                         </span>
                                     </div>
-                                    <div className="flex items-center justify-between pb-2.5 border-b border-slate-200/70 dark:border-slate-800">
-                                        <span className="text-slate-500 dark:text-slate-400">Monthly Tuition Rate</span>
-                                        <span className="font-bold text-slate-900 dark:text-white">
+                                    <div className="flex items-start justify-between gap-3 pb-2.5 border-b border-slate-200/70 dark:border-slate-800">
+                                        <span className="text-slate-500 dark:text-slate-400 shrink-0">Monthly Tuition Rate</span>
+                                        <span className="font-bold text-slate-900 dark:text-white text-right">
                                             {submittedRecord.course_fee_display || '$25 | 100,000 UGX / month'}
                                         </span>
                                     </div>
-                                    <div className="flex items-center justify-between pb-2.5 border-b border-slate-200/70 dark:border-slate-800">
-                                        <span className="text-slate-500 dark:text-slate-400">Preferred Schedule</span>
-                                        <span className="font-semibold text-slate-800 dark:text-slate-200 text-right">
+                                    <div className="flex items-start justify-between gap-3 pb-2.5 border-b border-slate-200/70 dark:border-slate-800">
+                                        <span className="text-slate-500 dark:text-slate-400 shrink-0">Preferred Schedule</span>
+                                        <span className="font-semibold text-slate-800 dark:text-slate-200 text-right break-words">
                                             {submittedRecord.mode_preference} • {(submittedRecord.preferred_study_days || []).join(', ')}
                                         </span>
                                     </div>
-                                    <div className={`flex items-center justify-between ${isOutreachMode ? 'pb-2.5 border-b border-slate-200/70 dark:border-slate-800' : ''}`}>
-                                        <span className="text-slate-500 dark:text-slate-400">Preferred Time Slot</span>
-                                        <span className="font-semibold text-slate-800 dark:text-slate-200">
+                                    <div className={`flex items-start justify-between gap-3 ${isOutreachMode ? 'pb-2.5 border-b border-slate-200/70 dark:border-slate-800' : ''}`}>
+                                        <span className="text-slate-500 dark:text-slate-400 shrink-0">Preferred Time Slot</span>
+                                        <span className="font-semibold text-slate-800 dark:text-slate-200 text-right break-words">
                                             {submittedRecord.preferred_time_slot}
                                         </span>
                                     </div>
                                     {isOutreachMode && (
-                                        <div className="flex items-center justify-between">
-                                            <span className="text-slate-500 dark:text-slate-400">Recorded By (Audit)</span>
-                                            <span className="font-semibold text-emerald-600 dark:text-emerald-400">
+                                        <div className="flex items-start justify-between gap-3">
+                                            <span className="text-slate-500 dark:text-slate-400 shrink-0">Recorded By (Audit)</span>
+                                            <span className="font-semibold text-emerald-600 dark:text-emerald-400 text-right break-words">
                                                 {submittedRecord.registered_by_staff} ({submittedRecord.registered_by_role})
                                             </span>
                                         </div>
@@ -914,7 +914,7 @@ const OutreachRegistration: React.FC = () => {
                                 </div>
 
                                 {/* Actions */}
-                                <div className="flex flex-col sm:flex-row gap-3 pt-1">
+                                <div className="flex flex-col sm:flex-row gap-2.5 sm:gap-3 pt-1">
                                     <button
                                         type="button"
                                         onClick={handleRegisterAnother}
@@ -935,13 +935,52 @@ const OutreachRegistration: React.FC = () => {
                     </div>
                 ) : (
                     /* =========================================================
-                       STRIPE / LINEAR 2-COLUMN SPLIT ON DESKTOP, CLEAN WIZARD ON MOBILE
+                       STRIPE / LINEAR 2-COLUMN SPLIT ON DESKTOP, CLEAN WIZARD ON MOBILE & TABLET
                        ========================================================= */
-                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-                        {/* LEFT COLUMN: STICKY PROGRAMME SUMMARY & CONTEXT (Desktop) */}
-                        <aside className="lg:col-span-5 lg:sticky lg:top-24 space-y-5 order-2 lg:order-1">
-                            <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/90 dark:border-slate-800 p-6 shadow-sm space-y-5">
-                                <div>
+                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 sm:gap-6 lg:gap-8 items-start w-full">
+                        {/* MOBILE & TABLET COMPACT HERO + LIVE COURSE STRIP (Hidden on Desktop lg:) */}
+                        <div className="lg:hidden min-w-0 w-full bg-white dark:bg-slate-900 rounded-2xl sm:rounded-3xl border border-slate-200/90 dark:border-slate-800 p-4 sm:p-5 shadow-sm space-y-3.5">
+                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+                                <div className="min-w-0">
+                                    <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-violet-50 dark:bg-violet-950/60 border border-violet-200/70 dark:border-violet-800/60 text-violet-700 dark:text-violet-300 text-[10px] sm:text-[11px] font-bold mb-1.5">
+                                        <Sparkles size={11} />
+                                        {isOutreachMode ? 'Outreach Pre-Registration' : 'Student Registration'}
+                                    </div>
+                                    <h1 className="text-lg sm:text-xl font-extrabold tracking-tight text-slate-900 dark:text-white leading-snug">
+                                        Reserve Your AI Study Slot
+                                    </h1>
+                                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 leading-relaxed">
+                                        Register your preferred course and schedule today. <strong className="text-slate-700 dark:text-slate-200">No upfront payment required now.</strong>
+                                    </p>
+                                </div>
+
+                                {/* Compact Live Selected Programme Pill on Mobile/Tablet */}
+                                <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-950/70 border border-slate-200/80 dark:border-slate-800 flex items-center justify-between sm:flex-col sm:items-end gap-2 shrink-0">
+                                    <div className="min-w-0 sm:text-right">
+                                        <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">
+                                            Selected Programme
+                                        </span>
+                                        <span className="text-xs sm:text-sm font-extrabold text-slate-900 dark:text-white truncate block">
+                                            {courseInterest}
+                                        </span>
+                                    </div>
+                                    <span className={`px-2.5 py-1 rounded-lg text-[11px] font-extrabold shrink-0 ${
+                                        activeCoursePricing.usdPerMonth === 0
+                                            ? 'bg-emerald-100 dark:bg-emerald-950/80 text-emerald-700 dark:text-emerald-300'
+                                            : 'bg-violet-100 dark:bg-violet-950/80 text-violet-700 dark:text-violet-300'
+                                    }`}>
+                                        {activeCoursePricing.usdPerMonth === 0
+                                            ? 'FREE (UGX 0)'
+                                            : `$${activeCoursePricing.usdPerMonth} | UGX ${formatUgx(activeCoursePricing.ugxPerMonth)}/mo`}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* LEFT COLUMN: STICKY PROGRAMME SUMMARY & CONTEXT (Desktop lg: unchanged, responsive below form on mobile/tablet) */}
+                        <aside className="min-w-0 w-full lg:col-span-5 lg:sticky lg:top-24 space-y-5 order-2 lg:order-1">
+                            <div className="bg-white dark:bg-slate-900 rounded-2xl sm:rounded-3xl border border-slate-200/90 dark:border-slate-800 p-4 sm:p-6 shadow-sm space-y-4 sm:space-y-5">
+                                <div className="hidden lg:block">
                                     <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-violet-50 dark:bg-violet-950/60 border border-violet-200/70 dark:border-violet-800/60 text-violet-700 dark:text-violet-300 text-[11px] font-bold mb-3">
                                         <Sparkles size={12} />
                                         {isOutreachMode ? 'Outreach Pre-Registration' : 'Student Registration'}
@@ -954,92 +993,94 @@ const OutreachRegistration: React.FC = () => {
                                     </p>
                                 </div>
 
-                                {/* Live Selected Course Card */}
-                                <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-950/70 border border-slate-200/80 dark:border-slate-800 space-y-3">
-                                    <div className="flex items-start justify-between gap-2">
-                                        <div>
-                                            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">
-                                                Selected Programme
-                                            </span>
-                                            <h3 className="text-sm font-extrabold text-slate-900 dark:text-white mt-0.5">
-                                                {courseInterest}
-                                            </h3>
-                                        </div>
-                                        <span className={`px-2.5 py-1 rounded-lg text-xs font-extrabold shrink-0 ${
-                                            activeCoursePricing.usdPerMonth === 0
-                                                ? 'bg-emerald-100 dark:bg-emerald-950/80 text-emerald-700 dark:text-emerald-300'
-                                                : 'bg-violet-100 dark:bg-violet-950/80 text-violet-700 dark:text-violet-300'
-                                        }`}>
-                                            {activeCoursePricing.usdPerMonth === 0 ? 'FREE' : `$${activeCoursePricing.usdPerMonth}/mo`}
-                                        </span>
-                                    </div>
-
-                                    <div className="flex items-baseline justify-between pt-2 border-t border-slate-200/70 dark:border-slate-800/80">
-                                        <span className="text-xs text-slate-500 dark:text-slate-400">Monthly Tuition</span>
-                                        <span className="text-sm font-black text-slate-900 dark:text-white">
-                                            {activeCoursePricing.ugxPerMonth === 0 ? (
-                                                <span className="text-emerald-600 dark:text-emerald-400">Free (UGX 0)</span>
-                                            ) : (
-                                                <>
-                                                    UGX {formatUgx(activeCoursePricing.ugxPerMonth)} <span className="text-xs font-normal text-slate-400">/ month</span>
-                                                </>
-                                            )}
-                                        </span>
-                                    </div>
-
-                                    <div className="grid grid-cols-2 gap-2 pt-1 text-[11px]">
-                                        <div className="p-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200/60 dark:border-slate-800">
-                                            <span className="text-slate-400 block text-[10px]">Study Mode</span>
-                                            <span className="font-bold text-slate-700 dark:text-slate-200">{modePreference} ({level})</span>
-                                        </div>
-                                        <div className="p-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200/60 dark:border-slate-800">
-                                            <span className="text-slate-400 block text-[10px]">Preferred Days</span>
-                                            <span className="font-bold text-slate-700 dark:text-slate-200 truncate block">
-                                                {preferredStudyDays.join(', ') || 'Flexible'}
+                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-1 gap-4 sm:gap-5 items-start">
+                                    {/* Live Selected Course Card */}
+                                    <div className="p-3.5 sm:p-4 rounded-2xl bg-slate-50 dark:bg-slate-950/70 border border-slate-200/80 dark:border-slate-800 space-y-3 min-w-0">
+                                        <div className="flex items-start justify-between gap-2">
+                                            <div className="min-w-0">
+                                                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">
+                                                    Selected Programme
+                                                </span>
+                                                <h3 className="text-sm font-extrabold text-slate-900 dark:text-white mt-0.5 break-words">
+                                                    {courseInterest}
+                                                </h3>
+                                            </div>
+                                            <span className={`px-2.5 py-1 rounded-lg text-xs font-extrabold shrink-0 ${
+                                                activeCoursePricing.usdPerMonth === 0
+                                                    ? 'bg-emerald-100 dark:bg-emerald-950/80 text-emerald-700 dark:text-emerald-300'
+                                                    : 'bg-violet-100 dark:bg-violet-950/80 text-violet-700 dark:text-violet-300'
+                                            }`}>
+                                                {activeCoursePricing.usdPerMonth === 0 ? 'FREE' : `$${activeCoursePricing.usdPerMonth}/mo`}
                                             </span>
                                         </div>
-                                    </div>
-                                </div>
 
-                                {/* All 5 Official Courses Reference List */}
-                                <div className="space-y-2">
-                                    <div className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
-                                        Official Courses & Monthly Rates
+                                        <div className="flex items-baseline justify-between gap-2 pt-2 border-t border-slate-200/70 dark:border-slate-800/80">
+                                            <span className="text-xs text-slate-500 dark:text-slate-400 shrink-0">Monthly Tuition</span>
+                                            <span className="text-sm font-black text-slate-900 dark:text-white text-right">
+                                                {activeCoursePricing.ugxPerMonth === 0 ? (
+                                                    <span className="text-emerald-600 dark:text-emerald-400">Free (UGX 0)</span>
+                                                ) : (
+                                                    <>
+                                                        UGX {formatUgx(activeCoursePricing.ugxPerMonth)} <span className="text-xs font-normal text-slate-400">/ month</span>
+                                                    </>
+                                                )}
+                                            </span>
+                                        </div>
+
+                                        <div className="grid grid-cols-2 gap-2 pt-1 text-[11px]">
+                                            <div className="p-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200/60 dark:border-slate-800 min-w-0">
+                                                <span className="text-slate-400 block text-[10px]">Study Mode</span>
+                                                <span className="font-bold text-slate-700 dark:text-slate-200 truncate block">{modePreference} ({level})</span>
+                                            </div>
+                                            <div className="p-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200/60 dark:border-slate-800 min-w-0">
+                                                <span className="text-slate-400 block text-[10px]">Preferred Days</span>
+                                                <span className="font-bold text-slate-700 dark:text-slate-200 truncate block">
+                                                    {preferredStudyDays.join(', ') || 'Flexible'}
+                                                </span>
+                                            </div>
+                                        </div>
                                     </div>
-                                    <div className="divide-y divide-slate-100 dark:divide-slate-800/70 text-xs">
-                                        {OFFICIAL_COURSE_CATALOG.map((c, i) => {
-                                            const active = courseInterest === c.title;
-                                            return (
-                                                <button
-                                                    key={c.title}
-                                                    type="button"
-                                                    onClick={() => handleCourseSelect(c.title)}
-                                                    className={`w-full py-2.5 px-2.5 flex items-center justify-between text-left rounded-xl transition-colors cursor-pointer ${
-                                                        active
-                                                            ? 'bg-violet-50/80 dark:bg-violet-950/40 font-bold text-violet-700 dark:text-violet-300'
-                                                            : 'hover:bg-slate-50 dark:hover:bg-slate-800/40 text-slate-600 dark:text-slate-400'
-                                                    }`}
-                                                >
-                                                    <span className="truncate pr-2">
-                                                        {i + 1}. {c.title}
-                                                    </span>
-                                                    <span className={`font-mono text-[11px] font-semibold shrink-0 ${
-                                                        c.usdPerMonth === 0 ? 'text-emerald-600 dark:text-emerald-400 font-bold' : ''
-                                                    }`}>
-                                                        {c.usdPerMonth === 0 ? 'Free (0 UGX)' : `$${c.usdPerMonth} | ${formatUgx(c.ugxPerMonth)} UGX`}
-                                                    </span>
-                                                </button>
-                                            );
-                                        })}
+
+                                    {/* All 5 Official Courses Reference List */}
+                                    <div className="space-y-2 min-w-0">
+                                        <div className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
+                                            Official Courses & Monthly Rates
+                                        </div>
+                                        <div className="divide-y divide-slate-100 dark:divide-slate-800/70 text-xs">
+                                            {OFFICIAL_COURSE_CATALOG.map((c, i) => {
+                                                const active = courseInterest === c.title;
+                                                return (
+                                                    <button
+                                                        key={c.title}
+                                                        type="button"
+                                                        onClick={() => handleCourseSelect(c.title)}
+                                                        className={`w-full py-2.5 px-2.5 flex items-center justify-between gap-2 text-left rounded-xl transition-colors cursor-pointer min-w-0 ${
+                                                            active
+                                                                ? 'bg-violet-50/80 dark:bg-violet-950/40 font-bold text-violet-700 dark:text-violet-300'
+                                                                : 'hover:bg-slate-50 dark:hover:bg-slate-800/40 text-slate-600 dark:text-slate-400'
+                                                        }`}
+                                                    >
+                                                        <span className="truncate">
+                                                            {i + 1}. {c.title}
+                                                        </span>
+                                                        <span className={`font-mono text-[11px] font-semibold shrink-0 ${
+                                                            c.usdPerMonth === 0 ? 'text-emerald-600 dark:text-emerald-400 font-bold' : ''
+                                                        }`}>
+                                                            {c.usdPerMonth === 0 ? 'Free (0 UGX)' : `$${c.usdPerMonth} | ${formatUgx(c.ugxPerMonth)} UGX`}
+                                                        </span>
+                                                    </button>
+                                                );
+                                            })}
+                                        </div>
                                     </div>
                                 </div>
 
                                 {/* Subtle Attribution Footer inside Summary Card */}
-                                <div className="pt-3 border-t border-slate-200/70 dark:border-slate-800 flex items-center justify-between text-[11px] text-slate-400">
+                                <div className="pt-3 border-t border-slate-200/70 dark:border-slate-800 flex flex-wrap items-center justify-between gap-2 text-[11px] text-slate-400">
                                     {isOutreachMode ? (
-                                        <span className="flex items-center gap-1.5">
-                                            <UserCheck size={13} className="text-emerald-500" />
-                                            Registrar: <strong className="text-slate-600 dark:text-slate-300">{effectiveStaffName}</strong>
+                                        <span className="flex items-center gap-1.5 min-w-0 truncate">
+                                            <UserCheck size={13} className="text-emerald-500 shrink-0" />
+                                            Registrar: <strong className="text-slate-600 dark:text-slate-300 truncate">{effectiveStaffName}</strong>
                                         </span>
                                     ) : (
                                         <span>Direct Student Registration</span>
@@ -1050,12 +1091,12 @@ const OutreachRegistration: React.FC = () => {
                         </aside>
 
                         {/* RIGHT COLUMN: FOCUSED 3-STEP FORM CARD */}
-                        <div className="lg:col-span-7 order-1 lg:order-2">
-                            <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/90 dark:border-slate-800 shadow-sm overflow-hidden">
+                        <div className="min-w-0 w-full lg:col-span-7 order-1 lg:order-2">
+                            <div className="bg-white dark:bg-slate-900 rounded-2xl sm:rounded-3xl border border-slate-200/90 dark:border-slate-800 shadow-sm overflow-hidden">
                                 {/* Clean Step Header & Linear Progress Bar */}
-                                <div className="px-6 pt-6 pb-4 border-b border-slate-100 dark:border-slate-800/80">
-                                    <div className="flex items-center justify-between mb-3">
-                                        <div className="flex items-center gap-2">
+                                <div className="px-3.5 sm:px-6 pt-4 sm:pt-6 pb-3.5 sm:pb-4 border-b border-slate-100 dark:border-slate-800/80">
+                                    <div className="flex items-center justify-between gap-2 mb-3">
+                                        <div className="grid grid-cols-3 gap-1.5 sm:flex sm:items-center sm:gap-2 w-full sm:w-auto min-w-0">
                                             {[
                                                 { num: 1, label: '1. Your Details' },
                                                 { num: 2, label: '2. Course & Schedule' },
@@ -1072,7 +1113,7 @@ const OutreachRegistration: React.FC = () => {
                                                             else if (s.num === 2 && validateStep1()) setStep(2);
                                                             else if (s.num === 3 && validateStep1() && validateStep2()) setStep(3);
                                                         }}
-                                                        className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+                                                        className={`px-2 sm:px-3 py-1.5 rounded-xl sm:rounded-full text-[11px] sm:text-xs font-bold transition-all flex items-center justify-center sm:justify-start gap-1 sm:gap-1.5 cursor-pointer min-w-0 ${
                                                             isCurrent
                                                                 ? 'bg-violet-600 text-white shadow-sm'
                                                                 : isDone
@@ -1080,13 +1121,13 @@ const OutreachRegistration: React.FC = () => {
                                                                 : 'bg-slate-100 dark:bg-slate-800/70 text-slate-500 dark:text-slate-400'
                                                         }`}
                                                     >
-                                                        {isDone && <Check size={12} />}
-                                                        <span>{s.label}</span>
+                                                        {isDone && <Check size={12} className="shrink-0" />}
+                                                        <span className="truncate">{s.label}</span>
                                                     </button>
                                                 );
                                             })}
                                         </div>
-                                        <span className="text-[11px] font-semibold text-slate-400 hidden sm:inline">
+                                        <span className="text-[11px] font-semibold text-slate-400 hidden md:inline shrink-0">
                                             Step {step} of 3
                                         </span>
                                     </div>
@@ -1100,7 +1141,7 @@ const OutreachRegistration: React.FC = () => {
                                     </div>
                                 </div>
 
-                                <form onSubmit={handleSubmit} noValidate className="p-6 sm:p-8 space-y-6">
+                                <form onSubmit={handleSubmit} noValidate className="p-4 sm:p-6 lg:p-8 space-y-5 sm:space-y-6">
                                     {/* Honeypot anti-spam */}
                                     <div className="hidden" aria-hidden="true">
                                         <input
@@ -1156,12 +1197,12 @@ const OutreachRegistration: React.FC = () => {
 
                                             {/* Phone & Email */}
                                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                                <div>
-                                                    <div className="flex items-center justify-between mb-1.5">
+                                                <div className="min-w-0">
+                                                    <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-0.5 mb-1.5">
                                                         <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">
                                                             Phone / WhatsApp <span className="text-red-500">*</span>
                                                         </label>
-                                                        <span className={`text-[10px] font-mono font-semibold ${
+                                                        <span className={`text-[10px] font-mono font-semibold truncate max-w-full ${
                                                             phoneValidation.valid
                                                                 ? 'text-emerald-600 dark:text-emerald-400'
                                                                 : 'text-slate-400'
@@ -1192,7 +1233,7 @@ const OutreachRegistration: React.FC = () => {
                                                     )}
                                                 </div>
 
-                                                <div>
+                                                <div className="min-w-0">
                                                     <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
                                                         Email Address <span className="text-slate-400 font-normal">(Optional)</span>
                                                     </label>
@@ -1218,14 +1259,14 @@ const OutreachRegistration: React.FC = () => {
 
                                             {/* Academic Level & Age Range */}
                                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                                <div>
+                                                <div className="min-w-0">
                                                     <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
                                                         Current Academic / Career Status
                                                     </label>
                                                     <select
                                                         value={classLevelYear}
                                                         onChange={(e) => setClassLevelYear(e.target.value)}
-                                                        className="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-sm font-medium focus:outline-none focus:border-violet-500"
+                                                        className="w-full max-w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-sm font-medium focus:outline-none focus:border-violet-500"
                                                     >
                                                         {CLASS_LEVEL_OPTIONS.map(opt => (
                                                             <option key={opt} value={opt}>{opt}</option>
@@ -1233,17 +1274,17 @@ const OutreachRegistration: React.FC = () => {
                                                     </select>
                                                 </div>
 
-                                                <div>
+                                                <div className="min-w-0">
                                                     <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
                                                         Age Bracket
                                                     </label>
-                                                    <div className="grid grid-cols-4 gap-1.5">
+                                                    <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-4 gap-1.5">
                                                         {AGE_RANGES.map(age => (
                                                             <button
                                                                 key={age}
                                                                 type="button"
                                                                 onClick={() => setAgeRange(age)}
-                                                                className={`py-2.5 px-2 rounded-xl text-xs font-bold border transition-all cursor-pointer ${
+                                                                className={`py-2.5 px-1.5 sm:px-2 rounded-xl text-[11px] sm:text-xs font-bold border transition-all cursor-pointer whitespace-nowrap min-w-0 ${
                                                                     ageRange === age
                                                                         ? 'bg-violet-600 text-white border-violet-600'
                                                                         : 'bg-slate-50 dark:bg-slate-950 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-800 hover:border-violet-400'
@@ -1257,14 +1298,14 @@ const OutreachRegistration: React.FC = () => {
                                             </div>
 
                                             {/* Location / Campus Area */}
-                                            <div>
+                                            <div className="min-w-0">
                                                 <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
                                                     Location / Campus Area
                                                 </label>
                                                 <select
                                                     value={location}
                                                     onChange={(e) => setLocation(e.target.value)}
-                                                    className="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-sm font-medium focus:outline-none focus:border-violet-500"
+                                                    className="w-full max-w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-sm font-medium focus:outline-none focus:border-violet-500"
                                                 >
                                                     {LOCATION_PRESETS.map(loc => (
                                                         <option key={loc} value={loc}>{loc}</option>
@@ -1288,8 +1329,8 @@ const OutreachRegistration: React.FC = () => {
                                                         Parent / Guardian / Next of Kin Contact {isGuardianRequired ? <span className="text-red-500">*</span> : <span className="text-slate-400 font-normal">(Optional)</span>}
                                                     </span>
                                                 </div>
-                                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                                    <div>
+                                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 sm:gap-4">
+                                                    <div className="min-w-0">
                                                         <input
                                                             type="text"
                                                             value={guardianName}
@@ -1304,7 +1345,7 @@ const OutreachRegistration: React.FC = () => {
                                                             <p className="text-xs text-red-500 mt-1">{errors.guardianName}</p>
                                                         )}
                                                     </div>
-                                                    <div>
+                                                    <div className="min-w-0">
                                                         <input
                                                             type="tel"
                                                             inputMode="tel"
@@ -1328,7 +1369,7 @@ const OutreachRegistration: React.FC = () => {
                                                 <button
                                                     type="button"
                                                     onClick={handleNext}
-                                                    className="w-full sm:w-auto px-7 py-3.5 rounded-xl bg-violet-600 hover:bg-violet-700 text-white font-bold text-sm shadow-lg shadow-violet-600/20 flex items-center justify-center gap-2 transition-all cursor-pointer"
+                                                    className="w-full sm:w-auto px-5 sm:px-7 py-3.5 rounded-xl bg-violet-600 hover:bg-violet-700 text-white font-bold text-sm shadow-lg shadow-violet-600/20 flex items-center justify-center gap-2 transition-all cursor-pointer"
                                                 >
                                                     Continue to Course & Schedule
                                                     <ArrowRight size={16} />
@@ -1341,7 +1382,7 @@ const OutreachRegistration: React.FC = () => {
                                        STEP 2: PROGRAMME & PREFERRED SCHEDULE
                                        ========================================================= */}
                                     {step === 2 && (
-                                        <div className="space-y-6 animate-in fade-in duration-200">
+                                        <div className="space-y-5 sm:space-y-6 animate-in fade-in duration-200">
                                             <div>
                                                 <h2 className="text-lg font-extrabold text-slate-900 dark:text-white">
                                                     Programme & Preferred Study Schedule
@@ -1364,14 +1405,14 @@ const OutreachRegistration: React.FC = () => {
                                                                 key={c.title}
                                                                 type="button"
                                                                 onClick={() => handleCourseSelect(c.title)}
-                                                                className={`p-4 rounded-2xl border text-left transition-all cursor-pointer relative ${
+                                                                className={`p-3.5 sm:p-4 rounded-2xl border text-left transition-all cursor-pointer relative min-w-0 ${
                                                                     isSelected
                                                                         ? 'bg-violet-50/90 dark:bg-violet-950/50 border-violet-600 ring-2 ring-violet-500/20'
                                                                         : 'bg-slate-50/70 dark:bg-slate-950 border-slate-200 dark:border-slate-800 hover:border-violet-400'
                                                                 }`}
                                                             >
                                                                 <div className="flex items-start justify-between gap-2 mb-1">
-                                                                    <span className="font-extrabold text-sm text-slate-900 dark:text-white">
+                                                                    <span className="font-extrabold text-sm text-slate-900 dark:text-white break-words">
                                                                         {c.title}
                                                                     </span>
                                                                     <span className={`w-4 h-4 rounded-full flex items-center justify-center shrink-0 mt-0.5 ${
@@ -1385,7 +1426,7 @@ const OutreachRegistration: React.FC = () => {
                                                                 <p className="text-[11px] text-slate-500 dark:text-slate-400 line-clamp-2 mb-2.5">
                                                                     {c.shortDescription}
                                                                 </p>
-                                                                <div className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 text-[11px] font-extrabold ${
+                                                                <div className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 text-[11px] font-extrabold max-w-full ${
                                                                     c.usdPerMonth === 0
                                                                         ? 'text-emerald-600 dark:text-emerald-400'
                                                                         : 'text-violet-700 dark:text-violet-300'
@@ -1399,18 +1440,18 @@ const OutreachRegistration: React.FC = () => {
                                             </div>
 
                                             {/* Level & Study Mode */}
-                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                                <div>
+                                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4">
+                                                <div className="min-w-0">
                                                     <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-2">
                                                         Experience Level
                                                     </label>
-                                                    <div className="grid grid-cols-3 gap-2">
+                                                    <div className="grid grid-cols-3 gap-1.5 sm:gap-2">
                                                         {LEVELS.map(l => (
                                                             <button
                                                                 key={l.value}
                                                                 type="button"
                                                                 onClick={() => setLevel(l.value)}
-                                                                className={`py-2.5 px-2 rounded-xl text-xs font-bold border transition-all cursor-pointer ${
+                                                                className={`py-2.5 px-1.5 sm:px-2 rounded-xl text-[11px] sm:text-xs font-bold border transition-all cursor-pointer truncate min-w-0 ${
                                                                     level === l.value
                                                                         ? 'bg-violet-600 text-white border-violet-600'
                                                                         : 'bg-slate-50 dark:bg-slate-950 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-800'
@@ -1422,17 +1463,17 @@ const OutreachRegistration: React.FC = () => {
                                                     </div>
                                                 </div>
 
-                                                <div>
+                                                <div className="min-w-0">
                                                     <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-2">
                                                         Preferred Mode of Study
                                                     </label>
-                                                    <div className="grid grid-cols-3 gap-2">
+                                                    <div className="grid grid-cols-3 gap-1.5 sm:gap-2">
                                                         {MODES.map(m => (
                                                             <button
                                                                 key={m.value}
                                                                 type="button"
                                                                 onClick={() => setModePreference(m.value)}
-                                                                className={`py-2.5 px-2 rounded-xl text-xs font-bold border transition-all cursor-pointer ${
+                                                                className={`py-2.5 px-1.5 sm:px-2 rounded-xl text-[11px] sm:text-xs font-bold border transition-all cursor-pointer truncate min-w-0 ${
                                                                     modePreference === m.value
                                                                         ? 'bg-violet-600 text-white border-violet-600'
                                                                         : 'bg-slate-50 dark:bg-slate-950 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-800'
@@ -1446,12 +1487,12 @@ const OutreachRegistration: React.FC = () => {
                                             </div>
 
                                             {/* Preferred Study Days */}
-                                            <div>
-                                                <div className="flex items-center justify-between mb-2">
+                                            <div className="min-w-0">
+                                                <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-1 mb-2">
                                                     <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">
                                                         Preferred Study Days <span className="text-red-500">*</span>
                                                     </label>
-                                                    <div className="flex gap-1.5">
+                                                    <div className="flex flex-wrap items-center gap-1.5">
                                                         <button
                                                             type="button"
                                                             onClick={() => setPreferredStudyDays(['Mon', 'Wed', 'Fri'])}
@@ -1477,7 +1518,7 @@ const OutreachRegistration: React.FC = () => {
                                                         </button>
                                                     </div>
                                                 </div>
-                                                <div className="grid grid-cols-7 gap-1.5">
+                                                <div className="grid grid-cols-7 gap-1 sm:gap-1.5">
                                                     {STUDY_DAYS.map(day => {
                                                         const active = preferredStudyDays.includes(day);
                                                         return (
@@ -1485,7 +1526,7 @@ const OutreachRegistration: React.FC = () => {
                                                                 key={day}
                                                                 type="button"
                                                                 onClick={() => toggleStudyDay(day)}
-                                                                className={`py-2.5 rounded-xl text-xs font-bold border transition-all cursor-pointer ${
+                                                                className={`py-2 sm:py-2.5 px-0.5 rounded-lg sm:rounded-xl text-[11px] sm:text-xs font-bold border transition-all cursor-pointer min-w-0 text-center ${
                                                                     active
                                                                         ? 'bg-violet-600 text-white border-violet-600 shadow-sm'
                                                                         : 'bg-slate-50 dark:bg-slate-950 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-800'
@@ -1512,14 +1553,14 @@ const OutreachRegistration: React.FC = () => {
                                                             key={slot.value}
                                                             type="button"
                                                             onClick={() => setChosenStudyTime(slot.value)}
-                                                            className={`py-2.5 px-3.5 rounded-xl text-xs font-semibold border text-left flex items-center justify-between transition-all cursor-pointer ${
+                                                            className={`py-2.5 px-3 sm:px-3.5 rounded-xl text-xs font-semibold border text-left flex items-center justify-between gap-2 transition-all cursor-pointer min-w-0 ${
                                                                 chosenStudyTime === slot.value
                                                                     ? 'bg-violet-50 dark:bg-violet-950/60 border-violet-600 text-violet-700 dark:text-violet-300 font-bold'
                                                                     : 'bg-slate-50 dark:bg-slate-950 border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-300'
                                                             }`}
                                                         >
-                                                            <span>{slot.label}</span>
-                                                            {chosenStudyTime === slot.value && <Check size={14} className="text-violet-600" />}
+                                                            <span className="truncate">{slot.label}</span>
+                                                            {chosenStudyTime === slot.value && <Check size={14} className="text-violet-600 shrink-0" />}
                                                         </button>
                                                     ))}
                                                 </div>
@@ -1530,15 +1571,15 @@ const OutreachRegistration: React.FC = () => {
                                                 <button
                                                     type="button"
                                                     onClick={() => setShowScheduleExtras(!showScheduleExtras)}
-                                                    className="flex items-center gap-1.5 text-xs font-semibold text-slate-500 hover:text-violet-600 dark:text-slate-400 dark:hover:text-violet-400 cursor-pointer"
+                                                    className="flex items-start sm:items-center gap-1.5 text-left text-xs font-semibold text-slate-500 hover:text-violet-600 dark:text-slate-400 dark:hover:text-violet-400 cursor-pointer"
                                                 >
-                                                    {showScheduleExtras ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
-                                                    Customize tentative start date, session hours & alternative time
+                                                    {showScheduleExtras ? <ChevronUp size={14} className="shrink-0 mt-0.5 sm:mt-0" /> : <ChevronDown size={14} className="shrink-0 mt-0.5 sm:mt-0" />}
+                                                    <span>Customize tentative start date, session hours & alternative time</span>
                                                 </button>
 
                                                 {showScheduleExtras && (
-                                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-3 p-4 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200/80 dark:border-slate-800">
-                                                        <div>
+                                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 sm:gap-4 mt-3 p-3.5 sm:p-4 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200/80 dark:border-slate-800">
+                                                        <div className="min-w-0">
                                                             <label className="block text-[11px] font-semibold text-slate-500 mb-1">
                                                                 Tentative Start Date
                                                             </label>
@@ -1546,45 +1587,45 @@ const OutreachRegistration: React.FC = () => {
                                                                 type="date"
                                                                 value={expectedStartDate}
                                                                 onChange={(e) => setExpectedStartDate(e.target.value)}
-                                                                className="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-xs font-medium"
+                                                                className="w-full max-w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-xs font-medium"
                                                             />
                                                         </div>
-                                                        <div>
+                                                        <div className="min-w-0">
                                                             <label className="block text-[11px] font-semibold text-slate-500 mb-1">
                                                                 Alternative Time Slot
                                                             </label>
                                                             <select
                                                                 value={alternativeStudyTime}
                                                                 onChange={(e) => setAlternativeStudyTime(e.target.value)}
-                                                                className="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-xs font-medium"
+                                                                className="w-full max-w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-xs font-medium"
                                                             >
                                                                 {TIME_SLOTS.map(s => (
                                                                     <option key={s.value} value={s.value}>{s.label}</option>
                                                                 ))}
                                                             </select>
                                                         </div>
-                                                        <div>
+                                                        <div className="min-w-0">
                                                             <label className="block text-[11px] font-semibold text-slate-500 mb-1">
                                                                 Hours Per Session
                                                             </label>
                                                             <select
                                                                 value={studyHoursPerSession}
                                                                 onChange={(e) => setStudyHoursPerSession(e.target.value)}
-                                                                className="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-xs font-medium"
+                                                                className="w-full max-w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-xs font-medium"
                                                             >
                                                                 {SESSION_HOURS_OPTIONS.map(h => (
                                                                     <option key={h} value={h}>{h}</option>
                                                                 ))}
                                                             </select>
                                                         </div>
-                                                        <div>
+                                                        <div className="min-w-0">
                                                             <label className="block text-[11px] font-semibold text-slate-500 mb-1">
                                                                 Sessions Per Week
                                                             </label>
                                                             <select
                                                                 value={sessionsPerWeek}
                                                                 onChange={(e) => setSessionsPerWeek(e.target.value)}
-                                                                className="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-xs font-medium"
+                                                                className="w-full max-w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-xs font-medium"
                                                             >
                                                                 {SESSIONS_PER_WEEK_OPTIONS.map(spw => (
                                                                     <option key={spw} value={spw}>{spw}</option>
@@ -1595,11 +1636,11 @@ const OutreachRegistration: React.FC = () => {
                                                 )}
                                             </div>
 
-                                            <div className="pt-3 flex items-center justify-between gap-3">
+                                            <div className="pt-3 flex items-center justify-between gap-2.5 sm:gap-3">
                                                 <button
                                                     type="button"
                                                     onClick={handleBack}
-                                                    className="px-5 py-3.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-semibold text-sm flex items-center gap-2 transition-colors cursor-pointer"
+                                                    className="px-4 sm:px-5 py-3 sm:py-3.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-semibold text-xs sm:text-sm flex items-center gap-1.5 sm:gap-2 transition-colors cursor-pointer shrink-0"
                                                 >
                                                     <ArrowLeft size={16} />
                                                     Back
@@ -1607,10 +1648,10 @@ const OutreachRegistration: React.FC = () => {
                                                 <button
                                                     type="button"
                                                     onClick={handleNext}
-                                                    className="flex-1 sm:flex-initial px-7 py-3.5 rounded-xl bg-violet-600 hover:bg-violet-700 text-white font-bold text-sm shadow-lg shadow-violet-600/20 flex items-center justify-center gap-2 transition-all cursor-pointer"
+                                                    className="flex-1 sm:flex-initial px-4 sm:px-7 py-3 sm:py-3.5 rounded-xl bg-violet-600 hover:bg-violet-700 text-white font-bold text-xs sm:text-sm shadow-lg shadow-violet-600/20 flex items-center justify-center gap-1.5 sm:gap-2 transition-all cursor-pointer min-w-0"
                                                 >
-                                                    Continue to Final Step
-                                                    <ArrowRight size={16} />
+                                                    <span className="truncate">Continue to Final Step</span>
+                                                    <ArrowRight size={16} className="shrink-0" />
                                                 </button>
                                             </div>
                                         </div>
@@ -1620,7 +1661,7 @@ const OutreachRegistration: React.FC = () => {
                                        STEP 3: PROVISIONAL TUITION PLAN & INTEREST CONFIRMATION
                                        ========================================================= */}
                                     {step === 3 && (
-                                        <div className="space-y-6 animate-in fade-in duration-200">
+                                        <div className="space-y-5 sm:space-y-6 animate-in fade-in duration-200">
                                             <div>
                                                 <h2 className="text-lg font-extrabold text-slate-900 dark:text-white">
                                                     Provisional Tuition Plan & Confirmation
@@ -1631,12 +1672,12 @@ const OutreachRegistration: React.FC = () => {
                                             </div>
 
                                             {/* Clean Provisional Tuition Summary Box */}
-                                            <div className="p-4 rounded-2xl bg-violet-50/70 dark:bg-violet-950/30 border border-violet-200/80 dark:border-violet-800/60 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                                                <div>
-                                                    <span className="text-[10px] font-bold uppercase tracking-wider text-violet-600 dark:text-violet-400 block">
+                                            <div className="p-3.5 sm:p-4 rounded-2xl bg-violet-50/70 dark:bg-violet-950/30 border border-violet-200/80 dark:border-violet-800/60 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-3 min-w-0">
+                                                <div className="min-w-0">
+                                                    <span className="text-[10px] font-bold uppercase tracking-wider text-violet-600 dark:text-violet-400 block break-words">
                                                         {courseInterest} — Standard Tuition
                                                     </span>
-                                                    <div className="text-lg font-black text-slate-900 dark:text-white mt-0.5">
+                                                    <div className="text-base sm:text-lg font-black text-slate-900 dark:text-white mt-0.5">
                                                         {activeCoursePricing.ugxPerMonth === 0 ? (
                                                             <span className="text-emerald-600 dark:text-emerald-400">
                                                                 FREE (UGX 0)
@@ -1649,17 +1690,17 @@ const OutreachRegistration: React.FC = () => {
                                                         )}
                                                     </div>
                                                 </div>
-                                                <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white dark:bg-slate-900 border border-violet-200 dark:border-violet-800 text-xs font-bold text-emerald-600 dark:text-emerald-400 shrink-0">
-                                                    <CheckCircle2 size={14} />
-                                                    {activeCoursePricing.ugxPerMonth === 0 ? '100% Free Course' : 'UGX 0 Due Today (Pay on Confirmation)'}
+                                                <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white dark:bg-slate-900 border border-violet-200 dark:border-violet-800 text-[11px] sm:text-xs font-bold text-emerald-600 dark:text-emerald-400 shrink-0 self-start sm:self-auto">
+                                                    <CheckCircle2 size={14} className="shrink-0" />
+                                                    <span>{activeCoursePricing.ugxPerMonth === 0 ? '100% Free Course' : 'UGX 0 Due Today (Pay on Confirmation)'}</span>
                                                 </span>
                                             </div>
 
                                             {/* Preferred Payment Plan & Method (Only shown for paid courses) */}
                                             {activeCoursePricing.ugxPerMonth > 0 && (
                                             <>
-                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                                <div>
+                                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4">
+                                                <div className="min-w-0">
                                                     <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-2">
                                                         Preferred Payment Plan (When Confirmed)
                                                     </label>
@@ -1669,19 +1710,19 @@ const OutreachRegistration: React.FC = () => {
                                                                 key={p.value}
                                                                 type="button"
                                                                 onClick={() => handlePaymentPlanChange(p.value)}
-                                                                className={`p-2.5 rounded-xl border text-left transition-all cursor-pointer ${
+                                                                className={`p-2.5 rounded-xl border text-left transition-all cursor-pointer min-w-0 ${
                                                                     paymentPlan === p.value
                                                                         ? 'bg-violet-600 text-white border-violet-600'
                                                                         : 'bg-slate-50 dark:bg-slate-950 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-800'
                                                                 }`}
                                                             >
-                                                                <span className="text-xs font-bold block">{p.label}</span>
+                                                                <span className="text-xs font-bold block truncate">{p.label}</span>
                                                             </button>
                                                         ))}
                                                     </div>
                                                 </div>
 
-                                                <div>
+                                                <div className="min-w-0">
                                                     <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-2">
                                                         Preferred Payment Method
                                                     </label>
@@ -1691,7 +1732,7 @@ const OutreachRegistration: React.FC = () => {
                                                                 key={m}
                                                                 type="button"
                                                                 onClick={() => setPaymentMethod(m)}
-                                                                className={`p-2.5 rounded-xl border text-xs font-bold transition-all cursor-pointer ${
+                                                                className={`p-2.5 rounded-xl border text-xs font-bold transition-all cursor-pointer truncate min-w-0 ${
                                                                     paymentMethod === m
                                                                         ? 'bg-violet-600 text-white border-violet-600'
                                                                         : 'bg-slate-50 dark:bg-slate-950 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-800'
@@ -1709,15 +1750,15 @@ const OutreachRegistration: React.FC = () => {
                                                 <button
                                                     type="button"
                                                     onClick={() => setShowInitialDepositBox(!showInitialDepositBox)}
-                                                    className="flex items-center gap-1.5 text-xs font-semibold text-slate-500 hover:text-violet-600 dark:text-slate-400 cursor-pointer"
+                                                    className="flex items-start sm:items-center gap-1.5 text-left text-xs font-semibold text-slate-500 hover:text-violet-600 dark:text-slate-400 cursor-pointer"
                                                 >
-                                                    {showInitialDepositBox ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
-                                                    Paying a commitment deposit today? (Optional — Default is UGX 0)
+                                                    {showInitialDepositBox ? <ChevronUp size={14} className="shrink-0 mt-0.5 sm:mt-0" /> : <ChevronDown size={14} className="shrink-0 mt-0.5 sm:mt-0" />}
+                                                    <span>Paying a commitment deposit today? (Optional — Default is UGX 0)</span>
                                                 </button>
 
                                                 {showInitialDepositBox && (
-                                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-3 p-4 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800">
-                                                        <div>
+                                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 sm:gap-4 mt-3 p-3.5 sm:p-4 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800">
+                                                        <div className="min-w-0">
                                                             <label className="block text-[11px] font-semibold text-slate-500 mb-1">
                                                                 Amount Paid Today (UGX)
                                                             </label>
@@ -1737,7 +1778,7 @@ const OutreachRegistration: React.FC = () => {
                                                                 </span>
                                                             </div>
                                                         </div>
-                                                        <div>
+                                                        <div className="min-w-0">
                                                             <label className="block text-[11px] font-semibold text-slate-500 mb-1">
                                                                 Receipt / Mobile Money Ref
                                                             </label>
@@ -1756,10 +1797,10 @@ const OutreachRegistration: React.FC = () => {
                                             )}
 
                                             {/* Digital Signature & Programme Commitments Accordion */}
-                                            <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200/80 dark:border-slate-800 space-y-3">
-                                                <div className="flex items-center justify-between">
+                                            <div className="p-3.5 sm:p-4 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200/80 dark:border-slate-800 space-y-3">
+                                                <div className="flex flex-wrap items-center justify-between gap-1.5">
                                                     <span className="text-xs font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
-                                                        <PenTool size={14} className="text-violet-600" />
+                                                        <PenTool size={14} className="text-violet-600 shrink-0" />
                                                         Digital Signature & Student Commitment
                                                     </span>
                                                     <button
@@ -1800,9 +1841,9 @@ const OutreachRegistration: React.FC = () => {
                                                             setConsentContact(e.target.checked);
                                                             if (errors.consentContact) setErrors(prev => ({ ...prev, consentContact: '' }));
                                                         }}
-                                                        className="mt-0.5 w-4 h-4 rounded border-slate-300 text-violet-600 focus:ring-violet-500"
+                                                        className="mt-0.5 w-4 h-4 rounded border-slate-300 text-violet-600 focus:ring-violet-500 shrink-0"
                                                     />
-                                                    <span className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
+                                                    <span className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed min-w-0">
                                                         I confirm the above details are accurate and agree to be contacted by <strong>Welile School of AI</strong> via Phone/WhatsApp/Email to confirm my study schedule and seat.
                                                     </span>
                                                 </label>
@@ -1811,11 +1852,11 @@ const OutreachRegistration: React.FC = () => {
                                                 )}
                                             </div>
 
-                                            <div className="pt-2 flex items-center justify-between gap-3">
+                                            <div className="pt-2 flex items-center justify-between gap-2.5 sm:gap-3">
                                                 <button
                                                     type="button"
                                                     onClick={handleBack}
-                                                    className="px-5 py-3.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-semibold text-sm flex items-center gap-2 transition-colors cursor-pointer"
+                                                    className="px-4 sm:px-5 py-3 sm:py-3.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-semibold text-xs sm:text-sm flex items-center gap-1.5 sm:gap-2 transition-colors cursor-pointer shrink-0"
                                                 >
                                                     <ArrowLeft size={16} />
                                                     Back
@@ -1823,17 +1864,17 @@ const OutreachRegistration: React.FC = () => {
                                                 <button
                                                     type="submit"
                                                     disabled={isSubmitting}
-                                                    className="flex-1 py-3.5 px-6 rounded-xl bg-violet-600 hover:bg-violet-700 text-white font-bold text-sm shadow-lg shadow-violet-600/25 flex items-center justify-center gap-2 transition-all cursor-pointer disabled:opacity-60"
+                                                    className="flex-1 py-3 sm:py-3.5 px-4 sm:px-6 rounded-xl bg-violet-600 hover:bg-violet-700 text-white font-bold text-xs sm:text-sm shadow-lg shadow-violet-600/25 flex items-center justify-center gap-1.5 sm:gap-2 transition-all cursor-pointer disabled:opacity-60 min-w-0"
                                                 >
                                                     {isSubmitting ? (
                                                         <>
-                                                            <Loader2 size={17} className="animate-spin" />
-                                                            Saving Registration...
+                                                            <Loader2 size={17} className="animate-spin shrink-0" />
+                                                            <span className="truncate">Saving Registration...</span>
                                                         </>
                                                     ) : (
                                                         <>
-                                                            <CheckCircle2 size={17} />
-                                                            Complete Pre-Registration
+                                                            <CheckCircle2 size={17} className="shrink-0" />
+                                                            <span className="truncate">Complete Pre-Registration</span>
                                                         </>
                                                     )}
                                                 </button>
@@ -1851,7 +1892,7 @@ const OutreachRegistration: React.FC = () => {
             <footer className="border-t border-slate-200/70 dark:border-slate-800/70 py-5 px-4 text-center text-xs text-slate-400">
                 <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2">
                     <span>Welile School of AI • Katabi, Entebbe, Uganda</span>
-                    <span className="font-mono text-[11px]">Device Audit ID: {deviceAudit.deviceId}</span>
+                    <span className="font-mono text-[11px] break-all">Device Audit ID: {deviceAudit.deviceId}</span>
                 </div>
             </footer>
 
@@ -1859,12 +1900,12 @@ const OutreachRegistration: React.FC = () => {
                REGISTRATION MODE / OUTREACH & STAFF AUDIT POPOVER MODAL
                ========================================================= */}
             {showBoothSettingsModal && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4">
                     <div
                         className="fixed inset-0 bg-black/60 backdrop-blur-sm"
                         onClick={() => setShowBoothSettingsModal(false)}
                     />
-                    <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 w-full max-w-md rounded-3xl p-6 shadow-2xl relative z-10 space-y-4 animate-in zoom-in-95 duration-200">
+                    <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 w-full max-w-md max-h-[90vh] overflow-y-auto rounded-2xl sm:rounded-3xl p-4 sm:p-6 shadow-2xl relative z-10 space-y-4 animate-in zoom-in-95 duration-200">
                         <div className="flex items-center justify-between">
                             <div className="flex items-center gap-2.5">
                                 <div className="w-9 h-9 rounded-xl bg-violet-100 dark:bg-violet-950/60 text-violet-600 dark:text-violet-400 flex items-center justify-center">
