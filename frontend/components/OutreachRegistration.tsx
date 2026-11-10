@@ -55,7 +55,9 @@ import {
     Fingerprint,
     SlidersHorizontal,
     X,
-    Info
+    Info,
+    Search,
+    GraduationCap
 } from 'lucide-react';
 
 const AGE_RANGES = ['Under 18', '18-24', '25-34', '35+'];
@@ -65,24 +67,487 @@ const CLASS_LEVEL_OPTIONS = [
     'University - Year 2',
     'University - Year 3',
     'University - Year 4 / Finalist',
+    'Diploma / TVET / Institute Student',
     'Recent Graduate',
     'Working Professional',
     'High School (S.4 - S.6)',
-    'Diploma / TVET Student',
     'Entrepreneur / Business Owner'
 ];
 
-const LOCATION_PRESETS = [
-    'Nkumba, Entebbe',
-    'Katabi, Entebbe',
-    'Entebbe Town',
-    'Kampala Central',
-    'Makerere / Wandegeya',
-    'Nakawa / MUBS',
-    'Mukono',
-    'Wakiso',
-    'Other (Specify below)'
+// Prefilled Universities & Tertiary Institutes in Uganda (Searchable + Custom Allowed)
+const UGANDA_UNIVERSITIES_AND_INSTITUTES = [
+    // Universities
+    'Nkumba University',
+    'Makerere University',
+    'Makerere University Business School (MUBS)',
+    'Kyambogo University',
+    'Uganda Christian University (UCU)',
+    'Kampala International University (KIU)',
+    'Victoria University',
+    'Mbarara University of Science & Technology (MUST)',
+    'Uganda Martyrs University (UMU - Nkozi)',
+    'Gulu University',
+    'Busitema University',
+    'Kabale University',
+    'Islamic University in Uganda (IUIU)',
+    'ISBAT University',
+    'Clarke International University (CIU)',
+    'Cavendish University Uganda',
+    'St. Lawrence University (SLAU)',
+    'Ndejje University',
+    'Bugema University',
+    'Kampala University (KU)',
+    'Mountains of the Moon University (MMU)',
+    'Lira University',
+    'Soroti University',
+    'Muni University',
+    'Muteesa I Royal University',
+    'Bishop Stuart University (BSU)',
+    'King Ceasor University',
+    'Metropolitan International University (MIU)',
+    'Uganda Technology and Management University (UTAMU)',
+    'Team University',
+    'Ibanda University',
+    'Ankole Western University',
+    'Kumi University',
+    'African Renewal University',
+    'LivingStone International University',
+    'All Saints University Lango',
+    'Valley University of Science and Technology',
+    'Great Lakes Regional University',
+    // Institutes, Colleges & Polytechnics
+    'Uganda Institute of Information & Communications Technology (UICT - Nakawa)',
+    'Uganda Management Institute (UMI)',
+    'Management Training and Advisory Centre (MTAC)',
+    'YMCA Comprehensive Institute',
+    'Law Development Centre (LDC)',
+    'Uganda Institute of Banking and Financial Services (UIBFS)',
+    'Buganda Royal Institute of Business & Technical Education',
+    'Makerere Institute of Social Development (MISD)',
+    'Sai Pali Institute of Technology & Management',
+    'Aptech Computer Education Uganda',
+    'Datamine Technical Business School',
+    'Multitech Business School',
+    'Entebbe Comprehensive Institute',
+    'Uganda Technical College (UTC - Lira / Bushenyi / Elgon / Kichwamba / Kyema)',
+    'Uganda College of Commerce (UCC - Soroti / Kabale / Tororo / Pakwach / Aduku)',
+    'National Teachers College (NTC)',
+    'Mulago Paramedical Schools / UIAHMS',
+    'Evelyn Hone / Regional TVET Institute'
 ];
+
+// Prefilled Uganda Districts & their Counties / Municipalities / Divisions
+const UGANDA_DISTRICT_COUNTIES: Record<string, string[]> = {
+    'Wakiso': [
+        'Entebbe Municipality (Katabi / Nkumba / Town)',
+        'Katabi Town Council (Nkumba / Abaita / Kisubi)',
+        'Entebbe Division A (Central / Bugonga)',
+        'Entebbe Division B (Kiwafu / Kigungu)',
+        'Busiro County East (Kajjansi / Nsangi / Kyengera)',
+        'Busiro County North (Wakiso / Kakiri / Namayumba)',
+        'Busiro County South (Katabi / Kasanje / Bussi)',
+        'Kyadondo County East (Kira / Kasangati / Nangabo)',
+        'Nansana Municipality (Nansana / Nabweru / Gombe)',
+        'Kira Municipality (Kira / Bweyogerere / Namugongo)',
+        'Makindye-Ssabagabo Municipality (Lubowa / Seguku / Ndejje / Bunamwaya)'
+    ],
+    'Kampala': [
+        'Kampala Central Division',
+        'Nakawa Division (Ntinda / Bugolobi / Luzira / Banda)',
+        'Makindye Division (Kabalagala / Kansanga / Muyenga / Nsambya)',
+        'Kawempe Division (Wandegeya / Mulago / Bwaise / Kalerwe)',
+        'Rubaga Division (Mengo / Ndeeba / Kasubi / Nateete)'
+    ],
+    'Mukono': [
+        'Mukono Municipality (Central / Goma - Seeta)',
+        'Mukono County North (Nama / Kyampisi)',
+        'Mukono County South (Ntenjeru / Koome)',
+        'Nakifuma County',
+        'Lugazi Municipality (Buikwe border)'
+    ],
+    'Mpigi': [
+        'Mpigi Town Council',
+        'Mawokota County North',
+        'Mawokota County South (Buwama / Kayabwe)'
+    ],
+    'Jinja': [
+        'Jinja City (Central / Southern Division)',
+        'Jinja City Northern Division (Bugembe / Mafubira)',
+        'Kagoma County (Buwenge)',
+        'Butembe County (Kakira)'
+    ],
+    'Masaka': [
+        'Masaka City (Katwe-Butego / Kimanya-Kabonera)',
+        'Masaka City (Nyendo-Mukungwe)',
+        'Bukoto County East',
+        'Bukoto County Central'
+    ],
+    'Mbarara': [
+        'Mbarara City North (Kamukuzi / Biharwe)',
+        'Mbarara City South (Kakoba / Nyamitanga)',
+        'Kashari County North',
+        'Kashari County South'
+    ],
+    'Gulu': [
+        'Gulu City (Bardege-Layibi / Laroo-Pece)',
+        'Aswa County'
+    ],
+    'Mbale': [
+        'Mbale City (Industrial / Northern / Wanale)',
+        'Bungokho County North',
+        'Bungokho County South',
+        'Bungokho County Central'
+    ],
+    'Lira': [
+        'Lira City East',
+        'Lira City West',
+        'Erute County North',
+        'Erute County South'
+    ],
+    'Arua': [
+        'Arua City (Central / Ayivu Division)',
+        'Vurra County'
+    ],
+    'Kabarole (Fort Portal)': [
+        'Fort Portal Tourism City (Central / North)',
+        'Burahya County'
+    ],
+    'Hoima': [
+        'Hoima City (East / West Division)',
+        'Bugahya County',
+        'Kigorobya County'
+    ],
+    'Kabale': [
+        'Kabale Municipality (Central / Northern / Southern)',
+        'Ndorwa County East',
+        'Ndorwa County West'
+    ],
+    'Luwero': [
+        'Luwero Town Council',
+        'Wobulenzi Town Council',
+        'Bombo Town Council',
+        'Katikhoko County',
+        'Bamunanika County'
+    ],
+    'Mityana': [
+        'Mityana Municipality',
+        'Mityana County North',
+        'Mityana County South',
+        'Busujju County'
+    ],
+    'Soroti': [
+        'Soroti City East',
+        'Soroti City West',
+        'Soroti County',
+        'Dakabela County'
+    ],
+    'Tororo': [
+        'Tororo Municipality',
+        'Malaba Town Council',
+        'Tororo County North / South',
+        'West Budama County'
+    ],
+    'Iganga': [
+        'Iganga Municipality',
+        'Kigulu County North',
+        'Kigulu County South'
+    ],
+    'Kasese': [
+        'Kasese Municipality',
+        'Busongora County',
+        'Bukonzo County'
+    ],
+    'Bushenyi': [
+        'Bushenyi-Ishaka Municipality',
+        'Igara County East',
+        'Igara County West'
+    ],
+    'Masindi': [
+        'Masindi Municipality',
+        'Buruli County',
+        'Bujenje County'
+    ],
+    'Mubende': [
+        'Mubende Municipality',
+        'Buwekula County',
+        'Kasambya County'
+    ],
+    'Buikwe': [
+        'Njeru Municipality',
+        'Lugazi Municipality',
+        'Buikwe County South'
+    ],
+    'Busia': [
+        'Busia Municipality',
+        'Samia-Bugwe County'
+    ],
+    'Ntungamo': [
+        'Ntungamo Municipality',
+        'Kajara County',
+        'Ruhaama County',
+        'Rushenyi County'
+    ],
+    'Rukungiri': [
+        'Rukungiri Municipality',
+        'Rubabo County',
+        'Rujumbura County'
+    ],
+    'Ibanda': [
+        'Ibanda Municipality',
+        'Ibanda County North / South'
+    ],
+    'Kamuli': [
+        'Kamuli Municipality',
+        'Bugabula County',
+        'Buzaaya County'
+    ],
+    'Kapchorwa': [
+        'Kapchorwa Municipality',
+        'Tingey County'
+    ],
+    'Kotido': [
+        'Kotido Municipality',
+        'Jie County'
+    ],
+    'Moroto': [
+        'Moroto Municipality',
+        'Matheniko County',
+        'Tepeth County'
+    ],
+    'Nebbi': [
+        'Nebbi Municipality',
+        'Padyere County'
+    ],
+    'Kitgum': [
+        'Kitgum Municipality',
+        'Chua County East / West'
+    ],
+    'Koboko': [
+        'Koboko Municipality',
+        'Koboko County'
+    ],
+    'Kumi': [
+        'Kumi Municipality',
+        'Kumi County',
+        'Kanyum County'
+    ],
+    'Bugiri': [
+        'Bugiri Municipality',
+        'Bukooli County'
+    ],
+    'Sheema': [
+        'Sheema Municipality',
+        'Sheema County North / South'
+    ],
+    'Apac': [
+        'Apac Municipality',
+        'Maruzi County'
+    ]
+};
+
+const ALL_UGANDA_DISTRICTS = Array.from(new Set([
+    ...Object.keys(UGANDA_DISTRICT_COUNTIES),
+    'Abim', 'Adjumani', 'Agago', 'Alebtong', 'Amolatar', 'Amudat', 'Amuria', 'Amuru', 'Apac', 'Arua',
+    'Budaka', 'Bududa', 'Bugiri', 'Bugweri', 'Buhweju', 'Buikwe', 'Bukedea', 'Bukomansimbi', 'Bukwo', 'Bulambuli',
+    'Buliisa', 'Bundibugyo', 'Bunyangabu', 'Bushenyi', 'Busia', 'Butaleja', 'Butambala', 'Butebo', 'Buvuma', 'Buyende',
+    'Dokolo', 'Gomba', 'Gulu', 'Hoima', 'Ibanda', 'Iganga', 'Isingiro', 'Jinja', 'Kaabong', 'Kabale',
+    'Kabarole (Fort Portal)', 'Kaberamaido', 'Kagadi', 'Kakumiro', 'Kalaki', 'Kalangala', 'Kaliro', 'Kalungu', 'Kampala', 'Kamuli',
+    'Kamwenge', 'Kanungu', 'Kapchorwa', 'Kapelebyong', 'Karenga', 'Kasese', 'Kassanda', 'Katakwi', 'Kayunga', 'Kazo',
+    'Kibaale', 'Kiboga', 'Kibuku', 'Kikuube', 'Kiruhura', 'Kiryandongo', 'Kisoro', 'Kitagwenda', 'Kitgum', 'Koboko',
+    'Kole', 'Kotido', 'Kumi', 'Kwania', 'Kween', 'Kyankwanzi', 'Kyegegwa', 'Kyenjojo', 'Kyotera', 'Lamwo',
+    'Lira', 'Luuka', 'Luwero', 'Lwengo', 'Lyantonde', 'Madi-Okollo', 'Manafwa', 'Maracha', 'Masaka', 'Masindi',
+    'Mayuge', 'Mbale', 'Mbarara', 'Mitooma', 'Mityana', 'Moroto', 'Moyo', 'Mpigi', 'Mubende', 'Mukono',
+    'Nabilatuk', 'Nakapiripirit', 'Nakaseke', 'Nakasongola', 'Namayingo', 'Namisindwa', 'Namutumba', 'Napak', 'Nebbi', 'Ngora',
+    'Ntoroko', 'Ntungamo', 'Nwoya', 'Obongi', 'Omoro', 'Otuke', 'Oyam', 'Pader', 'Pakwach', 'Pallisa',
+    'Rakai', 'Rubanda', 'Rubirizi', 'Rukiga', 'Rukungiri', 'Rwampara', 'Sembabule', 'Serere', 'Sheema', 'Sironko',
+    'Soroti', 'Tororo', 'Wakiso', 'Yumbe', 'Zombo'
+]));
+
+function getCountiesForDistrict(district: string): string[] {
+    const clean = (district || '').trim();
+    if (UGANDA_DISTRICT_COUNTIES[clean]) {
+        return UGANDA_DISTRICT_COUNTIES[clean];
+    }
+    const baseName = clean.replace(/\s*District$/i, '') || 'District';
+    return [
+        `${baseName} Municipality / Town Council`,
+        `${baseName} Central County`,
+        `${baseName} North County`,
+        `${baseName} South County`,
+        `${baseName} East County`,
+        `${baseName} West County`
+    ];
+}
+
+interface SearchableComboFieldProps {
+    label: React.ReactNode;
+    value: string;
+    onChange: (nextVal: string) => void;
+    options: string[];
+    placeholder?: string;
+    helperText?: string;
+    error?: string;
+}
+
+const SearchableComboField: React.FC<SearchableComboFieldProps> = ({
+    label,
+    value,
+    onChange,
+    options,
+    placeholder = 'Search or select...',
+    helperText,
+    error
+}) => {
+    const [isOpen, setIsOpen] = useState(false);
+    const [searchQuery, setSearchQuery] = useState('');
+    const containerRef = React.useRef<HTMLDivElement>(null);
+    const inputRef = React.useRef<HTMLInputElement>(null);
+
+    useEffect(() => {
+        const handleClickOutside = (ev: MouseEvent) => {
+            if (containerRef.current && !containerRef.current.contains(ev.target as Node)) {
+                setIsOpen(false);
+                setSearchQuery('');
+            }
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
+
+    const effectiveQuery = isOpen ? searchQuery : value;
+
+    const filteredOptions = React.useMemo(() => {
+        const q = searchQuery.trim().toLowerCase();
+        if (!q) return options;
+        return options.filter(opt => opt.toLowerCase().includes(q));
+    }, [options, searchQuery]);
+
+    const exactMatchExists = React.useMemo(() => {
+        const q = searchQuery.trim().toLowerCase();
+        if (!q) return true;
+        return options.some(opt => opt.toLowerCase() === q);
+    }, [options, searchQuery]);
+
+    return (
+        <div ref={containerRef} className="relative min-w-0">
+            <div className="flex flex-wrap items-center justify-between gap-1 mb-1.5">
+                <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+                    {label}
+                </label>
+                {helperText && (
+                    <span className="text-[10px] font-medium text-slate-400">
+                        {helperText}
+                    </span>
+                )}
+            </div>
+
+            <div className="relative">
+                <input
+                    ref={inputRef}
+                    type="text"
+                    value={effectiveQuery}
+                    onFocus={() => {
+                        setIsOpen(true);
+                        setSearchQuery('');
+                    }}
+                    onChange={(e) => {
+                        const val = e.target.value;
+                        setSearchQuery(val);
+                        onChange(val);
+                        if (!isOpen) setIsOpen(true);
+                    }}
+                    placeholder={value || placeholder}
+                    className={`w-full pl-3.5 pr-9 py-3 rounded-xl bg-slate-50 dark:bg-slate-950 border ${
+                        error
+                            ? 'border-red-500 focus:ring-red-500/20'
+                            : 'border-slate-200 dark:border-slate-800 focus:border-violet-500'
+                    } text-sm font-medium text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-4 focus:ring-violet-500/10 transition-all`}
+                />
+                <button
+                    type="button"
+                    tabIndex={-1}
+                    onClick={() => {
+                        if (isOpen) {
+                            setIsOpen(false);
+                            setSearchQuery('');
+                        } else {
+                            setIsOpen(true);
+                            setSearchQuery('');
+                            inputRef.current?.focus();
+                        }
+                    }}
+                    className="absolute right-2.5 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer"
+                >
+                    {isOpen ? <Search size={15} /> : <ChevronDown size={16} />}
+                </button>
+            </div>
+
+            {isOpen && (
+                <div className="absolute left-0 right-0 z-30 mt-1.5 max-h-60 overflow-y-auto rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xl divide-y divide-slate-100 dark:divide-slate-800/70">
+                    {searchQuery.trim() && !exactMatchExists && (
+                        <button
+                            type="button"
+                            onClick={() => {
+                                onChange(searchQuery.trim());
+                                setIsOpen(false);
+                                setSearchQuery('');
+                            }}
+                            className="w-full px-3.5 py-2.5 text-left text-xs font-bold text-violet-600 dark:text-violet-400 bg-violet-50/60 dark:bg-violet-950/40 hover:bg-violet-100/70 dark:hover:bg-violet-950/70 flex items-center justify-between gap-2 cursor-pointer"
+                        >
+                            <span className="truncate">+ Use custom: &ldquo;{searchQuery.trim()}&rdquo;</span>
+                            <span className="text-[10px] px-2 py-0.5 rounded-full bg-violet-600 text-white shrink-0">Custom</span>
+                        </button>
+                    )}
+
+                    {filteredOptions.length > 0 ? (
+                        filteredOptions.map((opt) => {
+                            const isSelected = value === opt;
+                            return (
+                                <button
+                                    key={opt}
+                                    type="button"
+                                    onClick={() => {
+                                        onChange(opt);
+                                        setIsOpen(false);
+                                        setSearchQuery('');
+                                    }}
+                                    className={`w-full px-3.5 py-2.5 text-left text-xs flex items-center justify-between gap-2 transition-colors cursor-pointer ${
+                                        isSelected
+                                            ? 'bg-violet-50 dark:bg-violet-950/60 font-bold text-violet-700 dark:text-violet-300'
+                                            : 'text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800/60 font-medium'
+                                    }`}
+                                >
+                                    <span className="break-words">{opt}</span>
+                                    {isSelected && <Check size={14} className="text-violet-600 shrink-0" />}
+                                </button>
+                            );
+                        })
+                    ) : (
+                        <div className="px-3.5 py-3 text-xs text-slate-400">
+                            No preset match — press Enter or tap above to use &ldquo;{searchQuery.trim()}&rdquo;.
+                        </div>
+                    )}
+
+                    <button
+                        type="button"
+                        onClick={() => {
+                            setSearchQuery('');
+                            onChange('');
+                            inputRef.current?.focus();
+                        }}
+                        className="w-full px-3.5 py-2 text-left text-[11px] font-semibold text-slate-500 dark:text-slate-400 hover:text-violet-600 dark:hover:text-violet-400 bg-slate-50/70 dark:bg-slate-950/60 cursor-pointer"
+                    >
+                        ✎ Not listed? Type your own above...
+                    </button>
+                </div>
+            )}
+
+            {error && (
+                <p className="text-xs text-red-500 font-medium mt-1.5">{error}</p>
+            )}
+        </div>
+    );
+};
 
 const LEVELS = [
     { value: 'Beginner', desc: 'New to AI tools & workflows' },
@@ -226,9 +691,10 @@ const OutreachRegistration: React.FC = () => {
     const [email, setEmail] = useState('');
     const [phone, setPhone] = useState('');
     const [classLevelYear, setClassLevelYear] = useState('University - Year 2');
+    const [universityOrInstitute, setUniversityOrInstitute] = useState('Nkumba University');
     const [ageRange, setAgeRange] = useState('18-24');
-    const [location, setLocation] = useState('Nkumba, Entebbe');
-    const [customLocation, setCustomLocation] = useState('');
+    const [selectedDistrict, setSelectedDistrict] = useState('Wakiso');
+    const [selectedCounty, setSelectedCounty] = useState('Entebbe Municipality (Katabi / Nkumba / Town)');
     const [guardianName, setGuardianName] = useState('');
     const [guardianPhone, setGuardianPhone] = useState('');
 
@@ -515,6 +981,21 @@ const OutreachRegistration: React.FC = () => {
         ageRange === 'Under 18' ||
         classLevelYear.includes('High School');
 
+    const isUniversityOrInstituteStudent =
+        classLevelYear.startsWith('University') ||
+        classLevelYear.includes('Institute') ||
+        classLevelYear.includes('TVET') ||
+        classLevelYear.includes('Diploma');
+
+    const handleDistrictChange = (nextDistrict: string) => {
+        setSelectedDistrict(nextDistrict);
+        if (errors.location) setErrors(prev => ({ ...prev, location: '' }));
+        // If nextDistrict matches a known Uganda district, prefill its primary county/municipality automatically
+        if (UGANDA_DISTRICT_COUNTIES[nextDistrict]?.length) {
+            setSelectedCounty(UGANDA_DISTRICT_COUNTIES[nextDistrict][0]);
+        }
+    };
+
     const validateStep1 = (): boolean => {
         const nextErrors: Record<string, string> = {};
         const cleanedName = cleanPersonName(fullName);
@@ -529,6 +1010,14 @@ const OutreachRegistration: React.FC = () => {
 
         if (email.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email.trim())) {
             nextErrors.email = 'Please enter a valid Email Address (e.g. name@gmail.com) or leave blank.';
+        }
+
+        if (isUniversityOrInstituteStudent && !universityOrInstitute.trim()) {
+            nextErrors.universityOrInstitute = 'Please select or type your University or Institute.';
+        }
+
+        if (!selectedDistrict.trim()) {
+            nextErrors.location = 'Please select or type your District.';
         }
 
         if (isGuardianRequired) {
@@ -616,10 +1105,16 @@ const OutreachRegistration: React.FC = () => {
         setIsSubmitting(true);
         setErrors({});
 
-        const resolvedLocation =
-            location === 'Other (Specify below)'
-                ? customLocation.trim() || 'Entebbe / Kampala'
-                : location;
+        const cleanDistrict = selectedDistrict.trim() || 'Wakiso';
+        const cleanCounty = selectedCounty.trim();
+        const resolvedLocation = cleanCounty
+            ? `${cleanCounty}, ${cleanDistrict}`
+            : cleanDistrict;
+
+        const resolvedClassLevelYear =
+            isUniversityOrInstituteStudent && universityOrInstitute.trim()
+                ? `${classLevelYear} • ${universityOrInstitute.trim()}`
+                : classLevelYear;
 
         const resolvedPaymentPlan =
             paymentPlan === 'Other' && paymentPlanOther.trim()
@@ -656,7 +1151,7 @@ const OutreachRegistration: React.FC = () => {
             full_name: cleanedStudentName,
             email: email.trim().toLowerCase() || null,
             phone: normalizedPhone,
-            class_level_year: classLevelYear,
+            class_level_year: resolvedClassLevelYear,
             age_range: ageRange,
             guardian_name: guardianName.trim() ? cleanPersonName(guardianName) : null,
             guardian_phone: normalizedGuardianPhone,
@@ -1265,7 +1760,12 @@ const OutreachRegistration: React.FC = () => {
                                                     </label>
                                                     <select
                                                         value={classLevelYear}
-                                                        onChange={(e) => setClassLevelYear(e.target.value)}
+                                                        onChange={(e) => {
+                                                            setClassLevelYear(e.target.value);
+                                                            if (errors.universityOrInstitute) {
+                                                                setErrors(prev => ({ ...prev, universityOrInstitute: '' }));
+                                                            }
+                                                        }}
                                                         className="w-full max-w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-sm font-medium focus:outline-none focus:border-violet-500"
                                                     >
                                                         {CLASS_LEVEL_OPTIONS.map(opt => (
@@ -1297,29 +1797,56 @@ const OutreachRegistration: React.FC = () => {
                                                 </div>
                                             </div>
 
-                                            {/* Location / Campus Area */}
-                                            <div className="min-w-0">
-                                                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
-                                                    Location / Campus Area
-                                                </label>
-                                                <select
-                                                    value={location}
-                                                    onChange={(e) => setLocation(e.target.value)}
-                                                    className="w-full max-w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-sm font-medium focus:outline-none focus:border-violet-500"
-                                                >
-                                                    {LOCATION_PRESETS.map(loc => (
-                                                        <option key={loc} value={loc}>{loc}</option>
-                                                    ))}
-                                                </select>
-                                                {location === 'Other (Specify below)' && (
-                                                    <input
-                                                        type="text"
-                                                        value={customLocation}
-                                                        onChange={(e) => setCustomLocation(e.target.value)}
-                                                        placeholder="Enter your city, campus, or area"
-                                                        className="w-full mt-2.5 px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-sm font-medium focus:outline-none focus:border-violet-500"
+                                            {/* Conditional University / Institute Field — ONLY shown when student is in a University or Institute */}
+                                            {isUniversityOrInstituteStudent && (
+                                                <div className="p-3.5 sm:p-4 rounded-2xl bg-violet-50/50 dark:bg-violet-950/20 border border-violet-200/70 dark:border-violet-800/50 animate-in fade-in duration-200">
+                                                    <SearchableComboField
+                                                        label={
+                                                            <span className="inline-flex items-center gap-1.5">
+                                                                <GraduationCap size={14} className="text-violet-600 dark:text-violet-400" />
+                                                                University / Institute <span className="text-red-500">*</span>
+                                                            </span>
+                                                        }
+                                                        helperText="Search prefilled list or type your own"
+                                                        value={universityOrInstitute}
+                                                        onChange={(val) => {
+                                                            setUniversityOrInstitute(val);
+                                                            if (errors.universityOrInstitute) {
+                                                                setErrors(prev => ({ ...prev, universityOrInstitute: '' }));
+                                                            }
+                                                        }}
+                                                        options={UGANDA_UNIVERSITIES_AND_INSTITUTES}
+                                                        placeholder="Search or type your University or Institute..."
+                                                        error={errors.universityOrInstitute}
                                                     />
-                                                )}
+                                                </div>
+                                            )}
+
+                                            {/* Location: Strictly District & County / Municipality (Prefilled + Searchable + Custom) */}
+                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                                <SearchableComboField
+                                                    label={
+                                                        <span className="inline-flex items-center gap-1">
+                                                            <MapPin size={13} className="text-violet-600 dark:text-violet-400" />
+                                                            Location — District <span className="text-red-500">*</span>
+                                                        </span>
+                                                    }
+                                                    helperText="Select or search district"
+                                                    value={selectedDistrict}
+                                                    onChange={handleDistrictChange}
+                                                    options={ALL_UGANDA_DISTRICTS}
+                                                    placeholder="Search or select District (e.g. Wakiso, Kampala)..."
+                                                    error={errors.location}
+                                                />
+
+                                                <SearchableComboField
+                                                    label="County / Municipality / Town"
+                                                    helperText="Prefilled for district or type yours"
+                                                    value={selectedCounty}
+                                                    onChange={(val) => setSelectedCounty(val)}
+                                                    options={getCountiesForDistrict(selectedDistrict)}
+                                                    placeholder="Select or type County / Town..."
+                                                />
                                             </div>
 
                                             {/* Conditional Parent / Guardian Section (Cleanly revealed when Under 18 or High School, or optional toggle) */}
