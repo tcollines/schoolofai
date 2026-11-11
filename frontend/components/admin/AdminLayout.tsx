@@ -1,7 +1,8 @@
 import React from 'react';
 import { Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
-import { Users, BookOpen, UserCheck, Handshake, FileQuestion, Calendar, Mail, ClipboardList, Wallet, LogOut } from 'lucide-react';
+import { Users, BookOpen, UserCheck, Handshake, FileQuestion, Calendar, Mail, ClipboardList, Wallet, LogOut, GraduationCap } from 'lucide-react';
 import AdminRegistrations from './AdminRegistrations';
+import AdminFreeCourse from './AdminFreeCourse';
 
 interface AdminLayoutProps {
     onExit?: () => void;
@@ -12,6 +13,7 @@ interface AdminLayoutProps {
 export const menuItems = [
     { id: 'enrollments', label: 'Enrollments', icon: Users },
     { id: 'registrations', label: 'Registrations', icon: ClipboardList },
+    { id: 'free-course', label: 'Free Course', icon: GraduationCap },
     { id: 'wallet', label: 'Wallet & Ledger', icon: Wallet },
     { id: 'courses', label: 'Course Setup', icon: BookOpen },
     { id: 'instructors', label: 'Instructors', icon: UserCheck },
@@ -69,6 +71,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ onExit, isInstructor }) => {
             <main className="flex-1 ml-64 p-8">
                 <Routes>
                     <Route path="registrations" element={<AdminRegistrations />} />
+                    <Route path="free-course" element={<AdminFreeCourse />} />
                     <Route path="*" element={<Navigate to="registrations" replace />} />
                 </Routes>
             </main>

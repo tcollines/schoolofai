@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense, lazy } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import LandingPage from './components/LandingPage';
 import LoginPage from './components/LoginPage';
@@ -22,6 +22,17 @@ import ProfileSetup from './components/onboarding/ProfileSetup';
 import PaymentPlanSetup from './components/onboarding/PaymentPlanSetup';
 import RecommendedCourses from './components/onboarding/RecommendedCourses';
 import OutreachRegistration from './components/OutreachRegistration';
+import ReferralRedirect from './components/learn/ReferralRedirect';
+// Free-course screens are loaded on demand so they never slow down the rest of the app
+const FreeCoursePage = lazy(() => import('./components/learn/FreeCoursePage'));
+const LearnRoute = lazy(() => import('./components/learn/LearnRoute'));
+const VerifyCertificatePage = lazy(() => import('./components/learn/VerifyCertificatePage'));
+const RouteFallback = () => (
+  <div className="flex items-center justify-center h-screen">
+    <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-welile-purple"></div>
+  </div>
+);
+import { captureReferralFromUrl, claimStoredReferral, getFreeCourseIntent, learnHomePath } from './src/lib/acquisition';
 import { supabase, isSupabaseConfigured } from './src/lib/supabaseClient';
 import { flushPendingOutreachRegistrations } from './src/lib/outreachSync';
 import { useCourses } from './src/hooks/useCourses';
@@ -40,12 +51,18 @@ const LandingRoute = ({ isAuthenticated }: { isAuthenticated: boolean }) => {
   );
 };
 
+// Where to send someone right after they authenticate: the free course if that is why they came.
+const afterAuthPath = () => {
+  const intent = getFreeCourseIntent();
+  return intent ? learnHomePath(intent) : '/dashboard';
+};
+
 const LoginRoute = ({ isAuthenticated }: { isAuthenticated: boolean }) => {
   const navigate = useNavigate();
-  if (isAuthenticated) return <Navigate to="/dashboard" replace />;
+  if (isAuthenticated) return <Navigate to={afterAuthPath()} replace />;
   return (
-    <LoginPage 
-      onLogin={() => navigate('/dashboard')}
+    <LoginPage
+      onLogin={() => navigate(afterAuthPath())}
       onNavigateToSignup={() => navigate('/signup')}
       onBack={() => navigate('/')}
     />
@@ -54,7 +71,7 @@ const LoginRoute = ({ isAuthenticated }: { isAuthenticated: boolean }) => {
 
 const SignupRoute = ({ isAuthenticated }: { isAuthenticated: boolean }) => {
   const navigate = useNavigate();
-  if (isAuthenticated) return <Navigate to="/dashboard" replace />;
+  if (isAuthenticated) return <Navigate to={afterAuthPath()} replace />;
   return (
     <SignupPage 
       onSignup={() => navigate('/dashboard')}
@@ -133,6 +150,18 @@ function App() {
     window.addEventListener('online', handleOnline);
     return () => window.removeEventListener('online', handleOnline);
   }, []);
+
+  // Staff referral: capture ?ref=, store it first-touch, and strip it from the address bar
+  useEffect(() => {
+    captureReferralFromUrl();
+  }, []);
+
+  // Once signed in, attach the referral to the profile (first touch only; enforced in the database)
+  useEffect(() => {
+    if (session?.user?.id) {
+      void claimStoredReferral(session.user.user_metadata);
+    }
+  }, [session?.user?.id]);
 
   const { courses, loading: coursesLoading } = useCourses(isAuthenticated ? session?.user?.id : undefined);
   const { profile: userProfile } = useProfile(isAuthenticated ? session : null);
@@ -236,7 +265,7 @@ function App() {
       }
 
       if (session && window.location.pathname === '/login') {
-          window.location.href = '/dashboard';
+          window.location.href = afterAuthPath();
       }
     });
 
@@ -259,6 +288,16 @@ function App() {
         <Route path="/login" element={<LoginRoute isAuthenticated={isAuthenticated} />} />
         <Route path="/signup" element={<SignupRoute isAuthenticated={isAuthenticated} />} />
         <Route path="/register" element={<OutreachRegistration />} />
+
+        {/* Free course: public page, staff referral links, certificate verification, and the learning area */}
+        <Route path="/free/ai-fundamentals" element={<Suspense fallback={<RouteFallback />}><FreeCoursePage /></Suspense>} />
+        <Route path="/r/:slug" element={<ReferralRedirect />} />
+        <Route path="/verify/:id" element={<Suspense fallback={<RouteFallback />}><VerifyCertificatePage /></Suspense>} />
+        <Route path="/learn/:course/*" element={
+          <ProtectedRoute isAuthenticated={isAuthenticated} requireOnboarding={true} userProfile={userProfile}>
+            <Suspense fallback={<RouteFallback />}><LearnRoute session={session} userProfile={userProfile} /></Suspense>
+          </ProtectedRoute>
+        } />
         
         {/* Admin Route - uses its own authentication via AdminLoginPage */}
         <Route path="/admin/*" element={<AdminRoute />} />
