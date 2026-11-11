@@ -26,7 +26,7 @@ const ProfileSetup: React.FC = () => {
             setUploadingAvatar(true);
 
             const { data: { user } } = await supabase.auth.getUser();
-            if (!user) throw new Error("No user found.");
+            if (!user) { navigate('/login'); return; }
 
             // Create a unique file path for the avatar
             const fileExt = file.name.split('.').pop();
@@ -65,7 +65,7 @@ const ProfileSetup: React.FC = () => {
 
         try {
             const { data: { user } } = await supabase.auth.getUser();
-            if (!user) throw new Error("No user found. Please sign in again.");
+            if (!user) { navigate('/login'); return; }
 
             // 1. Always sync profile fields to user metadata in Supabase Auth (reliable, independent of schema cache)
             try {

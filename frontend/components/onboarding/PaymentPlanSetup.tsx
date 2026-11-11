@@ -37,7 +37,7 @@ const PaymentPlanSetup: React.FC = () => {
 
         try {
             const { data: { user } } = await supabase.auth.getUser();
-            if (!user) throw new Error("No user found. Please sign in again.");
+            if (!user) { navigate('/login'); return; }
 
             try {
                 await supabase.auth.updateUser({

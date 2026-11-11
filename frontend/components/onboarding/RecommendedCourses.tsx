@@ -37,7 +37,7 @@ const RecommendedCourses: React.FC = () => {
 
         try {
             const { data: { user } } = await supabase.auth.getUser();
-            if (!user) throw new Error("No user found.");
+            if (!user) { navigate('/login'); return; }
 
             const { error: updateError } = await supabase
                 .from('profiles')

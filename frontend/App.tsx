@@ -183,17 +183,11 @@ function App() {
     const checkAuthSession = () => {
       supabase.auth.getSession().then(({ data: { session } }) => {
         clearTimeout(timer);
-        const guestEmail = localStorage.getItem('auth_logged_in_email');
-        const activeSession = session || (guestEmail ? {
-            user: {
-                id: localStorage.getItem('auth_logged_in_id') || 'default-owner',
-                email: guestEmail,
-                user_metadata: { 
-                    full_name: localStorage.getItem('auth_logged_in_name') || 'Corporate Lead', 
-                    role: 'SPONSORED' 
-                }
-            }
-        } : null);
+        // Only a real Supabase session counts as signed in. Leftover browser flags from older versions are cleared.
+        const activeSession = session || null;
+        if (!session) {
+            ['auth_logged_in_email', 'auth_logged_in_name', 'auth_logged_in_id', 'logged_in_email'].forEach(k => localStorage.removeItem(k));
+        }
 
         setSession(activeSession);
         setIsAuthenticated(!!activeSession);
@@ -211,14 +205,7 @@ function App() {
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((event, session) => {
-      const guestEmail = localStorage.getItem('auth_logged_in_email');
-      const activeSession = session || (guestEmail ? {
-          user: {
-              id: localStorage.getItem('auth_logged_in_id') || 'default-owner',
-              email: guestEmail,
-              user_metadata: { full_name: localStorage.getItem('auth_logged_in_name') || 'Corporate Lead', role: 'SPONSORED' }
-          }
-      } : null);
+      const activeSession = session || null;
 
       setSession(activeSession);
       setIsAuthenticated(!!activeSession);

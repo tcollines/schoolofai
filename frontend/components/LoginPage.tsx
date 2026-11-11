@@ -377,8 +377,16 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onNavigateToSignup, onBa
                         </div>
 
                         {error && (
-                            <div className="bg-red-50 dark:bg-red-950/30 text-red-650 dark:text-red-400 p-4 rounded-xl mb-6 text-sm flex items-center border border-red-200 dark:border-red-900/30">
-                                <span className="mr-2"><AlertTriangle className="inline-block w-4 h-4 mr-1 align-middle" />️</span> {error}
+                            <div className="bg-red-50 dark:bg-red-950/30 text-red-700 dark:text-red-400 p-4 rounded-xl mb-6 text-sm border border-red-200 dark:border-red-900/30">
+                                <p className="flex items-start gap-2"><AlertTriangle className="w-4 h-4 mt-0.5 shrink-0" /> <span>{error}</span></p>
+                                {step === 'login' && /Incorrect email or password/.test(error) && (
+                                    <p className="mt-2 pl-6">
+                                        New here?{' '}
+                                        <button type="button" onClick={onNavigateToSignup} className="font-bold underline underline-offset-2 cursor-pointer">
+                                            Create a free account
+                                        </button>
+                                    </p>
+                                )}
                             </div>
                         )}
 
