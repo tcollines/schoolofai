@@ -345,7 +345,7 @@ export const useAdmin = (isAdmin: boolean) => {
 
             if (error) throw error;
 
-            if (role !== UserRole.ADMIN && profile?.email) {
+            if (role !== UserRole.INSTRUCTOR && role !== UserRole.ADMIN && profile?.email) {
                 // Delete from instructors table so they disappear from instructors page
                 await supabaseClient
                     .from('instructors')

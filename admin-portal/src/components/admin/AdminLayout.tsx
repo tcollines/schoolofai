@@ -23,6 +23,7 @@ import AdminFreeCourse from './AdminFreeCourse';
 import AdminLiveSessions from './AdminLiveSessions';
 import AdminStaff from './AdminStaff';
 import { supabaseClient } from '../../lib/supabaseClient';
+import { verifyConsoleSession, clearConsoleFlags } from '../../lib/consoleAuth';
 
 interface AdminLayoutProps {
     onExit: () => void;
@@ -92,7 +93,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ onExit, isInstructor, isAdmin
                     }
                 }
             } else {
-                const email = localStorage.getItem('admin-email') || 'admin@welile.com';
+                const email = localStorage.getItem('admin-email') || '';
                 setUserEmail(email);
                 
                 // Find admin profile in database
@@ -111,56 +112,44 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ onExit, isInstructor, isAdmin
         }
     }, [isAdminAuthenticated, isInstructor]);
 
-    // Secure database-backed session validation (prevents client-side localStorage injections)
+    // Honest gate: the console is only open while a LIVE Supabase session with the right role exists.
+    // Checked on mount and on every auth state change; localStorage flags are only UI hints.
+    const [sessionChecked, setSessionChecked] = useState(false);
     useEffect(() => {
-        const verifySession = async () => {
-            const sessionKey = isInstructor ? 'instructor-session' : 'admin-session';
-            const isAuth = localStorage.getItem(sessionKey) === 'true';
-            if (isAuth) {
-                try {
-                    if (isInstructor) {
-                        const email = (localStorage.getItem('instructor-email') || '').trim().toLowerCase();
-                        if (!email || email === 'instructor@welile.com' || email === 'instructor@test.com') {
-                            return;
-                        }
-                        const { data: profData } = await supabaseClient.from('profiles').select('role').eq('email', email);
-                        if (profData && profData.length > 0 && (profData[0].role === 'INSTRUCTOR' || profData[0].role === 'ADMIN')) {
-                            return;
-                        }
-                        const { data: courseData } = await supabaseClient.from('courses').select('id').eq('instructor_email', email);
-                        if (courseData && courseData.length > 0) {
-                            return;
-                        }
-                        const { data: instData, error: instErr } = await supabaseClient.from('instructors').select('id').eq('email', email);
-                        if (!instErr && instData && instData.length > 0) {
-                            return;
-                        }
-                        // Invalid instructor!
-                        localStorage.removeItem(sessionKey);
-                        localStorage.removeItem('instructor-email');
-                        localStorage.removeItem('instructor-name');
-                        setIsAdminAuthenticated(false);
-                    } else {
-                        const email = localStorage.getItem('admin-email') || 'admin@welile.com';
-                        const cleanEmail = email.trim().toLowerCase();
-                        if (cleanEmail === 'admin@welile.com' || cleanEmail === 'admin@test.com' || cleanEmail === 'chemayekabraham289@gmail.com' || !cleanEmail) {
-                            // Default admin accounts are valid and don't need database profile records
-                            return;
-                        }
-                        const { data } = await supabaseClient.from('profiles').select('role').eq('email', cleanEmail).single();
-                        if (!data || data.role !== 'ADMIN') {
-                            // Invalid admin!
-                            localStorage.removeItem(sessionKey);
-                            localStorage.removeItem('admin-email');
-                            setIsAdminAuthenticated(false);
-                        }
-                    }
-                } catch (e) {
-                    console.error('Session validation error:', e);
+        let cancelled = false;
+        const sessionKey = isInstructor ? 'instructor-session' : 'admin-session';
+        const revalidate = async () => {
+            const res = await verifyConsoleSession(!!isInstructor);
+            if (cancelled) return;
+            if (res.ok) {
+                if (isInstructor) {
+                    localStorage.setItem('instructor-session', 'true');
+                    localStorage.setItem('instructor-email', res.email);
+                    localStorage.setItem('instructor-name', res.name);
+                } else {
+                    localStorage.setItem('admin-session', 'true');
+                    localStorage.setItem('admin-email', res.email);
                 }
+                setIsAdminAuthenticated(true);
+            } else if (res.reason === 'error' && localStorage.getItem(sessionKey) === 'true') {
+                // Transient lookup failure: keep the current state rather than logging out on a network blip.
+            } else {
+                clearConsoleFlags();
+                setIsAdminAuthenticated(false);
             }
+            setSessionChecked(true);
         };
-        verifySession();
+        revalidate();
+        const { data: sub } = supabaseClient.auth.onAuthStateChange((event) => {
+            if (event === 'SIGNED_OUT') {
+                clearConsoleFlags();
+                setIsAdminAuthenticated(false);
+                return;
+            }
+            // Defer: never call supabase from inside the auth callback synchronously.
+            setTimeout(revalidate, 0);
+        });
+        return () => { cancelled = true; sub?.subscription?.unsubscribe(); };
     }, [isInstructor]);
 
     useEffect(() => {
@@ -184,9 +173,9 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ onExit, isInstructor, isAdmin
         window.dispatchEvent(new Event('theme-change'));
     };
 
-    const handleExitConsole = () => {
-        const sessionKey = isInstructor ? 'instructor-session' : 'admin-session';
-        localStorage.removeItem(sessionKey);
+    const handleExitConsole = async () => {
+        clearConsoleFlags();
+        try { await supabaseClient.auth.signOut(); } catch (e) { console.warn('Sign-out failed:', e); }
         onExit();
     };
 
@@ -205,14 +194,21 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ onExit, isInstructor, isAdmin
         }
     };
 
+    if (!sessionChecked && isAdminAuthenticated) {
+        return (
+            <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-[#090d16]">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-violet-500"></div>
+            </div>
+        );
+    }
+
     if (!isAdminAuthenticated) {
         return (
             <AdminLoginPage 
                 isInstructor={isInstructor}
                 onLoginSuccess={() => {
-                    const sessionKey = isInstructor ? 'instructor-session' : 'admin-session';
-                    localStorage.setItem(sessionKey, 'true');
                     setIsAdminAuthenticated(true);
+                    setSessionChecked(true);
                 }}
                 onBackToStudentPortal={handleBackToStudentPortal}
             />

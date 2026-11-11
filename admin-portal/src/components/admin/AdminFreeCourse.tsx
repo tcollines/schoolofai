@@ -3,6 +3,7 @@ import { supabaseClient } from '../../lib/supabaseClient';
 import { ALL_ITEMS, COURSE, MODULES } from '../../content/aiFundamentals';
 import { AlertTriangle, Award, Check, Copy, Download, Eye, Loader2, MousePointerClick, RefreshCw, Search, Star, Trophy, UserPlus, Users, Zap } from 'lucide-react';
 import AdminAuthPrompt from './AdminAuthPrompt';
+import AdminLearnQA from './AdminLearnQA';
 import { Area, AreaChart, Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 
 interface Stats {
@@ -349,6 +350,9 @@ const AdminFreeCourse: React.FC = () => {
                             ))}
                         </div>
                     </div>
+
+                    {/* Q&A and lesson ratings */}
+                    <AdminLearnQA />
                 </>
             )}
         </div>

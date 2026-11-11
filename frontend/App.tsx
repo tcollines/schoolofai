@@ -27,6 +27,7 @@ import ReferralRedirect from './components/learn/ReferralRedirect';
 const FreeCoursePage = lazy(() => import('./components/learn/FreeCoursePage'));
 const LearnRoute = lazy(() => import('./components/learn/LearnRoute'));
 const VerifyCertificatePage = lazy(() => import('./components/learn/VerifyCertificatePage'));
+const ResetPasswordPage = lazy(() => import('./components/ResetPasswordPage'));
 const StaffPortal = lazy(() => import('./components/staff/StaffPortal'));
 const RouteFallback = () => (
   <div className="flex items-center justify-center h-screen">
@@ -287,6 +288,7 @@ function App() {
         {/* Public Routes */}
         <Route path="/" element={<LandingRoute isAuthenticated={isAuthenticated} />} />
         <Route path="/login" element={<LoginRoute isAuthenticated={isAuthenticated} />} />
+        <Route path="/reset-password" element={<Suspense fallback={<RouteFallback />}><ResetPasswordPage /></Suspense>} />
         <Route path="/signup" element={<SignupRoute isAuthenticated={isAuthenticated} />} />
         <Route path="/register" element={<OutreachRegistration />} />
 

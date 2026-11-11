@@ -27,7 +27,11 @@ const AdminEnrollments: React.FC = () => {
     
     // Instructor settings modal states
     const [selectedUpgradeUser, setSelectedUpgradeUser] = useState<any | null>(null);
-    const [instPassword, setInstPassword] = useState('instructor');
+    // Re-verification (admin types their OWN real password) before deleting an administrator account
+    const [deleteAdminTarget, setDeleteAdminTarget] = useState<any | null>(null);
+    const [verifyPassword, setVerifyPassword] = useState('');
+    const [verifyError, setVerifyError] = useState<string | null>(null);
+    const [verifyBusy, setVerifyBusy] = useState(false);
     const [instBio, setInstBio] = useState('');
     const [selectedDetailUser, setSelectedDetailUser] = useState<any | null>(null);
 
@@ -140,8 +144,8 @@ const AdminEnrollments: React.FC = () => {
             } else if (sortBy === 'email') {
                 comparison = (a.email || '').localeCompare(b.email || '');
             } else if (sortBy === 'role') {
-                const roleA = a.role === UserRole.INDIVIDUAL ? 'BASIC' : (a.role === UserRole.ADMIN ? 'INSTRUCTOR' : a.role);
-                const roleB = b.role === UserRole.INDIVIDUAL ? 'BASIC' : (b.role === UserRole.ADMIN ? 'INSTRUCTOR' : b.role);
+                const roleA = a.role === UserRole.INDIVIDUAL ? 'BASIC' : a.role;
+                const roleB = b.role === UserRole.INDIVIDUAL ? 'BASIC' : b.role;
                 comparison = roleA.localeCompare(roleB);
             } else if (sortBy === 'wallet_balance') {
                 comparison = (Number(a.wallet_balance) || 0) - (Number(b.wallet_balance) || 0);
@@ -285,7 +289,7 @@ const AdminEnrollments: React.FC = () => {
                                             u.role === UserRole.SPONSORED ? 'bg-indigo-100 text-indigo-700 dark:bg-indigo-950/40 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-900/50' :
                                             'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-900/50'
                                         }`}>
-                                            {u.role === UserRole.INDIVIDUAL ? 'BASIC' : (u.role === UserRole.ADMIN ? 'INSTRUCTOR' : u.role)}
+                                            {u.role === UserRole.INDIVIDUAL ? 'BASIC' : u.role}
                                         {u.role === UserRole.SPONSORED && u.companyName && (
                                             <div className="text-[10px] text-indigo-650 dark:text-indigo-400 font-semibold mt-1">
                                                 Co: {u.companyName}
@@ -345,8 +349,7 @@ const AdminEnrollments: React.FC = () => {
                                                                 onClick={async () => {
                                                                     setActiveDropdownId(null);
                                                                     let bio = '';
-                                                                    let password = u.password || 'student123';
-                                                                    if (u.role === UserRole.ADMIN) {
+                                                                    if (u.role === UserRole.INSTRUCTOR || u.role === UserRole.ADMIN) {
                                                                         try {
                                                                             const { data } = await supabaseClient
                                                                                 .from('instructors')
@@ -354,16 +357,15 @@ const AdminEnrollments: React.FC = () => {
                                                                                 .eq('email', u.email.trim().toLowerCase());
                                                                             if (data && data.length > 0) {
                                                                                 bio = data[0].bio || '';
-                                                                                password = data[0].password || password;
                                                                             }
                                                                         } catch (e) {
-                                                                            console.error('Error fetching instructor details:', e);
+                                                                            // optional table: ignore
                                                                         }
+                                                                        bio = bio || u.bio || '';
                                                                     }
                                                                     setSelectedDetailUser({
                                                                         ...u,
-                                                                        bio,
-                                                                        password
+                                                                        bio
                                                                     });
                                                                 }}
                                                                 className="w-full px-4 py-2 text-xs text-violet-650 dark:text-violet-400 hover:bg-gray-50 dark:hover:bg-slate-850 transition-colors flex items-center gap-2 cursor-pointer font-bold border-b border-gray-150 dark:border-slate-800/60"
@@ -377,26 +379,24 @@ const AdminEnrollments: React.FC = () => {
                                                                 { label: 'Basic', value: UserRole.INDIVIDUAL },
                                                                 { label: 'Pro', value: UserRole.PRO },
                                                                 { label: 'Premium', value: UserRole.PREMIUM },
-                                                                { label: 'Instructor', value: UserRole.ADMIN }
+                                                                { label: 'Instructor', value: UserRole.INSTRUCTOR }
                                                             ].map(opt => (
                                                                 <button
                                                                     key={opt.value}
                                                                     onClick={async () => {
                                                                         setActiveDropdownId(null);
-                                                                        if (opt.value === UserRole.ADMIN) {
-                                                                            setInstPassword('instructor');
-                                                                            setInstBio('');
+                                                                        if (opt.value === UserRole.INSTRUCTOR) {
+                                                                            setInstBio(u.bio || '');
                                                                             try {
                                                                                 const { data: existing } = await supabaseClient
                                                                                     .from('instructors')
                                                                                     .select('*')
                                                                                     .eq('email', u.email.trim().toLowerCase());
                                                                                 if (existing && existing.length > 0) {
-                                                                                    setInstPassword(existing[0].password || 'instructor');
                                                                                     setInstBio(existing[0].bio || '');
                                                                                 }
                                                                             } catch (e) {
-                                                                                console.error('Error fetching instructor settings:', e);
+                                                                                // optional table: ignore
                                                                             }
                                                                             setSelectedUpgradeUser(u);
                                                                             return;
@@ -456,21 +456,10 @@ const AdminEnrollments: React.FC = () => {
                                                                     setActiveDropdownId(null);
                                                                     
                                                                     if (u.role === UserRole.ADMIN) {
-                                                                        const currentAdminEmail = localStorage.getItem('admin-email') || 'admin@welile.com';
-                                                                        
-                                                                        const password = prompt(
-                                                                            `Security Authentication Required\n\nYou are attempting to delete an Administrator account (${u.name || u.email}).\nThis action is high risk and requires password verification.\n\nPlease enter YOUR Admin password to authenticate:`
-                                                                        );
-                                                                        
-                                                                        if (!password) {
-                                                                            alert("Deletion cancelled.");
-                                                                            return;
-                                                                        }
-                                                                        
-                                                                        if (password !== 'adminpassword' && password !== 'admin') {
-                                                                            alert("Authentication failed! Incorrect password. Deletion aborted.");
-                                                                            return;
-                                                                        }
+                                                                        setVerifyPassword('');
+                                                                        setVerifyError(null);
+                                                                        setDeleteAdminTarget(u);
+                                                                        return;
                                                                     } else {
                                                                         if (!confirm(`Are you sure you want to delete student ${u.name || u.email}? This action is irreversible.`)) {
                                                                             return;
@@ -536,18 +525,6 @@ const AdminEnrollments: React.FC = () => {
                             <div className="border-t border-gray-100 dark:border-slate-800/80 my-4"></div>
 
                             <div>
-                                <label className="block text-[10px] font-bold text-gray-600 dark:text-slate-400 uppercase tracking-wider mb-2">Console Password</label>
-                                <input
-                                    type="text"
-                                    required
-                                    value={instPassword}
-                                    onChange={(e) => setInstPassword(e.target.value)}
-                                    placeholder="Password"
-                                    className="w-full bg-gray-50 dark:bg-slate-950 border border-gray-200 dark:border-slate-800 rounded-xl px-4 py-2.5 text-sm text-gray-900 dark:text-white focus:outline-none focus:border-violet-500 font-mono"
-                                />
-                            </div>
-
-                            <div>
                                 <label className="block text-[10px] font-bold text-gray-605 dark:text-slate-400 uppercase tracking-wider mb-2">Biography</label>
                                 <textarea
                                     value={instBio}
@@ -562,53 +539,28 @@ const AdminEnrollments: React.FC = () => {
 
                             <button
                                 onClick={async () => {
-                                    if (!instPassword) {
-                                        alert("Please enter a password.");
-                                        return;
-                                    }
                                     try {
                                         const cleanEmail = selectedUpgradeUser.email.trim().toLowerCase();
-                                        // 1. Update bio and role on live profiles table
+                                        // 1. Update bio and role on the live profiles table (never downgrade an ADMIN)
                                         const { error: profErr } = await supabaseClient
                                             .from('profiles')
                                             .update({
                                                 bio: instBio,
-                                                role: UserRole.ADMIN
+                                                role: selectedUpgradeUser.role === UserRole.ADMIN ? UserRole.ADMIN : UserRole.INSTRUCTOR
                                             })
                                             .eq('id', selectedUpgradeUser.id);
                                         if (profErr) throw profErr;
 
-                                        // 2. Best-effort sync to instructors table if present
-                                        const { data: existing } = await supabaseClient
-                                            .from('instructors')
-                                            .select('id')
-                                            .eq('email', cleanEmail);
-
-                                        if (existing && existing.length > 0) {
+                                        // 2. Best-effort sync to the optional instructors table (absent in the live DB; errors ignored)
+                                        try {
                                             await supabaseClient
                                                 .from('instructors')
-                                                .update({
-                                                    name: selectedUpgradeUser.name,
-                                                    bio: instBio,
-                                                    password: instPassword
-                                                })
+                                                .update({ name: selectedUpgradeUser.name, bio: instBio })
                                                 .eq('email', cleanEmail);
-                                        } else {
-                                            await supabaseClient
-                                                .from('instructors')
-                                                .insert({
-                                                    id: 'inst-' + Math.random().toString(36).substr(2, 9),
-                                                    name: selectedUpgradeUser.name,
-                                                    email: cleanEmail,
-                                                    bio: instBio,
-                                                    avatar: selectedUpgradeUser.name.split(' ').map((n: string) => n[0]).join('').toUpperCase(),
-                                                    courses_count: 0,
-                                                    password: instPassword
-                                                });
-                                        }
+                                        } catch (e) { /* optional table */ }
 
-                                        await updateUserRole(selectedUpgradeUser.id, UserRole.ADMIN);
-                                        
+                                        await updateUserRole(selectedUpgradeUser.id, selectedUpgradeUser.role === UserRole.ADMIN ? UserRole.ADMIN : UserRole.INSTRUCTOR);
+
                                         alert(`Instructor setup initialized successfully for ${selectedUpgradeUser.name}!`);
                                         setSelectedUpgradeUser(null);
                                     } catch (err) {
@@ -618,10 +570,73 @@ const AdminEnrollments: React.FC = () => {
                                 }}
                                 className="w-full py-3 mt-4 bg-violet-600 hover:bg-violet-700 text-white font-bold rounded-xl transition-all cursor-pointer shadow-lg shadow-violet-900/20"
                             >
-                                Save & Initialize Instructor
+                                Save & Promote to Instructor
                             </button>
                         </div>
                     </div>
+                </div>
+            )}
+            {/* Administrator deletion: re-verify with the current admin's own real password */}
+            {deleteAdminTarget && (
+                <div className="fixed inset-0 z-[110] flex items-center justify-center p-4">
+                    <div className="fixed inset-0 bg-black/70 backdrop-blur-sm" onClick={() => !verifyBusy && setDeleteAdminTarget(null)} />
+                    <form
+                        className="bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 w-full max-w-md rounded-3xl p-6 shadow-2xl relative z-10 text-left text-gray-900 dark:text-white space-y-4"
+                        onSubmit={async (e) => {
+                            e.preventDefault();
+                            setVerifyBusy(true);
+                            setVerifyError(null);
+                            try {
+                                const { data: sess } = await supabaseClient.auth.getSession();
+                                const myEmail = sess?.session?.user?.email;
+                                if (!myEmail) {
+                                    setVerifyError('Your session has expired. Please sign in again.');
+                                    return;
+                                }
+                                const { error: authErr } = await supabaseClient.auth.signInWithPassword({ email: myEmail, password: verifyPassword });
+                                if (authErr) {
+                                    setVerifyError('Authentication failed. Incorrect password. Deletion aborted.');
+                                    return;
+                                }
+                                const target = deleteAdminTarget;
+                                await deleteUser(target.id);
+                                setDeleteAdminTarget(null);
+                                setVerifyPassword('');
+                                alert('User deleted successfully!');
+                                const { data: { session } } = await supabaseClient.auth.getSession();
+                                if (session?.user?.id === target.id) {
+                                    await supabaseClient.auth.signOut();
+                                    window.location.href = '/';
+                                }
+                            } catch (err: any) {
+                                setVerifyError('Failed to delete user.');
+                            } finally {
+                                setVerifyBusy(false);
+                            }
+                        }}
+                    >
+                        <h3 className="text-lg font-bold">Security Authentication Required</h3>
+                        <p className="text-xs text-gray-500 dark:text-slate-400">
+                            You are about to delete the administrator account {deleteAdminTarget.name || deleteAdminTarget.email}. This is irreversible. Enter YOUR OWN account password to continue.
+                        </p>
+                        {verifyError && (
+                            <div className="text-xs font-medium text-red-600 dark:text-red-300 bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-800/40 p-3 rounded-2xl">{verifyError}</div>
+                        )}
+                        <input
+                            type="password"
+                            required
+                            autoFocus
+                            autoComplete="current-password"
+                            value={verifyPassword}
+                            onChange={(e) => setVerifyPassword(e.target.value)}
+                            placeholder="Your password"
+                            className="w-full bg-gray-50 dark:bg-slate-950 border border-gray-200 dark:border-slate-800 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-red-500"
+                        />
+                        <div className="flex gap-3">
+                            <button type="button" disabled={verifyBusy} onClick={() => setDeleteAdminTarget(null)} className="flex-1 py-2.5 rounded-xl border border-gray-200 dark:border-slate-700 text-sm font-bold cursor-pointer">Cancel</button>
+                            <button type="submit" disabled={verifyBusy} className="flex-1 py-2.5 rounded-xl bg-red-600 hover:bg-red-700 text-white text-sm font-bold cursor-pointer disabled:opacity-50">{verifyBusy ? 'Verifying...' : 'Verify & Delete'}</button>
+                        </div>
+                    </form>
                 </div>
             )}
             {/* View Student Details Modal */}
@@ -660,7 +675,7 @@ const AdminEnrollments: React.FC = () => {
                                 </div>
                                 <div className="p-4 bg-gray-50 dark:bg-slate-850 border border-gray-100 dark:border-slate-800 rounded-2xl">
                                     <p className="text-[10px] text-gray-400 dark:text-slate-500 uppercase font-extrabold mb-1">Subscription Plan</p>
-                                    <p className="text-sm font-bold text-gray-800 dark:text-white uppercase">{selectedDetailUser.role === 'ADMIN' ? 'INSTRUCTOR' : selectedDetailUser.role || 'BASIC'}</p>
+                                    <p className="text-sm font-bold text-gray-800 dark:text-white uppercase">{selectedDetailUser.role || 'BASIC'}</p>
                                 </div>
                             </div>
 
@@ -669,13 +684,9 @@ const AdminEnrollments: React.FC = () => {
                                     <p className="text-[10px] text-gray-400 dark:text-slate-500 uppercase font-extrabold mb-1">Wallet Balance</p>
                                     <p className="text-sm font-bold text-gray-800 dark:text-white">{formatAmount(selectedDetailUser.walletBalance || 0)}</p>
                                 </div>
-                                <div className="p-4 bg-gray-50 dark:bg-slate-850 border border-gray-100 dark:border-slate-800 rounded-2xl">
-                                    <p className="text-[10px] text-gray-400 dark:text-slate-500 uppercase font-extrabold mb-1">Stored Password</p>
-                                    <p className="text-sm font-bold text-indigo-650 dark:text-indigo-400 font-mono break-all select-all">{selectedDetailUser.password || 'student123'}</p>
-                                </div>
                             </div>
-                            
-                            {selectedDetailUser.role === 'ADMIN' && (
+
+                            {(selectedDetailUser.role === 'INSTRUCTOR' || selectedDetailUser.role === 'ADMIN') && (
                                 <div className="p-4 bg-violet-50/50 dark:bg-violet-950/10 border border-violet-100 dark:border-violet-900/30 rounded-2xl space-y-2">
                                     <p className="text-[10px] text-violet-650 dark:text-violet-400 uppercase font-extrabold">Instructor Metadata</p>
                                     <div className="text-xs text-slate-700 dark:text-slate-300">

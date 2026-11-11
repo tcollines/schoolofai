@@ -1,0 +1,49 @@
+name: Live class reminders
+
+on:
+  schedule:
+    - cron: '*/15 * * * *'
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Dry run (print what would be sent, send nothing)'
+        type: boolean
+        default: false
+
+# One run at a time so two runs never race on the same reminders.
+concurrency:
+  group: live-class-reminders
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  send:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+      - name: Install root dependencies (nodemailer)
+        run: npm ci --omit=dev --ignore-scripts --no-audit --no-fund
+      - name: Send reminders
+        env:
+          REMINDER_SECRET: ${{ secrets.REMINDER_SECRET }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+          SMTP_HOST: ${{ secrets.SMTP_HOST }}
+          SMTP_PORT: ${{ secrets.SMTP_PORT }}
+          SMTP_USER: ${{ secrets.SMTP_USER }}
+          SMTP_PASS: ${{ secrets.SMTP_PASS }}
+          SMTP_FROM_NAME: ${{ secrets.SMTP_FROM_NAME }}
+          # Optional: WhatsApp is skipped with a log line when these are empty
+          WHATSAPP_TOKEN: ${{ secrets.WHATSAPP_TOKEN }}
+          WHATSAPP_PHONE_ID: ${{ secrets.WHATSAPP_PHONE_ID }}
+          WHATSAPP_TEMPLATE_NAME: ${{ secrets.WHATSAPP_TEMPLATE_NAME }}
+          APP_URL: ${{ secrets.APP_URL }}
+          DRY: ${{ inputs.dry_run && '--dry' || '' }}
+        run: node scripts/send-reminders.mjs $DRY

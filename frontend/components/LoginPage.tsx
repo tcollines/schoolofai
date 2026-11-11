@@ -101,107 +101,17 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onNavigateToSignup, onBa
         setLoading(true);
         setError(null);
 
-        // Check if user exists
-        const { data } = await supabaseClient.from('profiles').select('*');
-        const profiles = (data as any[]) || [];
-        const userExists = profiles.some((p: any) => p.email === forgotEmail.trim().toLowerCase());
-
-        if (!userExists) {
-            setError('No account found with that email address.');
-            setLoading(false);
-            return;
+        // A real reset link is emailed by Supabase (branded as Welile School of AI).
+        // The answer is the same whether or not the address has an account, so nobody can probe for accounts.
+        try {
+            await supabaseClient.auth.resetPasswordForEmail(forgotEmail.trim().toLowerCase(), {
+                redirectTo: `${window.location.origin}/reset-password`
+            });
+        } catch {
+            // ignore: same message either way
         }
-
-        // Generate 6-digit code with 3-minute expiry
-        const code = Math.floor(100000 + Math.random() * 900000).toString();
-        setForgotResetCode(code);
-        const expiry = Date.now() + 3 * 60 * 1000; // 3 minutes
-        setForgotCodeExpiry(expiry);
-        setForgotTimeLeft(180);
-        setShowGmailToast(true);
-        setCorrectCode(code);
         setStep('forgot-code');
         setLoading(false);
-    };
-
-    const handleForgotVerifyCode = (e: React.FormEvent) => {
-        e.preventDefault();
-        setError(null);
-
-        if (Date.now() > forgotCodeExpiry) {
-            setError('Verification code has expired. Please request a new one.');
-            return;
-        }
-
-        if (forgotCode !== forgotResetCode) {
-            setError('Invalid verification code. Please check the code sent to your email.');
-            return;
-        }
-
-        setShowGmailToast(false);
-        setStep('forgot-newpass');
-    };
-
-    const handleForgotResendCode = () => {
-        const code = Math.floor(100000 + Math.random() * 900000).toString();
-        setForgotResetCode(code);
-        setCorrectCode(code);
-        const expiry = Date.now() + 3 * 60 * 1000;
-        setForgotCodeExpiry(expiry);
-        setForgotTimeLeft(180);
-        setForgotCode('');
-        setError(null);
-        setShowGmailToast(true);
-    };
-
-    const handleSetNewPassword = async (e: React.FormEvent) => {
-        e.preventDefault();
-        setError(null);
-
-        if (newPassword.length < 6) {
-            setError('Password must be at least 6 characters.');
-            return;
-        }
-
-        if (newPassword !== confirmPassword) {
-            setError('Passwords do not match.');
-            return;
-        }
-
-        setLoading(true);
-        // Update password in mock DB
-        const { data } = await supabaseClient.from('profiles').select('*');
-        const profiles = (data as any[]) || [];
-        const profile = profiles.find((p: any) => p.email === forgotEmail.trim().toLowerCase());
-        if (profile) {
-            await supabaseClient.from('profiles').update({ password: newPassword }).eq('id', profile.id);
-            
-            setLoading(false);
-            setPasswordChanged(true);
-
-            // Log in the user immediately and direct them to dashboard after a brief delay
-            setTimeout(() => {
-                localStorage.removeItem('auth_logged_out');
-                localStorage.setItem('auth_logged_in_email', profile.email);
-                localStorage.setItem('auth_logged_in_name', profile.full_name || profile.email.split('@')[0]);
-                localStorage.removeItem('admin-session');
-                localStorage.removeItem('admin-email');
-                localStorage.removeItem('instructor-session');
-                localStorage.removeItem('instructor-email');
-                window.dispatchEvent(new Event('profile-update'));
-
-                setPasswordChanged(false);
-                setForgotEmail('');
-                setForgotCode('');
-                setNewPassword('');
-                setConfirmPassword('');
-                setStep('login');
-                onLogin();
-            }, 1500);
-        } else {
-            setError('User profile not found.');
-            setLoading(false);
-        }
     };
 
     const formatTime = (seconds: number) => {
@@ -216,24 +126,22 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onNavigateToSignup, onBa
         setError(null);
 
         try {
-            const { data, error } = await supabaseClient.auth.signInWithPassword({
-                email: email.trim().toLowerCase(),
+            const cleanEmail = email.trim().toLowerCase();
+            const { error } = await supabaseClient.auth.signInWithPassword({
+                email: cleanEmail,
                 password: password
             });
 
             if (error) {
-                const cleanEmail = email.trim().toLowerCase();
-                localStorage.removeItem('auth_logged_out');
-                localStorage.setItem('auth_logged_in_email', cleanEmail);
-                localStorage.setItem('auth_logged_in_name', cleanEmail.split('@')[0]);
-                localStorage.setItem('logged_in_email', cleanEmail);
-                window.dispatchEvent(new Event('profile-update'));
+                setError(
+                    /confirm/i.test(error.message)
+                        ? 'Please confirm your email first. Check your inbox for the confirmation link.'
+                        : 'Incorrect email or password. Use "Forgot password" if you need to reset it.'
+                );
                 setLoading(false);
-                onLogin();
                 return;
             }
 
-            const cleanEmail = email.trim().toLowerCase();
             localStorage.removeItem('auth_logged_out');
             localStorage.setItem('auth_logged_in_email', cleanEmail);
             localStorage.setItem('auth_logged_in_name', cleanEmail.split('@')[0]);
@@ -242,14 +150,8 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onNavigateToSignup, onBa
             setLoading(false);
             onLogin();
         } catch (err: any) {
-            const cleanEmail = email.trim().toLowerCase();
-            localStorage.removeItem('auth_logged_out');
-            localStorage.setItem('auth_logged_in_email', cleanEmail);
-            localStorage.setItem('auth_logged_in_name', cleanEmail.split('@')[0]);
-            localStorage.setItem('logged_in_email', cleanEmail);
-            window.dispatchEvent(new Event('profile-update'));
+            setError('We could not sign you in right now. Please check your connection and try again.');
             setLoading(false);
-            onLogin();
         }
     };
 
@@ -656,7 +558,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onNavigateToSignup, onBa
                         {step === 'forgot-email' && (
                             <form onSubmit={handleForgotSendCode} className="space-y-6">
                                 <p className="text-xs text-gray-500 text-center mb-2">
-                                    Enter your registered email address to receive a password reset code.
+                                    Enter your registered email address and we will email you a link to reset your password.
                                 </p>
 
                                 <div className="relative group border-b border-gray-200 dark:border-slate-850 focus-within:border-violet-500 transition-all duration-300 py-2">
@@ -687,109 +589,26 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onNavigateToSignup, onBa
                                         disabled={loading}
                                         className="px-8 py-2.5 bg-gradient-to-r from-violet-600 to-indigo-650 hover:from-violet-750 hover:to-indigo-750 text-white rounded-full text-xs font-extrabold tracking-widest uppercase shadow-md hover:shadow-lg transition-all duration-200 cursor-pointer disabled:opacity-50"
                                     >
-                                        {loading ? 'Sending...' : 'Send Code'}
+                                        {loading ? 'Sending...' : 'Send Link'}
                                     </button>
                                 </div>
                             </form>
                         )}
 
                         {step === 'forgot-code' && (
-                            <form onSubmit={handleForgotVerifyCode} className="space-y-6">
-                                <p className="text-xs text-gray-500 text-center mb-2">
-                                    A 6-digit code has been sent to <span className="font-semibold text-gray-700 dark:text-slate-200">{forgotEmail}</span>.
+                            <div className="space-y-6 text-center">
+                                <p className="text-sm text-gray-600 dark:text-slate-300">
+                                    If an account exists for <span className="font-semibold text-gray-800 dark:text-white">{forgotEmail}</span>,
+                                    we have emailed a link to reset your password. It can take a minute to arrive; check your spam folder too.
                                 </p>
-
-                                <div className="relative group border-b border-gray-200 dark:border-slate-850 focus-within:border-violet-500 transition-all duration-300 py-2">
-                                    <div className="absolute inset-y-0 left-0 pl-1 flex items-center pointer-events-none text-gray-400 group-focus-within:text-violet-500 transition-colors">
-                                        <Lock className="w-5 h-5" />
-                                    </div>
-                                    <input
-                                        type="text"
-                                        required
-                                        maxLength={6}
-                                        pattern="[0-9]{6}"
-                                        value={forgotCode}
-                                        onChange={(e) => setForgotCode(e.target.value.replace(/\D/g, ''))}
-                                        className="block w-full pl-8 pr-3 bg-transparent border-0 outline-none focus:ring-0 text-sm text-gray-900 dark:text-white placeholder-gray-400 text-center font-mono tracking-widest text-lg"
-                                        placeholder="000000"
-                                    />
-                                </div>
-
-                                <div className="flex items-center justify-between pt-4">
-                                    <button
-                                        type="button"
-                                        onClick={handleForgotResendCode}
-                                        className="text-xs font-bold text-violet-650 hover:text-violet-755 cursor-pointer"
-                                    >
-                                        Resend Code
-                                    </button>
-
-                                    <button
-                                        type="submit"
-                                        disabled={loading}
-                                        className="px-8 py-2.5 bg-gradient-to-r from-violet-600 to-indigo-650 hover:from-violet-750 hover:to-indigo-750 text-white rounded-full text-xs font-extrabold tracking-widest uppercase shadow-md hover:shadow-lg transition-all duration-200 cursor-pointer disabled:opacity-50"
-                                    >
-                                        Verify
-                                    </button>
-                                </div>
-                            </form>
-                        )}
-
-                        {step === 'forgot-newpass' && (
-                            passwordChanged ? (
-                                <div className="text-center py-6">
-                                    <h2 className="text-xl font-bold text-green-600 mb-2">Password Changed!</h2>
-                                    <p className="text-xs text-gray-500">Your password has been updated. Redirecting to dashboard...</p>
-                                </div>
-                            ) : (
-                                <form onSubmit={handleSetNewPassword} className="space-y-6">
-                                    <p className="text-xs text-gray-500 text-center mb-2">Create a secure new password for your account.</p>
-
-                                    <div className="relative group border-b border-gray-200 dark:border-slate-850 focus-within:border-violet-500 transition-all duration-300 py-2">
-                                        <div className="absolute inset-y-0 left-0 pl-1 flex items-center pointer-events-none text-gray-400 group-focus-within:text-violet-500 transition-colors">
-                                            <Lock className="w-5 h-5" />
-                                        </div>
-                                        <input
-                                            type={showNewPassword ? 'text' : 'password'}
-                                            required
-                                            minLength={6}
-                                            value={newPassword}
-                                            onChange={(e) => setNewPassword(e.target.value)}
-                                            className="block w-full pl-8 pr-10 bg-transparent border-0 outline-none focus:ring-0 text-sm text-gray-900 dark:text-white placeholder-gray-400"
-                                            placeholder="New Password"
-                                        />
-                                        <button type="button" onClick={() => setShowNewPassword(!showNewPassword)} className="absolute inset-y-0 right-1 pr-1 flex items-center text-gray-400 hover:text-gray-655 cursor-pointer">
-                                            {showNewPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                                        </button>
-                                    </div>
-
-                                    <div className="relative group border-b border-gray-200 dark:border-slate-850 focus-within:border-violet-500 transition-all duration-300 py-2">
-                                        <div className="absolute inset-y-0 left-0 pl-1 flex items-center pointer-events-none text-gray-400 group-focus-within:text-violet-500 transition-colors">
-                                            <Lock className="w-5 h-5" />
-                                        </div>
-                                        <input
-                                            type={showConfirmPassword ? 'text' : 'password'}
-                                            required
-                                            minLength={6}
-                                            value={confirmPassword}
-                                            onChange={(e) => setConfirmPassword(e.target.value)}
-                                            className="block w-full pl-8 pr-10 bg-transparent border-0 outline-none focus:ring-0 text-sm text-gray-900 dark:text-white placeholder-gray-400"
-                                            placeholder="Confirm Password"
-                                        />
-                                        <button type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)} className="absolute inset-y-0 right-1 pr-1 flex items-center text-gray-400 hover:text-gray-655 cursor-pointer">
-                                            {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                                        </button>
-                                    </div>
-
-                                    <button
-                                        type="submit"
-                                        disabled={loading || newPassword !== confirmPassword}
-                                        className="w-full py-3 bg-gradient-to-r from-violet-600 to-indigo-650 hover:from-violet-750 hover:to-indigo-750 text-white rounded-full text-xs font-extrabold tracking-widest uppercase shadow-md hover:shadow-lg transition-all duration-200 cursor-pointer disabled:opacity-50"
-                                    >
-                                        {loading ? 'Changing...' : 'Change Password'}
-                                    </button>
-                                </form>
-                            )
+                                <button
+                                    type="button"
+                                    onClick={() => { setStep('login'); setError(null); }}
+                                    className="text-xs font-bold text-violet-600 hover:text-violet-700 cursor-pointer"
+                                >
+                                    Back to Login
+                                </button>
+                            </div>
                         )}
 
                         {/* Social Footer Bar matching mockup */}
@@ -840,15 +659,7 @@ const GoogleChooserModal: React.FC<GoogleChooserModalProps> = ({ isOpen, onClose
     
     useEffect(() => {
         if (isOpen) {
-            supabaseClient.from('profiles').select('*').then(({ data }: any) => {
-                if (data && Array.isArray(data)) {
-                    setAccounts(data.map((p: any) => ({
-                        email: p.email,
-                        name: p.full_name || p.email.split('@')[0],
-                        avatar: p.avatar_url || ''
-                    })));
-                }
-            });
+            // Accounts are no longer listed: reading every profile from the browser is not allowed.
         }
     }, [isOpen]);
     

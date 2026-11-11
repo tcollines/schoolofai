@@ -6,7 +6,7 @@ import { useTranslation } from './translations';
 import { supabaseClient } from '../src/lib/supabaseClient';
 
 const DefaultAvatar = () => (
-    <svg viewBox="0 0 128 128" className="w-full h-full text-gray-400 dark:text-slate-500 fill-current bg-gray-100 dark:bg-slate-800">
+    <svg viewBox="0 0 128 128" className="w-full h-full text-stone-500 dark:text-slate-500 fill-current bg-stone-100 dark:bg-slate-800">
         <path d="M64 8a26 26 0 100 52 26 26 0 000-52zm0 60c-29.07 0-52.61 20.62-55.77 48h111.54C116.61 88.62 93.07 68 64 68z" />
     </svg>
 );
@@ -136,8 +136,8 @@ const AddEducationModal: React.FC<AddEducationModalProps> = ({ isOpen, onClose, 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
             <div className="fixed inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
-            <div className="bg-white dark:bg-slate-900 border border-gray-150 dark:border-slate-800 w-full max-w-md rounded-3xl p-6 shadow-2xl relative z-10 animate-in zoom-in-95 duration-200 text-gray-900 dark:text-white">
-                <button type="button" onClick={onClose} className="absolute top-4 right-4 text-gray-400 hover:text-gray-900 dark:hover:text-white cursor-pointer">
+            <div className="bg-white dark:bg-slate-900 border border-stone-100 dark:border-slate-800 w-full max-w-md rounded-2xl p-6 shadow-2xl relative z-10 animate-in zoom-in-95 duration-200 text-stone-900 dark:text-white">
+                <button type="button" onClick={onClose} className="absolute top-4 right-4 text-stone-500 hover:text-stone-900 dark:hover:text-white cursor-pointer">
                     <X size={20} />
                 </button>
                 
@@ -151,54 +151,54 @@ const AddEducationModal: React.FC<AddEducationModalProps> = ({ isOpen, onClose, 
                     )}
 
                     <div className="space-y-1">
-                        <label className="text-xs font-bold text-gray-500 dark:text-slate-400">School / Institution *</label>
+                        <label className="text-xs font-bold text-stone-600 dark:text-slate-400">School / Institution *</label>
                         <input 
                             type="text" 
                             value={institution}
                             onChange={(e) => setInstitution(e.target.value)}
                             placeholder="e.g. University of Cape Town"
-                            className="w-full p-2.5 bg-gray-50 dark:bg-slate-800 border border-gray-250 dark:border-slate-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-purple-500/20 text-gray-900 dark:text-white placeholder-gray-400"
+                            className="w-full p-2.5 bg-stone-50 dark:bg-slate-800 border border-stone-200 dark:border-slate-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-violet-500/20 text-stone-900 dark:text-white placeholder-stone-400"
                         />
                     </div>
 
                     <div className="space-y-1">
-                        <label className="text-xs font-bold text-gray-500 dark:text-slate-400">Degree / Qualification *</label>
+                        <label className="text-xs font-bold text-stone-600 dark:text-slate-400">Degree / Qualification *</label>
                         <input 
                             type="text" 
                             value={degree}
                             onChange={(e) => setDegree(e.target.value)}
                             placeholder="e.g. Bachelor of Science in Computer Science"
-                            className="w-full p-2.5 bg-gray-50 dark:bg-slate-800 border border-gray-250 dark:border-slate-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-purple-500/20 text-gray-900 dark:text-white placeholder-gray-400"
+                            className="w-full p-2.5 bg-stone-50 dark:bg-slate-800 border border-stone-200 dark:border-slate-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-violet-500/20 text-stone-900 dark:text-white placeholder-stone-400"
                         />
                     </div>
 
                     <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-1">
-                            <label className="text-xs font-bold text-gray-500 dark:text-slate-400">Status *</label>
+                            <label className="text-xs font-bold text-stone-600 dark:text-slate-400">Status *</label>
                             <select 
                                 value={status}
                                 onChange={(e) => setStatus(e.target.value as any)}
-                                className="w-full p-2.5 bg-gray-50 dark:bg-slate-800 border border-gray-250 dark:border-slate-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-purple-500/20 text-gray-900 dark:text-white"
+                                className="w-full p-2.5 bg-stone-50 dark:bg-slate-800 border border-stone-200 dark:border-slate-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-violet-500/20 text-stone-900 dark:text-white"
                             >
                                 <option value="Completed">Completed</option>
                                 <option value="In Progress">In Progress</option>
                             </select>
                         </div>
                         <div className="space-y-1">
-                            <label className="text-xs font-bold text-gray-500 dark:text-slate-400">Year *</label>
+                            <label className="text-xs font-bold text-stone-600 dark:text-slate-400">Year *</label>
                             <input 
                                 type="text" 
                                 value={year}
                                 onChange={(e) => setYear(e.target.value)}
                                 placeholder="e.g. 2024"
-                                className="w-full p-2.5 bg-gray-50 dark:bg-slate-800 border border-gray-250 dark:border-slate-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-purple-500/20 text-gray-900 dark:text-white placeholder-gray-400"
+                                className="w-full p-2.5 bg-stone-50 dark:bg-slate-800 border border-stone-200 dark:border-slate-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-violet-500/20 text-stone-900 dark:text-white placeholder-stone-400"
                             />
                         </div>
                     </div>
 
                     <div className="space-y-1">
-                        <label className="text-xs font-bold text-gray-500 dark:text-slate-400">Upload Verification Proof *</label>
-                        <div className="border-2 border-dashed border-gray-250 dark:border-slate-700 rounded-xl p-4 text-center cursor-pointer hover:bg-gray-50 dark:hover:bg-slate-800/40 relative">
+                        <label className="text-xs font-bold text-stone-600 dark:text-slate-400">Upload Verification Proof *</label>
+                        <div className="border-2 border-dashed border-stone-200 dark:border-slate-700 rounded-xl p-4 text-center cursor-pointer hover:bg-stone-50 dark:hover:bg-slate-800/40 relative">
                             <input 
                                 type="file" 
                                 onChange={handleFileChange}
@@ -208,12 +208,12 @@ const AddEducationModal: React.FC<AddEducationModalProps> = ({ isOpen, onClose, 
                             {file ? (
                                 <div className="space-y-1">
                                     <p className="text-xs font-bold text-green-600 dark:text-green-400"><Check className="inline-block w-4 h-4 mr-1 align-middle" /> Proof Uploaded Successfully</p>
-                                    <p className="text-[10px] text-gray-400 truncate max-w-[200px] mx-auto">{file.name}</p>
+                                    <p className="text-xs text-stone-500 truncate max-w-[200px] mx-auto">{file.name}</p>
                                 </div>
                             ) : (
                                 <div className="space-y-1">
-                                    <p className="text-xs text-gray-600 dark:text-slate-300 font-semibold">Click to upload document</p>
-                                    <p className="text-[10px] text-gray-400">PDF, PNG, JPG (Max 5MB)</p>
+                                    <p className="text-xs text-stone-600 dark:text-slate-300 font-semibold">Click to upload document</p>
+                                    <p className="text-xs text-stone-500">PDF, PNG, JPG (Max 5MB)</p>
                                 </div>
                             )}
                         </div>
@@ -223,14 +223,14 @@ const AddEducationModal: React.FC<AddEducationModalProps> = ({ isOpen, onClose, 
                         <button 
                             type="button"
                             onClick={onClose}
-                            className="flex-1 py-2.5 rounded-xl border border-gray-250 dark:border-slate-800 text-gray-700 dark:text-slate-300 font-bold text-sm hover:bg-gray-50 dark:hover:bg-slate-800/40"
+                            className="flex-1 py-2.5 rounded-xl border border-stone-200 dark:border-slate-800 text-stone-700 dark:text-slate-300 font-bold text-sm hover:bg-stone-50 dark:hover:bg-slate-800/40"
                         >
                             Cancel
                         </button>
                         <button 
                             type="submit"
                             disabled={isSaving}
-                            className="flex-1 bg-welile-purple text-white py-2.5 rounded-xl text-sm font-bold hover:bg-purple-700 transition-colors flex items-center justify-center gap-2 cursor-pointer"
+                            className="flex-1 bg-violet-700 text-white py-2.5 rounded-xl text-sm font-bold hover:bg-violet-800 transition-colors flex items-center justify-center gap-2 cursor-pointer"
                         >
                             {isSaving ? (
                                 <>
@@ -295,8 +295,8 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({ isOpen, onClose, cu
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
             <div className="fixed inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
-            <div className="bg-white dark:bg-slate-900 border border-gray-150 dark:border-slate-800 w-full max-w-md rounded-3xl p-6 shadow-2xl relative z-10 animate-in zoom-in-95 duration-200 text-gray-900 dark:text-white">
-                <button type="button" onClick={onClose} className="absolute top-4 right-4 text-gray-400 hover:text-gray-900 dark:hover:text-white cursor-pointer">
+            <div className="bg-white dark:bg-slate-900 border border-stone-100 dark:border-slate-800 w-full max-w-md rounded-2xl p-6 shadow-2xl relative z-10 animate-in zoom-in-95 duration-200 text-stone-900 dark:text-white">
+                <button type="button" onClick={onClose} className="absolute top-4 right-4 text-stone-500 hover:text-stone-900 dark:hover:text-white cursor-pointer">
                     <X size={20} />
                 </button>
                 
@@ -310,21 +310,21 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({ isOpen, onClose, cu
                     )}
 
                     <div className="space-y-1">
-                        <label className="text-xs font-bold text-gray-500 dark:text-slate-400">Full Name *</label>
+                        <label className="text-xs font-bold text-stone-600 dark:text-slate-400">Full Name *</label>
                         <input 
                             type="text" 
                             value={name}
                             onChange={(e) => setName(e.target.value)}
-                            className="w-full p-2.5 bg-gray-50 dark:bg-slate-800 border border-gray-250 dark:border-slate-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-purple-500/20 text-gray-900 dark:text-white"
+                            className="w-full p-2.5 bg-stone-50 dark:bg-slate-800 border border-stone-200 dark:border-slate-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-violet-500/20 text-stone-900 dark:text-white"
                         />
                     </div>
 
                     <div className="space-y-1">
-                        <label className="text-xs font-bold text-gray-500 dark:text-slate-400">Nationality</label>
+                        <label className="text-xs font-bold text-stone-600 dark:text-slate-400">Nationality</label>
                         <select 
                             value={nationality}
                             onChange={(e) => setNationality(e.target.value)}
-                            className="w-full p-2.5 bg-gray-50 dark:bg-slate-800 border border-gray-250 dark:border-slate-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-purple-500/20 text-gray-900 dark:text-white"
+                            className="w-full p-2.5 bg-stone-50 dark:bg-slate-800 border border-stone-200 dark:border-slate-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-violet-500/20 text-stone-900 dark:text-white"
                         >
                             <option value="">Select Nationality</option>
                             <option value="Algeria">Algeria</option>
@@ -393,12 +393,12 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({ isOpen, onClose, cu
                     </div>
 
                     <div className="space-y-1">
-                        <label className="text-xs font-bold text-gray-500 dark:text-slate-400">Date of Birth</label>
+                        <label className="text-xs font-bold text-stone-600 dark:text-slate-400">Date of Birth</label>
                         <input 
                             type="date" 
                             value={dateOfBirth}
                             onChange={(e) => setDateOfBirth(e.target.value)}
-                            className="w-full p-2.5 bg-gray-50 dark:bg-slate-800 border border-gray-250 dark:border-slate-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-purple-500/20 text-gray-900 dark:text-white"
+                            className="w-full p-2.5 bg-stone-50 dark:bg-slate-800 border border-stone-200 dark:border-slate-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-violet-500/20 text-stone-900 dark:text-white"
                         />
                     </div>
 
@@ -406,14 +406,14 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({ isOpen, onClose, cu
                         <button 
                             type="button" 
                             onClick={onClose}
-                            className="flex-1 py-2.5 rounded-xl border border-gray-250 dark:border-slate-800 text-gray-700 dark:text-slate-300 font-bold text-sm hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors"
+                            className="flex-1 py-2.5 rounded-xl border border-stone-200 dark:border-slate-800 text-stone-700 dark:text-slate-300 font-bold text-sm hover:bg-stone-50 dark:hover:bg-slate-800 transition-colors"
                         >
                             Cancel
                         </button>
                         <button 
                             type="submit" 
                             disabled={isSaving}
-                            className="flex-1 bg-welile-purple text-white py-2.5 rounded-xl text-sm font-bold hover:bg-purple-700 transition-colors flex items-center justify-center gap-2"
+                            className="flex-1 bg-violet-700 text-white py-2.5 rounded-xl text-sm font-bold hover:bg-violet-800 transition-colors flex items-center justify-center gap-2"
                         >
                             {isSaving ? (
                                 <>
@@ -549,12 +549,12 @@ const AvatarUploadModal: React.FC<AvatarUploadModalProps> = ({ isOpen, onClose, 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
             <div className="fixed inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
-            <div className="bg-white dark:bg-slate-900 border border-gray-100 dark:border-slate-800 w-full max-w-md rounded-3xl p-6 shadow-2xl relative z-10 animate-in zoom-in-95 duration-205">
-                <button onClick={onClose} className="absolute top-4 right-4 text-gray-400 hover:text-gray-900 dark:hover:text-white">
+            <div className="bg-white dark:bg-slate-900 border border-stone-100 dark:border-slate-800 w-full max-w-md rounded-2xl p-6 shadow-2xl relative z-10 animate-in zoom-in-95 duration-205">
+                <button onClick={onClose} className="absolute top-4 right-4 text-stone-500 hover:text-stone-900 dark:hover:text-white">
                     <X size={20} />
                 </button>
 
-                <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-6 text-center">
+                <h3 className="text-lg font-bold text-stone-900 dark:text-white mb-6 text-center">
                     {source === 'menu' && 'Choose Photo Source'}
                     {source === 'camera' && 'Take Profile Picture'}
                     {source === 'crop' && 'Position & Zoom Photo'}
@@ -572,29 +572,29 @@ const AvatarUploadModal: React.FC<AvatarUploadModalProps> = ({ isOpen, onClose, 
                     <div className="grid grid-cols-2 gap-4">
                         <button 
                             onClick={() => setSource('camera')}
-                            className="flex flex-col items-center justify-center p-5 rounded-2xl border border-gray-100 dark:border-slate-800 bg-gray-50 dark:bg-slate-800 hover:bg-violet-50/50 dark:hover:bg-slate-800/40 hover:border-violet-300 dark:hover:border-slate-700 transition-all text-center gap-3"
+                            className="flex flex-col items-center justify-center p-5 rounded-2xl border border-stone-100 dark:border-slate-800 bg-stone-50 dark:bg-slate-800 hover:bg-violet-50/50 dark:hover:bg-slate-800/40 hover:border-violet-300 dark:hover:border-slate-700 transition-all text-center gap-3"
                         >
                             <span className="p-3 bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 rounded-xl">
                                 <Camera size={24} />
                             </span>
-                            <span className="text-sm font-bold text-gray-800 dark:text-slate-200">Use Camera</span>
+                            <span className="text-sm font-bold text-stone-800 dark:text-slate-200">Use Camera</span>
                         </button>
 
                         <button 
                             onClick={() => fileInputRef.current?.click()}
-                            className="flex flex-col items-center justify-center p-5 rounded-2xl border border-gray-100 dark:border-slate-800 bg-gray-50 dark:bg-slate-800 hover:bg-violet-50/50 dark:hover:bg-slate-800/40 hover:border-violet-300 dark:hover:border-slate-700 transition-all text-center gap-3"
+                            className="flex flex-col items-center justify-center p-5 rounded-2xl border border-stone-100 dark:border-slate-800 bg-stone-50 dark:bg-slate-800 hover:bg-violet-50/50 dark:hover:bg-slate-800/40 hover:border-violet-300 dark:hover:border-slate-700 transition-all text-center gap-3"
                         >
-                            <span className="p-3 bg-purple-50 dark:bg-purple-950/40 text-purple-600 dark:text-purple-400 rounded-xl">
+                            <span className="p-3 bg-violet-50 dark:bg-violet-950/40 text-violet-700 dark:text-violet-400 rounded-xl">
                                 <FileImage size={24} />
                             </span>
-                            <span className="text-sm font-bold text-gray-800 dark:text-slate-200">Upload Files</span>
+                            <span className="text-sm font-bold text-stone-800 dark:text-slate-200">Upload Files</span>
                         </button>
                     </div>
                 )}
 
                 {source === 'camera' && (
                     <div className="flex flex-col items-center gap-6">
-                        <div className="relative w-72 h-72 rounded-full overflow-hidden border-4 border-gray-100 dark:border-slate-800 bg-black">
+                        <div className="relative w-72 h-72 rounded-full overflow-hidden border-4 border-stone-100 dark:border-slate-800 bg-black">
                             <video 
                                 ref={videoRef} 
                                 autoPlay 
@@ -605,13 +605,13 @@ const AvatarUploadModal: React.FC<AvatarUploadModalProps> = ({ isOpen, onClose, 
                         <div className="flex gap-4">
                             <button 
                                 onClick={() => setSource('menu')}
-                                className="px-6 py-2.5 rounded-xl border border-gray-200 dark:border-slate-800 text-gray-700 dark:text-slate-300 font-bold text-sm hover:bg-gray-50 dark:hover:bg-slate-800"
+                                className="px-6 py-2.5 rounded-xl border border-stone-200 dark:border-slate-800 text-stone-700 dark:text-slate-300 font-bold text-sm hover:bg-stone-50 dark:hover:bg-slate-800"
                             >
                                 Back
                             </button>
                             <button 
                                 onClick={handleCapture}
-                                className="px-6 py-2.5 rounded-xl bg-welile-lime text-black font-bold text-sm hover:bg-lime-400"
+                                className="px-6 py-2.5 rounded-xl bg-violet-700 text-white font-semibold text-sm hover:bg-violet-800"
                             >
                                 Capture Photo
                             </button>
@@ -621,13 +621,13 @@ const AvatarUploadModal: React.FC<AvatarUploadModalProps> = ({ isOpen, onClose, 
 
                 {source === 'crop' && tempImage && (
                     <div className="flex flex-col items-center gap-6">
-                        <p className="text-xs text-gray-500 dark:text-slate-400 text-center">
+                        <p className="text-xs text-stone-600 dark:text-slate-400 text-center">
                             Drag the photo to position it, or adjust the sliders below:
                         </p>
                         
                         {/* Interactive circle boundary */}
                         <div 
-                            className="relative w-56 h-56 rounded-full overflow-hidden border-4 border-welile-purple bg-black flex items-center justify-center cursor-move select-none"
+                            className="relative w-56 h-56 rounded-full overflow-hidden border-4 border-violet-700 bg-black flex items-center justify-center cursor-move select-none"
                             onMouseDown={handleMouseDown}
                             onMouseMove={handleMouseMove}
                             onMouseUp={handleMouseUp}
@@ -650,7 +650,7 @@ const AvatarUploadModal: React.FC<AvatarUploadModalProps> = ({ isOpen, onClose, 
                         {/* Adjuster sliders */}
                         <div className="w-full space-y-4">
                             <div className="space-y-1">
-                                <div className="flex justify-between text-xs text-gray-500 dark:text-slate-400 font-medium">
+                                <div className="flex justify-between text-xs text-stone-600 dark:text-slate-400 font-medium">
                                     <span>Zoom</span>
                                     <span>{Math.round(zoom * 100)}%</span>
                                 </div>
@@ -661,12 +661,12 @@ const AvatarUploadModal: React.FC<AvatarUploadModalProps> = ({ isOpen, onClose, 
                                     step="0.01" 
                                     value={zoom} 
                                     onChange={(e) => setZoom(parseFloat(e.target.value))} 
-                                    className="w-full accent-welile-purple cursor-pointer bg-gray-200 dark:bg-slate-700 h-1.5 rounded-lg"
+                                    className="w-full accent-violet-700 cursor-pointer bg-stone-200 dark:bg-slate-700 h-1.5 rounded-lg"
                                 />
                             </div>
 
                             <div className="space-y-1">
-                                <div className="flex justify-between text-xs text-gray-500 dark:text-slate-400 font-medium">
+                                <div className="flex justify-between text-xs text-stone-600 dark:text-slate-400 font-medium">
                                     <span>Horizontal Adjust</span>
                                     <span>{panX}px</span>
                                 </div>
@@ -677,12 +677,12 @@ const AvatarUploadModal: React.FC<AvatarUploadModalProps> = ({ isOpen, onClose, 
                                     step="1" 
                                     value={panX} 
                                     onChange={(e) => setPanX(parseInt(e.target.value))} 
-                                    className="w-full accent-welile-purple/60 cursor-pointer bg-gray-200 dark:bg-slate-700 h-1.5 rounded-lg"
+                                    className="w-full accent-violet-700/60 cursor-pointer bg-stone-200 dark:bg-slate-700 h-1.5 rounded-lg"
                                 />
                             </div>
 
                             <div className="space-y-1">
-                                <div className="flex justify-between text-xs text-gray-500 dark:text-slate-400 font-medium">
+                                <div className="flex justify-between text-xs text-stone-600 dark:text-slate-400 font-medium">
                                     <span>Vertical Adjust</span>
                                     <span>{panY}px</span>
                                 </div>
@@ -693,7 +693,7 @@ const AvatarUploadModal: React.FC<AvatarUploadModalProps> = ({ isOpen, onClose, 
                                     step="1" 
                                     value={panY} 
                                     onChange={(e) => setPanY(parseInt(e.target.value))} 
-                                    className="w-full accent-welile-purple/60 cursor-pointer bg-gray-200 dark:bg-slate-700 h-1.5 rounded-lg"
+                                    className="w-full accent-violet-700/60 cursor-pointer bg-stone-200 dark:bg-slate-700 h-1.5 rounded-lg"
                                 />
                             </div>
                         </div>
@@ -705,7 +705,7 @@ const AvatarUploadModal: React.FC<AvatarUploadModalProps> = ({ isOpen, onClose, 
                                     setSource('menu');
                                     stopCamera();
                                 }}
-                                className="flex-1 py-2.5 rounded-xl border border-gray-200 dark:border-slate-800 text-gray-700 dark:text-slate-300 font-bold text-sm hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors"
+                                className="flex-1 py-2.5 rounded-xl border border-stone-200 dark:border-slate-800 text-stone-700 dark:text-slate-300 font-bold text-sm hover:bg-stone-50 dark:hover:bg-slate-800 transition-colors"
                             >
                                 Back
                             </button>
@@ -717,7 +717,7 @@ const AvatarUploadModal: React.FC<AvatarUploadModalProps> = ({ isOpen, onClose, 
                                     setLoading(false);
                                 }}
                                 disabled={loading}
-                                className="flex-1 bg-welile-purple text-white py-2.5 rounded-xl text-sm font-bold hover:bg-purple-700 transition-colors flex items-center justify-center gap-2"
+                                className="flex-1 bg-violet-700 text-white py-2.5 rounded-xl text-sm font-bold hover:bg-violet-800 transition-colors flex items-center justify-center gap-2"
                             >
                                 {loading ? (
                                     <>
@@ -970,8 +970,8 @@ const Profile: React.FC<ProfileProps> = ({ user, onUpgradeClick }) => {
     if (!formData) {
         return (
             <div className="flex flex-col items-center justify-center h-[70vh]">
-                <Loader size={40} className="animate-spin text-violet-600 mb-4" />
-                <p className="text-gray-500 font-medium">Loading profile...</p>
+                <Loader size={40} className="animate-spin text-violet-700 mb-4" />
+                <p className="text-stone-600 font-medium">Loading profile...</p>
             </div>
         );
     }
@@ -979,21 +979,21 @@ const Profile: React.FC<ProfileProps> = ({ user, onUpgradeClick }) => {
     return (
         <div className="max-w-4xl mx-auto">
             <div className="flex justify-between items-center mb-6">
-                <h2 className="text-2xl font-bold text-gray-900 dark:text-white">{t('my_profile')}</h2>
+                <h2 className="text-2xl font-semibold text-stone-900 dark:text-white font-serif">{t('my_profile')}</h2>
             </div>
 
             <div className="grid md:grid-cols-3 gap-8">
 
                 {/* Left Col: Avatar & Status */}
                 <div className="space-y-6">
-                    <div className="bg-white dark:bg-slate-900 p-6 rounded-3xl border border-gray-100 dark:border-slate-800 text-center shadow-sm">
+                    <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-stone-100 dark:border-slate-800 text-center shadow-sm">
                         <div className="relative inline-block">
                             {!formData.avatar || avatarError ? (
-                                <div className="w-24 h-24 rounded-full mx-auto overflow-hidden border-4 border-gray-50 dark:border-slate-800 flex items-center justify-center bg-gray-100 dark:bg-slate-800">
+                                <div className="w-24 h-24 rounded-full mx-auto overflow-hidden border-4 border-stone-50 dark:border-slate-800 flex items-center justify-center bg-stone-100 dark:bg-slate-800">
                                     <DefaultAvatar />
                                 </div>
                             ) : (
-                                <div className="w-24 h-24 rounded-full mx-auto overflow-hidden border-4 border-gray-50 dark:border-slate-800">
+                                <div className="w-24 h-24 rounded-full mx-auto overflow-hidden border-4 border-stone-50 dark:border-slate-800">
                                     <img 
                                         src={formData.avatar} 
                                         alt={formData.name} 
@@ -1008,7 +1008,7 @@ const Profile: React.FC<ProfileProps> = ({ user, onUpgradeClick }) => {
                             )}
                             <button 
                                 onClick={() => setShowUploadModal(true)}
-                                className="absolute bottom-0 right-0 bg-welile-lime text-black p-1.5 rounded-full border-2 border-white dark:border-slate-900 hover:bg-lime-400 cursor-pointer"
+                                className="absolute bottom-0 right-0 bg-violet-700 text-white p-1.5 rounded-full border-2 border-white dark:border-slate-900 hover:bg-violet-800 cursor-pointer"
                             >
                                 <Camera size={14} />
                             </button>
@@ -1022,23 +1022,23 @@ const Profile: React.FC<ProfileProps> = ({ user, onUpgradeClick }) => {
                                 </button>
                             )}
                         </div>
-                        <h3 className="mt-4 font-bold text-lg text-gray-900 dark:text-white">{formData.name}</h3>
-                        <p className="text-gray-500 dark:text-slate-400 text-sm mb-4">{formData.email}</p>
+                        <h3 className="mt-4 font-bold text-lg text-stone-900 dark:text-white">{formData.name}</h3>
+                        <p className="text-stone-600 dark:text-slate-400 text-sm mb-4">{formData.email}</p>
                         {(() => {
                             const corporateCompanyName = formData?.companyName || (formData as any)?.company_name || localStorage.getItem('user_company_name') || '';
                             const isCorporate = formData?.role === 'SPONSORED' || localStorage.getItem('user_plan') === 'corporate' || Boolean(corporateCompanyName);
 
                             if (isCorporate) {
                                 return (
-                                    <div className="inline-flex items-center gap-1.5 bg-purple-50 dark:bg-purple-950/30 text-welile-purple dark:text-purple-400 text-xs font-bold px-3 py-1 rounded-full border border-purple-100 dark:border-purple-900/50">
-                                        <Building2 size={13} className="text-welile-purple dark:text-purple-400" />
+                                    <div className="inline-flex items-center gap-1.5 bg-violet-50 dark:bg-violet-950/30 text-violet-700 dark:text-violet-400 text-xs font-bold px-3 py-1 rounded-full border border-violet-100 dark:border-violet-900/50">
+                                        <Building2 size={13} className="text-violet-700 dark:text-violet-400" />
                                         <span>{corporateCompanyName || 'Corporate Partner'}</span>
                                     </div>
                                 );
                             }
 
                             return (
-                                <div className="inline-block bg-purple-50 dark:bg-purple-950/30 text-welile-purple dark:text-purple-400 text-xs font-bold px-3 py-1 rounded-full border border-purple-100 dark:border-purple-900/50">
+                                <div className="inline-block bg-violet-50 dark:bg-violet-950/30 text-violet-700 dark:text-violet-400 text-xs font-bold px-3 py-1 rounded-full border border-violet-100 dark:border-violet-900/50">
                                     {formData.role === 'SPONSORED' ? 'Enterprise Plan' : formData.role === 'INDIVIDUAL' ? 'Basic Plan' : formData.role === 'ADMIN' ? 'Instructor' : (formData.role || 'Student').replace('_', ' ')}
                                 </div>
                             );
@@ -1049,16 +1049,16 @@ const Profile: React.FC<ProfileProps> = ({ user, onUpgradeClick }) => {
 
                             if (isCorporate) {
                                 return (
-                                    <div className="mt-6 pt-6 border-t border-gray-50 dark:border-slate-800 text-center space-y-2">
-                                        <div className="text-xs font-bold text-welile-purple dark:text-purple-400 bg-purple-50 dark:bg-purple-950/20 border border-purple-100 dark:border-purple-900/30 px-3 py-2 rounded-xl flex items-center justify-center gap-1.5 w-full">
+                                    <div className="mt-6 pt-6 border-t border-stone-50 dark:border-slate-800 text-center space-y-2">
+                                        <div className="text-xs font-bold text-violet-700 dark:text-violet-400 bg-violet-50 dark:bg-violet-950/20 border border-violet-100 dark:border-violet-900/30 px-3 py-2 rounded-xl flex items-center justify-center gap-1.5 w-full">
                                             <Building2 className="w-4 h-4" /> {corporateCompanyName || 'Corporate Plan'} Active
                                         </div>
-                                        <p className="text-xs text-gray-500 dark:text-slate-400 leading-relaxed px-2">
-                                            Your seat is provisioned under <span className="font-semibold text-welile-purple">{corporateCompanyName || 'Corporate'}</span> with enterprise course access.
+                                        <p className="text-xs text-stone-600 dark:text-slate-400 leading-relaxed px-2">
+                                            Your seat is provisioned under <span className="font-semibold text-violet-700">{corporateCompanyName || 'Corporate'}</span> with enterprise course access.
                                         </p>
                                         <button
                                             onClick={() => navigate('/corporate')}
-                                            className="w-full mt-2 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white py-2.5 rounded-xl text-xs font-semibold transition-all shadow-md shadow-purple-500/20 cursor-pointer flex items-center justify-center gap-1.5"
+                                            className="w-full mt-2 bg-violet-700 hover:bg-violet-800 text-white py-2.5 rounded-xl text-xs font-semibold transition-all shadow-sm cursor-pointer flex items-center justify-center gap-1.5"
                                         >
                                             <Building2 size={13} /> Manage Corporate Portal
                                         </button>
@@ -1068,26 +1068,26 @@ const Profile: React.FC<ProfileProps> = ({ user, onUpgradeClick }) => {
 
                             if (formData.role === 'PRO' || formData.role === 'ADMIN') {
                                 return (
-                                    <div className="mt-6 pt-6 border-t border-gray-50 dark:border-slate-800 text-center space-y-2">
-                                        <div className="text-xs font-bold text-green-650 dark:text-green-400 bg-green-50 dark:bg-green-950/20 border border-green-100 dark:border-green-900/30 px-3 py-2 rounded-xl inline-block w-full">
+                                    <div className="mt-6 pt-6 border-t border-stone-50 dark:border-slate-800 text-center space-y-2">
+                                        <div className="text-xs font-bold text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-950/20 border border-green-100 dark:border-green-900/30 px-3 py-2 rounded-xl inline-block w-full">
                                             <Star className="inline-block w-4 h-4 mr-1 align-middle" /> Premium Account Active
                                         </div>
-                                        <p className="text-xs text-gray-500 dark:text-slate-400 leading-relaxed px-2">
-                                            You are currently enjoying our premium services. We recommend you explore courses in the <span className="font-semibold text-welile-purple">Discover</span> tab!
+                                        <p className="text-xs text-stone-600 dark:text-slate-400 leading-relaxed px-2">
+                                            You are currently enjoying our premium services. We recommend you explore courses in the <span className="font-semibold text-violet-700">Discover</span> tab!
                                         </p>
                                     </div>
                                 );
                             }
 
                             return (
-                                <div className="mt-6 pt-6 border-t border-gray-50 dark:border-slate-800">
+                                <div className="mt-6 pt-6 border-t border-stone-50 dark:border-slate-800">
                                     <button
                                         onClick={() => navigate('/plans')}
-                                        className="w-full bg-black dark:bg-violet-600 text-white py-2.5 rounded-xl text-sm font-semibold hover:bg-gray-800 dark:hover:bg-violet-700 transition-colors shadow-lg shadow-gray-200 dark:shadow-none cursor-pointer"
+                                        className="w-full bg-violet-700 text-white py-2.5 rounded-xl text-sm font-semibold hover:bg-stone-800 dark:hover:bg-violet-800 transition-colors shadow-sm shadow-gray-200 dark:shadow-none cursor-pointer"
                                     >
                                         Upgrade Plan
                                     </button>
-                                    <p className="text-xs text-gray-400 dark:text-slate-500 mt-2">Unlock premium features & courses</p>
+                                    <p className="text-xs text-stone-500 dark:text-slate-500 mt-2">Unlock premium features & courses</p>
                                 </div>
                             );
                         })()}
@@ -1100,15 +1100,15 @@ const Profile: React.FC<ProfileProps> = ({ user, onUpgradeClick }) => {
                 <div className="md:col-span-2 space-y-6">
 
                     {/* Personal Details */}
-                    <div className="bg-white dark:bg-slate-900 p-6 rounded-3xl border border-gray-100 dark:border-slate-800 shadow-sm">
-                        <div className="flex justify-between items-center mb-6 pb-4 border-b border-gray-50 dark:border-slate-800">
-                            <h4 className="font-bold text-gray-900 dark:text-white flex items-center gap-2">
-                                <User size={18} className="text-welile-purple" /> Personal Information
+                    <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-stone-100 dark:border-slate-800 shadow-sm">
+                        <div className="flex justify-between items-center mb-6 pb-4 border-b border-stone-50 dark:border-slate-800">
+                            <h4 className="font-bold text-stone-900 dark:text-white flex items-center gap-2">
+                                <User size={18} className="text-violet-700" /> Personal Information
                             </h4>
                             <button
                                 type="button"
                                 onClick={() => setShowEditModal(true)}
-                                className="p-2 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-xl transition-all text-gray-400 hover:text-welile-purple cursor-pointer flex items-center justify-center border border-gray-100 dark:border-slate-800"
+                                className="p-2 hover:bg-stone-100 dark:hover:bg-slate-800 rounded-xl transition-all text-stone-500 hover:text-violet-700 cursor-pointer flex items-center justify-center border border-stone-100 dark:border-slate-800"
                                 title="Edit Personal Info"
                             >
                                 <Edit2 size={16} />
@@ -1116,16 +1116,16 @@ const Profile: React.FC<ProfileProps> = ({ user, onUpgradeClick }) => {
                         </div>
                         <div className="grid md:grid-cols-3 gap-6">
                             <div>
-                                <p className="text-xs font-bold text-gray-400 dark:text-slate-500 uppercase tracking-wide">Full Name</p>
-                                <p className="font-semibold text-gray-800 dark:text-slate-200 mt-1">{formData.name || 'Not Provided'}</p>
+                                <p className="text-xs font-bold text-stone-500 dark:text-slate-500 uppercase tracking-wide">Full Name</p>
+                                <p className="font-semibold text-stone-800 dark:text-slate-200 mt-1">{formData.name || 'Not Provided'}</p>
                             </div>
                             <div>
-                                <p className="text-xs font-bold text-gray-400 dark:text-slate-500 uppercase tracking-wide">Nationality</p>
-                                <p className="font-semibold text-gray-800 dark:text-slate-200 mt-1">{formData.nationality || 'Not Provided'}</p>
+                                <p className="text-xs font-bold text-stone-500 dark:text-slate-500 uppercase tracking-wide">Nationality</p>
+                                <p className="font-semibold text-stone-800 dark:text-slate-200 mt-1">{formData.nationality || 'Not Provided'}</p>
                             </div>
                             <div>
-                                <p className="text-xs font-bold text-gray-400 dark:text-slate-500 uppercase tracking-wide">Date of Birth</p>
-                                <p className="font-semibold text-gray-800 dark:text-slate-200 mt-1">
+                                <p className="text-xs font-bold text-stone-500 dark:text-slate-500 uppercase tracking-wide">Date of Birth</p>
+                                <p className="font-semibold text-stone-800 dark:text-slate-200 mt-1">
                                     {formData.dateOfBirth ? new Date(formData.dateOfBirth).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' }) : 'Not Provided'}
                                 </p>
                             </div>
@@ -1133,23 +1133,23 @@ const Profile: React.FC<ProfileProps> = ({ user, onUpgradeClick }) => {
                     </div>
 
                     {/* Academic */}
-                    <div className="bg-white dark:bg-slate-900 p-6 rounded-3xl border border-gray-100 dark:border-slate-800 shadow-sm">
-                        <h4 className="font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-2 pb-4 border-b border-gray-50 dark:border-slate-800">
-                            <GraduationCap size={18} className="text-welile-purple" /> Education <span className="text-xs font-normal text-gray-400 ml-1">(Optional)</span>
+                    <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-stone-100 dark:border-slate-800 shadow-sm">
+                        <h4 className="font-bold text-stone-900 dark:text-white mb-6 flex items-center gap-2 pb-4 border-b border-stone-50 dark:border-slate-800">
+                            <GraduationCap size={18} className="text-violet-700" /> Education <span className="text-xs font-normal text-stone-500 ml-1">(Optional)</span>
                         </h4>
                         <div className="space-y-4">
                             {educationList.map((item) => (
-                                <div key={item.id} className="p-4 border border-gray-100 dark:border-slate-800 rounded-xl flex justify-between items-center hover:bg-gray-50 dark:hover:bg-slate-800/40 cursor-pointer">
+                                <div key={item.id} className="p-4 border border-stone-100 dark:border-slate-800 rounded-xl flex justify-between items-center hover:bg-stone-50 dark:hover:bg-slate-800/40 cursor-pointer">
                                     <div>
-                                        <p className="font-bold text-sm text-gray-900 dark:text-white">{item.institution}</p>
-                                        <p className="text-xs text-gray-500 dark:text-slate-400">{item.degree} • {item.year}</p>
+                                        <p className="font-bold text-sm text-stone-900 dark:text-white">{item.institution}</p>
+                                        <p className="text-xs text-stone-600 dark:text-slate-400">{item.degree} • {item.year}</p>
                                         {item.fileName && (
-                                            <p className="text-[10px] text-green-600 dark:text-green-400 font-semibold mt-1 flex items-center gap-1">
+                                            <p className="text-xs text-green-600 dark:text-green-400 font-semibold mt-1 flex items-center gap-1">
                                                 <Check className="inline-block w-4 h-4 mr-1 align-middle" /> Verified Proof: {item.fileName}
                                             </p>
                                         )}
                                     </div>
-                                    <span className={`text-[10px] px-2 py-0.5 rounded font-bold uppercase tracking-wider ${
+                                    <span className={`text-xs px-2 py-0.5 rounded font-bold uppercase tracking-wider ${
                                         item.status === 'Completed'
                                             ? 'bg-green-100 dark:bg-green-950/30 text-green-700 dark:text-green-400'
                                             : 'bg-yellow-100 dark:bg-yellow-950/30 text-yellow-700 dark:text-yellow-400'
@@ -1161,7 +1161,7 @@ const Profile: React.FC<ProfileProps> = ({ user, onUpgradeClick }) => {
                             <button 
                                 type="button"
                                 onClick={() => setShowEduModal(true)}
-                                className="w-full py-2.5 border border-dashed border-gray-300 dark:border-slate-700 rounded-xl text-gray-500 dark:text-slate-400 text-sm hover:border-welile-purple hover:text-welile-purple transition-all cursor-pointer font-semibold"
+                                className="w-full py-2.5 border border-dashed border-stone-300 dark:border-slate-700 rounded-xl text-stone-600 dark:text-slate-400 text-sm hover:border-violet-700 hover:text-violet-700 transition-all cursor-pointer font-semibold"
                             >
                                 + Add Education
                             </button>

@@ -1,5 +1,5 @@
-import React, { useEffect, useRef } from 'react';
-import { Video } from 'lucide-react';
+import React, { useEffect, useRef, useState } from 'react';
+import { Video, Headphones, PlayCircle } from 'lucide-react';
 
 declare global {
     interface Window { YT?: any; onYouTubeIframeAPIReady?: () => void; }
@@ -29,9 +29,14 @@ interface Props {
     /** called about every 2s while playing: position and total duration, in seconds */
     onProgress: (position: number, duration: number) => void;
     onEnded: () => void;
+    /** do not preload; YouTube loads only after a tap, with a low-quality hint */
+    dataSaver?: boolean;
+    /** hide the picture; play sound only when a direct video URL exists */
+    audioOnly?: boolean;
 }
 
-const VideoPlayer: React.FC<Props> = ({ videoId, videoUrl, title, startAt = 0, onProgress, onEnded }) => {
+const VideoPlayer: React.FC<Props> = ({ videoId, videoUrl, title, startAt = 0, onProgress, onEnded, dataSaver = false, audioOnly = false }) => {
+    const [armed, setArmed] = useState(false);
     const mountRef = useRef<HTMLDivElement>(null);
     const playerRef = useRef<any>(null);
     const timerRef = useRef<number | null>(null);
@@ -39,7 +44,7 @@ const VideoPlayer: React.FC<Props> = ({ videoId, videoUrl, title, startAt = 0, o
     cb.current = { onProgress, onEnded };
 
     useEffect(() => {
-        if (!videoId || !mountRef.current) return;
+        if (!videoId || audioOnly || (dataSaver && !armed) || !mountRef.current) return;
         let cancelled = false;
         const holder = document.createElement('div');
         mountRef.current.innerHTML = '';
@@ -52,10 +57,11 @@ const VideoPlayer: React.FC<Props> = ({ videoId, videoUrl, title, startAt = 0, o
                 videoId,
                 width: '100%',
                 height: '100%',
-                playerVars: { rel: 0, modestbranding: 1, playsinline: 1, cc_load_policy: 1, start: Math.floor(startAt) },
+                playerVars: { rel: 0, modestbranding: 1, playsinline: 1, cc_load_policy: 1, autoplay: dataSaver ? 1 : 0, start: Math.floor(startAt) },
                 events: {
                     onStateChange: (e: any) => {
                         if (e.data === YT.PlayerState.PLAYING) {
+                            if (dataSaver) { try { playerRef.current?.setPlaybackQuality?.('small'); } catch { /* hint only */ } }
                             if (timerRef.current) window.clearInterval(timerRef.current);
                             timerRef.current = window.setInterval(() => {
                                 const p = playerRef.current;
@@ -82,7 +88,34 @@ const VideoPlayer: React.FC<Props> = ({ videoId, videoUrl, title, startAt = 0, o
             playerRef.current = null;
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [videoId]);
+    }, [videoId, audioOnly, dataSaver, armed]);
+
+    const mediaHandlers = (el: 'audio' | 'video') => ({
+        controls: true as const,
+        preload: dataSaver ? 'none' as const : 'metadata' as const,
+        src: videoUrl,
+        title,
+        onLoadedMetadata: (e: React.SyntheticEvent<HTMLMediaElement>) => { if (startAt > 0) e.currentTarget.currentTime = startAt; },
+        onTimeUpdate: (e: React.SyntheticEvent<HTMLMediaElement>) => {
+            const v = e.currentTarget;
+            if (Math.floor(v.currentTime) % 2 === 0) cb.current.onProgress(v.currentTime, v.duration || 0);
+        },
+        onEnded: (e: React.SyntheticEvent<HTMLMediaElement>) => { cb.current.onProgress(e.currentTarget.duration, e.currentTarget.duration); cb.current.onEnded(); },
+        'data-kind': el
+    });
+
+    if (audioOnly) {
+        return (
+            <div className="w-full rounded-2xl border border-stone-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4">
+                <p className="flex items-center gap-2 font-semibold text-sm"><Headphones size={18} className="text-violet-700 dark:text-violet-400" /> Audio only</p>
+                {videoUrl ? (
+                    <audio key={videoUrl} className="w-full mt-3" playsInline {...mediaHandlers('audio')} />
+                ) : (
+                    <p className="mt-1 text-sm text-stone-600 dark:text-slate-400">{videoId ? 'Audio-only playback is not available for this video. Read the transcript below, or turn audio only off to watch.' : 'The recording for this lesson is not ready yet. Read the transcript or the lesson notes below.'}</p>
+                )}
+            </div>
+        );
+    }
 
     if (videoUrl) {
         return (
@@ -92,7 +125,7 @@ const VideoPlayer: React.FC<Props> = ({ videoId, videoUrl, title, startAt = 0, o
                     className="w-full h-full"
                     controls
                     playsInline
-                    preload="metadata"
+                    preload={dataSaver ? 'none' : 'metadata'}
                     src={videoUrl}
                     title={title}
                     onLoadedMetadata={e => { if (startAt > 0) e.currentTarget.currentTime = startAt; }}
@@ -104,6 +137,16 @@ const VideoPlayer: React.FC<Props> = ({ videoId, videoUrl, title, startAt = 0, o
                     onEnded={e => { cb.current.onProgress(e.currentTarget.duration, e.currentTarget.duration); cb.current.onEnded(); }}
                 />
             </div>
+        );
+    }
+
+    if (videoId && dataSaver && !armed) {
+        return (
+            <button type="button" onClick={() => setArmed(true)} className="aspect-video w-full rounded-2xl border border-stone-200 dark:border-slate-800 bg-stone-100 dark:bg-slate-900 flex flex-col items-center justify-center text-center px-6 focus:outline-none focus-visible:ring-2 focus-visible:ring-violet-500">
+                <PlayCircle size={40} className="text-violet-700 dark:text-violet-400" />
+                <span className="mt-2 font-semibold">Tap to load the video</span>
+                <span className="mt-1 text-sm text-stone-600 dark:text-slate-400">Data saver is on, so nothing is downloaded until you tap.</span>
+            </button>
         );
     }
 

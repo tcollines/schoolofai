@@ -96,31 +96,31 @@ const SettingsPage: React.FC = () => {
     return (
         <div className="space-y-6 max-w-4xl mx-auto pb-12">
             {/* Header Title */}
-            <div className="flex justify-between items-center bg-white dark:bg-slate-900 p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-slate-800 transition-colors duration-200">
+            <div className="flex justify-between items-center bg-white dark:bg-slate-900 p-6 rounded-2xl shadow-sm border border-stone-100 dark:border-slate-800 transition-colors duration-200">
                 <div>
-                    <h2 className="text-xl font-bold text-gray-900 dark:text-white">{t('settings')}</h2>
-                    <p className="text-sm text-gray-500 dark:text-slate-400">{t('configure_locale')}</p>
+                    <h2 className="text-xl font-semibold text-stone-900 dark:text-white font-serif">{t('settings')}</h2>
+                    <p className="text-sm text-stone-600 dark:text-slate-400">{t('configure_locale')}</p>
                 </div>
             </div>
 
             {/* Success Toast */}
             {showSuccessToast && (
-                <div className="fixed bottom-6 right-6 z-50 flex items-center gap-3 bg-emerald-600 text-white px-6 py-4 rounded-2xl shadow-xl animate-bounce">
+                <div className="fixed bottom-6 right-6 z-50 flex items-center gap-3 bg-emerald-600 text-white px-6 py-4 rounded-2xl shadow-sm">
                     <Check size={20} className="stroke-[3]" />
                     <span className="font-semibold text-sm">{t('saved_successfully')}</span>
                 </div>
             )}
 
             {/* 1. Appearance / Theme */}
-            <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-slate-800 transition-colors duration-200">
+            <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl shadow-sm border border-stone-100 dark:border-slate-800 transition-colors duration-200">
                 <div className="flex items-center gap-3 mb-6">
-                    <div className="p-2.5 bg-violet-50 dark:bg-violet-950/50 text-violet-600 dark:text-violet-400 rounded-xl">
+                    <div className="p-2.5 bg-violet-50 dark:bg-violet-950/50 text-violet-700 dark:text-violet-400 rounded-xl">
                         <Sun size={20} className="dark:hidden" />
                         <Moon size={20} className="hidden dark:block" />
                     </div>
                     <div>
-                        <h3 className="font-bold text-gray-900 dark:text-white">{t('appearance')}</h3>
-                        <p className="text-xs text-gray-500 dark:text-slate-400 font-medium">{t('customize_theme')}</p>
+                        <h3 className="font-bold text-stone-900 dark:text-white">{t('appearance')}</h3>
+                        <p className="text-xs text-stone-600 dark:text-slate-400 font-medium">{t('customize_theme')}</p>
                     </div>
                 </div>
 
@@ -131,7 +131,7 @@ const SettingsPage: React.FC = () => {
                         className={`p-5 rounded-2xl border-2 cursor-pointer transition-all flex flex-col justify-between h-36 ${
                             theme === 'light' 
                                 ? 'bg-violet-50/55 border-violet-500 shadow-sm dark:bg-slate-800/20' 
-                                : 'bg-gray-50 dark:bg-slate-800/40 border-gray-100 dark:border-slate-800 hover:border-gray-200 dark:hover:border-slate-700'
+                                : 'bg-stone-50 dark:bg-slate-800/40 border-stone-100 dark:border-slate-800 hover:border-stone-200 dark:hover:border-slate-700'
                         }`}
                     >
                         <div className="flex justify-between items-start">
@@ -139,14 +139,14 @@ const SettingsPage: React.FC = () => {
                                 <Sun size={18} />
                             </span>
                             {theme === 'light' && (
-                                <span className="w-5 h-5 bg-violet-600 text-white rounded-full flex items-center justify-center text-xs font-bold">
+                                <span className="w-5 h-5 bg-violet-700 text-white rounded-full flex items-center justify-center text-xs font-bold">
                                     <Check className="inline-block w-4 h-4 mr-1 align-middle" />
                                 </span>
                             )}
                         </div>
                         <div>
-                            <h4 className="font-bold text-sm text-gray-900 dark:text-white">{t('light_mode')}</h4>
-                            <p className="text-xs text-gray-500 dark:text-slate-400 mt-1">{t('light_mode_desc')}</p>
+                            <h4 className="font-bold text-sm text-stone-900 dark:text-white">{t('light_mode')}</h4>
+                            <p className="text-xs text-stone-600 dark:text-slate-400 mt-1">{t('light_mode_desc')}</p>
                         </div>
                     </div>
 
@@ -156,7 +156,7 @@ const SettingsPage: React.FC = () => {
                         className={`p-5 rounded-2xl border-2 cursor-pointer transition-all flex flex-col justify-between h-36 ${
                             theme === 'dark' 
                                 ? 'bg-violet-50/55 border-violet-500 shadow-sm dark:bg-slate-800/30' 
-                                : 'bg-gray-50 dark:bg-slate-800/40 border-gray-100 dark:border-slate-800 hover:border-gray-200 dark:hover:border-slate-700'
+                                : 'bg-stone-50 dark:bg-slate-800/40 border-stone-100 dark:border-slate-800 hover:border-stone-200 dark:hover:border-slate-700'
                         }`}
                     >
                         <div className="flex justify-between items-start">
@@ -164,38 +164,38 @@ const SettingsPage: React.FC = () => {
                                 <Moon size={18} />
                             </span>
                             {theme === 'dark' && (
-                                <span className="w-5 h-5 bg-violet-600 text-white rounded-full flex items-center justify-center text-xs font-bold">
+                                <span className="w-5 h-5 bg-violet-700 text-white rounded-full flex items-center justify-center text-xs font-bold">
                                     <Check className="inline-block w-4 h-4 mr-1 align-middle" />
                                 </span>
                             )}
                         </div>
                         <div>
-                            <h4 className="font-bold text-sm text-gray-900 dark:text-white">{t('dark_mode')}</h4>
-                            <p className="text-xs text-gray-500 dark:text-slate-400 mt-1">{t('dark_mode_desc')}</p>
+                            <h4 className="font-bold text-sm text-stone-900 dark:text-white">{t('dark_mode')}</h4>
+                            <p className="text-xs text-stone-600 dark:text-slate-400 mt-1">{t('dark_mode_desc')}</p>
                         </div>
                     </div>
                 </div>
             </div>
 
             {/* 2. Language & Region */}
-            <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-slate-800 transition-colors duration-200">
+            <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl shadow-sm border border-stone-100 dark:border-slate-800 transition-colors duration-200">
                 <div className="flex items-center gap-3 mb-6">
-                    <div className="p-2.5 bg-violet-50 dark:bg-violet-950/50 text-violet-600 dark:text-violet-400 rounded-xl">
+                    <div className="p-2.5 bg-violet-50 dark:bg-violet-950/50 text-violet-700 dark:text-violet-400 rounded-xl">
                         <Globe size={20} />
                     </div>
                     <div>
-                        <h3 className="font-bold text-gray-900 dark:text-white">{t('language_region')}</h3>
-                        <p className="text-xs text-gray-500 dark:text-slate-400 font-medium">{t('configure_locale')}</p>
+                        <h3 className="font-bold text-stone-900 dark:text-white">{t('language_region')}</h3>
+                        <p className="text-xs text-stone-600 dark:text-slate-400 font-medium">{t('configure_locale')}</p>
                     </div>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2 font-medium">{t('display_language')}</label>
+                        <label className="block text-sm font-medium text-stone-700 dark:text-slate-300 mb-2 font-medium">{t('display_language')}</label>
                         <select 
                             value={language}
                             onChange={(e) => setLanguage(e.target.value)}
-                            className="w-full p-3 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-violet-500 text-gray-900 dark:text-white outline-none transition-all"
+                            className="w-full p-3 bg-stone-50 dark:bg-slate-800 border border-stone-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-violet-500 text-stone-900 dark:text-white outline-none transition-all"
                         >
                             <option value="en">English (US)</option>
                             <option value="es">Español (ES)</option>
@@ -207,11 +207,11 @@ const SettingsPage: React.FC = () => {
                     </div>
 
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2 font-medium">{t('timezone')}</label>
+                        <label className="block text-sm font-medium text-stone-700 dark:text-slate-300 mb-2 font-medium">{t('timezone')}</label>
                         <select 
                             value={timezone}
                             onChange={(e) => setTimezone(e.target.value)}
-                            className="w-full p-3 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-violet-500 text-gray-900 dark:text-white outline-none transition-all"
+                            className="w-full p-3 bg-stone-50 dark:bg-slate-800 border border-stone-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-violet-500 text-stone-900 dark:text-white outline-none transition-all"
                         >
                             <option value="UTC-5 (EST)">UTC-5 (Eastern Time - US)</option>
                             <option value="UTC+0 (GMT)">UTC+0 (Greenwich Mean Time)</option>
@@ -225,28 +225,28 @@ const SettingsPage: React.FC = () => {
             </div>
 
             {/* 3. Notifications */}
-            <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-slate-800 transition-colors duration-200">
+            <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl shadow-sm border border-stone-100 dark:border-slate-800 transition-colors duration-200">
                 <div className="flex items-center gap-3 mb-6">
-                    <div className="p-2.5 bg-violet-50 dark:bg-violet-950/50 text-violet-600 dark:text-violet-400 rounded-xl">
+                    <div className="p-2.5 bg-violet-50 dark:bg-violet-950/50 text-violet-700 dark:text-violet-400 rounded-xl">
                         <Bell size={20} />
                     </div>
                     <div>
-                        <h3 className="font-bold text-gray-900 dark:text-white">{t('notifications')}</h3>
-                        <p className="text-xs text-gray-500 dark:text-slate-400 font-medium">{t('select_alerts')}</p>
+                        <h3 className="font-bold text-stone-900 dark:text-white">{t('notifications')}</h3>
+                        <p className="text-xs text-stone-600 dark:text-slate-400 font-medium">{t('select_alerts')}</p>
                     </div>
                 </div>
 
                 <div className="space-y-4">
                     {/* Course Updates */}
-                    <div className="flex items-center justify-between p-4 border border-gray-50 dark:border-slate-800 rounded-xl">
+                    <div className="flex items-center justify-between p-4 border border-stone-50 dark:border-slate-800 rounded-xl">
                         <div>
-                            <h4 className="font-semibold text-sm text-gray-900 dark:text-white">{t('course_announcements')}</h4>
-                            <p className="text-xs text-gray-500 dark:text-slate-400 mt-0.5">{t('course_announcements_desc')}</p>
+                            <h4 className="font-semibold text-sm text-stone-900 dark:text-white">{t('course_announcements')}</h4>
+                            <p className="text-xs text-stone-600 dark:text-slate-400 mt-0.5">{t('course_announcements_desc')}</p>
                         </div>
                         <button 
                             onClick={() => setNotifications({...notifications, courseUpdates: !notifications.courseUpdates})}
                             className={`w-11 h-6 rounded-full transition-all duration-300 relative ${
-                                notifications.courseUpdates ? 'bg-violet-600' : 'bg-gray-200 dark:bg-slate-700'
+                                notifications.courseUpdates ? 'bg-violet-700' : 'bg-stone-200 dark:bg-slate-700'
                             }`}
                         >
                             <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full transition-all duration-300 ${
@@ -256,15 +256,15 @@ const SettingsPage: React.FC = () => {
                     </div>
 
                     {/* Exam Reminders */}
-                    <div className="flex items-center justify-between p-4 border border-gray-50 dark:border-slate-800 rounded-xl">
+                    <div className="flex items-center justify-between p-4 border border-stone-50 dark:border-slate-800 rounded-xl">
                         <div>
-                            <h4 className="font-semibold text-sm text-gray-900 dark:text-white">{t('exam_rules')}</h4>
-                            <p className="text-xs text-gray-500 dark:text-slate-400 mt-0.5">{t('exam_rules_desc')}</p>
+                            <h4 className="font-semibold text-sm text-stone-900 dark:text-white">{t('exam_rules')}</h4>
+                            <p className="text-xs text-stone-600 dark:text-slate-400 mt-0.5">{t('exam_rules_desc')}</p>
                         </div>
                         <button 
                             onClick={() => setNotifications({...notifications, examReminders: !notifications.examReminders})}
                             className={`w-11 h-6 rounded-full transition-all duration-300 relative ${
-                                notifications.examReminders ? 'bg-violet-600' : 'bg-gray-200 dark:bg-slate-700'
+                                notifications.examReminders ? 'bg-violet-700' : 'bg-stone-200 dark:bg-slate-700'
                             }`}
                         >
                             <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full transition-all duration-300 ${
@@ -274,15 +274,15 @@ const SettingsPage: React.FC = () => {
                     </div>
 
                     {/* Billing Alerts */}
-                    <div className="flex items-center justify-between p-4 border border-gray-50 dark:border-slate-800 rounded-xl">
+                    <div className="flex items-center justify-between p-4 border border-stone-50 dark:border-slate-800 rounded-xl">
                         <div>
-                            <h4 className="font-semibold text-sm text-gray-900 dark:text-white">{t('wallet_alerts')}</h4>
-                            <p className="text-xs text-gray-500 dark:text-slate-400 mt-0.5">{t('wallet_alerts_desc')}</p>
+                            <h4 className="font-semibold text-sm text-stone-900 dark:text-white">{t('wallet_alerts')}</h4>
+                            <p className="text-xs text-stone-600 dark:text-slate-400 mt-0.5">{t('wallet_alerts_desc')}</p>
                         </div>
                         <button 
                             onClick={() => setNotifications({...notifications, billingAlerts: !notifications.billingAlerts})}
                             className={`w-11 h-6 rounded-full transition-all duration-300 relative ${
-                                notifications.billingAlerts ? 'bg-violet-600' : 'bg-gray-200 dark:bg-slate-700'
+                                notifications.billingAlerts ? 'bg-violet-700' : 'bg-stone-200 dark:bg-slate-700'
                             }`}
                         >
                             <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full transition-all duration-300 ${
@@ -292,15 +292,15 @@ const SettingsPage: React.FC = () => {
                     </div>
 
                     {/* Newsletters */}
-                    <div className="flex items-center justify-between p-4 border border-gray-50 dark:border-slate-800 rounded-xl">
+                    <div className="flex items-center justify-between p-4 border border-stone-50 dark:border-slate-800 rounded-xl">
                         <div>
-                            <h4 className="font-semibold text-sm text-gray-900 dark:text-white">{t('newsletters')}</h4>
-                            <p className="text-xs text-gray-500 dark:text-slate-400 mt-0.5">{t('newsletters_desc')}</p>
+                            <h4 className="font-semibold text-sm text-stone-900 dark:text-white">{t('newsletters')}</h4>
+                            <p className="text-xs text-stone-600 dark:text-slate-400 mt-0.5">{t('newsletters_desc')}</p>
                         </div>
                         <button 
                             onClick={() => setNotifications({...notifications, newsletters: !notifications.newsletters})}
                             className={`w-11 h-6 rounded-full transition-all duration-300 relative ${
-                                notifications.newsletters ? 'bg-violet-600' : 'bg-gray-200 dark:bg-slate-700'
+                                notifications.newsletters ? 'bg-violet-700' : 'bg-stone-200 dark:bg-slate-700'
                             }`}
                         >
                             <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full transition-all duration-300 ${
@@ -312,31 +312,31 @@ const SettingsPage: React.FC = () => {
             </div>
 
             {/* 4. Security & Privacy */}
-            <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-slate-800 transition-colors duration-200">
+            <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl shadow-sm border border-stone-100 dark:border-slate-800 transition-colors duration-200">
                 <div className="flex items-center gap-3 mb-6">
-                    <div className="p-2.5 bg-violet-50 dark:bg-violet-950/50 text-violet-600 dark:text-violet-400 rounded-xl">
+                    <div className="p-2.5 bg-violet-50 dark:bg-violet-950/50 text-violet-700 dark:text-violet-400 rounded-xl">
                         <Shield size={20} />
                     </div>
                     <div>
-                        <h3 className="font-bold text-gray-900 dark:text-white">{t('security_privacy')}</h3>
-                        <p className="text-xs text-gray-500 dark:text-slate-400 font-medium">{t('configure_security')}</p>
+                        <h3 className="font-bold text-stone-900 dark:text-white">{t('security_privacy')}</h3>
+                        <p className="text-xs text-stone-600 dark:text-slate-400 font-medium">{t('configure_security')}</p>
                     </div>
                 </div>
 
                 <div className="space-y-4">
                     {/* 2FA */}
-                    <div className="flex items-center justify-between p-4 border border-gray-50 dark:border-slate-800 rounded-xl">
+                    <div className="flex items-center justify-between p-4 border border-stone-50 dark:border-slate-800 rounded-xl">
                         <div>
-                            <h4 className="font-semibold text-sm text-gray-900 dark:text-white flex items-center gap-2">
-                                <Lock size={16} className="text-gray-400" />
+                            <h4 className="font-semibold text-sm text-stone-900 dark:text-white flex items-center gap-2">
+                                <Lock size={16} className="text-stone-500" />
                                 {t('two_factor')}
                             </h4>
-                            <p className="text-xs text-gray-500 dark:text-slate-400 mt-0.5">{t('two_factor_desc')}</p>
+                            <p className="text-xs text-stone-600 dark:text-slate-400 mt-0.5">{t('two_factor_desc')}</p>
                         </div>
                         <button 
                             onClick={() => setTwoFactor(!twoFactor)}
                             className={`w-11 h-6 rounded-full transition-all duration-300 relative ${
-                                twoFactor ? 'bg-violet-600' : 'bg-gray-200 dark:bg-slate-700'
+                                twoFactor ? 'bg-violet-700' : 'bg-stone-200 dark:bg-slate-700'
                             }`}
                         >
                             <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full transition-all duration-300 ${
@@ -346,15 +346,15 @@ const SettingsPage: React.FC = () => {
                     </div>
 
                     {/* Profile Visibility */}
-                    <div className="flex items-center justify-between p-4 border border-gray-50 dark:border-slate-800 rounded-xl">
+                    <div className="flex items-center justify-between p-4 border border-stone-50 dark:border-slate-800 rounded-xl">
                         <div>
-                            <h4 className="font-semibold text-sm text-gray-900 dark:text-white">{t('public_profile')}</h4>
-                            <p className="text-xs text-gray-500 dark:text-slate-400 mt-0.5">{t('public_profile_desc')}</p>
+                            <h4 className="font-semibold text-sm text-stone-900 dark:text-white">{t('public_profile')}</h4>
+                            <p className="text-xs text-stone-600 dark:text-slate-400 mt-0.5">{t('public_profile_desc')}</p>
                         </div>
                         <button 
                             onClick={() => setPublicProfile(!publicProfile)}
                             className={`w-11 h-6 rounded-full transition-all duration-300 relative ${
-                                publicProfile ? 'bg-violet-600' : 'bg-gray-200 dark:bg-slate-700'
+                                publicProfile ? 'bg-violet-700' : 'bg-stone-200 dark:bg-slate-700'
                             }`}
                         >
                             <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full transition-all duration-300 ${
@@ -370,7 +370,7 @@ const SettingsPage: React.FC = () => {
                 <button 
                     onClick={handleSave}
                     disabled={isSaving}
-                    className="flex items-center justify-center gap-2 bg-violet-600 hover:bg-violet-700 text-white font-bold px-8 py-3 rounded-2xl shadow-lg shadow-violet-900/10 active:scale-95 transition-all disabled:opacity-75 disabled:cursor-not-allowed"
+                    className="flex items-center justify-center gap-2 bg-violet-700 hover:bg-violet-800 text-white font-bold px-8 py-3 rounded-2xl shadow-sm active:scale-95 transition-all disabled:opacity-75 disabled:cursor-not-allowed"
                 >
                     {isSaving ? (
                         <>

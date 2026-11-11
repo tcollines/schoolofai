@@ -4,6 +4,7 @@ export enum UserRole {
   PRO = 'PRO',
   PREMIUM = 'PREMIUM',
   SPONSORED = 'SPONSORED', // Enterprise/All Access
+  INSTRUCTOR = 'INSTRUCTOR',
   ADMIN = 'ADMIN'
 }
 
