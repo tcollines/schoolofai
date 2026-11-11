@@ -6,6 +6,7 @@ import { setFreeCourseIntent } from '../../src/lib/acquisition';
 import { COURSE, MODULES, lessonCount } from '../../src/content/aiFundamentals';
 import { loadLiveSessions, LiveSession } from '../../src/lib/learnApi';
 import CertificateDocument from './CertificateDocument';
+import WelileTechLink, { linkifyWelileTech } from './WelileTechLink';
 import { PAPER, INK, MUTED, CARD, BTN_PRIMARY, BTN_SECONDARY, ThemeButton, Logo, formatEAT } from './learnUi';
 
 const kindIcon = (kind: string) => kind === 'video' ? <PlayCircle size={16} /> : kind === 'quiz' ? <HelpCircle size={16} /> : <FileText size={16} />;
@@ -63,7 +64,7 @@ const FreeCoursePage: React.FC = () => {
             <section className="max-w-6xl mx-auto px-4 sm:px-6 pt-10 sm:pt-16 pb-12 grid lg:grid-cols-2 gap-10 lg:gap-14 items-center">
                 <div>
                     <p className="inline-flex items-center gap-2 text-xs font-semibold tracking-wide uppercase text-violet-800 dark:text-violet-300 bg-violet-100 dark:bg-violet-950 px-3 py-1.5 rounded-full">
-                        <HeartHandshake size={14} /> Free course, sponsored by {COURSE.sponsor}
+                        <HeartHandshake size={14} /> Free course, sponsored by <WelileTechLink>{COURSE.sponsor}</WelileTechLink>
                     </p>
                     <h1 className="font-serif text-4xl sm:text-5xl lg:text-[3.4rem] leading-[1.08] font-semibold mt-5">
                         Learn to use AI with confidence.
@@ -203,7 +204,7 @@ const FreeCoursePage: React.FC = () => {
             <section className="max-w-6xl mx-auto px-4 sm:px-6 py-14 grid lg:grid-cols-[1fr_1.2fr] gap-10 items-center">
                 <div>
                     <h2 className="font-serif text-3xl font-semibold">A certificate you can show</h2>
-                    <p className={`mt-3 ${MUTED}`}>When you finish, your certificate is issued instantly, signed by the CEOs of Welile School of AI and Welile Technologies. It has its own ID and a public page where anyone can confirm it is genuine.</p>
+                    <p className={`mt-3 ${MUTED}`}>When you finish, your certificate is issued instantly, signed by the CEOs of Welile School of AI and <WelileTechLink />. It has its own ID and a public page where anyone can confirm it is genuine.</p>
                     <ul className="mt-5 space-y-2 text-[15px]">
                         {['Download or print it', 'Add it to LinkedIn', 'Share on WhatsApp'].map(t => <li key={t} className="flex gap-2"><CheckCircle2 size={18} className="mt-0.5 text-violet-700 dark:text-violet-400" />{t}</li>)}
                     </ul>
@@ -217,8 +218,8 @@ const FreeCoursePage: React.FC = () => {
             <section className="max-w-4xl mx-auto px-4 sm:px-6 pb-4">
                 <div className={`${CARD} rounded-3xl p-8 text-center`}>
                     <p className="text-xs font-semibold uppercase tracking-wide text-violet-800 dark:text-violet-300">Sponsored by</p>
-                    <p className="font-serif text-2xl font-semibold mt-2">{COURSE.sponsor}</p>
-                    <p className={`mt-3 max-w-xl mx-auto ${MUTED}`}>This course is free because {COURSE.sponsor} believes everyone in Uganda should be able to understand and safely use AI.</p>
+                    <p className="font-serif text-2xl font-semibold mt-2"><WelileTechLink>{COURSE.sponsor}</WelileTechLink></p>
+                    <p className={`mt-3 max-w-xl mx-auto ${MUTED}`}>This course is free because <WelileTechLink>{COURSE.sponsor}</WelileTechLink> believes everyone in Uganda should be able to understand and safely use AI.</p>
                 </div>
             </section>
 
@@ -231,7 +232,7 @@ const FreeCoursePage: React.FC = () => {
                             <button onClick={() => setOpenFaq(openFaq === i ? null : i)} aria-expanded={openFaq === i} className="w-full text-left py-4 flex items-center justify-between gap-4 font-medium">
                                 {f.q}<ChevronDown size={18} className={`shrink-0 transition-transform ${openFaq === i ? 'rotate-180' : ''}`} />
                             </button>
-                            {openFaq === i && <p className={`pb-4 ${MUTED}`}>{f.a}</p>}
+                            {openFaq === i && <p className={`pb-4 ${MUTED}`}>{linkifyWelileTech(f.a)}</p>}
                         </div>
                     ))}
                 </div>

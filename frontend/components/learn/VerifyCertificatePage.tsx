@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { BadgeCheck, ShieldAlert, Loader2 } from 'lucide-react';
 import { verifyCertificate } from '../../src/lib/learnApi';
+import WelileTechLink from './WelileTechLink';
 import { PAPER, INK, MUTED, CARD, BTN_PRIMARY, Logo, ThemeButton } from './learnUi';
 
 const VerifyCertificatePage: React.FC = () => {
@@ -43,7 +44,7 @@ const VerifyCertificatePage: React.FC = () => {
                             <p className={`mt-4 text-sm ${MUTED}`}>for completing</p>
                             <p className="font-semibold mt-1">{info.courseTitle}</p>
                             <p className={`mt-4 text-sm ${MUTED}`}>
-                                Issued {new Date(info.issuedAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })} by Welile School of AI, sponsored by Welile Technologies
+                                Issued {new Date(info.issuedAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })} by Welile School of AI, sponsored by <WelileTechLink />
                             </p>
                         </>
                     )}

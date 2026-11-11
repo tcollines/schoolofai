@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { supabase } from '../src/lib/supabaseClient';
+import WelileTechLink from './learn/WelileTechLink';
 import {
     Bot,
     Brain,
@@ -222,7 +223,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLoginClick, onSignupClick, 
                 <div className="max-w-6xl mx-auto px-4 sm:px-6 grid lg:grid-cols-2 gap-10 lg:gap-14 items-center">
                     <div>
                         <p className="inline-flex items-center gap-2 text-xs font-semibold tracking-wide uppercase text-violet-800 dark:text-violet-300 bg-violet-100 dark:bg-violet-950 px-3 py-1.5 rounded-full">
-                            Free course, sponsored by Welile Technologies
+                            Free course, sponsored by <WelileTechLink />
                         </p>
                         <h1 className="font-serif text-4xl sm:text-5xl lg:text-[3.4rem] leading-[1.08] font-semibold text-[#1c1917] dark:text-white mt-5">
                             Learn to use AI with confidence.
