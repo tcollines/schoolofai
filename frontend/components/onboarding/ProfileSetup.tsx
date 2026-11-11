@@ -2,6 +2,7 @@ import React, { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../../src/lib/supabaseClient';
 import { getFreeCourseIntent, learnHomePath } from '../../src/lib/acquisition';
+import CountrySelect from '../CountrySelect';
 import { User, Camera, ArrowRight, Loader2, AlertTriangle } from 'lucide-react';
 
 const ProfileSetup: React.FC = () => {
@@ -208,79 +209,10 @@ const ProfileSetup: React.FC = () => {
                         />
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div className="space-y-2">
-                            <label className="block text-sm font-semibold text-gray-700 dark:text-slate-300">Nationality <span className="text-red-500">*</span></label>
-                            <select 
-                                required
-                                value={nationality}
-                                onChange={(e) => setNationality(e.target.value)}
-                                className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950 border border-gray-200 dark:border-slate-800 rounded-xl outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500 text-sm text-gray-900 dark:text-white transition-all"
-                            >
-                                <option value="">Select Nationality</option>
-                                <option value="Algeria">Algeria</option>
-                                <option value="Angola">Angola</option>
-                                <option value="Australia">Australia</option>
-                                <option value="Benin">Benin</option>
-                                <option value="Botswana">Botswana</option>
-                                <option value="Brazil">Brazil</option>
-                                <option value="Burkina Faso">Burkina Faso</option>
-                                <option value="Burundi">Burundi</option>
-                                <option value="Cabo Verde">Cabo Verde</option>
-                                <option value="Cameroon">Cameroon</option>
-                                <option value="Canada">Canada</option>
-                                <option value="Central African Republic">Central African Republic</option>
-                                <option value="Chad">Chad</option>
-                                <option value="Comoros">Comoros</option>
-                                <option value="Congo, Democratic Republic of the">Congo, Democratic Republic of the</option>
-                                <option value="Congo, Republic of the">Congo, Republic of the</option>
-                                <option value="Cote d'Ivoire">Cote d'Ivoire</option>
-                                <option value="Djibouti">Djibouti</option>
-                                <option value="Egypt">Egypt</option>
-                                <option value="Equatorial Guinea">Equatorial Guinea</option>
-                                <option value="Eritrea">Eritrea</option>
-                                <option value="Eswatini">Eswatini</option>
-                                <option value="Ethiopia">Ethiopia</option>
-                                <option value="France">France</option>
-                                <option value="Gabon">Gabon</option>
-                                <option value="Gambia">Gambia</option>
-                                <option value="Germany">Germany</option>
-                                <option value="Ghana">Ghana</option>
-                                <option value="Guinea">Guinea</option>
-                                <option value="Guinea-Bissau">Guinea-Bissau</option>
-                                <option value="India">India</option>
-                                <option value="Kenya">Kenya</option>
-                                <option value="Lesotho">Lesotho</option>
-                                <option value="Liberia">Liberia</option>
-                                <option value="Libya">Libya</option>
-                                <option value="Madagascar">Madagascar</option>
-                                <option value="Malawi">Malawi</option>
-                                <option value="Mali">Mali</option>
-                                <option value="Mauritania">Mauritania</option>
-                                <option value="Mauritius">Mauritius</option>
-                                <option value="Morocco">Morocco</option>
-                                <option value="Mozambique">Mozambique</option>
-                                <option value="Namibia">Namibia</option>
-                                <option value="Niger">Niger</option>
-                                <option value="Nigeria">Nigeria</option>
-                                <option value="Rwanda">Rwanda</option>
-                                <option value="Sao Tome and Principe">Sao Tome and Principe</option>
-                                <option value="Senegal">Senegal</option>
-                                <option value="Seychelles">Seychelles</option>
-                                <option value="Sierra Leone">Sierra Leone</option>
-                                <option value="Somalia">Somalia</option>
-                                <option value="South Africa">South Africa</option>
-                                <option value="South Sudan">South Sudan</option>
-                                <option value="Sudan">Sudan</option>
-                                <option value="Tanzania">Tanzania</option>
-                                <option value="Togo">Togo</option>
-                                <option value="Tunisia">Tunisia</option>
-                                <option value="Uganda">Uganda</option>
-                                <option value="United Kingdom">United Kingdom</option>
-                                <option value="United States">United States</option>
-                                <option value="Zambia">Zambia</option>
-                                <option value="Zimbabwe">Zimbabwe</option>
-                            </select>
+                            <label className="block text-sm font-semibold text-gray-700 dark:text-slate-300" htmlFor="nationality">Country <span className="text-red-500">*</span></label>
+                            <CountrySelect id="nationality" required value={nationality} onChange={setNationality} placeholder="Search your country" />
                         </div>
                         <div className="space-y-2">
                             <label className="block text-sm font-semibold text-gray-700 dark:text-slate-300">Date of Birth <span className="text-red-500">*</span></label>

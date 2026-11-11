@@ -5,7 +5,8 @@ import Header from '../Header';
 import { AuthModal } from '../AuthModal';
 import { useProfile } from '../../src/hooks/useProfile';
 import { UserRole, Course } from '../../types';
-import { CheckCircle, Sparkles, X, PartyPopper } from 'lucide-react';
+import { CheckCircle, Sparkles, X, PartyPopper, LayoutDashboard, Compass, BookOpen, Calendar, User } from 'lucide-react';
+import { useTranslation } from '../translations';
 
 interface StudentLayoutProps {
     session: any;
@@ -15,6 +16,7 @@ interface StudentLayoutProps {
 }
 
 const StudentLayout: React.FC<StudentLayoutProps> = ({ session, isAuthenticated, isAdminMode, courses }) => {
+    const { t } = useTranslation();
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const [showAuthModal, setShowAuthModal] = useState(false);
     const location = useLocation();
@@ -72,7 +74,7 @@ const StudentLayout: React.FC<StudentLayoutProps> = ({ session, isAuthenticated,
     const isCorporate = displayUser?.role === UserRole.SPONSORED || Boolean(displayUser?.companyName);
 
     return (
-        <div className="flex min-h-screen bg-[#f3f4f6] dark:bg-slate-950 dark:text-slate-100 transition-colors duration-200">
+        <div className="flex min-h-screen bg-[#faf8f5] dark:bg-slate-950 text-[#1c1917] dark:text-slate-100 transition-colors duration-200">
             {/* Sidebar */}
             <Sidebar
                 activeTab={activeSidebarTab}
@@ -91,7 +93,7 @@ const StudentLayout: React.FC<StudentLayoutProps> = ({ session, isAuthenticated,
                 <Header
                     user={displayUser}
                     onMenuClick={() => setIsMobileMenuOpen(true)}
-                    showWelcome={!hideHeaderWidgets}
+                    showWelcome={false}
                     showSearch={!hideHeaderWidgets}
                     showNotifications={!hideHeaderWidgets}
                     showProfile={!hideHeaderWidgets}
@@ -99,12 +101,40 @@ const StudentLayout: React.FC<StudentLayoutProps> = ({ session, isAuthenticated,
                     courses={courses}
                 />
 
-                <main className="flex-1 w-full p-4 lg:px-8 lg:pb-8 max-w-7xl transition-all duration-200">
+                <main className="flex-1 w-full p-4 pb-28 lg:px-8 lg:pb-10 max-w-7xl transition-all duration-200">
                     <div className="animate-in fade-in duration-500">
                         <Outlet context={{ displayUser, setShowAuthModal }} />
                     </div>
                 </main>
             </div>
+
+
+            {/* Phone navigation: the five things students use most */}
+            <nav
+                aria-label="Quick navigation"
+                className="lg:hidden fixed bottom-0 inset-x-0 z-40 grid grid-cols-5 bg-white/95 dark:bg-slate-900/95 backdrop-blur border-t border-stone-200 dark:border-slate-800 pb-[env(safe-area-inset-bottom)]"
+            >
+                {[
+                    { id: 'dashboard', label: 'Home', icon: LayoutDashboard },
+                    { id: 'discover', label: t('discover'), icon: Compass },
+                    { id: 'courses', label: t('my_courses'), icon: BookOpen },
+                    { id: 'events', label: 'Live', icon: Calendar },
+                    { id: 'profile', label: 'Profile', icon: User }
+                ].map(item => {
+                    const active = activeSidebarTab === item.id;
+                    return (
+                        <button
+                            key={item.id}
+                            onClick={() => navigate(`/${item.id}`)}
+                            aria-current={active ? 'page' : undefined}
+                            className={`flex flex-col items-center justify-center gap-1 py-2.5 min-h-[56px] text-[11px] font-semibold ${active ? 'text-violet-800 dark:text-violet-300' : 'text-stone-500 dark:text-slate-400'}`}
+                        >
+                            <item.icon size={22} />
+                            <span className="truncate max-w-full px-1">{item.label}</span>
+                        </button>
+                    );
+                })}
+            </nav>
 
             {/* Global Auth Modal for Guest Users hitting restricted actions */}
             <AuthModal

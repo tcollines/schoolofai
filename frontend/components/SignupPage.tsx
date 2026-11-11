@@ -61,6 +61,9 @@ const SignupPage: React.FC = () => {
                 email: cleanEmail,
                 password,
                 options: {
+                    // After confirming, the email link lands on profile setup. (Must be in the Supabase redirect allow-list;
+                    // if it is not, Supabase falls back to the Site URL, which also works.)
+                    emailRedirectTo: `${window.location.origin}/onboarding/profile`,
                     data: {
                         full_name: fullName,
                         // Attribution travels with the account from the moment it is created, so it survives

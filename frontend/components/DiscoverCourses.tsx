@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { useSearchParams, useNavigate } from 'react-router-dom';
+import { useSearchParams, useNavigate, useOutletContext } from 'react-router-dom';
 import { Search, Compass, BookOpen, Clock, Star, PlayCircle, Eye, Lock, Shield } from 'lucide-react';
 import { Course, CourseStatus, UserRole } from '../types';
 import { useTranslation } from './translations';
 import { formatAmount, getCurrencyPreference, CurrencyType } from '../src/lib/currency';
+import FreeCourseCard from './learn/FreeCourseCard';
 
 interface DiscoverCoursesProps {
     courses: Course[];
@@ -17,6 +18,7 @@ const DiscoverCourses: React.FC<DiscoverCoursesProps> = ({ courses, onEnroll, is
     const { t } = useTranslation();
     const [searchParams] = useSearchParams();
     const navigate = useNavigate();
+    const outlet = useOutletContext<{ displayUser?: { id?: string } } | undefined>();
     const initialQuery = searchParams.get('q') || '';
     const [currency, setCurrency] = useState<CurrencyType>(getCurrencyPreference);
 
@@ -63,6 +65,11 @@ const DiscoverCourses: React.FC<DiscoverCoursesProps> = ({ courses, onEnroll, is
                     <p className="text-gray-500 dark:text-slate-400 text-sm mt-1">{t('explore_catalog')}</p>
                 </div>
             </div>
+
+            {/* The free flagship course, with the student's own progress */}
+            {selectedCategory === 'All' && (!searchQuery.trim() || 'ai fundamentals free course'.includes(searchQuery.trim().toLowerCase())) && (
+                <FreeCourseCard uid={isAuthenticated ? outlet?.displayUser?.id : undefined} variant="featured" />
+            )}
 
             {/* Search and Filters */}
             <div className="flex flex-col md:flex-row gap-4">

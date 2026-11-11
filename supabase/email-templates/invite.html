@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>You&rsquo;re invited</title>
+</head>
+<body style="margin:0;padding:0;background:#faf8f5;">
+  <div style="display:none;max-height:0;overflow:hidden;opacity:0;color:#faf8f5;">Accept your invitation and set up your account.</div>
+  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" bgcolor="#faf8f5" style="background:#faf8f5;">
+    <tr>
+      <td align="center" style="padding:32px 16px;">
+        <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="max-width:560px;">
+          <tr>
+            <td align="left" style="padding:0 4px 20px 4px;">
+              <a href="{{ .SiteURL }}" target="_blank" style="text-decoration:none;">
+                <img src="{{ .SiteURL }}/schoolofai-logo.png" alt="Welile School of AI" height="44" style="display:block;height:44px;width:auto;border:0;font-family:Georgia,serif;font-size:20px;color:#1c1917;">
+              </a>
+            </td>
+          </tr>
+          <tr>
+            <td bgcolor="#ffffff" style="background:#ffffff;border:1px solid #e7e5e4;border-radius:20px;padding:36px 32px;">
+              <h1 style="margin:0 0 14px 0;font-family:Georgia,'Times New Roman',serif;font-size:28px;line-height:34px;font-weight:bold;color:#1c1917;">You&rsquo;re invited</h1>
+              <div style="font-family:Arial,Helvetica,sans-serif;font-size:16px;line-height:26px;color:#1c1917;"><p style="margin:0;">You have been invited to join Welile School of AI. Accept the invitation to set up your account and start learning.</p></div>
+              <table role="presentation" cellspacing="0" cellpadding="0" border="0" style="margin:28px 0 8px 0;">
+                <tr>
+                  <td align="center" bgcolor="#6d28d9" style="border-radius:12px;">
+                    <a href="{{ .ConfirmationURL }}" target="_blank" style="display:inline-block;padding:16px 32px;font-family:Arial,Helvetica,sans-serif;font-size:16px;font-weight:bold;color:#ffffff;text-decoration:none;border-radius:12px;">Accept the invitation</a>
+                  </td>
+                </tr>
+              </table>
+              <p style="margin:16px 0 0 0;font-family:Arial,Helvetica,sans-serif;font-size:13px;line-height:20px;color:#57534e;">Button not working? Copy this link into your browser:<br><a href="{{ .ConfirmationURL }}" style="color:#6d28d9;word-break:break-all;">{{ .ConfirmationURL }}</a></p>
+              
+              <div style="margin-top:28px;padding:20px;background:#faf8f5;border-radius:14px;">
+                <p style="margin:0 0 8px 0;font-family:Arial,Helvetica,sans-serif;font-size:13px;font-weight:bold;letter-spacing:0.5px;text-transform:uppercase;color:#57534e;">What happens next</p>
+                <table role="presentation" cellspacing="0" cellpadding="0" border="0">
+                <tr>
+                  <td valign="top" style="padding:6px 12px 6px 0;font-family:Arial,Helvetica,sans-serif;font-size:14px;font-weight:bold;color:#6d28d9;">1</td>
+                  <td valign="top" style="padding:6px 0;font-family:Arial,Helvetica,sans-serif;font-size:15px;line-height:22px;color:#1c1917;">Accept the invitation with the button above.</td>
+                </tr><tr>
+                  <td valign="top" style="padding:6px 12px 6px 0;font-family:Arial,Helvetica,sans-serif;font-size:14px;font-weight:bold;color:#6d28d9;">2</td>
+                  <td valign="top" style="padding:6px 0;font-family:Arial,Helvetica,sans-serif;font-size:15px;line-height:22px;color:#1c1917;">Choose a password and tell us a little about yourself.</td>
+                </tr><tr>
+                  <td valign="top" style="padding:6px 12px 6px 0;font-family:Arial,Helvetica,sans-serif;font-size:14px;font-weight:bold;color:#6d28d9;">3</td>
+                  <td valign="top" style="padding:6px 0;font-family:Arial,Helvetica,sans-serif;font-size:15px;line-height:22px;color:#1c1917;">Start learning.</td>
+                </tr>
+                </table>
+              </div>
+              <p style="margin:28px 0 0 0;padding-top:20px;border-top:1px solid #e7e5e4;font-family:Arial,Helvetica,sans-serif;font-size:13px;line-height:20px;color:#57534e;">If you were not expecting this invitation, you can ignore this email.</p>
+            </td>
+          </tr>
+          <tr>
+            <td align="center" style="padding:24px 16px 0 16px;font-family:Arial,Helvetica,sans-serif;font-size:12px;line-height:19px;color:#57534e;">
+              Welile School of AI &middot; Katabi, Entebbe, Uganda<br>
+              Learn to use AI with confidence. Free to start.<br>
+              You are receiving this email because it was used on {{ .SiteURL }}.
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>

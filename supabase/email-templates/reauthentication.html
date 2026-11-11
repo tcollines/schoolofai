@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>Your confirmation code</title>
+</head>
+<body style="margin:0;padding:0;background:#faf8f5;">
+  <div style="display:none;max-height:0;overflow:hidden;opacity:0;color:#faf8f5;">Enter this code to confirm it is you.</div>
+  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" bgcolor="#faf8f5" style="background:#faf8f5;">
+    <tr>
+      <td align="center" style="padding:32px 16px;">
+        <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="max-width:560px;">
+          <tr>
+            <td align="left" style="padding:0 4px 20px 4px;">
+              <a href="{{ .SiteURL }}" target="_blank" style="text-decoration:none;">
+                <img src="{{ .SiteURL }}/schoolofai-logo.png" alt="Welile School of AI" height="44" style="display:block;height:44px;width:auto;border:0;font-family:Georgia,serif;font-size:20px;color:#1c1917;">
+              </a>
+            </td>
+          </tr>
+          <tr>
+            <td bgcolor="#ffffff" style="background:#ffffff;border:1px solid #e7e5e4;border-radius:20px;padding:36px 32px;">
+              <h1 style="margin:0 0 14px 0;font-family:Georgia,'Times New Roman',serif;font-size:28px;line-height:34px;font-weight:bold;color:#1c1917;">Your confirmation code</h1>
+              <div style="font-family:Arial,Helvetica,sans-serif;font-size:16px;line-height:26px;color:#1c1917;"><p style="margin:0 0 16px 0;">Enter this code to confirm it is really you:</p><p style="margin:0;font-family:'Courier New',monospace;font-size:34px;letter-spacing:8px;font-weight:bold;color:#6d28d9;">{{ .Token }}</p></div>
+              
+              <p style="margin:28px 0 0 0;padding-top:20px;border-top:1px solid #e7e5e4;font-family:Arial,Helvetica,sans-serif;font-size:13px;line-height:20px;color:#57534e;">This code expires soon. Never share it with anyone, including people who say they work for Welile School of AI.</p>
+            </td>
+          </tr>
+          <tr>
+            <td align="center" style="padding:24px 16px 0 16px;font-family:Arial,Helvetica,sans-serif;font-size:12px;line-height:19px;color:#57534e;">
+              Welile School of AI &middot; Katabi, Entebbe, Uganda<br>
+              Learn to use AI with confidence. Free to start.<br>
+              You are receiving this email because it was used on {{ .SiteURL }}.
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>

@@ -152,6 +152,7 @@ export async function saveItemProgress(uid: string, itemId: string, patch: Parti
     try {
         await supabase.from('learn_progress').upsert(toRow(uid, itemId, next), { onConflict: 'user_id,course_slug,item_id' });
     } catch { /* synced on next load */ }
+    window.dispatchEvent(new Event('learn-progress-update'));
     if (!prev) void recordEvent(uid, 'lesson_started', itemId);
     if (next.status === 'completed' && !wasCompleted) void recordEvent(uid, 'lesson_completed', itemId);
     return all;
