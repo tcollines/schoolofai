@@ -454,41 +454,8 @@ export const MODULES: CourseModuleDef[] = [
     }
 ];
 
-// -------------------------------------------------------------------------------------------
-// Final assessment: 20 questions drawn from this pool
-// -------------------------------------------------------------------------------------------
-export const FINAL_POOL: QuizQuestion[] = [
-    q('f01', 'Which of these is an example of generative AI?', ['A spam filter', 'A chatbot drafting a message', 'Face unlock', 'A bank fraud alert'], 1, 'Generative AI creates new content such as text, pictures and code.'),
-    q('f02', 'Which of these is traditional AI?', ['Writing a poem', 'Predicting your arrival time on a map', 'Making a poster from a description', 'Summarising an email'], 1, 'Traditional AI sorts, scores and predicts.'),
-    q('f03', 'Which shows the correct AI family order, from widest to narrowest?', ['Generative AI, deep learning, machine learning, AI', 'AI, machine learning, deep learning, generative AI', 'Machine learning, AI, deep learning, generative AI', 'Deep learning, AI, generative AI, machine learning'], 1, 'Circles inside circles: AI contains machine learning, which contains deep learning, which contains generative AI.'),
-    q('f04', 'In the mango example, what does the child learn from?', ['A list of rules', 'Examples', 'A dictionary', 'A teacher\'s answer key'], 1, 'Machine learning is learning from examples instead of written rules.'),
-    q('f05', 'What is deep learning especially good at?', ['Counting small numbers', 'Messy data such as photos, voices and video', 'Checking facts', 'Typing quickly'], 1, 'Deep learning uses layers and handles unstructured data well.'),
-    q('f06', 'Which is true about AI?', ['It is a robot with a body', 'It is brand new', 'It finds patterns in data and can look like thinking, but is not a human mind', 'It always tells the truth'], 2, 'AI is advanced pattern recognition.'),
-    q('f07', 'A chatbot is asked the same question twice and gives different words each time. Why?', ['It is broken', 'It generates a fresh answer from patterns instead of looking one up', 'It is hiding something', 'The internet is slow'], 1, 'Generative AI creates; it does not paste a stored answer.'),
-    q('f08', 'What is the first step of a strong prompt?', ['Say who you are and the situation (context)', 'Say please', 'Write in capital letters', 'Ask for a very long answer'], 0, 'Context, then task, then format.'),
-    q('f09', 'You want a short, friendly message under 100 words. Which part of a prompt does that describe?', ['Context', 'Task', 'Format', 'Source'], 2, 'Length and tone are the format.'),
-    q('f10', 'An answer is too formal. What is the best follow-up?', ['Start a new chat', '"Use a warmer, more casual tone."', 'Give up', 'Paste it into another tool'], 1, 'Refine instead of restarting.'),
-    q('f11', '"Turn these notes into a table of task, owner and due date" is which job?', ['Brainstorm', 'Draft', 'Summarise', 'Automate'], 2, 'Turning long and messy notes into short and clear is summarising.'),
-    q('f12', 'Why tell the AI to write "not stated" when information is missing?', ['It looks neater', 'So it does not guess or invent', 'It saves time', 'It is a tool requirement'], 1, 'It reduces made-up details.'),
-    q('f13', 'Which is the best use of AI for an email to a client?', ['Send the first draft unread', 'Let AI draft, then you edit facts, tone and voice before sending', 'Ask AI to guess the client\'s needs', 'Skip the email'], 1, 'AI drafts, you edit, you send.'),
-    q('f14', 'Which is the most useful way to treat AI answers?', ['As final truth', 'As options and drafts to react to and check', 'As legal advice', 'As private'], 1, 'The real value is options to react to.'),
-    q('f15', 'What causes a hallucination?', ['AI predicts what sounds likely and does not check what is true', 'A weak battery', 'A virus', 'A slow phone'], 0, 'It is built to produce what fits, not to verify.'),
-    q('f16', 'You ask a chatbot for sources and it gives links. What must you do?', ['Use them immediately', 'Open them and check they exist and say that', 'Ask the chatbot if they are real', 'Ignore them'], 1, 'If the link does not exist or does not say that, do not use the claim.'),
-    q('f17', 'In the Air Canada case, who did the tribunal hold responsible?', ['The customer', 'The chatbot', 'The airline', 'Nobody'], 2, 'A company answers for what its chatbot tells customers.'),
-    q('f18', 'Which claims should you check first when reviewing an AI answer?', ['Names, numbers, dates, quotes, sources and laws', 'Spelling only', 'The first sentence only', 'Headings'], 0, 'Mark the claims that matter, then check them outside the chatbot.'),
-    q('f19', 'How can you reduce, but not remove, hallucinations?', ['Give it the text to work from, ask it to say when it does not know, ask for sources', 'Type in capital letters', 'Ask the same question ten times', 'Use a faster phone'], 0, 'You can reduce hallucinations, but you cannot remove them.'),
-    q('f20', 'Why might AI know less about some languages, such as Luganda?', ['It dislikes them', 'There is less data in those languages', 'They are harder to type', 'It is not allowed'], 1, 'Quality is uneven when there is less data, so have a fluent speaker check important text.'),
-    q('f21', 'A story written by AI makes the doctor a man and the nurse a woman every time. What is this?', ['Good grammar', 'A possible sign of inherited bias', 'A privacy leak', 'A hallucination about dates'], 1, 'Read for assumptions and ask it to rewrite without them.'),
-    q('f22', 'Which decision should never be left to AI alone?', ['Choosing a song', 'Whether to hire or reject a person', 'Picking a font', 'Naming a file'], 1, 'Decisions about people, such as hiring, marks, loans and discipline, need a human.'),
-    q('f23', 'Which of these is PII?', ['A recipe', 'A name together with a phone number', 'The weather', 'A public holiday date'], 1, 'PII identifies a person.'),
-    q('f24', 'Which should NEVER be typed into a public AI tool?', ['A question about how photosynthesis works', 'Your mobile money PIN', 'A request for taglines for your shop', 'A general question about spreadsheets'], 1, 'Passwords and PINs never go into a chatbot.'),
-    q('f25', 'A setting says your chats will not be used for training. Is it now safe to paste a customer list?', ['Yes', 'No: a setting is not permission to paste secrets', 'Yes, if the list is short', 'Yes, on weekends'], 1, 'Not sure? Do not paste it.'),
-    q('f26', 'Summarising a public news article is...', ['Green', 'Amber', 'Red', 'Forbidden'], 0, 'Low risk, go.'),
-    q('f27', 'Submitting AI work you cannot explain, or that your school does not allow, is...', ['Green', 'Amber', 'Red', 'Fine if you edit one word'], 2, 'Red means stop.'),
-    q('f28', 'Which statement matches Google\'s original AI principles as taught in this course?', ['AI should be socially beneficial and built and tested for safety', 'AI should be as cheap as possible', 'AI should never be used at work', 'AI should replace teachers'], 0, 'Beneficial, safe, accountable and avoiding unfair bias.'),
-    q('f29', 'What is the best one-line summary of this course?', ['Use it, check it, protect people', 'Trust it, share it, forget it', 'Ask it, copy it, send it', 'Fear it, avoid it, ignore it'], 0, 'Use AI as a co-pilot, verify its work, and keep private information out.'),
-    q('f30', 'Who is accountable for what you send out under your name?', ['The AI company', 'The AI', 'You', 'Nobody'], 2, 'AI drafts. You decide.')
-];
+// The final assessment questions and answers live ONLY on the server (see the learn_final_questions table
+// and the get_final_exam / submit_final_exam functions), so they are not shipped to the browser.
 
 // -------------------------------------------------------------------------------------------
 // Helpers
@@ -512,18 +479,6 @@ export const prevItemId = (itemId: string): string | null => {
 };
 
 export const lessonCount = ALL_ITEMS.filter(i => i.kind === 'video').length;
-
-/** Deterministically-random pick of N questions from the final pool for each attempt. */
-export function drawFinalQuestions(seed: number, n = COURSE.finalQuestions): QuizQuestion[] {
-    const arr = [...FINAL_POOL];
-    let s = seed || 1;
-    const rand = () => { s = (s * 1664525 + 1013904223) % 4294967296; return s / 4294967296; };
-    for (let i = arr.length - 1; i > 0; i--) {
-        const j = Math.floor(rand() * (i + 1));
-        [arr[i], arr[j]] = [arr[j], arr[i]];
-    }
-    return arr.slice(0, n);
-}
 
 /** Shuffle a question's options (keeping track of which is correct). */
 export function shuffleOptions(question: QuizQuestion, seed: number): QuizQuestion {

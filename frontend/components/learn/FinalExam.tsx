@@ -1,23 +1,41 @@
-import React, { useMemo } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { Award, Lock } from 'lucide-react';
-import { COURSE, drawFinalQuestions } from '../../src/content/aiFundamentals';
-import { completionState, finalAttemptsLast24h, loadAttempts, submitAttempt } from '../../src/lib/learnApi';
+import React, { useCallback, useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
+import { Award, Loader2, Lock } from 'lucide-react';
+import { COURSE } from '../../src/content/aiFundamentals';
+import { ExamStart, completionState, startFinalExam, submitFinalExam } from '../../src/lib/learnApi';
 import { useLearn } from './learnContext';
-import QuizView from './QuizView';
+import QuizView, { GradeResult } from './QuizView';
 import { BTN_PRIMARY, CARD, MUTED } from './learnUi';
 
+/** The final assessment is served and marked by the server, so the answers are never in the browser. */
 const FinalExam: React.FC = () => {
-    const { uid, progress, markComplete, bump, attemptsTick, cert } = useLearn();
-    const navigate = useNavigate();
+    const { uid, progress, refresh, cert } = useLearn();
     const base = `/learn/${COURSE.slug}`;
-    const state = completionState(progress, uid);
+    const state = completionState(progress);
 
-    // a fresh set of questions for every attempt
-    const attemptCount = useMemo(() => loadAttempts(uid).filter(a => a.quizId === 'final').length, [uid, attemptsTick]);
-    const questions = useMemo(() => drawFinalQuestions(attemptCount * 977 + 31 + uid.length), [attemptCount, uid]);
-    const recent = finalAttemptsLast24h(uid);
-    const blocked = !state.finalPassed && recent.length >= COURSE.finalAttemptsPer24h;
+    const [exam, setExam] = useState<ExamStart | null>(null);
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+    const [round, setRound] = useState(0);
+    const [justPassed, setJustPassed] = useState(false);
+
+    const load = useCallback(async () => {
+        setLoading(true);
+        setError(null);
+        try {
+            setExam(await startFinalExam());
+        } catch (e: any) {
+            setExam(null);
+            setError(e?.message || 'Could not load the final assessment.');
+        } finally {
+            setLoading(false);
+        }
+    }, []);
+
+    useEffect(() => {
+        if (state.allItemsDone && !state.finalPassed) void load();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [uid, state.allItemsDone, state.finalPassed]);
 
     if (!state.allItemsDone && !state.finalPassed) {
         return (
@@ -30,7 +48,7 @@ const FinalExam: React.FC = () => {
         );
     }
 
-    if (state.finalPassed) {
+    if ((state.finalPassed || exam?.passed) && !justPassed) {
         return (
             <div className="max-w-xl mx-auto px-4 py-12 text-center">
                 <Award className="mx-auto text-violet-700" size={44} />
@@ -41,33 +59,56 @@ const FinalExam: React.FC = () => {
         );
     }
 
+    if (loading || (!exam && !error)) {
+        return <div className="flex justify-center py-20"><Loader2 className="animate-spin text-violet-700" aria-label="Loading the assessment" /></div>;
+    }
+
+    if (error || !exam || !exam.attemptId) {
+        return (
+            <div className="max-w-xl mx-auto px-4 py-12 text-center">
+                <Lock className="mx-auto text-stone-400" size={40} />
+                <h1 className="font-serif text-2xl font-semibold mt-4">Final assessment</h1>
+                <p className={`mt-2 ${MUTED}`}>{error || 'The final assessment is not available right now.'}</p>
+                <button onClick={() => void load()} className={`${BTN_PRIMARY} mt-6`}>Try again</button>
+            </div>
+        );
+    }
+
+    const attemptId = exam.attemptId;
+    const grade = async (answers: Record<string, number>): Promise<GradeResult> => {
+        const r = await submitFinalExam(attemptId, answers);
+        return { score: r.score, total: r.total, pct: r.pct, passed: r.passed, wrongIds: r.wrongIds, review: r.review };
+    };
+
     return (
         <div className="max-w-3xl mx-auto px-4 sm:px-6 py-8">
             <div className={`${CARD} rounded-2xl p-5 mb-6`}>
                 <p className="font-semibold">Before you begin</p>
                 <ul className={`mt-2 text-sm space-y-1 ${MUTED} list-disc list-inside`}>
-                    <li>{COURSE.finalQuestions} questions, {COURSE.passFinal}% to pass.</li>
-                    <li>You can try {COURSE.finalAttemptsPer24h} times in 24 hours. Each try has a fresh set of questions.</li>
-                    <li>You have used {recent.length} of {COURSE.finalAttemptsPer24h} attempts in the last 24 hours.</li>
+                    <li>{exam.questions.length} questions, {exam.passMark}% to pass.</li>
+                    <li>You can try {exam.attemptsAllowed} times in 24 hours. Each try has a fresh set of questions.</li>
+                    <li>This is attempt {exam.attemptsUsed} of {exam.attemptsAllowed} in the last 24 hours.</li>
+                    <li>If you refresh the page you will keep the same questions.</li>
                 </ul>
             </div>
 
             <QuizView
-                key={attemptCount}
+                key={`${attemptId}-${round}`}
                 heading="Final assessment"
-                questions={questions}
-                passMark={COURSE.passFinal}
-                disabledReason={blocked ? 'You have used all attempts for today. Come back in 24 hours.' : null}
-                onSubmit={async (score, total, answers) => {
-                    const attempt = await submitAttempt(uid, 'final', score, total, COURSE.passFinal, answers);
-                    if (attempt.passed) await markComplete('final');
-                    bump();
-                }}
-                onPassed={() => setTimeout(() => navigate(`${base}/certificate`), 2500)}
-                passedLabel="You passed the final assessment! Taking you to your certificate..."
+                questions={exam.questions}
+                passMark={exam.passMark}
+                grade={grade}
+                onRetry={() => { setRound(r => r + 1); void load(); }}
+                onPassed={() => { setJustPassed(true); void refresh(); }}
+                passedLabel="You passed the final assessment! Review your answers below, then collect your certificate."
             />
+            {justPassed && (
+                <div className="mt-6">
+                    <Link to={`${base}/certificate`} className={BTN_PRIMARY}><Award size={18} /> Get your certificate</Link>
+                </div>
+            )}
         </div>
     );
-};
+}
 
 export default FinalExam;

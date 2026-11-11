@@ -8,6 +8,8 @@ export interface LearnCtx {
     progress: ProgressMap;
     markProgress: (itemId: string, patch: Partial<ItemProgress>) => Promise<void>;
     markComplete: (itemId: string) => Promise<void>;
+    /** re-read progress from the server (e.g. after the server marks the final assessment) */
+    refresh: () => Promise<void>;
     cert: Certificate | null;
     setCert: (c: Certificate | null) => void;
     /** bump after a quiz attempt so dependent screens re-read attempts from storage */

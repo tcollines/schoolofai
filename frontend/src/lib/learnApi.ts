@@ -31,7 +31,6 @@ export interface Certificate {
     courseTitle: string;
     issuedAt: string;
     status: 'valid' | 'revoked';
-    provisional?: boolean; // issued locally because the database was not reachable
 }
 
 const SLUG = COURSE.slug;
@@ -111,7 +110,10 @@ export async function loadProgress(uid: string): Promise<ProgressMap> {
             }
         });
         const serverIds = new Set((data || []).map((r: any) => r.item_id));
+        // The final assessment is recorded by the server only: never trust (or push) a local "final" flag
+        if (!serverIds.has('final')) delete merged['final'];
         Object.entries(local).forEach(([id, p]) => {
+            if (id === 'final') return;
             const serverRow = (data || []).find((r: any) => r.item_id === id);
             if (!serverIds.has(id) || (p.status === 'completed' && serverRow?.status !== 'completed')) {
                 toPush.push(toRow(uid, id, p));
@@ -177,11 +179,6 @@ export async function submitAttempt(uid: string, quizId: string, score: number, 
     return attempt;
 }
 
-export function finalAttemptsLast24h(uid: string): QuizAttempt[] {
-    const since = Date.now() - 24 * 3600 * 1000;
-    return loadAttempts(uid).filter(a => a.quizId === 'final' && new Date(a.at).getTime() > since);
-}
-
 export function bestScore(uid: string, quizId: string): number | null {
     const scores = loadAttempts(uid).filter(a => a.quizId === quizId).map(a => a.percentage);
     return scores.length ? Math.max(...scores) : null;
@@ -190,10 +187,11 @@ export function bestScore(uid: string, quizId: string): number | null {
 // ----------------------------------------------------------------------------
 // Completion + certificate
 // ----------------------------------------------------------------------------
-export function completionState(progress: ProgressMap, uid: string) {
+export function completionState(progress: ProgressMap, _uid?: string) {
     const required = REQUIRED_ITEM_IDS.filter(id => id !== 'final');
     const done = required.filter(id => progress[id]?.status === 'completed').length;
-    const finalPassed = loadAttempts(uid).some(a => a.quizId === 'final' && a.passed);
+    // "final" is only ever marked complete by the server after it has marked the assessment
+    const finalPassed = progress['final']?.status === 'completed';
     return { done, total: required.length, allItemsDone: done === required.length, finalPassed, pct: Math.round(((done + (finalPassed ? 1 : 0)) / (required.length + 1)) * 100) };
 }
 
@@ -209,27 +207,20 @@ export async function loadCertificate(uid: string): Promise<Certificate | null> 
 }
 
 export async function issueCertificate(uid: string, name: string): Promise<Certificate> {
-    try {
-        // make sure the server has everything before it verifies completion
-        await loadProgress(uid);
-        const { data, error } = await supabase.rpc('issue_certificate', { p_course: SLUG, p_name: name });
-        if (!error && data) {
-            const row: any = Array.isArray(data) ? data[0] : data;
-            const cert: Certificate = { id: row.id, name: row.name_on_certificate, courseTitle: row.course_title, issuedAt: row.issued_at, status: row.status };
-            writeJson(k(uid, 'certificate'), cert);
-            void recordEvent(uid, 'certificate_issued', undefined, { id: cert.id });
-            return cert;
-        }
-        if (error && !isBackendMissing(error)) throw new Error(error.message);
-    } catch (e: any) {
-        if (!isBackendMissing(e) && e?.message && !/fetch|network/i.test(e.message)) throw e;
+    // make sure the server has the latest progress before it verifies completion
+    await loadProgress(uid);
+    const { data, error } = await supabase.rpc('issue_certificate', { p_course: SLUG, p_name: name });
+    if (error) {
+        const msg = error.message || '';
+        if (/final assessment not passed/i.test(msg)) throw new Error('Pass the final assessment first.');
+        if (/course not complete/i.test(msg)) throw new Error('Complete every lesson and module quiz first.');
+        if (isBackendMissing(error)) throw new Error('Certificates are issued online. Please check your connection and try again.');
+        throw new Error(msg || 'Could not issue the certificate.');
     }
-    // Provisional certificate (database not reachable yet). It is replaced by the verified one on the next sync.
-    const cert: Certificate = {
-        id: 'PROVISIONAL-' + Math.random().toString(36).slice(2, 10).toUpperCase(),
-        name, courseTitle: COURSE.title, issuedAt: new Date().toISOString(), status: 'valid', provisional: true
-    };
+    const row: any = Array.isArray(data) ? data[0] : data;
+    const cert: Certificate = { id: row.id, name: row.name_on_certificate, courseTitle: row.course_title, issuedAt: row.issued_at, status: row.status };
     writeJson(k(uid, 'certificate'), cert);
+    void recordEvent(uid, 'certificate_issued', undefined, { id: cert.id });
     return cert;
 }
 
@@ -273,4 +264,53 @@ export async function loadLiveSessions(): Promise<LiveSession[]> {
         if (error) return [];
         return (data || []) as LiveSession[];
     } catch { return []; }
+}
+
+// ----------------------------------------------------------------------------
+// Final assessment: questions are served, and answers are marked, ON THE SERVER
+// ----------------------------------------------------------------------------
+export interface ExamQuestion { id: string; text: string; options: string[]; }
+export interface ExamStart {
+    passed: boolean;
+    attemptId?: string;
+    questions: ExamQuestion[];
+    attemptsUsed: number;
+    attemptsAllowed: number;
+    passMark: number;
+}
+export interface ExamResult {
+    score: number;
+    total: number;
+    pct: number;
+    passed: boolean;
+    wrongIds: string[];
+    review?: { id: string; correct: number; explanation: string }[];
+}
+
+const friendlyExamError = (msg: string, missing: boolean): string => {
+    if (missing) return 'The final assessment is not available yet. Please check back soon.';
+    if (/attempt limit/i.test(msg)) return 'You have used all your attempts for today. Come back in 24 hours.';
+    if (/complete every lesson/i.test(msg)) return 'Complete every lesson and module quiz first.';
+    return msg || 'Could not load the final assessment. Please try again.';
+};
+
+export async function startFinalExam(): Promise<ExamStart> {
+    const { data, error } = await supabase.rpc('get_final_exam', { p_course: SLUG });
+    if (error) throw new Error(friendlyExamError(error.message || '', isBackendMissing(error)));
+    const d: any = data || {};
+    return {
+        passed: !!d.passed,
+        attemptId: d.attempt_id,
+        questions: d.questions || [],
+        attemptsUsed: d.attempts_used ?? 0,
+        attemptsAllowed: d.attempts_allowed ?? COURSE.finalAttemptsPer24h,
+        passMark: d.pass_mark ?? COURSE.passFinal
+    };
+}
+
+export async function submitFinalExam(attemptId: string, answers: Record<string, number>): Promise<ExamResult> {
+    const { data, error } = await supabase.rpc('submit_final_exam', { p_attempt: attemptId, p_answers: answers });
+    if (error) throw new Error(friendlyExamError(error.message || '', isBackendMissing(error)));
+    const d: any = data;
+    return { score: d.score, total: d.total, pct: d.percentage, passed: d.passed, wrongIds: d.wrong || [], review: d.review || undefined };
 }
