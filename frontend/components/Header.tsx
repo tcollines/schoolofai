@@ -159,7 +159,7 @@ const Header: React.FC<HeaderProps> = ({
   };
 
   return (
-    <header className="flex items-center justify-between sticky top-0 bg-[#f3f4f6]/95 dark:bg-slate-950/95 backdrop-blur-md border-b border-gray-200/30 dark:border-slate-800/30 z-30 w-full px-4 lg:px-8 py-3.5 transition-colors duration-200">
+    <header className="flex items-center justify-between sticky top-0 bg-[#faf8f5]/95 dark:bg-slate-950/95 backdrop-blur-md border-b border-gray-200/30 dark:border-slate-800/30 z-30 w-full px-4 lg:px-8 py-3.5 transition-colors duration-200">
       <div className="flex items-center gap-3">
 
         <button
@@ -191,8 +191,8 @@ const Header: React.FC<HeaderProps> = ({
         {showWelcome && (
           <div>
             <div className="flex flex-wrap items-center gap-2.5">
-              <h1 className="text-xl lg:text-2xl font-bold text-gray-900 dark:text-white">
-                {t('welcome_back')}, {user.name.split(' ')[0]} <Hand className="inline-block w-4 h-4 mr-1 align-middle" />
+              <h1 className="font-serif text-xl lg:text-2xl font-semibold text-[#1c1917] dark:text-white">
+                {t('welcome_back')}, {user.name.split(' ')[0]}
               </h1>
               <span className={`text-[10px] uppercase font-extrabold px-2 py-0.5 rounded-full border shadow-xs tracking-wider shrink-0 ${
                 user.role === 'PRO' 

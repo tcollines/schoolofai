@@ -1,3 +1,6 @@
+import { useOutletContext } from 'react-router-dom';
+import FreeCourseCard from './learn/FreeCourseCard';
+import { useFreeCourse } from '../src/hooks/useFreeCourse';
 import React, { useState, useEffect } from 'react';
 import CourseCard from './CourseCard';
 import { Course, CourseStatus, CourseModule, CourseSection } from '../types';
@@ -14,6 +17,8 @@ interface MyCoursesProps {
 }
 
 const MyCourses: React.FC<MyCoursesProps> = ({ courses }) => {
+    const outletCtx = useOutletContext<{ displayUser?: { id?: string } } | undefined>();
+    const freeCourse = useFreeCourse(outletCtx?.displayUser?.id);
     const { t } = useTranslation();
 
     const addPortalNotification = (title: string, description: string, type: 'assignment' | 'profile' | 'course' | 'system') => {
@@ -988,6 +993,13 @@ const MyCourses: React.FC<MyCoursesProps> = ({ courses }) => {
                     ))}
                 </div>
             </div>
+
+            {/* Free course: progress is followed here too */}
+            {freeCourse.enrolled && (filter === 'ALL' || (filter === 'IN_PROGRESS' && !freeCourse.cert) || (filter === 'COMPLETED' && !!freeCourse.cert)) && (
+                <section aria-label="Free course">
+                    <FreeCourseCard uid={outletCtx?.displayUser?.id} variant="compact" />
+                </section>
+            )}
 
             {/* Stats Overview */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
