@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { supabase } from '../src/lib/supabaseClient';
-import Orb from './Orb';
 import {
     Bot,
     Brain,
@@ -176,6 +175,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLoginClick, onSignupClick, 
                             <img src="/schoolofai-logo.png" alt="School of AI Logo" className="h-16 object-contain" />
                         </div>
                         <div className="hidden md:flex items-center space-x-8">
+                            <Link to="/free/ai-fundamentals" className="text-gray-900 dark:text-white font-semibold text-sm transition-colors">Free course</Link>
                             <a href="#features" className="text-gray-600 dark:text-slate-300 hover:text-gray-900 dark:hover:text-white font-medium text-sm transition-colors">Features</a>
                             <a href="#advantages" className="text-gray-600 dark:text-slate-300 hover:text-gray-900 dark:hover:text-white font-medium text-sm transition-colors">Why AI?</a>
                             <a href="#pricing" className="text-gray-600 dark:text-slate-300 hover:text-gray-900 dark:hover:text-white font-medium text-sm transition-colors">Pricing</a>
@@ -202,7 +202,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLoginClick, onSignupClick, 
 
                             <button
                                 onClick={onLoginClick}
-                                className="text-gray-600 dark:text-slate-300 hover:text-gray-900 dark:hover:text-white font-medium text-sm transition-colors"
+                                className="text-gray-600 dark:text-slate-300 hover:text-gray-900 dark:hover:text-white font-medium text-sm transition-colors whitespace-nowrap"
                             >
                                 Log in
                             </button>
@@ -217,67 +217,55 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLoginClick, onSignupClick, 
                 </div>
             </nav>
 
-            {/* Hero Section */}
-            <section className="pt-20 sm:pt-24 pb-12 overflow-hidden relative flex flex-col items-center justify-center">
-                {/* Text and Orb Container */}
-                <div className="relative w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-8 h-[500px] flex items-center justify-center">
-                    {/* Background Orb */}
-                    <div className="absolute inset-0 z-0 flex justify-center items-center overflow-hidden">
-                        <div className="w-full h-full relative">
-                            <Orb
-                                hoverIntensity={0.5}
-                                rotateOnHover={true}
-                                hue={0}
-                                forceHoverState={false}
-                                backgroundColor={isDark ? '#020617' : '#ffffff'}
-                            />
-                        </div>
-                    </div>
-
-                    <div className="relative z-10 text-center max-w-3xl mx-auto pointer-events-none px-4 sm:px-6">
-                        <div className="inline-flex items-center px-3 py-1.5 rounded-full bg-violet-100/80 dark:bg-violet-900/40 text-violet-700 dark:text-violet-300 text-[10px] sm:text-xs font-bold uppercase tracking-widest mb-6 sm:mb-8 backdrop-blur-md shadow-sm border border-violet-200/50 dark:border-violet-800/50">
-                            <Sparkles className="w-3 h-3 sm:w-3.5 sm:h-3.5 mr-2" />
-                            The Future of Learning
-                        </div>
-                        <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold tracking-tight text-gray-900 dark:text-white mb-6 sm:mb-8 leading-[1.1] md:leading-[1.15]">
-                            Learn faster using <br className="hidden sm:block" />
-                            <span className="block sm:inline text-transparent bg-clip-text bg-gradient-to-r from-violet-600 to-indigo-600 dark:from-violet-400 dark:to-indigo-400 drop-shadow-sm mt-1 sm:mt-0">
-                                Artificial Intelligence
-                            </span>
-                        </h1>
-                        <p className="text-base sm:text-lg md:text-xl text-gray-700 dark:text-gray-300 mb-8 sm:mb-10 leading-relaxed max-w-2xl mx-auto drop-shadow-md sm:drop-shadow-none bg-white/40 dark:bg-slate-900/40 sm:bg-transparent sm:dark:bg-transparent backdrop-blur-sm sm:backdrop-blur-none p-4 sm:p-0 rounded-2xl border border-white/20 sm:border-none">
-                            Welile School creates personalized video courses tailored to your specific goals.
-                            Skip the fluff and focus on what matters with an AI tutor that adapts to you.
+            {/* Hero Section: leads with the free AI Fundamentals course */}
+            <section className="pt-24 sm:pt-28 pb-16 bg-[#faf8f5] dark:bg-slate-950 transition-colors">
+                <div className="max-w-6xl mx-auto px-4 sm:px-6 grid lg:grid-cols-2 gap-10 lg:gap-14 items-center">
+                    <div>
+                        <p className="inline-flex items-center gap-2 text-xs font-semibold tracking-wide uppercase text-violet-800 dark:text-violet-300 bg-violet-100 dark:bg-violet-950 px-3 py-1.5 rounded-full">
+                            Free course, sponsored by Welile Technologies
                         </p>
-                        <div className="flex flex-col sm:flex-row justify-center gap-3 sm:gap-4 pointer-events-auto w-full sm:w-auto px-2 sm:px-0">
+                        <h1 className="font-serif text-4xl sm:text-5xl lg:text-[3.4rem] leading-[1.08] font-semibold text-[#1c1917] dark:text-white mt-5">
+                            Learn to use AI with confidence.
+                        </h1>
+                        <p className="mt-5 text-lg leading-relaxed text-stone-600 dark:text-slate-400 max-w-xl">
+                            Start with AI Fundamentals: six hours, at your own pace, on any phone. Understand AI, use it for real work, stay safe, and earn a certificate.
+                        </p>
+                        <div className="mt-8 flex flex-col sm:flex-row gap-3">
+                            <Link
+                                to="/free/ai-fundamentals"
+                                className="inline-flex items-center justify-center gap-2 rounded-xl bg-violet-700 hover:bg-violet-800 text-white font-semibold px-7 py-4 text-base transition-colors"
+                            >
+                                Study AI for free
+                                <ArrowRight className="w-5 h-5" />
+                            </Link>
                             <button
                                 onClick={onGetStarted}
-                                className="w-full sm:w-auto px-8 py-4 bg-gray-900 dark:bg-white text-white dark:text-slate-950 rounded-full font-bold text-[15px] sm:text-lg hover:bg-gray-800 dark:hover:bg-slate-100 transition-all shadow-xl hover:shadow-2xl hover:-translate-y-0.5 flex items-center justify-center group"
+                                className="inline-flex items-center justify-center rounded-xl border border-stone-300 dark:border-slate-700 bg-white dark:bg-slate-900 hover:bg-stone-50 dark:hover:bg-slate-800 text-[#1c1917] dark:text-slate-100 font-semibold px-6 py-4 text-base transition-colors"
                             >
-                                Start Learning Now
-                                <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1.5 transition-transform" />
+                                Create an account
                             </button>
                             {outreachButtonVisible && (
                                 <Link
                                     to={outreachTargetUrl}
-                                    className="w-full sm:w-auto px-7 py-4 bg-violet-600 hover:bg-violet-700 text-white rounded-full font-bold text-[15px] sm:text-lg transition-all shadow-xl shadow-violet-600/25 hover:shadow-2xl hover:-translate-y-0.5 flex items-center justify-center gap-2"
+                                    className="inline-flex items-center justify-center gap-2 rounded-xl border border-violet-300 dark:border-violet-800 text-violet-800 dark:text-violet-300 font-semibold px-6 py-4 text-base hover:bg-violet-50 dark:hover:bg-violet-950/40 transition-colors"
                                 >
-                                    <Sparkles className="w-5 h-5" />
                                     {outreachButtonLabel}
                                 </Link>
                             )}
                         </div>
+                        <ul className="mt-8 flex flex-wrap gap-x-6 gap-y-2 text-sm font-medium text-stone-700 dark:text-slate-300">
+                            <li>6 short modules</li>
+                            <li>Quiz after every module</li>
+                            <li>Live classes you can join</li>
+                            <li>Free certificate</li>
+                        </ul>
                     </div>
-                </div>
-
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative w-full z-10">
-                    {/* Laptop Mockup Placeholder */}
-                    <div className="relative mx-auto max-w-5xl">
-                        <div className="rounded-xl bg-gray-900 p-2 shadow-2xl ring-1 ring-gray-900/10">
-                            <div className="rounded-lg bg-white overflow-hidden aspect-[16/10] relative text-center flex items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200">
-                                <img src="/ict_students_learning.png" alt="App Dashboard - ICT Students Learning" className="w-full h-full object-cover" />
-                            </div>
-                        </div>
+                    <div className="relative">
+                        <img
+                            src="/ict_students_learning.png"
+                            alt="Students learning on computers"
+                            className="w-full aspect-[4/3] object-cover rounded-3xl shadow-xl border border-stone-200 dark:border-slate-800"
+                        />
                     </div>
                 </div>
             </section>

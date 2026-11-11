@@ -1,10 +1,19 @@
-import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { supabase } from '../src/lib/supabaseClient';
+import { getReferral, setFreeCourseIntent, getFreeCourseIntent, learnHomePath } from '../src/lib/acquisition';
 import { ArrowLeft, Mail, Lock, User, Eye, EyeOff, AlertTriangle, AlertCircle, LogIn } from 'lucide-react';
 
 const SignupPage: React.FC = () => {
     const navigate = useNavigate();
+    const [searchParams] = useSearchParams();
+
+    // Arriving from the free course page: remember why, so we can send them straight back to it after signup
+    useEffect(() => {
+        const course = searchParams.get('course');
+        if (course) setFreeCourseIntent(course);
+    }, [searchParams]);
+
     const [isDark, setIsDark] = useState(() => document.documentElement.classList.contains('dark'));
     
     const toggleTheme = () => {
@@ -54,6 +63,10 @@ const SignupPage: React.FC = () => {
                 options: {
                     data: {
                         full_name: fullName,
+                        // Attribution travels with the account from the moment it is created, so it survives
+                        // email verification on another device or days later.
+                        ...(getReferral()?.code ? { ref_code: getReferral()!.code } : {}),
+                        signup_source: getFreeCourseIntent() ? 'free_course' : 'website'
                     }
                 }
             });
@@ -97,7 +110,7 @@ const SignupPage: React.FC = () => {
         const { error } = await supabase.auth.signInWithOAuth({
             provider: 'google',
             options: {
-                redirectTo: window.location.origin + '/dashboard'
+                redirectTo: window.location.origin + (getFreeCourseIntent() ? learnHomePath(getFreeCourseIntent()!) : '/dashboard')
             }
         });
         if (error) {
