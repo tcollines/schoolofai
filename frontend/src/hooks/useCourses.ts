@@ -146,7 +146,7 @@ export const useCourses = (userId: string | undefined) => {
         window.addEventListener('storage', handleStorageChange);
 
         const realtimeChannel = supabaseClient
-            .channel(`student-courses-sync-${userId || 'anon'}`)
+            .channel(`student-courses-sync-${userId || 'anon'}-${Math.random().toString(36).slice(2, 8)}`)
             .on('postgres_changes', { event: '*', schema: 'public', table: 'courses' }, () => {
                 fetchCourses();
             })

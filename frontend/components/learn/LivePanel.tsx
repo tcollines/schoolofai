@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { CalendarPlus, ExternalLink, PlayCircle, Video } from 'lucide-react';
+import { Bell, CalendarPlus, ExternalLink, Loader2, PlayCircle, Video } from 'lucide-react';
+import { supabase } from '../../src/lib/supabaseClient';
+import { useLearn } from './learnContext';
 import { LiveSession, loadLiveSessions } from '../../src/lib/learnApi';
 import { COURSE } from '../../src/content/aiFundamentals';
 import { BTN_PRIMARY, BTN_SECONDARY, CARD, MUTED, formatEAT, formatLocal } from './learnUi';
@@ -92,6 +94,83 @@ const SessionCard: React.FC<{ s: LiveSession; now: number }> = ({ s, now }) => {
     );
 };
 
+const E164 = /^\+[1-9][0-9]{7,14}$/;
+
+const ReminderCard: React.FC = () => {
+    const { uid, email: accountEmail } = useLearn();
+    const [loaded, setLoaded] = useState(false);
+    const [emailOn, setEmailOn] = useState(true);
+    const [waOn, setWaOn] = useState(false);
+    const [phone, setPhone] = useState('');
+    const [saving, setSaving] = useState(false);
+    const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
+    const [unavailable, setUnavailable] = useState(false);
+
+    useEffect(() => {
+        let alive = true;
+        (async () => {
+            try {
+                const { data, error } = await supabase.from('live_reminder_prefs')
+                    .select('email_opt_in, whatsapp_opt_in, phone_e164').eq('user_id', uid).maybeSingle();
+                if (!alive) return;
+                if (error) { setUnavailable(true); return; }
+                if (data) { setEmailOn(data.email_opt_in); setWaOn(data.whatsapp_opt_in); setPhone(data.phone_e164 || ''); }
+            } catch { if (alive) setUnavailable(true); }
+            finally { if (alive) setLoaded(true); }
+        })();
+        return () => { alive = false; };
+    }, [uid]);
+
+    const save = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setMsg(null);
+        const cleaned = phone.replace(/[\s-]/g, '');
+        if (waOn && !E164.test(cleaned)) { setMsg({ ok: false, text: 'Enter your WhatsApp number with the country code, for example +256700123456.' }); return; }
+        if (cleaned && !E164.test(cleaned)) { setMsg({ ok: false, text: 'That number does not look right. Use the format +256700123456, or leave it empty.' }); return; }
+        setSaving(true);
+        const { error } = await supabase.from('live_reminder_prefs').upsert({
+            user_id: uid, email: accountEmail || null, email_opt_in: emailOn,
+            whatsapp_opt_in: waOn, phone_e164: cleaned || null
+        }, { onConflict: 'user_id' });
+        setSaving(false);
+        setMsg(error ? { ok: false, text: 'We could not save that just now. Please try again.' } : { ok: true, text: 'Saved. We will remind you 24 hours and 1 hour before each live class.' });
+    };
+
+    if (unavailable) return null;
+    const field = 'mt-1 w-full rounded-xl border border-stone-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-violet-600';
+
+    return (
+        <form onSubmit={save} className={`${CARD} rounded-2xl p-5 mt-6`} style={{ background: '#faf8f5' }} aria-busy={!loaded}>
+            <h2 className="font-serif text-xl font-semibold flex items-center gap-2"><Bell size={18} className="text-violet-700" /> Remind me</h2>
+            <p className={`mt-1 text-sm ${MUTED}`}>Get a gentle reminder 24 hours and 1 hour before each live class.</p>
+
+            <label className="mt-4 flex items-start gap-3 text-sm">
+                <input type="checkbox" checked={emailOn} onChange={e => setEmailOn(e.target.checked)} disabled={!loaded} className="mt-0.5 w-4 h-4 accent-violet-700" />
+                <span><span className="font-medium">Email</span>{accountEmail && <span className={MUTED}> to {accountEmail}</span>}</span>
+            </label>
+
+            <label className="mt-3 flex items-start gap-3 text-sm">
+                <input type="checkbox" checked={waOn} onChange={e => setWaOn(e.target.checked)} disabled={!loaded} className="mt-0.5 w-4 h-4 accent-violet-700" />
+                <span><span className="font-medium">WhatsApp</span><span className={MUTED}> (I agree to receive class reminders on WhatsApp)</span></span>
+            </label>
+            {waOn && (
+                <label className="block mt-3 text-sm">
+                    <span className="font-medium">WhatsApp number</span>
+                    <input type="tel" inputMode="tel" autoComplete="tel" value={phone} onChange={e => setPhone(e.target.value)} placeholder="+256700123456" className={field} />
+                    <span className={`block mt-1 text-xs ${MUTED}`}>Include the country code. You can switch this off at any time.</span>
+                </label>
+            )}
+
+            <div className="mt-4 flex flex-wrap items-center gap-3">
+                <button type="submit" disabled={saving || !loaded} className={`${BTN_PRIMARY} !py-2.5 !px-4 !text-sm disabled:opacity-60`}>
+                    {saving && <Loader2 size={16} className="animate-spin" />} Save reminders
+                </button>
+                {msg && <p role="status" className={`text-sm ${msg.ok ? 'text-emerald-800' : 'text-red-700'}`}>{msg.text}</p>}
+            </div>
+        </form>
+    );
+};
+
 const LivePanel: React.FC = () => {
     const sessions = useSessions();
     const now = useNow();
@@ -120,6 +199,8 @@ const LivePanel: React.FC = () => {
                     )}
                 </>
             )}
+
+            <ReminderCard />
         </div>
     );
 };

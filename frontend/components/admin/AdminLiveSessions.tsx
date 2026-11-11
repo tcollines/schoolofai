@@ -44,12 +44,22 @@ const AdminLiveSessions: React.FC = () => {
     const [open, setOpen] = useState(false);
     const [saving, setSaving] = useState(false);
     const [copied, setCopied] = useState<string | null>(null);
+    const [remStatus, setRemStatus] = useState<Record<string, { sent: number; failed: number; email: number; whatsapp: number }>>({});
 
     const load = useCallback(async () => {
         setLoading(true);
         const { data, error: err } = await supabaseClient.from('live_sessions').select('*').eq('course_slug', COURSE_SLUG).order('starts_at', { ascending: false });
         if (err) { if (isMissingTable(err.message)) setMissingDb(true); else setError(err.message); } else { setError(null); setMissingDb(false); setSessions((data || []) as Session[]); }
         setLoading(false);
+        // Reminder counts per session (admin-only RPC; ignored if the reminders migration is not applied yet)
+        const { data: rs } = await supabaseClient.rpc('reminders_status', { p_course: COURSE_SLUG });
+        const m: Record<string, { sent: number; failed: number; email: number; whatsapp: number }> = {};
+        for (const r of (Array.isArray(rs) ? rs : []) as { session_id: string; channel: string; status: string; n: number }[]) {
+            const e = m[r.session_id] || (m[r.session_id] = { sent: 0, failed: 0, email: 0, whatsapp: 0 });
+            if (r.status === 'sent') { e.sent += r.n; if (r.channel === 'email') e.email += r.n; else if (r.channel === 'whatsapp') e.whatsapp += r.n; }
+            else if (r.status === 'failed') e.failed += r.n;
+        }
+        setRemStatus(m);
     }, []);
     useEffect(() => { void load(); }, [load]);
 
@@ -127,6 +137,11 @@ const AdminLiveSessions: React.FC = () => {
             <div className="min-w-0 flex-1">
                 <p className="font-medium flex items-center gap-2">{s.title}{!s.is_published && <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-gray-200 dark:bg-slate-700">Hidden</span>}</p>
                 <p className="text-sm text-gray-500 dark:text-slate-400">{fmt(s.starts_at)} EAT{s.host_name ? ` · ${s.host_name}` : ''}{s.module_id ? ` · ${MODULES.find(m => m.id === s.module_id)?.title || s.module_id}` : ''}</p>
+                <p className="text-xs text-gray-500 dark:text-slate-400 mt-0.5">{(() => {
+                    const r = remStatus[s.id];
+                    if (!r) return 'Reminders: none sent yet';
+                    return `Reminders: ${r.sent} sent (${r.email} email, ${r.whatsapp} WhatsApp)${r.failed ? `, ${r.failed} failed` : ''}`;
+                })()}</p>
             </div>
             <div className="flex items-center gap-1">
                 {s.meet_link && (

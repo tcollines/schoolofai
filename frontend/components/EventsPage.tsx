@@ -32,6 +32,8 @@ interface EventsPageProps {
 
 const EventsPage: React.FC<EventsPageProps> = ({ courses = [] }) => {
     const { t } = useTranslation();
+    // Was referenced but never defined (page crashed on render)
+    const enrolledCourses = (courses || []).filter(c => c.status === CourseStatus.IN_PROGRESS || c.status === CourseStatus.COMPLETED);
     const [filter, setFilter] = useState<'All' | 'Workshop' | 'Webinar' | 'Panel' | 'Lesson'>('All');
     const [rsvps, setRsvps] = useState<Record<string, 'yes' | 'loading' | 'no'>>(() => {
         const stored = localStorage.getItem('event-rsvps');
@@ -274,16 +276,14 @@ const EventsPage: React.FC<EventsPageProps> = ({ courses = [] }) => {
     return (
         <div className="max-w-5xl mx-auto space-y-8 animate-in fade-in duration-300">
             {/* Header Banner */}
-            <div className="relative overflow-hidden bg-gradient-to-r from-purple-900 to-indigo-900 text-white rounded-3xl p-6 lg:p-8 shadow-xl">
-                <div className="absolute top-0 right-0 w-64 h-64 bg-welile-lime rounded-full blur-3xl opacity-10"></div>
-                <div className="absolute bottom-0 left-10 w-48 h-48 bg-welile-purple rounded-full blur-3xl opacity-20"></div>
+            <div className="relative overflow-hidden bg-violet-900 text-white rounded-2xl p-6 lg:p-8 shadow-sm">
 
                 <div className="relative z-10 grid md:grid-cols-3 gap-6 items-center">
                     <div className="md:col-span-2 space-y-3 text-left">
-                        <span className="text-xs font-bold bg-welile-lime/20 text-welile-lime px-3 py-1 rounded-full uppercase tracking-wider">
+                        <span className="text-xs font-bold bg-white/15 text-white px-3 py-1 rounded-full uppercase tracking-wider">
                             {imminentEvent ? 'Imminent Live Session' : 'Live Masterclass'}
                         </span>
-                        <h2 className="text-2xl lg:text-3xl font-extrabold tracking-tight">
+                        <h2 className="text-2xl lg:text-3xl font-semibold tracking-tight font-serif">
                             {imminentEvent ? imminentEvent.title : 'No Live Sessions Scheduled'}
                         </h2>
                         <p className="text-sm text-slate-300 max-w-lg">
@@ -293,34 +293,34 @@ const EventsPage: React.FC<EventsPageProps> = ({ courses = [] }) => {
 
                     {imminentEvent ? (
                         <div className="bg-white/10 backdrop-blur-md rounded-2xl p-4 border border-white/15 text-center space-y-2">
-                            <p className="text-[10px] uppercase font-bold text-slate-200 tracking-wider line-clamp-2 max-w-[200px] mx-auto">
+                            <p className="text-xs uppercase font-bold text-slate-200 tracking-wider line-clamp-2 max-w-[200px] mx-auto">
                                 {imminentEvent.title} starts in
                             </p>
                             {imminentCourse && (
-                                <p className="text-[10px] uppercase font-bold text-slate-300 tracking-wider line-clamp-2 max-w-[200px] mx-auto">
-                                    Course: <span className="font-extrabold text-white">{imminentCourse}</span>
+                                <p className="text-xs uppercase font-bold text-slate-300 tracking-wider line-clamp-2 max-w-[200px] mx-auto">
+                                    Course: <span className="font-bold text-white">{imminentCourse}</span>
                                 </p>
                             )}
                             <div className="flex justify-center gap-3 text-lg font-bold font-mono">
                                 <div>
-                                    <span className="bg-black/45 px-2 py-1 rounded text-welile-lime">
+                                    <span className="bg-black/45 px-2 py-1 rounded text-violet-200">
                                         {String(timeLeft.hours).padStart(2, '0')}
                                     </span>
-                                    <span className="text-[10px] block mt-1 font-sans text-slate-400">Hours</span>
+                                    <span className="text-xs block mt-1 font-sans text-slate-400">Hours</span>
                                 </div>
                                 <span>:</span>
                                 <div>
-                                    <span className="bg-black/45 px-2 py-1 rounded text-welile-lime">
+                                    <span className="bg-black/45 px-2 py-1 rounded text-violet-200">
                                         {String(timeLeft.minutes).padStart(2, '0')}
                                     </span>
-                                    <span className="text-[10px] block mt-1 font-sans text-slate-400">Min</span>
+                                    <span className="text-xs block mt-1 font-sans text-slate-400">Min</span>
                                 </div>
                                 <span>:</span>
                                 <div>
-                                    <span className="bg-black/45 px-2 py-1 rounded text-welile-lime">
+                                    <span className="bg-black/45 px-2 py-1 rounded text-violet-200">
                                         {String(timeLeft.seconds).padStart(2, '0')}
                                     </span>
-                                    <span className="text-[10px] block mt-1 font-sans text-slate-400">Sec</span>
+                                    <span className="text-xs block mt-1 font-sans text-slate-400">Sec</span>
                                 </div>
                             </div>
                         </div>
@@ -328,17 +328,17 @@ const EventsPage: React.FC<EventsPageProps> = ({ courses = [] }) => {
                         <div className="bg-white/10 backdrop-blur-md rounded-2xl p-4 border border-white/15 text-center space-y-2 flex flex-col justify-center items-center h-full min-h-[96px]">
                             <Calendar size={20} className="text-slate-300 mb-1" />
                             <p className="text-xs font-semibold text-slate-200">No Imminent Sessions</p>
-                            <p className="text-[9px] text-slate-400 max-w-[170px] leading-tight">Live session countdown activates 30m prior to start</p>
+                            <p className="text-[11px] text-slate-400 max-w-[170px] leading-tight">Live session countdown activates 30m prior to start</p>
                         </div>
                     )}
                 </div>
             </div>
 
             {/* List & Filters Header */}
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-gray-150 dark:border-slate-800 pb-4">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-stone-100 dark:border-slate-800 pb-4">
                 <div>
-                    <h3 className="text-xl font-bold text-gray-900 dark:text-white">{t('events') || 'Upcoming Classes'}</h3>
-                    <p className="text-xs text-gray-500 dark:text-slate-400 mt-1">
+                    <h3 className="font-serif text-2xl font-semibold text-stone-900 dark:text-white">{t('events') || 'Upcoming Classes'}</h3>
+                    <p className="text-xs text-stone-600 dark:text-slate-400 mt-1">
                         Dynamic scheduling synced to your enrolled courses and announcements published by WSAI Admin.
                     </p>
                 </div>
@@ -349,7 +349,7 @@ const EventsPage: React.FC<EventsPageProps> = ({ courses = [] }) => {
                     <select
                         value={planFilter}
                         onChange={(e) => setPlanFilter(e.target.value as any)}
-                        className="px-3 py-1.5 bg-white dark:bg-slate-900 text-gray-800 dark:text-white border border-gray-200 dark:border-slate-800 rounded-xl text-xs font-bold shadow-sm outline-none cursor-pointer"
+                        className="px-3 py-1.5 bg-white dark:bg-slate-900 text-stone-800 dark:text-white border border-stone-200 dark:border-slate-800 rounded-xl text-xs font-bold shadow-sm outline-none cursor-pointer"
                     >
                         <option value="all">All Plans</option>
                         <option value="basic">Basic Plan Classes</option>
@@ -357,15 +357,15 @@ const EventsPage: React.FC<EventsPageProps> = ({ courses = [] }) => {
                     </select>
 
                     {/* Filter Tabs */}
-                    <div className="flex bg-gray-105 dark:bg-slate-800 p-1 rounded-xl gap-1">
+                    <div className="flex max-w-full overflow-x-auto bg-stone-100 dark:bg-slate-800 p-1 rounded-xl gap-1">
                         {(['All', 'Workshop', 'Webinar', 'Panel', 'Lesson'] as const).map((tab) => (
                             <button
                                 key={tab}
                                 onClick={() => setFilter(tab)}
-                                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                                className={`px-3 py-2 rounded-lg text-sm font-semibold whitespace-nowrap transition-all ${
                                     (filter === tab)
-                                        ? 'bg-white dark:bg-slate-900 text-welile-purple dark:text-white shadow-sm'
-                                        : 'text-gray-500 dark:text-slate-400 hover:text-gray-900 dark:hover:text-white'
+                                        ? 'bg-white dark:bg-slate-900 text-violet-700 dark:text-white shadow-sm'
+                                        : 'text-stone-600 dark:text-slate-400 hover:text-stone-900 dark:hover:text-white'
                                 }`}
                             >
                                 {tab === 'All' ? 'All Classes' : tab + 's'}
@@ -377,7 +377,7 @@ const EventsPage: React.FC<EventsPageProps> = ({ courses = [] }) => {
 
             {/* Enrolled Courses Status Callout (If none) */}
             {enrolledCourses.length === 0 && (
-                <div className="bg-gradient-to-r from-violet-50 to-indigo-50 dark:from-slate-900/60 dark:to-slate-850/40 p-6 rounded-3xl border border-violet-100/80 dark:border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-4">
+                <div className="bg-violet-50 dark:bg-slate-900 p-6 rounded-2xl border border-violet-100/80 dark:border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-4">
                     <div>
                         <h4 className="font-bold text-sm text-violet-900 dark:text-violet-400">No Course Meetings Scheduled</h4>
                         <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
@@ -386,7 +386,7 @@ const EventsPage: React.FC<EventsPageProps> = ({ courses = [] }) => {
                     </div>
                     <button 
                         onClick={() => window.location.href = '/discover'}
-                        className="px-5 py-2 bg-welile-purple text-white text-xs font-bold rounded-xl hover:bg-purple-700 transition-colors shadow-md shadow-purple-900/10 cursor-pointer shrink-0"
+                        className="px-5 py-2 bg-violet-700 text-white text-xs font-bold rounded-xl hover:bg-violet-800 transition-colors shadow-sm cursor-pointer shrink-0"
                     >
                         Browse Courses
                     </button>
@@ -395,8 +395,8 @@ const EventsPage: React.FC<EventsPageProps> = ({ courses = [] }) => {
 
             {/* Events Grid */}
             {filteredEvents.length === 0 ? (
-                <div className="text-center py-12 bg-white dark:bg-slate-900 rounded-3xl border border-gray-100 dark:border-slate-800/80">
-                    <p className="text-sm text-gray-500 dark:text-slate-400 font-medium">No upcoming classes found under this category.</p>
+                <div className="text-center py-12 bg-white dark:bg-slate-900 rounded-2xl border border-stone-100 dark:border-slate-800/80">
+                    <p className="text-sm text-stone-600 dark:text-slate-400 font-medium">No upcoming classes found under this category.</p>
                 </div>
             ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -408,8 +408,8 @@ const EventsPage: React.FC<EventsPageProps> = ({ courses = [] }) => {
 
                         // Colors based on event type
                         const typeStyles = {
-                            Workshop: { border: 'border-l-welile-lime', bg: 'bg-lime-50 dark:bg-lime-950/20 text-lime-700 dark:text-lime-400' },
-                            Webinar: { border: 'border-l-welile-purple', bg: 'bg-purple-50 dark:bg-purple-950/20 text-purple-700 dark:text-purple-400' },
+                            Workshop: { border: 'border-l-violet-400', bg: 'bg-emerald-50 dark:bg-emerald-950/20 text-emerald-700 dark:text-emerald-400' },
+                            Webinar: { border: 'border-l-violet-700', bg: 'bg-violet-50 dark:bg-violet-950/20 text-violet-700 dark:text-violet-400' },
                             Panel: { border: 'border-l-pink-500', bg: 'bg-pink-50 dark:bg-pink-950/20 text-pink-700 dark:text-pink-400' },
                             Lesson: { border: 'border-l-indigo-500', bg: 'bg-indigo-50 dark:bg-indigo-950/20 text-indigo-700 dark:text-indigo-400' }
                         }[event.type as 'Workshop' | 'Webinar' | 'Panel' | 'Lesson'] || { border: 'border-l-indigo-500', bg: 'bg-indigo-50 dark:bg-indigo-950/20 text-indigo-700 dark:text-indigo-400' };
@@ -421,16 +421,16 @@ const EventsPage: React.FC<EventsPageProps> = ({ courses = [] }) => {
                         return (
                             <div 
                                 key={event.id} 
-                                className={`bg-white dark:bg-slate-900 border-y border-r border-gray-100 dark:border-slate-800/80 border-l-4 ${typeStyles.border} rounded-3xl p-6 shadow-sm hover:shadow-md transition-shadow relative overflow-hidden flex flex-col justify-between`}
+                                className={`bg-white dark:bg-slate-900 border-y border-r border-stone-100 dark:border-slate-800/80 border-l-4 ${typeStyles.border} rounded-2xl p-6 shadow-sm transition-shadow relative overflow-hidden flex flex-col justify-between`}
                             >
                                 <div className="space-y-4">
                                     <div className="flex justify-between items-start">
                                         <div className="flex gap-2">
-                                            <span className={`text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full ${typeStyles.bg}`}>
+                                            <span className={`text-xs font-bold uppercase tracking-wider px-2.5 py-1 rounded-full ${typeStyles.bg}`}>
                                                 {event.type}
                                             </span>
                                             {event.medium && (
-                                                <span className={`text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full ${
+                                                <span className={`text-xs font-bold uppercase tracking-wider px-2.5 py-1 rounded-full ${
                                                     event.medium === 'Physical'
                                                         ? 'bg-blue-50 dark:bg-blue-950/20 text-blue-700 dark:text-blue-400'
                                                         : 'bg-emerald-50 dark:bg-emerald-950/20 text-emerald-700 dark:text-emerald-400'
@@ -439,82 +439,82 @@ const EventsPage: React.FC<EventsPageProps> = ({ courses = [] }) => {
                                                 </span>
                                             )}
                                             {event.visibility && (
-                                                <span className={`text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full border ${
+                                                <span className={`text-xs font-bold uppercase tracking-wider px-2.5 py-1 rounded-full border ${
                                                     event.visibility === 'pro'
                                                         ? 'bg-amber-50 dark:bg-amber-950/25 text-amber-700 dark:text-amber-400 border-amber-100 dark:border-amber-900/40'
-                                                        : 'bg-violet-50 dark:bg-violet-950/25 text-violet-750 dark:text-violet-400 border-violet-100 dark:border-violet-900/40'
+                                                        : 'bg-violet-50 dark:bg-violet-950/25 text-violet-700 dark:text-violet-400 border-violet-100 dark:border-violet-900/40'
                                                 }`}>
                                                     {event.visibility === 'pro' ? 'Pro Plan Only' : 'Basic Plan'}
                                                 </span>
                                             )}
                                             {event.isAnnouncement && (
-                                                <span className="text-[10px] font-bold bg-orange-100 dark:bg-orange-950/20 text-orange-600 dark:text-orange-400 px-2.5 py-1 rounded-full uppercase tracking-wider">
+                                                <span className="text-xs font-bold bg-orange-100 dark:bg-orange-950/20 text-orange-600 dark:text-orange-400 px-2.5 py-1 rounded-full uppercase tracking-wider">
                                                     Announcement
                                                 </span>
                                             )}
                                             {getMsToEvent(event) !== null && getMsToEvent(event)! < 0 && (
-                                                <span className="text-[10px] font-bold bg-red-100 dark:bg-red-950/20 text-red-650 dark:text-red-400 px-2.5 py-1 rounded-full uppercase tracking-wider">
+                                                <span className="text-xs font-bold bg-red-100 dark:bg-red-950/20 text-red-600 dark:text-red-400 px-2.5 py-1 rounded-full uppercase tracking-wider">
                                                     Expired
                                                 </span>
                                             )}
                                         </div>
-                                        <div className="flex items-center gap-1.5 text-xs text-gray-500 dark:text-slate-400 font-medium">
+                                        <div className="flex items-center gap-1.5 text-xs text-stone-600 dark:text-slate-400 font-medium">
                                             <Users size={13} />
                                             <span>{actualAttendees} registered</span>
                                         </div>
                                     </div>
 
                                     <div className="space-y-2">
-                                        <h4 className="font-bold text-gray-900 dark:text-white leading-snug text-base hover:text-welile-purple dark:hover:text-purple-400 cursor-pointer transition-colors">
+                                        <h4 className="font-bold text-stone-900 dark:text-white leading-snug text-base hover:text-violet-700 dark:hover:text-violet-400 cursor-pointer transition-colors">
                                             {event.title}
                                         </h4>
                                         {courseName && event.type !== 'Lesson' && (
-                                            <p className="text-[10px] font-bold text-welile-purple uppercase tracking-wider">
+                                            <p className="text-xs font-bold text-violet-700 uppercase tracking-wider">
                                                 Course: {courseName}
                                             </p>
                                         )}
                                         {event.type === 'Lesson' && (
-                                            <div className="text-[10px] bg-slate-50 dark:bg-slate-800/60 p-2.5 rounded-xl border border-gray-100 dark:border-slate-800 space-y-1 mt-2 text-left">
-                                                <p><GraduationCap className="inline-block w-4 h-4 mr-1 align-middle" /> <strong className="text-gray-700 dark:text-slate-200">Course:</strong> {courseList.find(c => c.id === event.courseId)?.title || 'Unknown Course'}</p>
-                                                <p><BookOpen className="inline-block w-4 h-4 mr-1 align-middle" /> <strong className="text-gray-700 dark:text-slate-200">Unit:</strong> {courseList.find(c => c.id === event.courseId)?.sections?.find(s => s.id === event.sectionId)?.title || 'Unknown Unit'}</p>
-                                                <p><FileText className="inline-block w-4 h-4 mr-1 align-middle" /> <strong className="text-gray-700 dark:text-slate-200">Module:</strong> {courseList.find(c => c.id === event.courseId)?.sections?.find(s => s.id === event.sectionId)?.lessons?.find(l => l.id === event.moduleId)?.title || 'Unknown Module'}</p>
+                                            <div className="text-xs bg-slate-50 dark:bg-slate-800/60 p-2.5 rounded-xl border border-stone-100 dark:border-slate-800 space-y-1 mt-2 text-left">
+                                                <p><GraduationCap className="inline-block w-4 h-4 mr-1 align-middle" /> <strong className="text-stone-700 dark:text-slate-200">Course:</strong> {courseList.find(c => c.id === event.courseId)?.title || 'Unknown Course'}</p>
+                                                <p><BookOpen className="inline-block w-4 h-4 mr-1 align-middle" /> <strong className="text-stone-700 dark:text-slate-200">Unit:</strong> {courseList.find(c => c.id === event.courseId)?.sections?.find(s => s.id === event.sectionId)?.title || 'Unknown Unit'}</p>
+                                                <p><FileText className="inline-block w-4 h-4 mr-1 align-middle" /> <strong className="text-stone-700 dark:text-slate-200">Module:</strong> {courseList.find(c => c.id === event.courseId)?.sections?.find(s => s.id === event.sectionId)?.lessons?.find(l => l.id === event.moduleId)?.title || 'Unknown Module'}</p>
                                             </div>
                                         )}
-                                        <p className="text-xs text-gray-400 dark:text-slate-500 font-medium">
+                                        <p className="text-xs text-stone-500 dark:text-slate-500 font-medium">
                                             Host: {event.speaker}
                                         </p>
-                                        <p className="text-xs text-gray-600 dark:text-slate-400 leading-relaxed line-clamp-3">
+                                        <p className="text-xs text-stone-600 dark:text-slate-400 leading-relaxed line-clamp-3">
                                             {event.description}
                                         </p>
                                     </div>
                                 </div>
 
-                                <div className="mt-6 pt-5 border-t border-gray-50 dark:border-slate-800 space-y-4">
+                                <div className="mt-6 pt-5 border-t border-stone-50 dark:border-slate-800 space-y-4">
                                     {/* Date and Location */}
-                                    <div className="grid grid-cols-2 gap-3 text-xs text-gray-600 dark:text-slate-400 font-semibold">
+                                    <div className="grid grid-cols-2 gap-3 text-xs text-stone-600 dark:text-slate-400 font-semibold">
                                         <div className="flex items-center gap-2">
-                                            <Calendar size={13} className="text-welile-purple shrink-0" />
+                                            <Calendar size={13} className="text-violet-700 shrink-0" />
                                             <span>{event.date}</span>
                                         </div>
                                         <div className="flex items-center gap-2">
-                                            <Clock size={13} className="text-welile-purple shrink-0" />
+                                            <Clock size={13} className="text-violet-700 shrink-0" />
                                             <span className="truncate">{event.time}</span>
                                         </div>
                                         <div className="flex items-center gap-2 col-span-2">
                                             {event.medium === 'Physical' ? (
                                                 <>
-                                                    <MapPin size={13} className="text-welile-purple shrink-0" />
+                                                    <MapPin size={13} className="text-violet-700 shrink-0" />
                                                     <span className="truncate">Campus: {event.location || 'WSAI Campus'}</span>
                                                 </>
                                             ) : (
                                                 <>
-                                                    <Video size={13} className="text-welile-purple shrink-0" />
+                                                    <Video size={13} className="text-violet-700 shrink-0" />
                                                     {isRsvp && event.meetLink ? (
                                                         <a 
                                                             href={event.meetLink}
                                                             target="_blank"
                                                             rel="noopener noreferrer"
-                                                            className="text-violet-600 dark:text-violet-400 hover:underline font-bold flex items-center gap-1.5"
+                                                            className="text-violet-700 dark:text-violet-400 hover:underline font-bold flex items-center gap-1.5"
                                                             onClick={(e) => e.stopPropagation()}
                                                         >
                                                             Join Google Meet
@@ -532,7 +532,7 @@ const EventsPage: React.FC<EventsPageProps> = ({ courses = [] }) => {
                                      {event.tags && event.tags.length > 0 && (
                                          <div className="flex flex-wrap gap-1.5">
                                              {event.tags.map((tag) => (
-                                                 <span key={tag} className="text-[10px] font-bold bg-gray-50 dark:bg-slate-800 text-gray-500 dark:text-slate-400 px-2 py-0.5 rounded">
+                                                 <span key={tag} className="text-xs font-bold bg-stone-50 dark:bg-slate-800 text-stone-600 dark:text-slate-400 px-2 py-0.5 rounded">
                                                      #{tag}
                                                  </span>
                                              ))}
@@ -544,7 +544,7 @@ const EventsPage: React.FC<EventsPageProps> = ({ courses = [] }) => {
                                         {event.meetLink ? (
                                             <button 
                                                 onClick={() => window.open(event.meetLink, '_blank')}
-                                                className="flex-1 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer bg-violet-600 hover:bg-violet-750 text-white shadow-md shadow-violet-200 dark:shadow-none"
+                                                className="flex-1 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer bg-violet-700 hover:bg-violet-800 text-white shadow-sm shadow-violet-200 dark:shadow-none"
                                             >
                                                 <Video size={12} />
                                                 GO LIVE
@@ -552,7 +552,7 @@ const EventsPage: React.FC<EventsPageProps> = ({ courses = [] }) => {
                                         ) : (
                                             <button 
                                                 onClick={() => setSelectedEvent(event)}
-                                                className="flex-1 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer bg-black dark:bg-slate-800 hover:bg-gray-800 dark:hover:bg-slate-700 text-white"
+                                                className="flex-1 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer bg-violet-700 dark:bg-slate-800 hover:bg-stone-800 dark:hover:bg-slate-700 text-white"
                                             >
                                                 <Eye size={12} />
                                                 READ
@@ -561,7 +561,7 @@ const EventsPage: React.FC<EventsPageProps> = ({ courses = [] }) => {
                                         {event.meetLink && (
                                             <button 
                                                 onClick={() => setSelectedEvent(event)}
-                                                className="px-3 bg-gray-50 dark:bg-slate-800 hover:bg-gray-100 dark:hover:bg-slate-700 border border-gray-200 dark:border-slate-800 rounded-xl flex items-center justify-center text-gray-500 dark:text-slate-300 transition-colors cursor-pointer"
+                                                className="px-3 bg-stone-50 dark:bg-slate-800 hover:bg-stone-100 dark:hover:bg-slate-700 border border-stone-200 dark:border-slate-800 rounded-xl flex items-center justify-center text-stone-600 dark:text-slate-300 transition-colors cursor-pointer"
                                                 title="Read Details / Info"
                                             >
                                                 <Eye size={14} />
@@ -578,7 +578,7 @@ const EventsPage: React.FC<EventsPageProps> = ({ courses = [] }) => {
                                                     alert(`"${event.title}" invitation details copied to clipboard!`);
                                                 }
                                             }}
-                                            className="px-3 bg-gray-50 dark:bg-slate-800 hover:bg-gray-100 dark:hover:bg-slate-700 border border-gray-200 dark:border-slate-800 rounded-xl flex items-center justify-center text-gray-500 dark:text-slate-300 transition-colors cursor-pointer"
+                                            className="px-3 bg-stone-50 dark:bg-slate-800 hover:bg-stone-100 dark:hover:bg-slate-700 border border-stone-200 dark:border-slate-800 rounded-xl flex items-center justify-center text-stone-600 dark:text-slate-300 transition-colors cursor-pointer"
                                             title="Copy Link / Details"
                                         >
                                             <ExternalLink size={14} />
@@ -594,16 +594,16 @@ const EventsPage: React.FC<EventsPageProps> = ({ courses = [] }) => {
             {/* Event Details Modal (Read Mode) */}
             {selectedEvent && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
-                    <div className="bg-white dark:bg-slate-900 rounded-3xl w-full max-w-lg p-8 relative animate-in zoom-in-95 duration-200 border border-gray-100 dark:border-slate-800 text-left">
+                    <div className="bg-white dark:bg-slate-900 rounded-2xl w-full max-w-lg p-8 relative animate-in zoom-in-95 duration-200 border border-stone-100 dark:border-slate-800 text-left">
                         <button
                             onClick={() => setSelectedEvent(null)}
-                            className="absolute top-5 right-5 text-gray-400 hover:text-gray-600 dark:hover:text-slate-200 cursor-pointer border-0 bg-transparent"
+                            className="absolute top-5 right-5 text-stone-500 hover:text-stone-600 dark:hover:text-slate-200 cursor-pointer border-0 bg-transparent"
                         >
                             <X size={20} />
                         </button>
 
                         <div className="flex items-center gap-2 mb-4">
-                            <span className="px-2.5 py-1 bg-violet-50 dark:bg-violet-950/30 text-violet-600 dark:text-violet-400 rounded-full text-xs font-bold uppercase tracking-wider">
+                            <span className="px-2.5 py-1 bg-violet-50 dark:bg-violet-950/30 text-violet-700 dark:text-violet-400 rounded-full text-xs font-bold uppercase tracking-wider">
                                 {selectedEvent.type}
                             </span>
                             <span className={`px-2.5 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${
@@ -615,22 +615,22 @@ const EventsPage: React.FC<EventsPageProps> = ({ courses = [] }) => {
                             </span>
                         </div>
 
-                        <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
+                        <h3 className="font-serif text-2xl font-semibold text-stone-900 dark:text-white mb-4">
                             {selectedEvent.title}
                         </h3>
 
-                        <p className="text-gray-600 dark:text-slate-300 text-sm leading-relaxed mb-6 whitespace-pre-line">
+                        <p className="text-stone-600 dark:text-slate-300 text-sm leading-relaxed mb-6 whitespace-pre-line">
                             {selectedEvent.description}
                         </p>
 
-                        <div className="space-y-3.5 text-xs text-gray-600 dark:text-slate-300 border-t border-gray-100 dark:border-slate-800 pt-6">
+                        <div className="space-y-3.5 text-xs text-stone-600 dark:text-slate-300 border-t border-stone-100 dark:border-slate-800 pt-6">
                             <div className="flex items-center gap-2">
                                 <Clock size={16} className="text-violet-500 shrink-0" />
-                                <span className="font-semibold text-gray-800 dark:text-gray-200">{selectedEvent.date} @ {selectedEvent.time}</span>
+                                <span className="font-semibold text-stone-800 dark:text-stone-200">{selectedEvent.date} @ {selectedEvent.time}</span>
                             </div>
                             <div className="flex items-center gap-2">
                                 <Users size={16} className="text-violet-500 shrink-0" />
-                                <span>Speaker / Host: <strong className="text-gray-800 dark:text-gray-200">{selectedEvent.speaker}</strong></span>
+                                <span>Speaker / Host: <strong className="text-stone-800 dark:text-stone-200">{selectedEvent.speaker}</strong></span>
                             </div>
                             <div className="flex items-center gap-2">
                                 {selectedEvent.medium === 'Online' ? (
@@ -643,7 +643,7 @@ const EventsPage: React.FC<EventsPageProps> = ({ courses = [] }) => {
                                 ) : (
                                     <>
                                         <MapPin size={16} className="text-blue-500 shrink-0" />
-                                        <span className="text-gray-800 dark:text-gray-200">{selectedEvent.location}</span>
+                                        <span className="text-stone-800 dark:text-stone-200">{selectedEvent.location}</span>
                                     </>
                                 )}
                             </div>
@@ -652,14 +652,14 @@ const EventsPage: React.FC<EventsPageProps> = ({ courses = [] }) => {
                         <div className="mt-8 flex gap-3">
                             <button
                                 onClick={() => setSelectedEvent(null)}
-                                className="flex-1 py-3 border border-gray-200 dark:border-slate-700 text-gray-700 dark:text-slate-300 rounded-xl text-sm font-medium hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors cursor-pointer bg-transparent"
+                                className="flex-1 py-3 border border-stone-200 dark:border-slate-700 text-stone-700 dark:text-slate-300 rounded-xl text-sm font-medium hover:bg-stone-50 dark:hover:bg-slate-800 transition-colors cursor-pointer bg-transparent"
                             >
                                 Close Details
                             </button>
                             {selectedEvent.meetLink && (
                                 <button
                                     onClick={() => window.open(selectedEvent.meetLink, '_blank')}
-                                    className="flex-1 py-3 bg-violet-600 hover:bg-violet-750 text-white rounded-xl text-sm font-semibold transition-colors flex items-center justify-center gap-2 cursor-pointer shadow-md shadow-violet-200 dark:shadow-none"
+                                    className="flex-1 py-3 bg-violet-700 hover:bg-violet-800 text-white rounded-xl text-sm font-semibold transition-colors flex items-center justify-center gap-2 cursor-pointer shadow-sm shadow-violet-200 dark:shadow-none"
                                 >
                                     <Video size={16} /> GO LIVE
                                 </button>

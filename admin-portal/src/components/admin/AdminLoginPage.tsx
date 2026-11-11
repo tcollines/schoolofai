@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Mail, Lock, KeyRound, ShieldAlert, ArrowLeft, Loader2, Info, Sun, Moon } from 'lucide-react';
+import { Mail, Lock, KeyRound, ShieldAlert, ArrowLeft, Loader2, Sun, Moon, CheckCircle2 } from 'lucide-react';
 import { supabaseClient } from '../../lib/supabaseClient';
-import { supabase } from '../../lib/supabaseClient';
+import { RESET_PASSWORD_URL } from '../../lib/consoleAuth';
 
 interface AdminLoginPageProps {
     onLoginSuccess: () => void;
@@ -12,7 +12,7 @@ interface AdminLoginPageProps {
 const AdminLoginPage: React.FC<AdminLoginPageProps> = ({ onLoginSuccess, onBackToStudentPortal, isInstructor }) => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
-    const [passcode, setPasscode] = useState('');
+    const [notice, setNotice] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [isDark, setIsDark] = useState(() => {
@@ -40,144 +40,61 @@ const AdminLoginPage: React.FC<AdminLoginPageProps> = ({ onLoginSuccess, onBackT
         window.dispatchEvent(new Event('theme-change'));
     };
 
-    const handleAdminSubmit = async (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setLoading(true);
         setError(null);
-
-        // Security passcode check for admin. (Instructor passcode check is performed dynamically below after querying database)
-        if (!isInstructor) {
-            const isValidPasscode = passcode.trim() === 'admin123' || passcode.trim() === 'WELILE_ADMIN_2026';
-            if (!isValidPasscode) {
-                setError('Incorrect Security Passcode. Access denied.');
-                setLoading(false);
+        setNotice(null);
+        try {
+            const cleanEmail = email.trim().toLowerCase();
+            const { data, error: signErr } = await supabaseClient.auth.signInWithPassword({ email: cleanEmail, password });
+            if (signErr || !data?.user) {
+                setError(signErr?.message || 'Sign-in failed. Check your email and password.');
                 return;
             }
-        }
-
-        try {
-            if (isInstructor) {
-                const emailClean = email.trim().toLowerCase();
-                // Query database (instructors table, profiles table, or courses table) to verify instructor
-                let registeredInstructor: any = null;
-
-                const { data: instructorData, error: dbError } = await supabase
-                    .from('instructors')
-                    .select('*')
-                    .eq('email', emailClean);
-
-                if (!dbError && instructorData && instructorData.length > 0) {
-                    registeredInstructor = instructorData[0];
-                } else {
-                    // Check live profiles table (INSTRUCTOR or ADMIN role)
-                    const { data: profileData } = await supabaseClient
-                        .from('profiles')
-                        .select('*')
-                        .eq('email', emailClean);
-
-                    if (profileData && profileData.length > 0 && (profileData[0].role === 'INSTRUCTOR' || profileData[0].role === 'ADMIN')) {
-                        registeredInstructor = {
-                            name: profileData[0].full_name || emailClean.split('@')[0],
-                            email: emailClean,
-                            password: profileData[0].password || 'instructor'
-                        };
-                    } else {
-                        // Also check if assigned as instructor on any live course
-                        const { data: courseData } = await supabaseClient
-                            .from('courses')
-                            .select('instructor, instructor_email')
-                            .eq('instructor_email', emailClean);
-
-                        if (courseData && courseData.length > 0) {
-                            registeredInstructor = {
-                                name: courseData[0].instructor || emailClean.split('@')[0],
-                                email: emailClean,
-                                password: 'instructor'
-                            };
-                        } else if (emailClean === 'instructor@welile.com' || emailClean === 'instructor@test.com') {
-                            registeredInstructor = {
-                                name: 'Welile Instructor',
-                                email: emailClean,
-                                password: 'instructor'
-                            };
-                        }
-                    }
-                }
-
-                if (!registeredInstructor) {
-                    setError('Access denied. No instructor account found with this email. Please ask the administrator to register you.');
-                    setLoading(false);
-                    return;
-                }
-
-                const isValidPassword = password === (registeredInstructor.password || 'instructor') || password === 'instructorpassword' || password === 'instructor';
-                const isValidPasscode = (registeredInstructor.passcode && passcode === registeredInstructor.passcode) || passcode === 'WELILE_INSTRUCTOR_2026' || passcode === 'admin123';
-
-                if (!isValidPasscode) {
-                    setError('Incorrect Security Passcode. Access denied.');
-                    setLoading(false);
-                    return;
-                }
-
-                // First check if it's the configured/demo credentials
-                let isAuthenticated = false;
-                if (isValidPassword) {
-                    isAuthenticated = true;
-                }
-
-                // Fallback to Supabase Auth if not using valid default credentials
-                if (!isAuthenticated) {
-                    const { error: signInError } = await supabaseClient.auth.signInWithPassword({
-                        email: emailClean,
-                        password
-                    });
-
-                    if (signInError) {
-                        setError(signInError.message);
-                        setLoading(false);
-                        return;
-                    }
-                }
-
-                // Success! Store instructor-session token and details
-                localStorage.setItem('instructor-session', 'true');
-                localStorage.setItem('instructor-email', emailClean);
-                localStorage.setItem('instructor-name', registeredInstructor.name || emailClean.split('@')[0]);
-                setLoading(false);
-                onLoginSuccess();
-            } else {
-                // First check if it's the demo credentials
-                let isAuthenticated = false;
-                const cleanEmail = email.trim().toLowerCase();
-                const isValidEmail = cleanEmail === 'admin@welile.com' || cleanEmail === 'admin@test.com' || cleanEmail === 'chemayekabraham289@gmail.com';
-                const isValidPassword = password.trim() === 'adminpassword' || password.trim() === 'admin';
-                if (isValidEmail && isValidPassword) isAuthenticated = true;
-
-                // Fallback to Supabase if not using valid demo credentials
-                if (!isAuthenticated) {
-                    const { error: signInError } = await supabaseClient.auth.signInWithPassword({
-                        email,
-                        password
-                    });
-
-                    if (signInError) {
-                        setError(signInError.message);
-                        setLoading(false);
-                        return;
-                    }
-                }
-
-                // Success! Store admin-session token separately
-                localStorage.setItem('admin-session', 'true');
-                localStorage.setItem('admin-email', email.trim().toLowerCase());
-                setLoading(false);
-                onLoginSuccess();
+            const { data: prof, error: profErr } = await supabaseClient
+                .from('profiles')
+                .select('role, full_name')
+                .eq('id', data.user.id)
+                .maybeSingle();
+            const role = String(prof?.role || '').toUpperCase();
+            const allowed = isInstructor ? (role === 'INSTRUCTOR' || role === 'ADMIN') : role === 'ADMIN';
+            if (profErr || !allowed) {
+                await supabaseClient.auth.signOut(); // leave no session behind
+                setError(isInstructor ? 'This account is not an instructor or administrator' : 'This account is not an administrator');
+                return;
             }
+            if (isInstructor) {
+                localStorage.setItem('instructor-session', 'true');
+                localStorage.setItem('instructor-email', cleanEmail);
+                localStorage.setItem('instructor-name', prof?.full_name || cleanEmail.split('@')[0]);
+            } else {
+                localStorage.setItem('admin-session', 'true');
+                localStorage.setItem('admin-email', cleanEmail);
+            }
+            onLoginSuccess();
         } catch (err: any) {
             console.error('Authentication error:', err);
-            setError(err.message || 'An unexpected error occurred');
+            setError(err?.message || 'An unexpected error occurred');
+        } finally {
             setLoading(false);
         }
+    };
+
+    const handleForgotPassword = async () => {
+        setError(null);
+        setNotice(null);
+        const cleanEmail = email.trim().toLowerCase();
+        if (!cleanEmail) {
+            setError('Enter your email above first, then click "Forgot password?".');
+            return;
+        }
+        const { error: resetErr } = await supabaseClient.auth.resetPasswordForEmail(cleanEmail, { redirectTo: RESET_PASSWORD_URL });
+        if (resetErr) {
+            setError(resetErr.message);
+            return;
+        }
+        setNotice('If an account exists for that email, a password reset link has been sent.');
     };
 
     return (
@@ -238,24 +155,6 @@ const AdminLoginPage: React.FC<AdminLoginPageProps> = ({ onLoginSuccess, onBackT
                         </p>
                     </div>
 
-                    {/* Hint / Demo Credentials Box (Admin Console only) */}
-                    {!isInstructor && (
-                        <div className="mb-6 bg-slate-100/80 dark:bg-slate-950/60 rounded-2xl border border-slate-200 dark:border-slate-800/50 p-4 space-y-2 transition-colors duration-300">
-                            <div className="flex items-center gap-2 text-violet-500 dark:text-violet-400">
-                                <Info size={14} />
-                                <span className="text-[11px] font-bold uppercase tracking-wider">Demo Credentials</span>
-                            </div>
-                            <div className="grid grid-cols-2 gap-x-2 gap-y-1 text-xs text-slate-500 dark:text-slate-400">
-                                <span className="font-semibold text-slate-700 dark:text-slate-300">Admin Email:</span>
-                                <code className="text-violet-600 dark:text-violet-300">admin@welile.com</code>
-                                <span className="font-semibold text-slate-700 dark:text-slate-300">Password:</span>
-                                <code className="text-violet-600 dark:text-violet-300">adminpassword</code>
-                                <span className="font-semibold text-slate-700 dark:text-slate-300">Passcode:</span>
-                                <code className="text-violet-600 dark:text-violet-300">admin123</code>
-                            </div>
-                        </div>
-                    )}
-
                     {error && (
                         <div className="mb-6 bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-800/40 text-red-600 dark:text-red-300 p-3.5 rounded-2xl text-xs flex gap-2.5 items-start transition-colors duration-300">
                             <ShieldAlert size={16} className="shrink-0 mt-0.5" />
@@ -263,7 +162,14 @@ const AdminLoginPage: React.FC<AdminLoginPageProps> = ({ onLoginSuccess, onBackT
                         </div>
                     )}
 
-                    <form onSubmit={handleAdminSubmit} className="space-y-4">
+                    {notice && (
+                        <div className="mb-6 bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-800/40 text-emerald-700 dark:text-emerald-300 p-3.5 rounded-2xl text-xs flex gap-2.5 items-start transition-colors duration-300">
+                            <CheckCircle2 size={16} className="shrink-0 mt-0.5" />
+                            <span className="font-medium">{notice}</span>
+                        </div>
+                    )}
+
+                    <form onSubmit={handleSubmit} className="space-y-4">
                         {/* Email Input */}
                         <div className="space-y-1.5">
                             <label className="text-xs font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider">Console Email</label>
@@ -274,7 +180,7 @@ const AdminLoginPage: React.FC<AdminLoginPageProps> = ({ onLoginSuccess, onBackT
                                     required
                                     value={email}
                                     onChange={(e) => setEmail(e.target.value)}
-                                    placeholder={isInstructor ? "instructor@test.com" : "admin@welile.com"}
+                                    placeholder="you@example.com"
                                     className="w-full bg-white dark:bg-slate-950/50 border border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 focus:border-violet-500 text-slate-900 dark:text-white pl-11 pr-4 py-3 rounded-2xl outline-none transition-all text-sm placeholder:text-slate-400 dark:placeholder:text-slate-600"
                                 />
                             </div>
@@ -296,24 +202,10 @@ const AdminLoginPage: React.FC<AdminLoginPageProps> = ({ onLoginSuccess, onBackT
                             </div>
                         </div>
 
-                        {/* Passcode Input (Distinct Rule check) */}
-                        <div className="space-y-1.5">
-                            <div className="flex justify-between items-center">
-                                <label className="text-xs font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider">Security Passcode</label>
-                                <span className="text-[10px] text-violet-500 dark:text-violet-400 font-bold bg-violet-100 dark:bg-violet-950/40 px-1.5 py-0.5 rounded">REQUIRED</span>
-                            </div>
-                            <div className="relative">
-                                <KeyRound size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500" />
-                                <input
-                                    type="password"
-                                    required
-                                    value={passcode}
-                                    onChange={(e) => setPasscode(e.target.value)}
-                                    placeholder={isInstructor ? "Secret Instructor Key" : "Secret Admin Key"}
-                                    className="w-full bg-white dark:bg-slate-950/50 border border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 focus:border-violet-500 text-slate-900 dark:text-white pl-11 pr-4 py-3 rounded-2xl outline-none transition-all text-sm font-mono tracking-widest placeholder:text-slate-400 dark:placeholder:text-slate-600 placeholder:font-sans placeholder:tracking-normal"
-                                />
-                            </div>
-                            <p className="text-[10px] text-slate-400 dark:text-slate-500 mt-1">Different from ordinary student login authentication.</p>
+                        <div className="flex justify-end">
+                            <button type="button" onClick={handleForgotPassword} className="text-xs font-semibold text-violet-600 dark:text-violet-400 hover:underline cursor-pointer">
+                                Forgot password?
+                            </button>
                         </div>
 
                         {/* Submit Button */}

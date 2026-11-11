@@ -9,8 +9,6 @@ interface Instructor {
     bio: string;
     avatar: string;
     courses_count: number;
-    passcode?: string;
-    password?: string;
 }
 
 const AdminInstructors: React.FC = () => {
@@ -34,16 +32,18 @@ const AdminInstructors: React.FC = () => {
     const [email, setEmail] = useState('');
     const [bio, setBio] = useState('');
     const [avatar, setAvatar] = useState('');
-    const [password, setPassword] = useState('');
+    const [formError, setFormError] = useState<string | null>(null);
 
     const fetchInstructors = async () => {
         setLoading(true);
         try {
-            const [{ data: profilesData }, { data: coursesData }, { data: instData }] = await Promise.all([
+            // The optional `instructors` table does not exist in the live DB: its error is ignored (data is null).
+            const [{ data: profilesData }, { data: coursesData }, instRes] = await Promise.all([
                 supabaseClient.from('profiles').select('*'),
                 supabaseClient.from('courses').select('id, instructor, instructor_email, instructor_avatar'),
-                supabaseClient.from('instructors').select('*')
+                Promise.resolve(supabaseClient.from('instructors').select('*')).catch(() => ({ data: null }))
             ]);
+            const instData = (instRes as any)?.data || [];
 
             const courseCountByEmail = new Map<string, number>();
             (coursesData || []).forEach((c: any) => {
@@ -67,8 +67,7 @@ const AdminInstructors: React.FC = () => {
                         email: p.email,
                         bio: p.bio || '',
                         avatar: p.avatar_url || p.avatarUrl || nameStr.split(' ').map((n: string) => n[0]).join('').toUpperCase(),
-                        courses_count: courseCountByEmail.get(emailKey) || 0,
-                        password: p.password || 'instructor'
+                        courses_count: courseCountByEmail.get(emailKey) || 0
                     });
                 }
             });
@@ -84,8 +83,7 @@ const AdminInstructors: React.FC = () => {
                     email: inst.email,
                     bio: inst.bio || existing?.bio || '',
                     avatar: inst.avatar || existing?.avatar || 'IN',
-                    courses_count: courseCountByEmail.get(emailKey) ?? inst.courses_count ?? 0,
-                    password: inst.password || existing?.password || 'instructor'
+                    courses_count: courseCountByEmail.get(emailKey) ?? inst.courses_count ?? 0
                 });
             });
 
@@ -100,8 +98,7 @@ const AdminInstructors: React.FC = () => {
                         email: c.instructor_email,
                         bio: 'Course Instructor',
                         avatar: c.instructor_avatar || nameStr.split(' ').map((n: string) => n[0]).join('').toUpperCase(),
-                        courses_count: courseCountByEmail.get(emailKey) || 1,
-                        password: 'instructor'
+                        courses_count: courseCountByEmail.get(emailKey) || 1
                     });
                 }
             });
@@ -124,7 +121,7 @@ const AdminInstructors: React.FC = () => {
         setEmail('');
         setBio('');
         setAvatar('');
-        setPassword('');
+        setFormError(null);
         setIsOpen(true);
     };
 
@@ -134,7 +131,7 @@ const AdminInstructors: React.FC = () => {
         setEmail(inst.email);
         setBio(inst.bio);
         setAvatar(inst.avatar);
-        setPassword(inst.password || '');
+        setFormError(null);
         setIsOpen(true);
     };
 
@@ -142,12 +139,14 @@ const AdminInstructors: React.FC = () => {
         if (!confirm('Are you sure you want to remove this instructor?')) return;
         try {
             const target = instructors.find(i => i.id === id);
-            await supabaseClient.from('instructors').delete().eq('id', id);
+            try { await supabaseClient.from('instructors').delete().eq('id', id); } catch { /* optional table */ }
             if (target?.email) {
+                // Only demote instructors; never touch an ADMIN account.
                 await supabaseClient
                     .from('profiles')
                     .update({ role: 'INDIVIDUAL' })
-                    .eq('email', target.email.trim().toLowerCase());
+                    .eq('email', target.email.trim().toLowerCase())
+                    .eq('role', 'INSTRUCTOR');
             }
             fetchInstructors();
         } catch (err) {
@@ -157,68 +156,57 @@ const AdminInstructors: React.FC = () => {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!name || !email) return;
+        if (!email) return;
 
         setIsSubmitting(true);
+        setFormError(null);
         const cleanEmail = email.trim().toLowerCase();
-        const computedAvatar = avatar || name.split(' ').map(n => n[0]).join('').toUpperCase();
         try {
-            // Update in profiles table if profile exists
-            const { data: existingProf } = await supabaseClient
+            const { data: existingProf, error: profErr } = await supabaseClient
                 .from('profiles')
-                .select('id, role')
-                .eq('email', cleanEmail);
+                .select('id, role, full_name')
+                .ilike('email', cleanEmail);
 
-            if (existingProf && existingProf.length > 0) {
-                await supabaseClient
-                    .from('profiles')
-                    .update({
-                        full_name: name,
-                        bio,
-                        avatar_url: computedAvatar,
-                        role: existingProf[0].role === 'ADMIN' ? 'ADMIN' : 'INSTRUCTOR'
-                    })
-                    .eq('id', existingProf[0].id);
+            if (profErr) {
+                setFormError(profErr.message);
+                return;
+            }
+            if (!existingProf || existingProf.length === 0) {
+                setFormError('No account found for this email. The person must sign up on the student site first, then you can promote them.');
+                return;
+            }
+            const prof = existingProf[0];
+            const finalName = name.trim() || prof.full_name || cleanEmail.split('@')[0];
+            const computedAvatar = avatar || finalName.split(' ').map((n: string) => n[0]).join('').toUpperCase();
+
+            const update: any = { bio, avatar_url: computedAvatar, role: prof.role === 'ADMIN' ? 'ADMIN' : 'INSTRUCTOR' };
+            if (name.trim()) update.full_name = name.trim();
+            const { error: updErr } = await supabaseClient.from('profiles').update(update).eq('id', prof.id);
+            if (updErr) {
+                setFormError(updErr.message);
+                return;
             }
 
-            // Also sync instructor details on any courses assigned to this email
+            // Sync instructor details on any courses assigned to this email
             await supabaseClient
                 .from('courses')
-                .update({
-                    instructor: name,
-                    instructor_avatar: computedAvatar
-                })
+                .update({ instructor: finalName, instructor_avatar: computedAvatar })
                 .eq('instructor_email', cleanEmail);
 
-            // Best-effort sync with instructors table if present
+            // Best-effort sync with the optional instructors table (absent in the live DB; failures ignored)
             if (editingInstructor) {
-                await supabaseClient
-                    .from('instructors')
-                    .update({
-                        name,
-                        email: cleanEmail,
-                        bio,
-                        avatar: computedAvatar,
-                        password: password || 'instructor'
-                    })
-                    .eq('id', editingInstructor.id);
-            } else {
-                await supabaseClient
-                    .from('instructors')
-                    .insert({
-                        id: 'inst-' + Math.random().toString(36).substr(2, 9),
-                        name,
-                        email: cleanEmail,
-                        bio,
-                        avatar: computedAvatar,
-                        courses_count: 0,
-                        password: password || 'instructor'
-                    });
+                try {
+                    await supabaseClient
+                        .from('instructors')
+                        .update({ name: finalName, email: cleanEmail, bio, avatar: computedAvatar })
+                        .eq('id', editingInstructor.id);
+                } catch { /* optional table */ }
             }
             setIsOpen(false);
             fetchInstructors();
-        } catch (err) {
+        } catch (err: any) {
             console.error('Error saving instructor:', err);
+            setFormError(err?.message || 'Could not save instructor.');
         } finally {
             setIsSubmitting(false);
         }
@@ -239,7 +227,7 @@ const AdminInstructors: React.FC = () => {
                     onClick={handleOpenAdd}
                     className="bg-violet-600 hover:bg-violet-700 text-white px-4 py-2 rounded-xl flex items-center gap-2 font-medium transition-colors cursor-pointer"
                 >
-                    <Plus size={18} /> Add Instructor
+                    <Plus size={18} /> Promote Instructor
                 </button>
             </div>
 
@@ -250,7 +238,7 @@ const AdminInstructors: React.FC = () => {
                 </div>
             ) : instructors.length === 0 ? (
                 <div className="text-center py-16 text-gray-500 dark:text-slate-500 bg-white dark:bg-slate-900/30 rounded-3xl border border-dashed border-gray-200 dark:border-slate-800">
-                    No instructors found. Click "Add Instructor" to get started.
+                    No instructors found. Click "Promote Instructor" to get started.
                 </div>
             ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -323,18 +311,26 @@ const AdminInstructors: React.FC = () => {
                         </button>
 
                         <h3 className="text-xl font-bold text-center mb-6 border-b border-gray-100 dark:border-slate-800 pb-3 text-gray-900 dark:text-white">
-                            {editingInstructor ? 'Edit Instructor Details' : 'Register New Instructor'}
+                            {editingInstructor ? 'Edit Instructor Details' : 'Promote Existing Account to Instructor'}
                         </h3>
 
                         <form onSubmit={handleSubmit} className="space-y-4">
+                            {!editingInstructor && (
+                                <p className="text-xs text-gray-500 dark:text-slate-400 bg-gray-50 dark:bg-slate-950/40 p-3 rounded-2xl border border-gray-100 dark:border-slate-800">
+                                    Enter the email of an account that has already signed up on the student site. Their role will be set to Instructor and they sign in with their existing password.
+                                </p>
+                            )}
+                            {formError && (
+                                <div className="text-xs font-medium text-red-600 dark:text-red-300 bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-800/40 p-3 rounded-2xl">{formError}</div>
+                            )}
                             <div>
                                 <label className="block text-xs font-bold text-gray-605 dark:text-slate-400 uppercase tracking-wider mb-2">Full Name</label>
                                 <input
                                     type="text"
-                                    required
+                                    required={!!editingInstructor}
                                     value={name}
                                     onChange={(e) => setName(e.target.value)}
-                                    placeholder="Sarah Jenkins"
+                                    placeholder={editingInstructor ? "Sarah Jenkins" : "Optional: updates their display name"}
                                     className="w-full bg-gray-50 dark:bg-slate-950 border border-gray-200 dark:border-slate-800 rounded-xl px-4 py-2.5 text-sm text-gray-900 dark:text-white focus:outline-none focus:border-violet-500"
                                 />
                             </div>
@@ -363,18 +359,6 @@ const AdminInstructors: React.FC = () => {
                             </div>
 
                             <div>
-                                <label className="block text-xs font-bold text-gray-650 dark:text-slate-400 uppercase tracking-wider mb-2">Console Password</label>
-                                <input
-                                    type="text"
-                                    required
-                                    value={password}
-                                    onChange={(e) => setPassword(e.target.value)}
-                                    placeholder="e.g. instructor"
-                                    className="w-full bg-gray-50 dark:bg-slate-950 border border-gray-200 dark:border-slate-800 rounded-xl px-4 py-2.5 text-sm text-gray-900 dark:text-white focus:outline-none focus:border-violet-500 font-mono"
-                                />
-                            </div>
-
-                            <div>
                                 <label className="block text-xs font-bold text-gray-605 dark:text-slate-400 uppercase tracking-wider mb-2">Biography</label>
                                 <textarea
                                     value={bio}
@@ -390,7 +374,7 @@ const AdminInstructors: React.FC = () => {
                                 disabled={isSubmitting}
                                 className="w-full py-3 mt-4 bg-violet-600 hover:bg-violet-700 text-white font-bold rounded-xl transition-all cursor-pointer shadow-lg shadow-violet-900/20 disabled:opacity-50"
                             >
-                                {isSubmitting ? 'Saving...' : editingInstructor ? 'Save Changes' : 'Add Instructor'}
+                                {isSubmitting ? 'Saving...' : editingInstructor ? 'Save Changes' : 'Promote to Instructor'}
                             </button>
                         </form>
                     </div>

@@ -1,21 +1,25 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Link, Navigate, useNavigate, useParams } from 'react-router-dom';
-import { ArrowLeft, ArrowRight, CheckCircle2, FileText, HelpCircle, Lightbulb, PlayCircle, PenLine } from 'lucide-react';
+import { ArrowLeft, ArrowRight, CheckCircle2, FileText, HelpCircle, Lightbulb, PlayCircle, PenLine, MessageCircle, ScrollText } from 'lucide-react';
 import { COURSE, findItem, moduleOfItem, nextItemId, prevItemId } from '../../src/content/aiFundamentals';
 import { submitAttempt, bestScore } from '../../src/lib/learnApi';
+import { getTranscript } from '../../src/content/transcripts';
 import { useLearn } from './learnContext';
 import VideoPlayer from './VideoPlayer';
 import QuizView from './QuizView';
-import { BTN_PRIMARY, BTN_SECONDARY, CARD, MUTED } from './learnUi';
+import { BTN_PRIMARY, BTN_SECONDARY, CARD, MUTED, usePlayerPrefs } from './learnUi';
+import { LessonQA, LessonRating, PlayerPrefsBar, TranscriptView } from './LessonExtras';
 
 const ItemPage: React.FC = () => {
     const { itemId = '' } = useParams();
     const item = findItem(itemId);
     const mod = moduleOfItem(itemId);
-    const { uid, progress, markProgress, markComplete, bump } = useLearn();
+    const { uid, fullName, progress, markProgress, markComplete, bump } = useLearn();
     const navigate = useNavigate();
 
-    const [tab, setTab] = useState<'overview' | 'notes'>('overview');
+    const { prefs, update: updatePrefs } = usePlayerPrefs();
+    const transcript = getTranscript(itemId);
+    const [tab, setTab] = useState<'overview' | 'transcript' | 'qa' | 'notes'>('overview');
     const [note, setNote] = useState('');
     const lastSaved = useRef(0);
     const completing = useRef(false);
@@ -23,10 +27,11 @@ const ItemPage: React.FC = () => {
     const noteKey = `welile_learn_note_${uid}_${itemId}`;
     useEffect(() => {
         try { setNote(localStorage.getItem(noteKey) || ''); } catch { setNote(''); }
-        setTab('overview');
+        setTab(prefs.audioOnly && transcript ? 'transcript' : 'overview');
         lastSaved.current = 0;
         completing.current = false;
         window.scrollTo({ top: 0 });
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [itemId, noteKey]);
 
     useEffect(() => {
@@ -85,7 +90,10 @@ const ItemPage: React.FC = () => {
                         startAt={progress[item.id]?.last || 0}
                         onProgress={onVideoProgress}
                         onEnded={() => { if (!done) void markComplete(item.id); }}
+                        dataSaver={prefs.dataSaver}
+                        audioOnly={prefs.audioOnly}
                     />
+                    <PlayerPrefsBar prefs={prefs} onChange={p => { updatePrefs(p); if (p.audioOnly && transcript) setTab('transcript'); }} />
                 </div>
             )}
 
@@ -110,14 +118,19 @@ const ItemPage: React.FC = () => {
             {/* NOTES TABS (video + reading) */}
             {item.kind !== 'quiz' && (
                 <div className="mt-6">
-                    <div role="tablist" className="flex gap-1 border-b border-stone-200 dark:border-slate-800">
-                        {([['overview', 'Lesson notes', FileText], ['notes', 'My notes', PenLine]] as const).map(([id, label, Icon]) => (
+                    <div role="tablist" className="flex gap-1 overflow-x-auto border-b border-stone-200 dark:border-slate-800">
+                        {([
+                            ['overview', 'Lesson notes', FileText],
+                            ...(transcript ? [['transcript', 'Transcript', ScrollText] as const] : []),
+                            ['qa', 'Q&A', MessageCircle],
+                            ['notes', 'My notes', PenLine]
+                        ] as const).map(([id, label, Icon]) => (
                             <button
                                 key={id}
                                 role="tab"
                                 aria-selected={tab === id}
                                 onClick={() => setTab(id)}
-                                className={`flex items-center gap-2 px-4 py-3 text-sm font-semibold border-b-2 -mb-px transition-colors ${tab === id ? 'border-violet-700 text-violet-800 dark:text-violet-300' : 'border-transparent text-stone-500 dark:text-slate-400 hover:text-stone-800 dark:hover:text-slate-200'}`}
+                                className={`flex items-center gap-2 px-3 sm:px-4 py-3 whitespace-nowrap text-sm font-semibold border-b-2 -mb-px transition-colors ${tab === id ? 'border-violet-700 text-violet-800 dark:text-violet-300' : 'border-transparent text-stone-500 dark:text-slate-400 hover:text-stone-800 dark:hover:text-slate-200'}`}
                             >
                                 <Icon size={16} /> {label}
                             </button>
@@ -161,6 +174,10 @@ const ItemPage: React.FC = () => {
                         </div>
                     )}
 
+                    {tab === 'transcript' && transcript && <TranscriptView paragraphs={transcript} />}
+
+                    {tab === 'qa' && <LessonQA key={item.id} uid={uid} itemId={item.id} fullName={fullName} />}
+
                     {tab === 'notes' && (
                         <div className="pt-5">
                             <label htmlFor="note" className="sr-only">My notes</label>
@@ -190,6 +207,8 @@ const ItemPage: React.FC = () => {
                     )}
                 </div>
             )}
+
+            {item.kind !== 'quiz' && (item.kind === 'reading' || done || !hasVideo) && <LessonRating uid={uid} itemId={item.id} />}
 
             <div className="mt-8 pt-6 border-t border-stone-200 dark:border-slate-800 flex items-center justify-between gap-3">
                 <button onClick={goPrev} disabled={!prev} className={BTN_SECONDARY}><ArrowLeft size={16} /> Previous</button>

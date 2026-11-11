@@ -337,9 +337,9 @@ const DiscussionsPage: React.FC = () => {
     const getRoleBadgeClass = (role: string) => {
         switch (role) {
             case 'instructor':
-                return 'bg-violet-100 text-violet-700 dark:bg-violet-950/40 dark:text-violet-300 border border-violet-200 dark:border-violet-850';
+                return 'bg-violet-100 text-violet-700 dark:bg-violet-950/40 dark:text-violet-300 border border-violet-200 dark:border-violet-800';
             case 'ai':
-                return 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-850';
+                return 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800';
             default:
                 return 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300';
         }
@@ -348,22 +348,22 @@ const DiscussionsPage: React.FC = () => {
     return (
         <div className="space-y-6">
             <div>
-                <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Class Discussion Groups</h1>
-                <p className="text-gray-500 dark:text-slate-400 mt-1">Connect with classmates, ask questions, and chat with AI tutors.</p>
+                <h1 className="text-3xl font-semibold text-stone-900 dark:text-white font-serif">Class Discussion Groups</h1>
+                <p className="text-stone-600 dark:text-slate-400 mt-1">Connect with classmates, ask questions, and chat with AI tutors.</p>
             </div>
 
             {/* Layout Wrapper */}
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 h-[calc(100vh-230px)] min-h-[500px]">
                 {/* Left Sidebar - Channels List */}
-                <div className="lg:col-span-4 bg-white dark:bg-slate-900 rounded-3xl border border-gray-100 dark:border-slate-800 p-4 flex flex-col h-full overflow-hidden shrink-0">
-                    <div className="flex items-center justify-between gap-2 mb-4 pb-3 border-b border-gray-100 dark:border-slate-800 shrink-0">
+                <div className="lg:col-span-4 bg-white dark:bg-slate-900 rounded-2xl border border-stone-100 dark:border-slate-800 p-4 flex flex-col h-full overflow-hidden shrink-0">
+                    <div className="flex items-center justify-between gap-2 mb-4 pb-3 border-b border-stone-100 dark:border-slate-800 shrink-0">
                         <div className="flex items-center gap-2">
-                            <Users size={18} className="text-violet-600" />
-                            <span className="font-bold text-gray-950 dark:text-white text-sm">Channels & Groups</span>
+                            <Users size={18} className="text-violet-700" />
+                            <span className="font-bold text-stone-950 dark:text-white text-sm">Channels & Groups</span>
                         </div>
                         <button
                             onClick={() => setIsCreateGroupModalOpen(true)}
-                            className="flex items-center gap-1 px-2.5 py-1 bg-violet-650 hover:bg-violet-750 text-white rounded-lg text-xs font-bold transition-colors cursor-pointer"
+                            className="flex items-center gap-1 px-2.5 py-1 bg-violet-700 hover:bg-violet-800 text-white rounded-lg text-xs font-bold transition-colors cursor-pointer"
                         >
                             <Plus size={13} />
                             New Group
@@ -381,31 +381,31 @@ const DiscussionsPage: React.FC = () => {
                                 className={`w-full text-left p-3 rounded-2xl transition-all duration-200 flex items-start gap-3 relative ${
                                     selectedGroupId === group.id
                                         ? 'bg-violet-50 dark:bg-violet-950/20 border border-violet-100 dark:border-violet-900/30'
-                                        : 'hover:bg-gray-50 dark:hover:bg-slate-800 border border-transparent'
+                                        : 'hover:bg-stone-50 dark:hover:bg-slate-800 border border-transparent'
                                 }`}
                             >
                                 <div className={`p-2.5 rounded-xl ${
                                     group.isEnrolled 
-                                        ? 'bg-violet-100 text-violet-750 dark:bg-violet-950/50 dark:text-violet-300' 
-                                        : 'bg-gray-100 text-gray-400 dark:bg-slate-800 dark:text-slate-550'
+                                        ? 'bg-violet-100 text-violet-700 dark:bg-violet-950/50 dark:text-violet-300' 
+                                        : 'bg-stone-100 text-stone-500 dark:bg-slate-800 dark:text-slate-500'
                                 }`}>
                                     <MessageSquare size={16} />
                                 </div>
                                 <div className="flex-1 min-w-0">
                                     <div className="flex items-center justify-between gap-1 mb-0.5">
                                         {/* Bolding Requirement: Enrolled channels / General channels are bolded */}
-                                        <span className={`truncate text-sm text-gray-900 dark:text-slate-100 ${
+                                        <span className={`truncate text-sm text-stone-900 dark:text-slate-100 ${
                                             group.isEnrolled ? 'font-bold text-violet-900 dark:text-violet-200' : 'font-normal'
                                         }`}>
                                             {group.name}
                                         </span>
                                         {group.isEnrolled && (
-                                            <span className="shrink-0 flex items-center gap-0.5 text-[10px] bg-violet-100 text-violet-750 dark:bg-violet-950/40 dark:text-violet-300 px-1.5 py-0.5 rounded-full font-bold">
+                                            <span className="shrink-0 flex items-center gap-0.5 text-xs bg-violet-100 text-violet-700 dark:bg-violet-950/40 dark:text-violet-300 px-1.5 py-0.5 rounded-full font-bold">
                                                 <CheckCircle2 size={10} /> Yours
                                             </span>
                                         )}
                                     </div>
-                                    <p className="text-xs text-gray-500 dark:text-slate-400 line-clamp-1">{group.description}</p>
+                                    <p className="text-xs text-stone-600 dark:text-slate-400 line-clamp-1">{group.description}</p>
                                 </div>
                             </button>
                         ))}
@@ -413,30 +413,30 @@ const DiscussionsPage: React.FC = () => {
                 </div>
 
                 {/* Right Chat Board */}
-                <div className="lg:col-span-8 bg-white dark:bg-slate-900 rounded-3xl border border-gray-100 dark:border-slate-800 flex flex-col h-full overflow-hidden relative">
+                <div className="lg:col-span-8 bg-white dark:bg-slate-900 rounded-2xl border border-stone-100 dark:border-slate-800 flex flex-col h-full overflow-hidden relative">
                     {/* Chat Header */}
                     {activeGroup && (
-                        <div className="p-4 border-b border-gray-100 dark:border-slate-800 flex justify-between items-center bg-gray-50/30 dark:bg-slate-900/30">
+                        <div className="p-4 border-b border-stone-100 dark:border-slate-800 flex justify-between items-center bg-stone-50/30 dark:bg-slate-900/30">
                             <div>
-                                <h3 className="font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                                <h3 className="font-bold text-stone-900 dark:text-white flex items-center gap-2">
                                     {activeGroup.name}
                                     {activeGroup.isEnrolled && (
-                                        <span className="text-[10px] bg-violet-100 text-violet-750 dark:bg-violet-950/40 dark:text-violet-300 px-2 py-0.5 rounded-full font-bold">
+                                        <span className="text-xs bg-violet-100 text-violet-700 dark:bg-violet-950/40 dark:text-violet-300 px-2 py-0.5 rounded-full font-bold">
                                             My Channel
                                         </span>
                                     )}
                                 </h3>
-                                <p className="text-xs text-gray-500 dark:text-slate-400">{activeGroup.description}</p>
+                                <p className="text-xs text-stone-600 dark:text-slate-400">{activeGroup.description}</p>
                             </div>
-                            <div className="flex items-center gap-1.5 text-xs text-gray-600 dark:text-slate-300 bg-white dark:bg-slate-850 border border-gray-100 dark:border-slate-800 px-2.5 py-1.5 rounded-xl">
-                                <Users size={14} className="text-violet-600 animate-pulse" />
+                            <div className="flex items-center gap-1.5 text-xs text-stone-600 dark:text-slate-300 bg-white dark:bg-slate-800 border border-stone-100 dark:border-slate-800 px-2.5 py-1.5 rounded-xl">
+                                <Users size={14} className="text-violet-700 animate-pulse" />
                                 <span>{activeGroup.isGeneral ? '1,240' : '48'} active</span>
                             </div>
                         </div>
                     )}
 
                     {/* Chat Message Window */}
-                    <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50/20 dark:bg-slate-900/10">
+                    <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-stone-50/20 dark:bg-slate-900/10">
                         {activeGroup?.messages.map((msg) => {
                             const isOwnMessage = msg.senderId === userId || (!msg.senderId && (msg.senderName === displayUser?.name || msg.senderName === 'Student' || msg.senderName === 'Guest'));
                             return (
@@ -444,17 +444,17 @@ const DiscussionsPage: React.FC = () => {
                                     <img
                                         src={msg.senderAvatar}
                                         alt={msg.senderName}
-                                        className="w-9 h-9 rounded-full object-cover shrink-0 border border-gray-150 dark:border-slate-700 shadow-sm"
+                                        className="w-9 h-9 rounded-full object-cover shrink-0 border border-stone-100 dark:border-slate-700 shadow-sm"
                                     />
                                     <div className="flex-1 min-w-0">
                                         <div className="flex items-center gap-2 mb-1">
-                                            <span className="font-bold text-gray-900 dark:text-slate-100 text-sm">
+                                            <span className="font-bold text-stone-900 dark:text-slate-100 text-sm">
                                                 {msg.senderName}
                                             </span>
-                                            <span className={`text-[10px] uppercase font-bold px-1.5 py-0.5 rounded-md ${getRoleBadgeClass(msg.role)}`}>
+                                            <span className={`text-xs uppercase font-bold px-1.5 py-0.5 rounded-md ${getRoleBadgeClass(msg.role)}`}>
                                                 {msg.role}
                                             </span>
-                                            <span className="text-[10px] text-gray-400 ml-auto">
+                                            <span className="text-xs text-stone-500 ml-auto">
                                                 {msg.timestamp}
                                             </span>
                                             {/* Dropdown Options trigger */}
@@ -465,21 +465,21 @@ const DiscussionsPage: React.FC = () => {
                                                         e.stopPropagation();
                                                         setActiveDropdownMessageId(activeDropdownMessageId === msg.id ? null : msg.id);
                                                     }}
-                                                    className="text-gray-400 hover:text-gray-600 dark:hover:text-slate-300 p-1 rounded-full hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+                                                    className="text-stone-500 hover:text-stone-600 dark:hover:text-slate-300 p-1 rounded-full hover:bg-stone-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
                                                     title="Message Actions"
                                                 >
                                                     <MoreVertical size={13} />
                                                 </button>
                                                 
                                                 {activeDropdownMessageId === msg.id && (
-                                                    <div className="absolute right-0 mt-1 w-36 bg-white dark:bg-slate-800 rounded-xl border border-gray-100 dark:border-slate-700 shadow-xl z-50 p-1 animate-in fade-in slide-in-from-top-2 duration-150">
+                                                    <div className="absolute right-0 mt-1 w-36 bg-white dark:bg-slate-800 rounded-xl border border-stone-100 dark:border-slate-700 shadow-sm z-50 p-1 animate-in fade-in slide-in-from-top-2 duration-150">
                                                         <button
                                                             type="button"
                                                             onClick={() => {
                                                                 navigator.clipboard.writeText(msg.content);
                                                                 setActiveDropdownMessageId(null);
                                                             }}
-                                                            className="w-full text-left px-3 py-2 rounded-lg text-xs hover:bg-gray-50 dark:hover:bg-slate-700 text-gray-700 dark:text-slate-305 flex items-center gap-2 cursor-pointer border-none bg-transparent"
+                                                            className="w-full text-left px-3 py-2 rounded-lg text-xs hover:bg-stone-50 dark:hover:bg-slate-700 text-stone-700 dark:text-slate-300 flex items-center gap-2 cursor-pointer border-none bg-transparent"
                                                         >
                                                             <Copy size={12} />
                                                             <span>Copy Text</span>
@@ -494,7 +494,7 @@ const DiscussionsPage: React.FC = () => {
                                                                         setEditInputText(msg.content);
                                                                         setActiveDropdownMessageId(null);
                                                                     }}
-                                                                    className="w-full text-left px-3 py-2 rounded-lg text-xs hover:bg-gray-50 dark:hover:bg-slate-700 text-gray-700 dark:text-slate-305 flex items-center gap-2 cursor-pointer border-none bg-transparent"
+                                                                    className="w-full text-left px-3 py-2 rounded-lg text-xs hover:bg-stone-50 dark:hover:bg-slate-700 text-stone-700 dark:text-slate-300 flex items-center gap-2 cursor-pointer border-none bg-transparent"
                                                                 >
                                                                     <Edit2 size={12} />
                                                                     <span>Edit Message</span>
@@ -505,7 +505,7 @@ const DiscussionsPage: React.FC = () => {
                                                                         handleDeleteMessage(msg.id);
                                                                         setActiveDropdownMessageId(null);
                                                                     }}
-                                                                    className="w-full text-left px-3 py-2 rounded-lg text-xs hover:bg-red-50 dark:hover:bg-red-950/20 text-red-650 dark:text-red-400 flex items-center gap-2 cursor-pointer border-none bg-transparent"
+                                                                    className="w-full text-left px-3 py-2 rounded-lg text-xs hover:bg-red-50 dark:hover:bg-red-950/20 text-red-600 dark:text-red-400 flex items-center gap-2 cursor-pointer border-none bg-transparent"
                                                                 >
                                                                     <Trash2 size={12} />
                                                                     <span>Delete</span>
@@ -525,16 +525,16 @@ const DiscussionsPage: React.FC = () => {
                                                     type="text" 
                                                     value={editInputText} 
                                                     onChange={(e) => setEditInputText(e.target.value)}
-                                                    className="px-3 py-1.5 text-sm bg-gray-50 dark:bg-slate-800 border border-gray-250 dark:border-slate-700 text-gray-900 dark:text-white rounded-xl focus:ring-2 focus:ring-violet-500 outline-none w-64"
+                                                    className="px-3 py-1.5 text-sm bg-stone-50 dark:bg-slate-800 border border-stone-200 dark:border-slate-700 text-stone-900 dark:text-white rounded-xl focus:ring-2 focus:ring-violet-500 outline-none w-64"
                                                     autoFocus
                                                 />
-                                                <button type="submit" className="text-xs bg-violet-600 hover:bg-violet-750 text-white px-2.5 py-1.5 rounded-lg font-bold cursor-pointer">Save</button>
-                                                <button type="button" onClick={() => setEditingMessageId(null)} className="text-xs bg-gray-100 hover:bg-gray-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-gray-700 dark:text-slate-350 px-2.5 py-1.5 rounded-lg cursor-pointer">Cancel</button>
+                                                <button type="submit" className="text-xs bg-violet-700 hover:bg-violet-800 text-white px-2.5 py-1.5 rounded-lg font-bold cursor-pointer">Save</button>
+                                                <button type="button" onClick={() => setEditingMessageId(null)} className="text-xs bg-stone-100 hover:bg-stone-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-stone-700 dark:text-slate-300 px-2.5 py-1.5 rounded-lg cursor-pointer">Cancel</button>
                                             </form>
                                         ) : (
-                                            <p className="text-sm text-gray-700 dark:text-slate-350 bg-white dark:bg-slate-850 p-3 rounded-2xl rounded-tl-none border border-gray-100 dark:border-slate-850 inline-block max-w-full break-words shadow-sm">
+                                            <p className="text-sm text-stone-700 dark:text-slate-300 bg-white dark:bg-slate-800 p-3 rounded-2xl rounded-tl-none border border-stone-100 dark:border-slate-800 inline-block max-w-full break-words shadow-sm">
                                                 {msg.content}
-                                                {msg.isEdited && <span className="text-[10px] text-gray-400 dark:text-slate-500 ml-1.5 font-normal italic">(edited)</span>}
+                                                {msg.isEdited && <span className="text-xs text-stone-500 dark:text-slate-500 ml-1.5 font-normal italic">(edited)</span>}
                                             </p>
                                         )}
                                     </div>
@@ -545,7 +545,7 @@ const DiscussionsPage: React.FC = () => {
                     </div>
 
                     {/* Send Message Input Area */}
-                    <div className="p-4 border-t border-gray-100 dark:border-slate-800 bg-white dark:bg-slate-900">
+                    <div className="p-4 border-t border-stone-100 dark:border-slate-800 bg-white dark:bg-slate-900">
                         <form onSubmit={handleSendMessage} className="flex gap-2">
                             <input
                                 type="text"
@@ -557,12 +557,12 @@ const DiscussionsPage: React.FC = () => {
                                         : "Enroll in this course to participate in this group discussion."
                                 }
                                 disabled={!activeGroup?.isEnrolled}
-                                className="flex-1 px-4 py-3 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 text-gray-900 dark:text-white rounded-xl focus:ring-2 focus:ring-violet-500 outline-none transition-all text-sm disabled:opacity-60 disabled:cursor-not-allowed"
+                                className="flex-1 px-4 py-3 bg-stone-50 dark:bg-slate-800 border border-stone-200 dark:border-slate-700 text-stone-900 dark:text-white rounded-xl focus:ring-2 focus:ring-violet-500 outline-none transition-all text-sm disabled:opacity-60 disabled:cursor-not-allowed"
                             />
                             <button
                                 type="submit"
                                 disabled={!inputText.trim() || !activeGroup?.isEnrolled}
-                                className="bg-violet-600 hover:bg-violet-750 text-white p-3 rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed shrink-0 cursor-pointer"
+                                className="bg-violet-700 hover:bg-violet-800 text-white p-3 rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed shrink-0 cursor-pointer"
                             >
                                 <Send size={18} />
                             </button>
@@ -574,61 +574,61 @@ const DiscussionsPage: React.FC = () => {
             {/* Create Group Modal */}
             {isCreateGroupModalOpen && (
                 <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[110] flex items-center justify-center p-4">
-                    <div className="bg-white dark:bg-slate-900 rounded-3xl w-full max-w-lg overflow-hidden shadow-2xl p-6 border border-gray-100 dark:border-slate-800 space-y-4 flex flex-col max-h-[90vh]">
-                        <div className="flex justify-between items-center pb-2 border-b border-gray-100 dark:border-slate-800 shrink-0">
+                    <div className="bg-white dark:bg-slate-900 rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl p-6 border border-stone-100 dark:border-slate-800 space-y-4 flex flex-col max-h-[90vh]">
+                        <div className="flex justify-between items-center pb-2 border-b border-stone-100 dark:border-slate-800 shrink-0">
                             <div>
-                                <h3 className="font-bold text-gray-900 dark:text-white text-lg">
+                                <h3 className="font-bold text-stone-900 dark:text-white text-lg">
                                     Create Discussion Group
                                 </h3>
-                                <p className="text-xs text-gray-500 dark:text-slate-400 mt-0.5">
+                                <p className="text-xs text-stone-600 dark:text-slate-400 mt-0.5">
                                     Form a private or public study circle with your classmates.
                                 </p>
                             </div>
-                            <button onClick={() => setIsCreateGroupModalOpen(false)} className="text-gray-400 hover:text-gray-650 p-1 cursor-pointer">
+                            <button onClick={() => setIsCreateGroupModalOpen(false)} className="text-stone-500 hover:text-stone-600 p-1 cursor-pointer">
                                 <X size={18} />
                             </button>
                         </div>
 
                         <form onSubmit={handleCreateGroup} className="flex-1 overflow-y-auto pr-1 space-y-4 py-2 min-h-0">
                             <div className="space-y-1">
-                                <label className="text-xs font-semibold text-gray-600 dark:text-slate-400">Group Name</label>
+                                <label className="text-xs font-semibold text-stone-600 dark:text-slate-400">Group Name</label>
                                 <input
                                     type="text"
                                     value={newGroupName}
                                     onChange={(e) => setNewGroupName(e.target.value)}
                                     placeholder="e.g. Neural Networks Study Circle"
-                                    className="w-full p-2.5 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl text-sm"
+                                    className="w-full p-2.5 bg-stone-50 dark:bg-slate-800 border border-stone-200 dark:border-slate-700 rounded-xl text-sm"
                                     required
                                 />
                             </div>
 
                             <div className="space-y-1">
-                                <label className="text-xs font-semibold text-gray-600 dark:text-slate-400">Description</label>
+                                <label className="text-xs font-semibold text-stone-600 dark:text-slate-400">Description</label>
                                 <textarea
                                     value={newGroupDescription}
                                     onChange={(e) => setNewGroupDescription(e.target.value)}
                                     placeholder="e.g. Collaboration channel for group homework and papers."
                                     rows={2}
-                                    className="w-full p-2.5 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl text-sm outline-none"
+                                    className="w-full p-2.5 bg-stone-50 dark:bg-slate-800 border border-stone-200 dark:border-slate-700 rounded-xl text-sm outline-none"
                                     required
                                 />
                             </div>
 
                             {/* Classmates Selector */}
-                            <div className="space-y-2 border-t border-gray-150/40 dark:border-slate-800/80 pt-3">
+                            <div className="space-y-2 border-t border-stone-100/40 dark:border-slate-800/80 pt-3">
                                 <div className="flex justify-between items-baseline">
-                                    <label className="text-xs font-semibold text-gray-600 dark:text-slate-400">Select Group Members</label>
-                                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                                    <label className="text-xs font-semibold text-stone-600 dark:text-slate-400">Select Group Members</label>
+                                    <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${
                                         selectedMembers.length >= 6
                                             ? 'bg-green-50 dark:bg-green-950/20 text-green-600 dark:text-green-400 border border-green-200'
-                                            : 'bg-red-50 dark:bg-red-905/20 text-red-600 dark:text-red-400 border border-red-205'
+                                            : 'bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 border border-red-200'
                                     }`}>
                                         {selectedMembers.length} Selected (Minimum: 6)
                                     </span>
                                 </div>
 
                                 {/* Checklist of classmates */}
-                                <div className="grid grid-cols-2 gap-2 bg-gray-50 dark:bg-slate-950/30 p-3 rounded-2xl border border-gray-250/40 dark:border-slate-800/80 max-h-40 overflow-y-auto">
+                                <div className="grid grid-cols-2 gap-2 bg-stone-50 dark:bg-slate-950/30 p-3 rounded-2xl border border-stone-200/40 dark:border-slate-800/80 max-h-40 overflow-y-auto">
                                     {CLASSMATES_LIST.map((name) => {
                                         const isChecked = selectedMembers.includes(name);
                                         return (
@@ -636,8 +636,8 @@ const DiscussionsPage: React.FC = () => {
                                                 key={name} 
                                                 className={`flex items-center gap-2 p-2 rounded-xl text-xs font-medium cursor-pointer transition-colors border ${
                                                     isChecked 
-                                                        ? 'bg-violet-50/40 border-violet-200 dark:bg-violet-950/10 dark:border-violet-900/50 text-gray-900 dark:text-white' 
-                                                        : 'bg-white dark:bg-slate-900 border-transparent hover:bg-gray-100/50 dark:hover:bg-slate-800/50 text-gray-600 dark:text-slate-400'
+                                                        ? 'bg-violet-50/40 border-violet-200 dark:bg-violet-950/10 dark:border-violet-900/50 text-stone-900 dark:text-white' 
+                                                        : 'bg-white dark:bg-slate-900 border-transparent hover:bg-stone-100/50 dark:hover:bg-slate-800/50 text-stone-600 dark:text-slate-400'
                                                 }`}
                                             >
                                                 <input
@@ -650,7 +650,7 @@ const DiscussionsPage: React.FC = () => {
                                                             setSelectedMembers([...selectedMembers, name]);
                                                         }
                                                     }}
-                                                    className="w-3.5 h-3.5 accent-violet-650 cursor-pointer"
+                                                    className="w-3.5 h-3.5 accent-violet-600 cursor-pointer"
                                                 />
                                                 <span className="truncate">{name}</span>
                                             </label>
@@ -659,13 +659,13 @@ const DiscussionsPage: React.FC = () => {
                                 </div>
 
                                 {selectedMembers.length < 6 && (
-                                    <p className="text-[10px] text-red-500 font-semibold animate-none">
+                                    <p className="text-xs text-red-500 font-semibold animate-none">
                                         <AlertTriangle className="inline-block w-4 h-4 mr-1 align-middle" />️ You must select more than 5 members (minimum 6) to qualify to create a group.
                                     </p>
                                 )}
                             </div>
 
-                            <div className="pt-4 border-t border-gray-100 dark:border-slate-800 flex justify-end gap-2 shrink-0">
+                            <div className="pt-4 border-t border-stone-100 dark:border-slate-800 flex justify-end gap-2 shrink-0">
                                 <button
                                     type="button"
                                     onClick={() => {
@@ -674,14 +674,14 @@ const DiscussionsPage: React.FC = () => {
                                         setSelectedMembers([]);
                                         setIsCreateGroupModalOpen(false);
                                     }}
-                                    className="px-4 py-2 border border-gray-255 dark:border-slate-700 text-xs font-semibold text-gray-700 dark:text-slate-300 rounded-xl hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+                                    className="px-4 py-2 border border-stone-300 dark:border-slate-700 text-xs font-semibold text-stone-700 dark:text-slate-300 rounded-xl hover:bg-stone-50 dark:hover:bg-slate-800 transition-colors cursor-pointer"
                                 >
                                     Cancel
                                 </button>
                                 <button
                                     type="submit"
                                     disabled={selectedMembers.length < 6 || !newGroupName.trim() || !newGroupDescription.trim()}
-                                    className="px-5 py-2 bg-violet-600 hover:bg-violet-750 text-white rounded-xl text-xs font-bold transition-colors disabled:opacity-50 disabled:cursor-not-allowed shrink-0 cursor-pointer shadow-sm"
+                                    className="px-5 py-2 bg-violet-700 hover:bg-violet-800 text-white rounded-xl text-xs font-bold transition-colors disabled:opacity-50 disabled:cursor-not-allowed shrink-0 cursor-pointer shadow-sm"
                                 >
                                     Create Group
                                 </button>

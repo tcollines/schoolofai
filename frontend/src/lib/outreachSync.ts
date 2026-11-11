@@ -898,9 +898,9 @@ export async function logOutreachToLiveCoursesDb(record: OutreachRegistrationPay
             }
         };
 
-        const { error } = await supabase
-            .from('courses')
-            .upsert([courseLedgerRow], { onConflict: 'id' });
+        // The public form may only ADD a registration, through a server function.
+        // (Reading/changing registrations needs an administrator session.)
+        const { error } = await supabase.rpc('submit_outreach_registration', { p_row: courseLedgerRow });
 
         if (error) throw error;
         window.dispatchEvent(new Event('outreach-registration-update'));
@@ -924,41 +924,14 @@ export async function insertOutreachRegistrationLive(payload: OutreachRegistrati
         status: payload.status || 'NEW'
     };
 
-    const coreDbRow: Record<string, any> = {
-        id: recordId,
-        full_name: enrichedPayload.full_name,
-        email: enrichedPayload.email || null,
-        phone: enrichedPayload.phone,
-        age_range: enrichedPayload.age_range || null,
-        guardian_name: enrichedPayload.guardian_name || null,
-        guardian_phone: enrichedPayload.guardian_phone || null,
-        location: enrichedPayload.location || null,
-        course_interest: enrichedPayload.course_interest,
-        level: enrichedPayload.level || 'Intermediate',
-        mode_preference: enrichedPayload.mode_preference || 'Hybrid',
-        preferred_study_days: enrichedPayload.preferred_study_days || [],
-        preferred_time_slot: enrichedPayload.preferred_time_slot || null,
-        how_heard: enrichedPayload.how_heard || 'Outreach Event',
-        outreach_event: enrichedPayload.outreach_event || 'Nkumba University Outreach (Fri, 6th Nov 2026)',
-        consent_contact: Boolean(enrichedPayload.consent_contact),
-        status: enrichedPayload.status || 'NEW',
-        admin_notes: enrichedPayload.admin_notes || null,
-        submitted_from: enrichedPayload.submitted_from || 'web'
-    };
-
     // 1. Always write the full 8-section + staff audit record to the live Supabase DB ledger
     const savedToLiveDb = await logOutreachToLiveCoursesDb(enrichedPayload);
 
-    // 2. Also attempt insert into dedicated outreach_registrations table if present
-    const { error } = await supabase
-        .from('outreach_registrations')
-        .insert([coreDbRow]);
-
-    if (savedToLiveDb || !error) {
+    if (savedToLiveDb) {
         return true;
     }
 
-    throw error;
+    throw new Error('Could not save the registration to the live database');
 }
 
 let isFlushing = false;

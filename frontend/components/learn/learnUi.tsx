@@ -71,3 +71,25 @@ export const formatEAT = (iso: string, opts: Intl.DateTimeFormatOptions = {}) =>
 
 export const formatLocal = (iso: string) =>
     new Date(iso).toLocaleString(undefined, { weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+
+export interface PlayerPrefs { dataSaver: boolean; audioOnly: boolean; }
+const PREFS_KEY = 'welile_learn_player_prefs';
+const readPrefs = (): PlayerPrefs => {
+    try {
+        const raw = JSON.parse(localStorage.getItem(PREFS_KEY) || '{}');
+        return { dataSaver: !!raw.dataSaver, audioOnly: !!raw.audioOnly };
+    } catch { return { dataSaver: false, audioOnly: false }; }
+};
+
+/** Data-saver / audio-only preferences, remembered on this device. */
+export const usePlayerPrefs = () => {
+    const [prefs, setPrefs] = useState<PlayerPrefs>(readPrefs);
+    const update = (patch: Partial<PlayerPrefs>) => {
+        setPrefs(prev => {
+            const next = { ...prev, ...patch };
+            try { localStorage.setItem(PREFS_KEY, JSON.stringify(next)); } catch { /* ignore */ }
+            return next;
+        });
+    };
+    return { prefs, update };
+};

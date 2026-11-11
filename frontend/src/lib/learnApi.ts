@@ -315,3 +315,71 @@ export async function submitFinalExam(attemptId: string, answers: Record<string,
     const d: any = data;
     return { score: d.score, total: d.total, pct: d.percentage, passed: d.passed, wrongIds: d.wrong || [], review: d.review || undefined };
 }
+
+// ----------------------------------------------------------------------------
+// Per-lesson rating. Reuses learn_ratings (PK user_id + course_slug) by storing the lesson in the slug
+// as "<course>#<item_id>", so the course-level rating row and its stats are untouched.
+// ----------------------------------------------------------------------------
+export const lessonRatingSlug = (itemId: string) => `${SLUG}#${itemId}`;
+
+export async function saveLessonRating(uid: string, itemId: string, rating: number, comment: string) {
+    writeJson(k(uid, `lessonrating_${itemId}`), { rating, comment });
+    try {
+        await supabase.from('learn_ratings').upsert(
+            { user_id: uid, course_slug: lessonRatingSlug(itemId), rating, comment: comment.trim() || null },
+            { onConflict: 'user_id,course_slug' }
+        );
+    } catch { /* offline: the local copy is kept */ }
+}
+
+export async function loadLessonRating(uid: string, itemId: string): Promise<{ rating: number; comment: string } | null> {
+    const local = readJson<{ rating: number; comment: string } | null>(k(uid, `lessonrating_${itemId}`), null);
+    try {
+        const { data, error } = await supabase.from('learn_ratings').select('rating,comment')
+            .eq('user_id', uid).eq('course_slug', lessonRatingSlug(itemId)).maybeSingle();
+        if (!error && data) return { rating: data.rating, comment: data.comment || '' };
+    } catch { /* fall through to local */ }
+    return local;
+}
+
+// ----------------------------------------------------------------------------
+// Lesson Q&A (tables learn_questions / learn_answers; see migration 20261112000000_learn_qa.sql)
+// ----------------------------------------------------------------------------
+export interface LessonAnswer { id: string; body: string; author_name: string | null; created_at: string; }
+export interface LessonQuestion {
+    id: string;
+    user_id: string;
+    asker_name: string | null;
+    body: string;
+    is_public: boolean;
+    created_at: string;
+    answers: LessonAnswer[];
+}
+
+/** Returns the learner's own questions plus public ones for this lesson. `missing` = migration not applied yet. */
+export async function loadQuestions(itemId: string): Promise<{ questions: LessonQuestion[]; missing: boolean }> {
+    try {
+        const { data, error } = await supabase
+            .from('learn_questions')
+            .select('id,user_id,asker_name,body,is_public,created_at,learn_answers(id,body,author_name,created_at)')
+            .eq('course_slug', SLUG).eq('item_id', itemId)
+            .order('created_at', { ascending: false }).limit(100);
+        if (error) return { questions: [], missing: isBackendMissing(error) };
+        const questions = ((data || []) as any[]).map(q => ({
+            ...q,
+            answers: ((q.learn_answers || []) as LessonAnswer[]).slice().sort((a, b) => a.created_at.localeCompare(b.created_at))
+        })) as LessonQuestion[];
+        return { questions, missing: false };
+    } catch { return { questions: [], missing: true }; }
+}
+
+export async function askQuestion(uid: string, itemId: string, askerName: string, body: string): Promise<boolean> {
+    try {
+        const { error } = await supabase.from('learn_questions').insert({
+            user_id: uid, course_slug: SLUG, item_id: itemId, asker_name: askerName || null, body: body.trim()
+        });
+        if (error) return false;
+        void recordEvent(uid, 'question_asked', itemId);
+        return true;
+    } catch { return false; }
+}

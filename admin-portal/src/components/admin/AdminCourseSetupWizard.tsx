@@ -1053,7 +1053,7 @@ const AdminCourseSetupWizard: React.FC<AdminCourseSetupWizardProps> = ({ isInstr
         setMeetError('');
         try {
             const tutorEmail = newCourse.instructorEmail || localStorage.getItem('instructor-email') || 'tutor@welile.com';
-            const res = await fetch('http://localhost:3000/api/google-meet/create', {
+            const res = await fetch(`${((import.meta as any).env?.VITE_BACKEND_URL || 'http://localhost:3000').replace(/\/$/, '')}/api/google-meet/create`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
