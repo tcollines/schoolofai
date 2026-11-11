@@ -43,12 +43,14 @@ import { UserRole } from './types';
 
 const LandingRoute = ({ isAuthenticated }: { isAuthenticated: boolean }) => {
   const navigate = useNavigate();
-  if (isAuthenticated) return <Navigate to="/dashboard" replace />;
+  // The public home page stays open to everyone, signed in or not. Signed-in visitors get a
+  // "Go to dashboard" button instead of being sent away from it.
   return (
-    <LandingPage 
-      onGetStarted={() => navigate('/signup')}
-      onLoginClick={() => navigate('/login')}
-      onSignupClick={() => navigate('/signup')}
+    <LandingPage
+      isAuthenticated={isAuthenticated}
+      onGetStarted={() => navigate(isAuthenticated ? '/dashboard' : '/signup')}
+      onLoginClick={() => navigate(isAuthenticated ? '/dashboard' : '/login')}
+      onSignupClick={() => navigate(isAuthenticated ? '/dashboard' : '/signup')}
     />
   );
 };

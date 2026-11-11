@@ -31,9 +31,10 @@ interface LandingPageProps {
     onLoginClick?: () => void;
     onSignupClick?: () => void;
     onGetStarted?: () => void;
+    isAuthenticated?: boolean;
 }
 
-const LandingPage: React.FC<LandingPageProps> = ({ onLoginClick, onSignupClick, onGetStarted }) => {
+const LandingPage: React.FC<LandingPageProps> = ({ onLoginClick, onSignupClick, onGetStarted, isAuthenticated = false }) => {
     const [isDark, setIsDark] = useState(() => {
         return document.documentElement.classList.contains('dark');
     });
@@ -201,18 +202,29 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLoginClick, onSignupClick, 
                                 {isDark ? <Sun size={18} /> : <Moon size={18} />}
                             </button>
 
-                            <button
-                                onClick={onLoginClick}
-                                className="text-gray-600 dark:text-slate-300 hover:text-gray-900 dark:hover:text-white font-medium text-sm transition-colors whitespace-nowrap"
-                            >
-                                Log in
-                            </button>
-                            <button
-                                onClick={onSignupClick || onGetStarted}
-                                className="hidden sm:block bg-black dark:bg-white text-white dark:text-slate-950 px-4 py-2 rounded-full text-sm font-medium hover:bg-gray-800 dark:hover:bg-slate-100 transition-colors shadow-sm"
-                            >
-                                Get Started
-                            </button>
+                            {isAuthenticated ? (
+                                <button
+                                    onClick={onLoginClick}
+                                    className="bg-black dark:bg-white text-white dark:text-slate-950 px-4 py-2 rounded-full text-sm font-medium hover:bg-gray-800 dark:hover:bg-slate-100 transition-colors shadow-sm whitespace-nowrap"
+                                >
+                                    Go to dashboard
+                                </button>
+                            ) : (
+                                <>
+                                    <button
+                                        onClick={onLoginClick}
+                                        className="text-gray-600 dark:text-slate-300 hover:text-gray-900 dark:hover:text-white font-medium text-sm transition-colors whitespace-nowrap"
+                                    >
+                                        Log in
+                                    </button>
+                                    <button
+                                        onClick={onSignupClick || onGetStarted}
+                                        className="hidden sm:block bg-black dark:bg-white text-white dark:text-slate-950 px-4 py-2 rounded-full text-sm font-medium hover:bg-gray-800 dark:hover:bg-slate-100 transition-colors shadow-sm"
+                                    >
+                                        Get Started
+                                    </button>
+                                </>
+                            )}
                         </div>
                     </div>
                 </div>
@@ -243,7 +255,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLoginClick, onSignupClick, 
                                 onClick={onGetStarted}
                                 className="inline-flex items-center justify-center rounded-xl border border-stone-300 dark:border-slate-700 bg-white dark:bg-slate-900 hover:bg-stone-50 dark:hover:bg-slate-800 text-[#1c1917] dark:text-slate-100 font-semibold px-6 py-4 text-base transition-colors"
                             >
-                                Create an account
+                                {isAuthenticated ? 'Go to my dashboard' : 'Create an account'}
                             </button>
                             {outreachButtonVisible && (
                                 <Link
