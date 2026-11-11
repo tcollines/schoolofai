@@ -109,14 +109,8 @@ const CertificatePage: React.FC = () => {
             <h1 className="font-serif text-3xl font-semibold">Your certificate</h1>
             <p className={`mt-1 ${MUTED}`}>Well done. Anyone can check it is genuine at the link below.</p>
 
-            {cert.provisional && (
-                <div role="status" className="mt-4 rounded-xl border border-amber-300 bg-amber-50 dark:bg-amber-950/30 dark:border-amber-900 p-4 text-sm">
-                    This certificate is saved on your device and will be confirmed online automatically as soon as you are connected. Come back to this page then.
-                </div>
-            )}
-
             <div className="mt-6 rounded-2xl overflow-hidden border border-stone-200 dark:border-slate-800 shadow-lg">
-                <CertificateDocument name={cert.name} courseTitle={cert.courseTitle} issuedAt={cert.issuedAt} certId={cert.id} provisional={cert.provisional} />
+                <CertificateDocument name={cert.name} courseTitle={cert.courseTitle} issuedAt={cert.issuedAt} certId={cert.id} />
             </div>
 
             <div className="mt-6 flex flex-wrap gap-3">

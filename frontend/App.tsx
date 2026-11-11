@@ -27,6 +27,7 @@ import ReferralRedirect from './components/learn/ReferralRedirect';
 const FreeCoursePage = lazy(() => import('./components/learn/FreeCoursePage'));
 const LearnRoute = lazy(() => import('./components/learn/LearnRoute'));
 const VerifyCertificatePage = lazy(() => import('./components/learn/VerifyCertificatePage'));
+const StaffPortal = lazy(() => import('./components/staff/StaffPortal'));
 const RouteFallback = () => (
   <div className="flex items-center justify-center h-screen">
     <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-welile-purple"></div>
@@ -293,6 +294,12 @@ function App() {
         <Route path="/free/ai-fundamentals" element={<Suspense fallback={<RouteFallback />}><FreeCoursePage /></Suspense>} />
         <Route path="/r/:slug" element={<ReferralRedirect />} />
         <Route path="/verify/:id" element={<Suspense fallback={<RouteFallback />}><VerifyCertificatePage /></Suspense>} />
+        {/* Staff portal: staff sign in with their normal login; access is granted by an administrator linking the account */}
+        <Route path="/staff" element={
+          <ProtectedRoute isAuthenticated={isAuthenticated} userProfile={userProfile}>
+            <Suspense fallback={<RouteFallback />}><StaffPortal session={session} /></Suspense>
+          </ProtectedRoute>
+        } />
         <Route path="/learn/:course/*" element={
           <ProtectedRoute isAuthenticated={isAuthenticated} requireOnboarding={true} userProfile={userProfile}>
             <Suspense fallback={<RouteFallback />}><LearnRoute session={session} userProfile={userProfile} /></Suspense>

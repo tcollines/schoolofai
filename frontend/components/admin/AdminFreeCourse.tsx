@@ -1,7 +1,8 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { supabaseClient } from '../../src/lib/supabaseClient';
 import { ALL_ITEMS, COURSE, MODULES } from '../../src/content/aiFundamentals';
-import { AlertTriangle, Award, Check, Copy, Download, Eye, Loader2, MousePointerClick, RefreshCw, Star, Trophy, UserPlus, Users, Zap } from 'lucide-react';
+import { AlertTriangle, Award, Check, Copy, Download, Eye, Loader2, MousePointerClick, RefreshCw, Search, Star, Trophy, UserPlus, Users, Zap } from 'lucide-react';
+import AdminAuthPrompt from './AdminAuthPrompt';
 import { Area, AreaChart, Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 
 interface Stats {
@@ -17,8 +18,10 @@ interface Stats {
     quizzes: { quiz: string; attempts: number; learners: number; pass_rate: number; avg_score: number }[];
     by_source: { source: string; learners: number }[];
     signups_by_day: { day: string; enrolled: number }[];
-    leaderboard: { id: string; display_name: string; staff_code: string; clicks: number; signups: number; started: number; completed: number; points: number }[];
+    leaderboard: { id: string; display_name: string; staff_code: string; clicks: number; registered: number; signups: number; started: number; completed: number; points: number }[];
 }
+
+interface Learner { user_id: string; name: string; email: string; enrolled_at: string; source: string; staff: string | null; items_done: number; last_active: string | null; final_passed: boolean; certificate_id: string | null; }
 
 interface StaffRow { id: string; display_name: string; staff_code: string; slug: string; role: string | null; active: boolean }
 
@@ -34,6 +37,8 @@ const AdminFreeCourse: React.FC = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<{ kind: 'auth' | 'missing' | 'other'; message: string } | null>(null);
     const [copied, setCopied] = useState<string | null>(null);
+    const [learners, setLearners] = useState<Learner[]>([]);
+    const [search, setSearch] = useState('');
 
     const load = useCallback(async () => {
         setLoading(true);
@@ -44,11 +49,16 @@ const AdminFreeCourse: React.FC = () => {
             else if (/could not find|does not exist|PGRST202/i.test(msg + (err.code || ''))) setError({ kind: 'missing', message: msg });
             else setError({ kind: 'other', message: msg });
             setStats(null);
+        } else if (!data) {
+            setError({ kind: 'other', message: 'No statistics were returned.' });
+            setStats(null);
         } else {
             setError(null);
             setStats(data as Stats);
             const { data: s } = await supabaseClient.from('staff_members').select('id,display_name,staff_code,slug,role,active').order('display_name');
             setStaff((s as StaffRow[]) || []);
+            const { data: l } = await supabaseClient.rpc('admin_learners', { p_course: COURSE.slug });
+            setLearners((l as Learner[]) || []);
         }
         setLoading(false);
     }, []);
@@ -86,6 +96,23 @@ const AdminFreeCourse: React.FC = () => {
     const itemCounts = useMemo(() => Object.fromEntries((stats?.by_item || []).map(i => [i.item, i.learners])), [stats]);
     const maxItem = Math.max(1, ...Object.values(itemCounts) as number[]);
 
+    const filteredLearners = useMemo(() => {
+        const q = search.trim().toLowerCase();
+        return learners.filter(l => !q || `${l.name} ${l.email} ${l.staff || ''} ${l.source}`.toLowerCase().includes(q));
+    }, [learners, search]);
+
+    const exportLearners = () => {
+        const esc = (v: unknown) => `"${String(v ?? '').replace(/"/g, '""')}"`;
+        const rows = [['Name', 'Email', 'Joined', 'Source', 'Staff', 'Items done', 'Last active', 'Final passed', 'Certificate'],
+            ...filteredLearners.map(l => [l.name, l.email, l.enrolled_at, l.source, l.staff || '', l.items_done, l.last_active || '', l.final_passed ? 'yes' : 'no', l.certificate_id || ''])];
+        const blob = new Blob([rows.map(r => r.map(esc).join(',')).join('\n')], { type: 'text/csv' });
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = `ai-fundamentals-learners-${new Date().toISOString().slice(0, 10)}.csv`;
+        a.click();
+        URL.revokeObjectURL(a.href);
+    };
+
     const copy = async (text: string, key: string) => {
         try { await navigator.clipboard.writeText(text); setCopied(key); setTimeout(() => setCopied(null), 1800); } catch { /* ignore */ }
     };
@@ -118,12 +145,13 @@ const AdminFreeCourse: React.FC = () => {
 
             {loading && !stats && <div className="flex items-center gap-2 text-gray-500"><Loader2 className="animate-spin" size={18} /> Loading statistics...</div>}
 
-            {error && (
+            {error?.kind === 'auth' && <AdminAuthPrompt onSignedIn={() => void load()} />}
+
+            {error && error.kind !== 'auth' && (
                 <div className="rounded-2xl border border-amber-300 bg-amber-50 dark:bg-amber-950/30 dark:border-amber-900 p-5 flex gap-3">
                     <AlertTriangle className="text-amber-600 shrink-0" />
                     <div className="text-sm">
-                        {error.kind === 'auth' && <><p className="font-semibold">Administrator sign-in required</p><p className="mt-1">Learner data is only shown to a signed-in administrator account (a user whose profile role is ADMIN). The shared demo passcode login does not create a database session, so it cannot read this data. Sign in with your administrator email and password.</p></>}
-                        {error.kind === 'missing' && <><p className="font-semibold">The free-course database objects are not installed yet</p><p className="mt-1">Apply <code>supabase/migrations/20261111000000_free_course_foundation.sql</code> (additive, it does not change existing data), then refresh.</p></>}
+                        {error.kind === 'missing' && <><p className="font-semibold">The free-course database objects are not installed yet</p><p className="mt-1">Run <code>20261111000000_free_course_foundation.sql</code> and then <code>20261111010000_staff_portal_live_admin_server_grading.sql</code> from <code>supabase/migrations</code> in the Supabase SQL Editor (both only add new objects), then refresh.</p></>}
                         {error.kind === 'other' && <><p className="font-semibold">Could not load statistics</p><p className="mt-1">{error.message}</p></>}
                     </div>
                 </div>
@@ -267,6 +295,36 @@ const AdminFreeCourse: React.FC = () => {
                                     </tbody>
                                 </table>
                             </div>
+                        </div>
+                    </div>
+
+                    {/* Learners */}
+                    <div className={`${card} p-5`}>
+                        <div className="flex flex-wrap items-center justify-between gap-3">
+                            <h2 className="font-bold">Learners ({learners.length})</h2>
+                            <div className="flex gap-2">
+                                <div className="relative"><Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" /><input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search name, email, staff" className="pl-8 pr-3 py-2 rounded-lg border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm" /></div>
+                                <button onClick={exportLearners} className="inline-flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium border border-gray-200 dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-800"><Download size={14} /> CSV</button>
+                            </div>
+                        </div>
+                        <div className="overflow-x-auto mt-3 max-h-96 overflow-y-auto">
+                            <table className="w-full text-sm">
+                                <thead className="sticky top-0 bg-white dark:bg-slate-900"><tr className="text-left text-xs uppercase text-gray-500"><th className="py-2">Learner</th><th>Joined</th><th>Source</th><th>Staff</th><th className="text-right">Progress</th><th>Last active</th><th>Status</th></tr></thead>
+                                <tbody>
+                                    {filteredLearners.map(l => (
+                                        <tr key={l.user_id} className="border-t border-gray-100 dark:border-slate-800">
+                                            <td className="py-2"><span className="font-medium">{l.name || 'Unnamed'}</span><span className="block text-xs text-gray-500">{l.email}</span></td>
+                                            <td className="whitespace-nowrap">{new Date(l.enrolled_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}</td>
+                                            <td className="capitalize">{l.source.replace('_', ' ')}</td>
+                                            <td>{l.staff || '-'}</td>
+                                            <td className="text-right">{Math.round((l.items_done / ALL_ITEMS.length) * 100)}%</td>
+                                            <td className="whitespace-nowrap">{l.last_active ? new Date(l.last_active).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) : '-'}</td>
+                                            <td>{l.certificate_id ? <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800">Certified</span> : l.final_passed ? <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-violet-100 text-violet-800">Passed final</span> : l.items_done > 0 ? <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-amber-100 text-amber-800">Learning</span> : <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-gray-200 text-gray-700">Not started</span>}</td>
+                                        </tr>
+                                    ))}
+                                    {filteredLearners.length === 0 && <tr><td colSpan={7} className="py-4 text-gray-500">No learners match.</td></tr>}
+                                </tbody>
+                            </table>
                         </div>
                     </div>
 

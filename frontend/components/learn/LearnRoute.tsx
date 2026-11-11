@@ -3,7 +3,7 @@ import { Link, Navigate, Route, Routes, useLocation, useParams } from 'react-rou
 import { Award, CalendarClock, CheckCircle2, Circle, FileText, HelpCircle, LayoutDashboard, ListTree, Loader2, PlayCircle, X } from 'lucide-react';
 import { ALL_ITEMS, COURSE, MODULES } from '../../src/content/aiFundamentals';
 import {
-    Certificate, ItemProgress, ProgressMap, completionState, ensureEnrolled, issueCertificate, loadCertificate, loadProgress, saveItemProgress
+    Certificate, ItemProgress, ProgressMap, completionState, ensureEnrolled, loadCertificate, loadProgress, saveItemProgress
 } from '../../src/lib/learnApi';
 import { clearFreeCourseIntent } from '../../src/lib/acquisition';
 import { LearnContext } from './learnContext';
@@ -89,12 +89,6 @@ const LearnRoute: React.FC<Props> = ({ session, userProfile }) => {
             setProgress(p);
             setCert(c);
             setReady(true);
-
-            // A certificate issued while offline is upgraded to a verified one as soon as the database is reachable
-            if (c?.provisional) {
-                const verified = await issueCertificate(uid, c.name).catch(() => null);
-                if (!cancelled && verified && !verified.provisional) setCert(verified);
-            }
         })();
         return () => { cancelled = true; };
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -108,6 +102,11 @@ const LearnRoute: React.FC<Props> = ({ session, userProfile }) => {
 
     const markComplete = useCallback((itemId: string) => markProgress(itemId, { status: 'completed' }), [markProgress]);
 
+    const refresh = useCallback(async () => {
+        if (!uid) return;
+        setProgress(await loadProgress(uid));
+    }, [uid]);
+
     const fullName = userProfile?.name || session?.user?.user_metadata?.full_name || '';
     const ctx = useMemo(() => ({
         uid: uid || '',
@@ -116,11 +115,12 @@ const LearnRoute: React.FC<Props> = ({ session, userProfile }) => {
         progress,
         markProgress,
         markComplete,
+        refresh,
         cert,
         setCert,
         attemptsTick: tick,
         bump: () => setTick(t => t + 1)
-    }), [uid, session, fullName, progress, markProgress, markComplete, cert, tick]);
+    }), [uid, session, fullName, progress, markProgress, markComplete, refresh, cert, tick]);
 
     if (course !== COURSE.slug) return <Navigate to="/dashboard" replace />;
     if (!uid) return <Navigate to="/login" replace />;

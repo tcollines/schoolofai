@@ -3,7 +3,7 @@ import { Routes, Route, useNavigate, useLocation, Navigate } from 'react-router-
 import { 
     LayoutDashboard, Users, BookOpen, UserCheck, 
     Settings, LogOut, FileQuestion, Calendar, Mail, CheckCircle, Shield,
-    Bell, Search, Handshake, Sun, Moon, MessageSquare, ClipboardList, Wallet, GraduationCap
+    Bell, Search, Handshake, Sun, Moon, MessageSquare, ClipboardList, Wallet, GraduationCap, Video, UserCog
 } from 'lucide-react';
 import { getCurrencyPreference, setCurrencyPreference, CurrencyType } from '../../lib/currency';
 import AdminOverview from './AdminOverview';
@@ -20,6 +20,8 @@ import AdminLoginPage from './AdminLoginPage';
 import AdminMails from './AdminMails';
 import AdminRegistrations from './AdminRegistrations';
 import AdminFreeCourse from './AdminFreeCourse';
+import AdminLiveSessions from './AdminLiveSessions';
+import AdminStaff from './AdminStaff';
 import { supabaseClient } from '../../lib/supabaseClient';
 
 interface AdminLayoutProps {
@@ -228,6 +230,8 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ onExit, isInstructor, isAdmin
             { id: 'enrollments', label: 'Enrollments', icon: Users },
             { id: 'registrations', label: 'Registrations', icon: ClipboardList },
             { id: 'free-course', label: 'Free Course', icon: GraduationCap },
+            { id: 'live-classes', label: 'Live Classes', icon: Video },
+            { id: 'staff', label: 'Staff & Links', icon: UserCog },
             { id: 'wallet', label: 'Wallet & Ledger', icon: Wallet },
             { id: 'courses', label: 'Course Setup', icon: BookOpen },
             { id: 'cohorts', label: 'Cohorts', icon: Calendar },
@@ -245,6 +249,8 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ onExit, isInstructor, isAdmin
                 {!isInstructor && <Route path="enrollments" element={<AdminEnrollments />} />}
                 {!isInstructor && <Route path="registrations" element={<AdminRegistrations />} />}
                 {!isInstructor && <Route path="free-course" element={<AdminFreeCourse />} />}
+                {!isInstructor && <Route path="live-classes" element={<AdminLiveSessions />} />}
+                {!isInstructor && <Route path="staff" element={<AdminStaff />} />}
                 {!isInstructor && <Route path="wallet" element={<AdminWallet />} />}
                 <Route path="courses" element={<AdminCourses isInstructor={isInstructor} />} />
                 <Route path="courses/setup" element={<AdminCourseSetupWizard isInstructor={isInstructor} />} />

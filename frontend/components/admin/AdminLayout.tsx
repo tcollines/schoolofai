@@ -1,8 +1,10 @@
 import React from 'react';
 import { Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
-import { Users, BookOpen, UserCheck, Handshake, FileQuestion, Calendar, Mail, ClipboardList, Wallet, LogOut, GraduationCap } from 'lucide-react';
+import { Users, BookOpen, UserCheck, Handshake, FileQuestion, Calendar, Mail, ClipboardList, Wallet, LogOut, GraduationCap, Video, UserCog } from 'lucide-react';
 import AdminRegistrations from './AdminRegistrations';
 import AdminFreeCourse from './AdminFreeCourse';
+import AdminLiveSessions from './AdminLiveSessions';
+import AdminStaff from './AdminStaff';
 
 interface AdminLayoutProps {
     onExit?: () => void;
@@ -14,6 +16,8 @@ export const menuItems = [
     { id: 'enrollments', label: 'Enrollments', icon: Users },
     { id: 'registrations', label: 'Registrations', icon: ClipboardList },
     { id: 'free-course', label: 'Free Course', icon: GraduationCap },
+    { id: 'live-classes', label: 'Live Classes', icon: Video },
+    { id: 'staff', label: 'Staff & Links', icon: UserCog },
     { id: 'wallet', label: 'Wallet & Ledger', icon: Wallet },
     { id: 'courses', label: 'Course Setup', icon: BookOpen },
     { id: 'instructors', label: 'Instructors', icon: UserCheck },
@@ -72,6 +76,8 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ onExit, isInstructor }) => {
                 <Routes>
                     <Route path="registrations" element={<AdminRegistrations />} />
                     <Route path="free-course" element={<AdminFreeCourse />} />
+                    <Route path="live-classes" element={<AdminLiveSessions />} />
+                    <Route path="staff" element={<AdminStaff />} />
                     <Route path="*" element={<Navigate to="registrations" replace />} />
                 </Routes>
             </main>
