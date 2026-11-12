@@ -188,7 +188,10 @@ const LivePanel: React.FC = () => {
                 <>
                     <h2 className="mt-8 text-sm font-semibold uppercase tracking-wide text-violet-800 dark:text-violet-300">Upcoming</h2>
                     {upcoming.length === 0
-                        ? <p className={`${CARD} rounded-2xl p-5 mt-3 text-sm ${MUTED}`}>No live classes are scheduled yet. Check back soon.</p>
+                        ? <div className={`${CARD} rounded-2xl p-5 mt-3`}>
+                            <p className="font-semibold">Live classes run every Monday, Wednesday and Friday at 2:00 pm</p>
+                            <p className={`mt-1 text-sm ${MUTED}`}>East Africa Time. The next sessions will appear here with a join button that opens 10 minutes before the start.</p>
+                        </div>
                         : <ul className="mt-3 space-y-4">{upcoming.map(s => <SessionCard key={s.id} s={s} now={now} />)}</ul>}
 
                     {past.length > 0 && (

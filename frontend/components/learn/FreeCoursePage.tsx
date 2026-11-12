@@ -71,7 +71,12 @@ const FreeCoursePage: React.FC = () => {
                     </h1>
                     <p className={`mt-5 text-lg leading-relaxed ${MUTED} max-w-xl`}>{COURSE.tagline}</p>
 
-                    <div className="mt-8 flex flex-col sm:flex-row gap-3">
+                    <div className="mt-6 rounded-2xl border border-violet-200 dark:border-violet-900 bg-violet-50 dark:bg-violet-950/40 px-4 py-3 text-sm leading-snug max-w-xl">
+                        <p className="font-semibold text-violet-900 dark:text-violet-200">Lessons start Monday 16th November. Register now to save your place.</p>
+                        <p className="mt-1 text-stone-700 dark:text-slate-300">You can watch the welcome video straight away, and join live classes every Monday, Wednesday and Friday at 2:00 pm (East Africa Time).</p>
+                    </div>
+
+                    <div className="mt-6 flex flex-col sm:flex-row gap-3">
                         <button onClick={start} className={`${BTN_PRIMARY} text-base`}>
                             {signedIn ? 'Continue studying' : 'Start studying, it is free'} <ArrowRight size={18} />
                         </button>

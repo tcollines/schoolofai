@@ -6,6 +6,8 @@ import { submitAttempt, bestScore } from '../../src/lib/learnApi';
 import { getTranscript } from '../../src/content/transcripts';
 import { useLearn } from './learnContext';
 import VideoPlayer from './VideoPlayer';
+import ComingSoon from './ComingSoon';
+import { isItemOpen } from '../../src/lib/courseAccess';
 import QuizView from './QuizView';
 import { BTN_PRIMARY, BTN_SECONDARY, CARD, MUTED, usePlayerPrefs } from './learnUi';
 import { LessonQA, LessonRating, PlayerPrefsBar, TranscriptView } from './LessonExtras';
@@ -14,7 +16,8 @@ const ItemPage: React.FC = () => {
     const { itemId = '' } = useParams();
     const item = findItem(itemId);
     const mod = moduleOfItem(itemId);
-    const { uid, fullName, progress, markProgress, markComplete, bump } = useLearn();
+    const { uid, fullName, progress, markProgress, markComplete, bump, fullAccess } = useLearn();
+    const locked = !!item && !isItemOpen(item.id, fullAccess);
     const navigate = useNavigate();
 
     const { prefs, update: updatePrefs } = usePlayerPrefs();
@@ -35,11 +38,12 @@ const ItemPage: React.FC = () => {
     }, [itemId, noteKey]);
 
     useEffect(() => {
-        if (itemId && item && !progress[itemId]) void markProgress(itemId, { status: 'in_progress' });
+        if (itemId && item && !locked && !progress[itemId]) void markProgress(itemId, { status: 'in_progress' });
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [itemId]);
 
     if (!item || !mod) return <Navigate to={`/learn/${COURSE.slug}`} replace />;
+    if (locked) return <ComingSoon firstName={(fullName || '').split(' ')[0]} />;
 
     const done = progress[item.id]?.status === 'completed';
     const hasVideo = !!(item.videoId || item.videoUrl);

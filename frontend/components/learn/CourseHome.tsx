@@ -4,13 +4,15 @@ import { ArrowRight, Award, CalendarClock, CheckCircle2, Circle, FileText, HelpC
 import { ALL_ITEMS, COURSE, MODULES } from '../../src/content/aiFundamentals';
 import { completionState } from '../../src/lib/learnApi';
 import { useLearn } from './learnContext';
+import { LESSONS_OPEN_LABEL, LIVE_SCHEDULE, isItemOpen, lessonsAreOpen } from '../../src/lib/courseAccess';
 import { useSessions } from './LivePanel';
 import { BTN_PRIMARY, BTN_SECONDARY, CARD, MUTED, ProgressRing, formatEAT } from './learnUi';
 
 const kindIcon = (kind: string) => kind === 'video' ? PlayCircle : kind === 'quiz' ? HelpCircle : FileText;
 
 const CourseHome: React.FC = () => {
-    const { uid, progress, fullName, cert } = useLearn();
+    const { uid, progress, fullName, cert, fullAccess } = useLearn();
+    const preLaunch = !fullAccess && !lessonsAreOpen();
     const sessions = useSessions();
     const base = `/learn/${COURSE.slug}`;
     const state = completionState(progress, uid);
@@ -37,6 +39,15 @@ const CourseHome: React.FC = () => {
                 <Link to={resumeTo} className={`${BTN_PRIMARY} w-full sm:w-auto`}>{resumeLabel} <ArrowRight size={18} /></Link>
             </section>
 
+            {preLaunch && (
+                <section className="mt-6 rounded-3xl border border-violet-200 dark:border-violet-900 bg-gradient-to-r from-violet-50 to-white dark:from-slate-900 dark:to-slate-900 p-6 sm:p-7">
+                    <p className="text-xs font-semibold uppercase tracking-[0.14em] text-violet-800 dark:text-violet-300">You are registered</p>
+                    <h2 className="font-serif text-2xl font-semibold mt-1">Your lessons begin on {LESSONS_OPEN_LABEL}</h2>
+                    <p className={`mt-2 ${MUTED}`}>Watch the welcome video today. Everything else opens on {LESSONS_OPEN_LABEL}. You can also join our live classes on Monday, Wednesday and Friday at 2:00 pm (East Africa Time).</p>
+                    <Link to={`${base}/item/m0-l1`} className={`${BTN_PRIMARY} mt-4`}><PlayCircle size={18} /> Watch the welcome video</Link>
+                </section>
+            )}
+
             <div className="mt-8 grid lg:grid-cols-[1fr_20rem] gap-8">
                 {/* modules */}
                 <section className="space-y-5">
@@ -56,13 +67,14 @@ const CourseHome: React.FC = () => {
                                     {m.items.map(i => {
                                         const Icon = kindIcon(i.kind);
                                         const isDone = progress[i.id]?.status === 'completed';
+                                        const locked = !isItemOpen(i.id, fullAccess);
                                         return (
                                             <li key={i.id}>
                                                 <Link to={`${base}/item/${i.id}`} className="flex items-center gap-3 px-5 py-3.5 hover:bg-stone-50 dark:hover:bg-slate-800/60 min-h-[48px]">
-                                                    {isDone ? <CheckCircle2 size={18} className="text-emerald-600 shrink-0" /> : <Circle size={18} className="text-stone-300 dark:text-slate-600 shrink-0" />}
+                                                    {isDone ? <CheckCircle2 size={18} className="text-emerald-600 shrink-0" /> : locked ? <Lock size={18} className="text-stone-300 dark:text-slate-600 shrink-0" /> : <Circle size={18} className="text-stone-300 dark:text-slate-600 shrink-0" />}
                                                     <Icon size={16} className="text-stone-400 dark:text-slate-500 shrink-0" />
                                                     <span className="flex-1 text-[15px] leading-snug">{i.title}</span>
-                                                    <span className={`text-xs ${MUTED}`}>{i.minutes} min</span>
+                                                    <span className={`text-xs ${MUTED}`}>{locked ? 'Opens Mon 16 Nov' : `${i.minutes} min`}</span>
                                                 </Link>
                                             </li>
                                         );
@@ -94,7 +106,12 @@ const CourseHome: React.FC = () => {
                                 <p className="mt-3 font-medium leading-snug">{nextLive.title}</p>
                                 <p className={`text-sm ${MUTED}`}>{formatEAT(nextLive.starts_at)} EAT</p>
                             </>
-                        ) : <p className={`mt-3 text-sm ${MUTED}`}>Nothing scheduled yet.</p>}
+                        ) : (
+                            <div className="mt-3">
+                                <p className="text-sm font-medium">Every Monday, Wednesday and Friday at 2:00 pm</p>
+                                <p className={`text-sm ${MUTED}`}>East Africa Time. The join link appears in the timetable before each class.</p>
+                            </div>
+                        )}
                         <Link to={`${base}/live`} className={`${BTN_SECONDARY} w-full mt-4 !py-2.5 !text-sm`}>See the timetable</Link>
                     </div>
 

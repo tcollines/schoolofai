@@ -15,6 +15,8 @@ export interface LearnCtx {
     /** bump after a quiz attempt so dependent screens re-read attempts from storage */
     attemptsTick: number;
     bump: () => void;
+    /** staff / admin accounts can open every lesson before the public start date */
+    fullAccess: boolean;
 }
 
 export const LearnContext = createContext<LearnCtx | null>(null);

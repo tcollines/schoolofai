@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link, Navigate, Route, Routes, useLocation, useParams } from 'react-router-dom';
-import { Award, CalendarClock, CheckCircle2, Circle, FileText, HelpCircle, LayoutDashboard, ListTree, Loader2, PlayCircle, X } from 'lucide-react';
+import { Award, CalendarClock, CheckCircle2, Circle, Lock, FileText, HelpCircle, LayoutDashboard, ListTree, Loader2, PlayCircle, X } from 'lucide-react';
 import { ALL_ITEMS, COURSE, MODULES } from '../../src/content/aiFundamentals';
 import {
     Certificate, ItemProgress, ProgressMap, completionState, ensureEnrolled, loadCertificate, loadProgress, saveItemProgress
@@ -12,9 +12,11 @@ import ItemPage from './ItemPage';
 import FinalExam from './FinalExam';
 import CertificatePage from './CertificatePage';
 import LivePanel from './LivePanel';
+import ComingSoon from './ComingSoon';
+import { hasFullAccess, isItemOpen, lessonsAreOpen } from '../../src/lib/courseAccess';
 import { INK, PAPER, Logo, ProgressRing, ThemeButton } from './learnUi';
 
-const Outline: React.FC<{ progress: ProgressMap; base: string; onNavigate?: () => void }> = ({ progress, base, onNavigate }) => {
+const Outline: React.FC<{ progress: ProgressMap; base: string; fullAccess: boolean; onNavigate?: () => void }> = ({ progress, base, fullAccess, onNavigate }) => {
     const { pathname } = useLocation();
     const kindIcon = (k: string) => (k === 'video' ? PlayCircle : k === 'quiz' ? HelpCircle : FileText);
     return (
@@ -30,6 +32,7 @@ const Outline: React.FC<{ progress: ProgressMap; base: string; onNavigate?: () =
                             const Icon = kindIcon(i.kind);
                             const active = pathname === `${base}/item/${i.id}`;
                             const done = progress[i.id]?.status === 'completed';
+                            const locked = !isItemOpen(i.id, fullAccess);
                             return (
                                 <li key={i.id}>
                                     <Link
@@ -40,7 +43,7 @@ const Outline: React.FC<{ progress: ProgressMap; base: string; onNavigate?: () =
                                     >
                                         {done ? <CheckCircle2 size={17} className="text-emerald-600 shrink-0 mt-0.5" /> : <Circle size={17} className="text-stone-300 dark:text-slate-600 shrink-0 mt-0.5" />}
                                         <span className="flex-1">{i.title}</span>
-                                        <Icon size={14} className="text-stone-400 dark:text-slate-500 shrink-0 mt-1" />
+                                        {locked ? <Lock size={14} className="text-stone-400 dark:text-slate-500 shrink-0 mt-1" /> : <Icon size={14} className="text-stone-400 dark:text-slate-500 shrink-0 mt-1" />}
                                     </Link>
                                 </li>
                             );
@@ -107,6 +110,7 @@ const LearnRoute: React.FC<Props> = ({ session, userProfile }) => {
         setProgress(await loadProgress(uid));
     }, [uid]);
 
+    const fullAccess = hasFullAccess(session?.user?.email, userProfile?.role);
     const fullName = userProfile?.name || session?.user?.user_metadata?.full_name || '';
     const ctx = useMemo(() => ({
         uid: uid || '',
@@ -119,8 +123,9 @@ const LearnRoute: React.FC<Props> = ({ session, userProfile }) => {
         cert,
         setCert,
         attemptsTick: tick,
-        bump: () => setTick(t => t + 1)
-    }), [uid, session, fullName, progress, markProgress, markComplete, refresh, cert, tick]);
+        bump: () => setTick(t => t + 1),
+        fullAccess
+    }), [uid, session, fullName, fullAccess, progress, markProgress, markComplete, refresh, cert, tick]);
 
     if (course !== COURSE.slug) return <Navigate to="/dashboard" replace />;
     if (!uid) return <Navigate to="/login" replace />;
@@ -169,15 +174,15 @@ const LearnRoute: React.FC<Props> = ({ session, userProfile }) => {
                 <div className="flex">
                     {!onHome && (
                         <aside className="hidden lg:block w-80 shrink-0 sticky top-[65px] h-[calc(100vh-65px)] overflow-y-auto border-r border-stone-200 dark:border-slate-800 bg-white/60 dark:bg-slate-900/40">
-                            <Outline progress={progress} base={base} />
+                            <Outline progress={progress} base={base} fullAccess={fullAccess} />
                         </aside>
                     )}
                     <main className="flex-1 min-w-0">
                         <Routes>
                             <Route index element={<CourseHome />} />
                             <Route path="item/:itemId" element={<ItemPage />} />
-                            <Route path="final" element={<FinalExam />} />
-                            <Route path="certificate" element={<CertificatePage />} />
+                            <Route path="final" element={fullAccess || lessonsAreOpen() ? <FinalExam /> : <ComingSoon firstName={fullName.split(' ')[0]} />} />
+                            <Route path="certificate" element={fullAccess || lessonsAreOpen() || cert ? <CertificatePage /> : <ComingSoon firstName={fullName.split(' ')[0]} />} />
                             <Route path="live" element={<LivePanel />} />
                             <Route path="*" element={<Navigate to={base} replace />} />
                         </Routes>
@@ -192,7 +197,7 @@ const LearnRoute: React.FC<Props> = ({ session, userProfile }) => {
                                 <p className="font-serif font-semibold">Course outline</p>
                                 <button onClick={() => setDrawer(false)} aria-label="Close outline" className="p-2 rounded-lg hover:bg-stone-100 dark:hover:bg-slate-800"><X size={20} /></button>
                             </div>
-                            <Outline progress={progress} base={base} onNavigate={() => setDrawer(false)} />
+                            <Outline progress={progress} base={base} fullAccess={fullAccess} onNavigate={() => setDrawer(false)} />
                         </div>
                         <button className="flex-1 bg-black/40" aria-label="Close outline" onClick={() => setDrawer(false)} />
                     </div>
