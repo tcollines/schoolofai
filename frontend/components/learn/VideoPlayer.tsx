@@ -117,6 +117,23 @@ const VideoPlayer: React.FC<Props> = ({ videoId, videoUrl, title, startAt = 0, o
         );
     }
 
+    if (videoUrl && /\.(mp3|m4a|mpeg|wav|ogg)(\?|$)/i.test(videoUrl)) {
+        // Voice lesson: presenter photo with a simple audio player (no large video download)
+        return (
+            <div className="w-full rounded-2xl overflow-hidden border border-stone-200 dark:border-slate-800 bg-white dark:bg-slate-900">
+                <div className="flex flex-col sm:flex-row items-center gap-5 p-5 sm:p-6">
+                    <img src="/instructor/timothy.webp" alt="Timothy Christian Waniaye" className="w-36 h-36 sm:w-44 sm:h-44 rounded-2xl object-cover shrink-0" />
+                    <div className="w-full min-w-0">
+                        <p className="text-xs font-semibold uppercase tracking-wide text-violet-700 dark:text-violet-400">Voice lesson</p>
+                        <p className="font-serif text-xl font-semibold mt-1">{title}</p>
+                        <p className="text-sm text-stone-600 dark:text-slate-400 mt-0.5">With Timothy Christian Waniaye, Welile School of AI</p>
+                        <audio key={videoUrl} className="w-full mt-4" playsInline {...mediaHandlers('audio')} />
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
     if (videoUrl) {
         return (
             <div className="aspect-video w-full bg-black rounded-2xl overflow-hidden">

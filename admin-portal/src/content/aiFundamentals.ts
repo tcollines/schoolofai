@@ -94,7 +94,7 @@ export const MODULES: CourseModuleDef[] = [
         id: 'm0', number: 0, title: 'Welcome', blurb: 'How this course works and how to get your certificate.',
         items: [
             {
-                id: 'm0-l1', kind: 'video', title: 'Welcome to AI Fundamentals', minutes: 4,
+                id: 'm0-l1', kind: 'video', title: 'Welcome to AI Fundamentals', minutes: 5, videoUrl: '/audio/m0-l1.mp3',
                 summary: 'A short welcome: who the course is for, what you will be able to do at the end, and how to study it. You will use AI yourself in nearly every lesson, so keep a chatbot open on your phone or laptop.',
                 points: [
                     'Seven short modules, each with videos, a hands-on task and a quiz',
