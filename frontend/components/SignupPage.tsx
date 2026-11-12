@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { supabase } from '../src/lib/supabaseClient';
-import { getReferral, setFreeCourseIntent, getFreeCourseIntent, learnHomePath } from '../src/lib/acquisition';
+import { getReferral, setFreeCourseIntent, getFreeCourseIntent, learnHomePath, afterSignInUrl } from '../src/lib/acquisition';
 import { ArrowLeft, Mail, Lock, User, Eye, EyeOff, AlertTriangle, AlertCircle, LogIn } from 'lucide-react';
 
 const SignupPage: React.FC = () => {
@@ -113,7 +113,7 @@ const SignupPage: React.FC = () => {
         const { error } = await supabase.auth.signInWithOAuth({
             provider: 'google',
             options: {
-                redirectTo: window.location.origin + (getFreeCourseIntent() ? learnHomePath(getFreeCourseIntent()!) : '/dashboard')
+                redirectTo: afterSignInUrl()
             }
         });
         if (error) {

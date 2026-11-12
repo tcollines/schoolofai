@@ -56,6 +56,13 @@ const LandingRoute = ({ isAuthenticated }: { isAuthenticated: boolean }) => {
 };
 
 // Where to send someone right after they authenticate: the free course if that is why they came.
+// Safety net: someone who came for the free course never lands on the general dashboard first.
+const FreeCourseIntentGate = ({ children }: { children: React.ReactNode }) => {
+  const intent = getFreeCourseIntent();
+  if (intent) return <Navigate to={learnHomePath(intent)} replace />;
+  return <>{children}</>;
+};
+
 const afterAuthPath = () => {
   const intent = getFreeCourseIntent();
   return intent ? learnHomePath(intent) : '/dashboard';
@@ -311,7 +318,7 @@ function App() {
 
         {/* Student Routes wrapper */}
         <Route element={<StudentLayout session={session} isAuthenticated={isAuthenticated} isAdminMode={false} courses={courses} />}>
-            <Route path="/dashboard" element={<ProtectedRoute isAuthenticated={isAuthenticated} requireOnboarding={true} userProfile={userProfile}><DashboardHome courses={courses} userId={session?.user?.id || 'guest'} /></ProtectedRoute>} />
+            <Route path="/dashboard" element={<ProtectedRoute isAuthenticated={isAuthenticated} requireOnboarding={true} userProfile={userProfile}><FreeCourseIntentGate><DashboardHome courses={courses} userId={session?.user?.id || 'guest'} /></FreeCourseIntentGate></ProtectedRoute>} />
             
             <Route path="/discover" element={
                 <ProtectedRoute isAuthenticated={isAuthenticated} requireOnboarding={true} userProfile={userProfile}>

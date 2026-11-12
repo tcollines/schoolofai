@@ -117,3 +117,9 @@ export function clearFreeCourseIntent() {
     safe(() => localStorage.removeItem(INTENT_KEY), undefined);
 }
 export const learnHomePath = (slug: string) => `/learn/${slug}`;
+
+/** Where Google (or any redirect-based sign-in) should land: the free course if that is why they came, else the dashboard. */
+export const afterSignInUrl = (): string => {
+    const intent = getFreeCourseIntent();
+    return window.location.origin + (intent ? learnHomePath(intent) : '/dashboard');
+};

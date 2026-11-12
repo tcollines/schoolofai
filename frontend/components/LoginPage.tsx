@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { afterSignInUrl } from '../src/lib/acquisition';
 import { Link, useLocation } from 'react-router-dom';
 import { supabaseClient } from '../src/lib/supabaseClient';
 import { ArrowLeft, Mail, Lock, User, Loader2, X, KeyRound, ShieldCheck, Clock, Eye, EyeOff, Brain, Cpu, Sparkles, AlertTriangle } from 'lucide-react';
@@ -193,7 +194,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onNavigateToSignup, onBa
             const { error } = await supabaseClient.auth.signInWithOAuth({
                 provider: 'google',
                 options: {
-                    redirectTo: `${window.location.origin}/dashboard`
+                    redirectTo: afterSignInUrl()
                 }
             });
             if (error) throw error;
