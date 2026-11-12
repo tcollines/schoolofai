@@ -123,7 +123,7 @@ export const MODULES: CourseModuleDef[] = [
         id: 'm1', number: 1, title: 'What AI really is', blurb: 'AI, machine learning, deep learning and generative AI, in plain language.',
         items: [
             {
-                id: 'm1-l1', kind: 'video', title: 'You already use AI', minutes: 5,
+                id: 'm1-l1', kind: 'video', title: 'You already use AI', minutes: 6, videoUrl: '/video/m1-l1.mp4', audioUrl: '/audio/m1-l1.mp3',
                 summary: 'You have been using AI for years without calling it that. Your phone suggests the next word. YouTube or TikTok shows videos you like. Your phone unlocks with your face. Google Maps guesses your arrival time. Spam goes into its own folder. All of that is AI.',
                 points: [
                     'Next-word suggestions on your keyboard',
