@@ -24,6 +24,7 @@ const loadYouTube = (): Promise<any> => {
 interface Props {
     videoId?: string;
     videoUrl?: string;
+    audioUrl?: string;
     title: string;
     startAt?: number;
     /** called about every 2s while playing: position and total duration, in seconds */
@@ -35,7 +36,7 @@ interface Props {
     audioOnly?: boolean;
 }
 
-const VideoPlayer: React.FC<Props> = ({ videoId, videoUrl, title, startAt = 0, onProgress, onEnded, dataSaver = false, audioOnly = false }) => {
+const VideoPlayer: React.FC<Props> = ({ videoId, videoUrl, audioUrl, title, startAt = 0, onProgress, onEnded, dataSaver = false, audioOnly = false }) => {
     const [armed, setArmed] = useState(false);
     const mountRef = useRef<HTMLDivElement>(null);
     const playerRef = useRef<any>(null);
@@ -105,11 +106,12 @@ const VideoPlayer: React.FC<Props> = ({ videoId, videoUrl, title, startAt = 0, o
     });
 
     if (audioOnly) {
+        const audioSrc = audioUrl || videoUrl;
         return (
             <div className="w-full rounded-2xl border border-stone-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4">
                 <p className="flex items-center gap-2 font-semibold text-sm"><Headphones size={18} className="text-violet-700 dark:text-violet-400" /> Audio only</p>
-                {videoUrl ? (
-                    <audio key={videoUrl} className="w-full mt-3" playsInline {...mediaHandlers('audio')} />
+                {audioSrc ? (
+                    <audio key={audioSrc} className="w-full mt-3" playsInline {...mediaHandlers('audio')} src={audioSrc} />
                 ) : (
                     <p className="mt-1 text-sm text-stone-600 dark:text-slate-400">{videoId ? 'Audio-only playback is not available for this video. Read the transcript below, or turn audio only off to watch.' : 'The recording for this lesson is not ready yet. Read the transcript or the lesson notes below.'}</p>
                 )}

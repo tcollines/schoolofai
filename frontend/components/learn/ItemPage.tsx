@@ -86,6 +86,7 @@ const ItemPage: React.FC = () => {
                         key={item.id}
                         videoId={item.videoId}
                         videoUrl={item.videoUrl}
+                        audioUrl={item.audioUrl}
                         title={item.title}
                         startAt={progress[item.id]?.last || 0}
                         onProgress={onVideoProgress}
