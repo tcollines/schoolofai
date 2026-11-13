@@ -3,9 +3,9 @@ import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
 const FF = process.argv[2], OUT = process.argv[3], AUDIO = process.argv[4] || null;
 // default timings match 'Registration advert' narration; last value = total seconds
-const T = process.env.TIMES ? JSON.parse(process.env.TIMES) : [0, 7.9, 13.2, 19.8, 25.6, 33.1, 38.5, 41.0, 43.6, 45.7, 49.5, 57.6, 63.56];
+const T = process.env.TIMES ? JSON.parse(process.env.TIMES) : [0, 7.9, 13.2, 19.8, 25.6, 33.1, 38.5, 41.0, 43.6, 45.7, 49.5, 51.2, 57.6, 63.56];
 const b64 = n => 'data:image/png;base64,' + fs.readFileSync(`${process.env.SOCIAL || 'social'}/${n}.png`).toString('base64');
-const IMG = { home: b64('home'), course: b64('course'), signup: b64('signup') };
+const IMG = { home: b64('home'), course: b64('course'), signup: b64('signup'), wh: b64('welcome-home'), wv: b64('welcome-video') };
 const CSS = `@import url('https://fonts.googleapis.com/css2?family=Fraunces:wght@600;700&family=DM+Sans:wght@500;700&display=swap');
 *{box-sizing:border-box;margin:0}body{width:1080px;height:1920px;background:linear-gradient(180deg,#f4efff 0%,#faf8f5 45%);font-family:'DM Sans',sans-serif;position:relative;overflow:hidden;color:#1c1917}
 .brand{position:absolute;top:70px;left:0;right:0;text-align:center;font-weight:700;letter-spacing:.2em;font-size:30px;color:#5b21b6}
@@ -40,7 +40,8 @@ const frames = [
   page({ img: 'course', step: 'STEP 2', rings: ring(3, 62.5, 97, 69), cap: 'Then tap “Start studying”' }),
   page({ img: 'signup', step: 'STEP 3', rings: ring(10, 40, 90, 67), cap: 'Create your account', sub: 'Quick and easy' }),
   page({ img: 'signup', step: 'STEP 3', rings: ring(58, 82.5, 90, 87.5), cap: 'Fill in your details', sub: 'or continue with Google' }),
-  page({ img: 'course', step: 'STEP 4', rings: ring(3, 44.8, 97, 60), cap: 'Watch your welcome video', sub: 'A few minutes. You will see how it all works.' }),
+  page({ img: 'wh', step: 'STEP 4', rings: ring(4, 57.5, 96, 99.5), cap: 'You are registered!', sub: 'Tap “Watch the welcome video”' }),
+  page({ img: 'wv', step: 'STEP 4', rings: ring(4, 23.5, 96, 47.5), cap: 'Watch your welcome video', sub: 'A few minutes. You will see how it all works.' }),
   `<html><head><style>${CSS}</style></head><body><div class="brand">WELILE SCHOOL OF AI</div><div class="cta">
    <div style="font-family:Fraunces,serif;font-weight:700;font-size:96px;line-height:1.05">Lessons begin Monday 16th November</div>
    <div style="margin-top:40px;background:#1c1917;color:#fff;font-weight:700;font-size:56px;padding:26px 50px;border-radius:30px">welileschoolofai.org</div>
