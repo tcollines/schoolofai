@@ -211,7 +211,7 @@ export const MODULES: CourseModuleDef[] = [
         id: 'm2', number: 2, title: 'How to talk to AI', blurb: 'Prompting: ask clearly, improve answers, and work from your own text.',
         items: [
             {
-                id: 'm2-l1', kind: 'video', title: 'Pick a tool and get set up', minutes: 6,
+                id: 'm2-l1', kind: 'video', title: 'Pick a tool and get set up', minutes: 7, videoUrl: '/video/m2-l1.mp4', audioUrl: '/audio/m2-l1.mp3',
                 summary: 'Any major chatbot can do the jobs in this course. Pick one and learn it well. Free versions exist, with limits, and free tools may use what you type, so keep private information out. Check the settings that control how your chats are used.',
                 points: [
                     'Choose one tool and stay with it while you learn',
@@ -222,7 +222,7 @@ export const MODULES: CourseModuleDef[] = [
                 tryIt: { title: 'Set up your tool', steps: ['Open your chosen chatbot and sign in.', 'Find the settings page and read how your chats are used.', 'Type: "Introduce yourself in two sentences." Notice how it answers.'] }
             },
             {
-                id: 'm2-l2', kind: 'video', title: 'Context, task, format: the three-part prompt', minutes: 9,
+                id: 'm2-l2', kind: 'video', title: 'Context, task, format: the three-part prompt', minutes: 9, videoUrl: '/video/m2-l2.mp4', audioUrl: '/audio/m2-l2.mp3',
                 summary: 'A good request has three parts. Context: who you are and the situation. Task: what you want it to do. Format: how you want it, such as length, tone and shape. Compare a weak request with a strong one. Weak: "Write an email." Strong: "I run a small bakery in Entebbe. Write a short, friendly email to a customer confirming their cake order for Saturday, UGX 120,000, pickup at 10am. Keep it under 100 words."',
                 points: [
                     'Context: who you are and the situation',
@@ -233,13 +233,13 @@ export const MODULES: CourseModuleDef[] = [
                 tryIt: { title: 'Upgrade a weak prompt', steps: ['Start with: "Write an email."', 'Rewrite it with your real situation, a clear task and a format.', 'Send both and compare the answers.'] }
             },
             {
-                id: 'm2-l3', kind: 'video', title: "Not quite right? Refine, don't restart", minutes: 6,
+                id: 'm2-l3', kind: 'video', title: "Not quite right? Refine, don't restart", minutes: 7, videoUrl: '/video/m2-l3.mp4', audioUrl: '/audio/m2-l3.mp3',
                 summary: 'When an answer is not quite right, do not start again. Starting over throws away what was already good. Give a follow-up instruction instead.',
                 points: ['"Make it shorter."', '"Make it warmer."', '"Explain that in simpler words."', '"Use a more formal tone."', '"Give me three versions."', '"Add an example."'],
                 tryIt: { title: 'Three refinements', steps: ['Ask for a short thank-you message to a customer.', 'Ask it to make the message warmer, then shorter, then to give you three versions.', 'Pick your favourite and edit it by hand.'] }
             },
             {
-                id: 'm2-l4', kind: 'video', title: 'Give it your own text to work from', minutes: 7,
+                id: 'm2-l4', kind: 'video', title: 'Give it your own text to work from', minutes: 7, videoUrl: '/video/m2-l4.mp4', audioUrl: '/audio/m2-l4.mp3',
                 summary: 'AI does much better when you give it the material to work from. Paste in a draft, a set of notes or a description and say what to do with it. You can also ask it to say when it does not know. Be careful what you paste: nothing private, confidential or personal should go into a public tool. Describe the problem, not the person.',
                 points: [
                     'Paste your own text and say what to do with it',
