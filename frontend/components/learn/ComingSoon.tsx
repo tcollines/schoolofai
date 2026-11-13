@@ -15,11 +15,11 @@ const ComingSoon: React.FC<{ firstName?: string; compact?: boolean }> = ({ first
                 {firstName ? `${firstName}, your` : 'Your'} lessons begin on {LESSONS_OPEN_LABEL}
             </h1>
             <p className={`mt-4 text-base leading-relaxed ${MUTED}`}>
-                Thank you for joining {COURSE.short}. Your place is saved. Watch the welcome video now, and come back on {LESSONS_OPEN_LABEL}, when every lesson, quiz and hands-on task opens for you.
+                Thank you for joining {COURSE.short}. Your place is saved. Watch the welcome video now. You can learn two ways: join the live classes below, or study at your own pace once every lesson, quiz and hands-on task opens on {LESSONS_OPEN_LABEL}.
             </p>
 
             <div className="mt-7 text-left rounded-2xl border border-violet-100 dark:border-slate-800 bg-white dark:bg-slate-950/40 p-5">
-                <p className="flex items-center gap-2 font-semibold"><Video size={18} className="text-violet-700 dark:text-violet-400" /> Live classes you can join</p>
+                <p className="flex items-center gap-2 font-semibold"><Video size={18} className="text-violet-700 dark:text-violet-400" /> Live classes: 3 a week</p>
                 <ul className="mt-3 grid grid-cols-3 gap-2 text-center">
                     {LIVE_SCHEDULE.map(s => (
                         <li key={s.day} className="rounded-xl bg-violet-50 dark:bg-slate-900 py-3 px-1">

@@ -72,8 +72,8 @@ const FreeCoursePage: React.FC = () => {
                     <p className={`mt-5 text-lg leading-relaxed ${MUTED} max-w-xl`}>{COURSE.tagline}</p>
 
                     <div className="mt-6 rounded-2xl border border-violet-200 dark:border-violet-900 bg-violet-50 dark:bg-violet-950/40 px-4 py-3 text-sm leading-snug max-w-xl">
-                        <p className="font-semibold text-violet-900 dark:text-violet-200">Lessons start Monday 16th November. Register now to save your place.</p>
-                        <p className="mt-1 text-stone-700 dark:text-slate-300">You can watch the welcome video straight away, and join live classes every Monday, Wednesday and Friday at 2:00 pm (East Africa Time).</p>
+                        <p className="font-semibold text-violet-900 dark:text-violet-200">Two ways to learn, both free. Lessons start Monday 16th November.</p>
+                        <p className="mt-1 text-stone-700 dark:text-slate-300">Join our 3 live classes (Monday, Wednesday and Friday at 2:00 pm, East Africa Time), or study at your own pace once every lesson opens on Monday 16th. Register now to save your place and watch the welcome video straight away.</p>
                     </div>
 
                     <div className="mt-6 flex flex-col sm:flex-row gap-3">
@@ -187,11 +187,23 @@ const FreeCoursePage: React.FC = () => {
                 <div className="max-w-4xl mx-auto px-4 sm:px-6 py-14">
                     <div className="flex items-center gap-3">
                         <CalendarClock className="text-violet-700 dark:text-violet-400" />
-                        <h2 className="font-serif text-3xl font-semibold">Join a live class</h2>
+                        <h2 className="font-serif text-3xl font-semibold">Two ways to learn</h2>
                     </div>
-                    <p className={`mt-2 ${MUTED}`}>Prefer to learn with others? Optional live sessions run alongside the course. Ask questions, practise together, and watch the replay if you miss one.</p>
+                    <p className={`mt-2 ${MUTED}`}>Both are free and lead to the same certificate. Choose what suits you, or do both.</p>
+                    <div className="mt-6 grid sm:grid-cols-2 gap-4">
+                        <div className={`${CARD} rounded-2xl p-6`}>
+                            <p className="text-xs font-semibold uppercase tracking-wide text-violet-800 dark:text-violet-300">Live with us</p>
+                            <p className="font-serif text-xl font-semibold mt-1">3 live classes a week</p>
+                            <p className={`mt-2 text-[15px] leading-snug ${MUTED}`}>Every Monday, Wednesday and Friday at 2:00 pm (East Africa Time). Learn with others, ask questions and practise together.</p>
+                        </div>
+                        <div className={`${CARD} rounded-2xl p-6`}>
+                            <p className="text-xs font-semibold uppercase tracking-wide text-violet-800 dark:text-violet-300">At your own pace</p>
+                            <p className="font-serif text-xl font-semibold mt-1">Study any time</p>
+                            <p className={`mt-2 text-[15px] leading-snug ${MUTED}`}>Every lesson opens on Monday 16th November. Watch, try the tasks and take the quizzes whenever it suits you, on any phone.</p>
+                        </div>
+                    </div>
                     {sessions.length === 0 ? (
-                        <p className={`${CARD} rounded-2xl p-5 mt-6 text-sm ${MUTED}`}>The live timetable is announced inside the course once you register.</p>
+                        <p className={`${CARD} rounded-2xl p-5 mt-6 text-sm ${MUTED}`}>Join links appear in the course timetable once you register.</p>
                     ) : (
                         <ul className="mt-6 grid sm:grid-cols-2 gap-4">
                             {sessions.map(s => (

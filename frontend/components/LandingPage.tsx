@@ -269,7 +269,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLoginClick, onSignupClick, 
                         <ul className="mt-8 flex flex-wrap gap-x-6 gap-y-2 text-sm font-medium text-stone-700 dark:text-slate-300">
                             <li>6 short modules</li>
                             <li>Quiz after every module</li>
-                            <li>Live classes you can join</li>
+                            <li>Live classes or self-paced</li>
                             <li>Free certificate</li>
                         </ul>
                     </div>
