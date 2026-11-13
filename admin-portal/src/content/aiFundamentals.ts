@@ -135,7 +135,7 @@ export const MODULES: CourseModuleDef[] = [
                 tryIt: { title: 'Spot AI in your day', steps: ['Write down three places AI showed up for you today.', 'For each one, note whether it sorted, predicted or created something.'] }
             },
             {
-                id: 'm1-l2', kind: 'video', title: "What AI is, and what it isn't", minutes: 7,
+                id: 'm1-l2', kind: 'video', title: "What AI is, and what it isn't", minutes: 7, videoUrl: '/video/m1-l2.mp4', audioUrl: '/audio/m1-l2.mp3',
                 summary: 'AI is a computer doing a job that normally needs human thinking: understanding speech, making decisions, translating languages. Google Maps picks the fastest route, Google Translate turns Luganda into English, and your bank app flags a strange payment. There are three common mistakes about AI.',
                 points: [
                     'AI is not a robot. Most AI is software on your phone or in a data centre.',
@@ -144,7 +144,7 @@ export const MODULES: CourseModuleDef[] = [
                 ]
             },
             {
-                id: 'm1-l3', kind: 'video', title: 'Machine learning: from rules to examples', minutes: 8,
+                id: 'm1-l3', kind: 'video', title: 'Machine learning: from rules to examples', minutes: 9, videoUrl: '/video/m1-l3.mp4', audioUrl: '/audio/m1-l3.mp3',
                 summary: 'The old way is to write the rules: "If a message says You have won, it is spam." Then scammers write "Congratulations, you are selected" and the rule fails. You would need a million rules and still miss things. The machine learning way is to show the computer 10,000 messages, each marked spam or not spam, and let it find the pattern. Think of a child learning what a mango is: you never give a list of rules, you show examples.',
                 points: [
                     'Rules-based: a person writes every rule, and it breaks easily',
@@ -154,7 +154,7 @@ export const MODULES: CourseModuleDef[] = [
                 tryIt: { title: 'Teach it with examples', steps: ['Think of something you could sort into two groups, such as ripe and unripe fruit.', 'Describe five examples of each group. That is what a machine learning system would be shown.'] }
             },
             {
-                id: 'm1-l4', kind: 'video', title: 'Deep learning and the AI family', minutes: 7,
+                id: 'm1-l4', kind: 'video', title: 'Deep learning and the AI family', minutes: 8, videoUrl: '/video/m1-l4.mp4', audioUrl: '/audio/m1-l4.mp3',
                 summary: 'Think of circles inside circles. Every taxi is a car, every car is a vehicle, but not every vehicle is a car. Generative AI is built on deep learning. Deep learning is a kind of machine learning. Machine learning is a kind of AI. Deep learning uses layers: the first layer sees edges and lines, the next sees shapes, then "that looks like an eye", and finally "that is a face". It is inspired by how brain cells connect, but it is maths, not a brain.',
                 points: [
                     'AI contains machine learning, which contains deep learning, which contains generative AI',
@@ -163,7 +163,7 @@ export const MODULES: CourseModuleDef[] = [
                 ]
             },
             {
-                id: 'm1-l5', kind: 'video', title: 'Generative AI and large language models', minutes: 8,
+                id: 'm1-l5', kind: 'video', title: 'Generative AI and large language models', minutes: 9, videoUrl: '/video/m1-l5.mp4', audioUrl: '/audio/m1-l5.mp3',
                 summary: 'Traditional AI recognises: spam or not spam, a face or not a face, fraud or not fraud. Generative AI creates: it writes text, makes pictures, writes code and composes music. It does not look up an answer and paste it. It generates it from patterns it learned. A large language model, or LLM, learned from a massive amount of text and works with words. It is the engine behind ChatGPT, Gemini and Claude. It predicts the next word, then the next, then the next. Sounding right is not the same as being right.',
                 points: [
                     'Traditional AI sorts, scores and predicts',
