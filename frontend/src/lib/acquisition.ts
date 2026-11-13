@@ -1,3 +1,4 @@
+import { getReturnTo } from './returnTo';
 import { supabase } from './supabaseClient';
 
 /**
@@ -120,6 +121,7 @@ export const learnHomePath = (slug: string) => `/learn/${slug}`;
 
 /** Where Google (or any redirect-based sign-in) should land: the free course if that is why they came, else the dashboard. */
 export const afterSignInUrl = (): string => {
+    const back = getReturnTo();
     const intent = getFreeCourseIntent();
-    return window.location.origin + (intent ? learnHomePath(intent) : '/dashboard');
+    return window.location.origin + (back || (intent ? learnHomePath(intent) : '/dashboard'));
 };

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { afterSignInUrl } from '../src/lib/acquisition';
+import { setReturnTo } from '../src/lib/returnTo';
 import { X, Mail, Lock, User, Loader2, AlertTriangle } from 'lucide-react';
 import { supabaseClient } from '../src/lib/supabaseClient';
 
@@ -155,6 +156,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onLogin }
     };
 
     const handleGoogleLogin = async () => {
+        setReturnTo(window.location.pathname + window.location.search);
         try {
             setLoading(true);
             const { error } = await supabaseClient.auth.signInWithOAuth({

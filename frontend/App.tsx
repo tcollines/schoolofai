@@ -1,5 +1,5 @@
 import React, { useState, useEffect, Suspense, lazy } from 'react';
-import { BrowserRouter, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
 import LandingPage from './components/LandingPage';
 import LoginPage from './components/LoginPage';
 import SignupPage from './components/SignupPage';
@@ -34,6 +34,7 @@ const RouteFallback = () => (
     <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-welile-purple"></div>
   </div>
 );
+import { getReturnTo, setReturnTo, clearReturnTo } from './src/lib/returnTo';
 import { captureReferralFromUrl, claimStoredReferral, getFreeCourseIntent, learnHomePath } from './src/lib/acquisition';
 import { supabase, isSupabaseConfigured } from './src/lib/supabaseClient';
 import { flushPendingOutreachRegistrations } from './src/lib/outreachSync';
@@ -58,12 +59,16 @@ const LandingRoute = ({ isAuthenticated }: { isAuthenticated: boolean }) => {
 // Where to send someone right after they authenticate: the free course if that is why they came.
 // Safety net: someone who came for the free course never lands on the general dashboard first.
 const FreeCourseIntentGate = ({ children }: { children: React.ReactNode }) => {
+  const back = getReturnTo();
+  if (back) return <Navigate to={back} replace />;
   const intent = getFreeCourseIntent();
   if (intent) return <Navigate to={learnHomePath(intent)} replace />;
   return <>{children}</>;
 };
 
 const afterAuthPath = () => {
+  const back = getReturnTo();
+  if (back) return back;
   const intent = getFreeCourseIntent();
   return intent ? learnHomePath(intent) : '/dashboard';
 };
@@ -122,8 +127,19 @@ const InstructorRoute = () => {
   );
 };
 
+// Once someone is back on the page they were sent away from, forget it.
+const ReturnToCleaner = () => {
+  const loc = useLocation();
+  useEffect(() => {
+    if (getReturnTo() === loc.pathname + loc.search) clearReturnTo();
+  }, [loc.pathname, loc.search]);
+  return null;
+};
+
 const ProtectedRoute = ({ isAuthenticated, requireOnboarding = false, userProfile, children }: { isAuthenticated: boolean, requireOnboarding?: boolean, userProfile?: any, children: React.ReactNode }) => {
+  const here = useLocation();
   if (!isAuthenticated) {
+    setReturnTo(here.pathname + here.search);
     return <Navigate to="/login" replace />;
   }
   
@@ -280,6 +296,7 @@ function App() {
 
   return (
     <BrowserRouter>
+      <ReturnToCleaner />
       <Routes>
         {/* Public Routes */}
         <Route path="/" element={<LandingRoute isAuthenticated={isAuthenticated} />} />

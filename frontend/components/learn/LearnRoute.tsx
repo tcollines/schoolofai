@@ -6,6 +6,7 @@ import {
     Certificate, ItemProgress, ProgressMap, completionState, ensureEnrolled, loadCertificate, loadProgress, saveItemProgress
 } from '../../src/lib/learnApi';
 import { clearFreeCourseIntent } from '../../src/lib/acquisition';
+import { setReturnTo } from '../../src/lib/returnTo';
 import { LearnContext } from './learnContext';
 import CourseHome from './CourseHome';
 import ItemPage from './ItemPage';
@@ -128,7 +129,7 @@ const LearnRoute: React.FC<Props> = ({ session, userProfile }) => {
     }), [uid, session, fullName, fullAccess, progress, markProgress, markComplete, refresh, cert, tick]);
 
     if (course !== COURSE.slug) return <Navigate to="/dashboard" replace />;
-    if (!uid) return <Navigate to="/login" replace />;
+    if (!uid) { setReturnTo(pathname); return <Navigate to="/login" replace />; }
 
     if (!ready) {
         return (

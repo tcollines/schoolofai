@@ -2,6 +2,7 @@ import React, { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../../src/lib/supabaseClient';
 import { getFreeCourseIntent, learnHomePath } from '../../src/lib/acquisition';
+import { getReturnTo } from '../../src/lib/returnTo';
 import CountrySelect from '../CountrySelect';
 import { User, Camera, ArrowRight, Loader2, AlertTriangle } from 'lucide-react';
 
@@ -126,9 +127,10 @@ const ProfileSetup: React.FC = () => {
 
             // Came here to study the free course: skip the paid-plan steps and go straight to it
             const freeIntent = getFreeCourseIntent();
-            if (freeIntent) {
+            const back = getReturnTo();
+            if (back || freeIntent) {
                 await supabase.from('profiles').update({ onboarding_complete: true }).eq('id', user.id);
-                window.location.href = learnHomePath(freeIntent);
+                window.location.href = back || learnHomePath(freeIntent!);
                 return;
             }
 
