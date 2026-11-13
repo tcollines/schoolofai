@@ -1,4 +1,5 @@
 import React from 'react';
+import { ALL_ITEMS, COURSE, MODULES } from '../../src/content/aiFundamentals';
 
 interface Props {
     name: string;
@@ -14,6 +15,9 @@ const u = (n: number) => `${((n * 100) / 842).toFixed(3)}cqw`;
 
 const monthYear = (iso: string) =>
     new Date(iso).toLocaleDateString('en-GB', { month: 'long', year: 'numeric', timeZone: 'Africa/Kampala' });
+
+const LESSONS = ALL_ITEMS.filter(i => i.kind === 'video').length;
+const LEARNED = MODULES.filter(m => m.number > 0);
 
 const HEAD = '"Outfit", "DM Sans", system-ui, sans-serif';
 const BODY = '"DM Sans", "Inter", system-ui, sans-serif';
@@ -80,9 +84,9 @@ const CertificateDocument: React.FC<Props> = ({ name, issuedAt, certId, sample, 
                 {shown}
             </p>
 
-            <p className="absolute" style={{ left: u(90), top: u(340), width: u(584), fontSize: u(13.2), lineHeight: 1.45 }}>
-                For successfully completing the AI Fundamentals Program, demonstrating strong commitment, performance, and dedication
-                throughout the six-week training conducted by{' '}
+            <p className="absolute" style={{ left: u(90), top: u(338), width: u(600), fontSize: u(13), lineHeight: 1.42 }}>
+                For successfully completing the AI Fundamentals Program, {COURSE.hours} of study across {LESSONS} short lessons, passing every module quiz and
+                the final assessment, conducted by{' '}
                 <a
                     href="https://welile.com/"
                     target="_blank"
@@ -92,6 +96,14 @@ const CertificateDocument: React.FC<Props> = ({ name, issuedAt, certId, sample, 
                     Welile Technologies
                 </a>{' '}
                 School of AI in {monthYear(issuedAt)}.
+            </p>
+
+            {/* Modules actually covered, taken from the course itself */}
+            <p className="absolute" style={{ left: u(90), top: u(399), width: u(600), fontSize: u(9.6), lineHeight: 1.5, color: '#3b3b46' }}>
+                <span style={{ fontWeight: 700, letterSpacing: '0.04em' }}>MODULES COMPLETED &nbsp;</span>
+                {LEARNED.map((m, i) => (
+                    <span key={m.id}>{i > 0 && ' · '}{m.number}. {m.title}</span>
+                ))}
             </p>
 
             {/* Director */}
@@ -108,7 +120,7 @@ const CertificateDocument: React.FC<Props> = ({ name, issuedAt, certId, sample, 
             </p>
 
             {/* Seal */}
-            <div className="absolute" style={{ left: u(355), top: u(413), width: u(152), height: u(152) }}>
+            <div className="absolute" style={{ left: u(372), top: u(436), width: u(130), height: u(130) }}>
                 <Seal />
             </div>
 
