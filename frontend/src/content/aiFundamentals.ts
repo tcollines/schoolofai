@@ -338,7 +338,7 @@ export const MODULES: CourseModuleDef[] = [
         id: 'm4', number: 4, title: 'When AI gets it wrong', blurb: 'Hallucinations, real cases, and how to fact-check.',
         items: [
             {
-                id: 'm4-l1', kind: 'video', title: 'Why AI sounds sure and is wrong', minutes: 7,
+                id: 'm4-l1', kind: 'video', title: 'Why AI sounds sure and is wrong', minutes: 8, videoUrl: '/video/m4-l1.mp4', audioUrl: '/audio/m4-l1.mp3',
                 summary: 'AI can sound completely sure and be completely wrong. It may invent facts, quotes, sources and numbers. This is called a hallucination. Why? It predicts what sounds likely. It does not check what is true. A made-up answer can look more convincing than a true one.',
                 points: ['A hallucination is when AI states something false as if it were true', 'It happens because it predicts what sounds likely', 'Invented facts, quotes, sources and numbers can look convincing'],
                 tryIt: { title: 'Catch it making things up', steps: ['Ask about something that does not exist: "Tell me about the 1987 book The Golden Boda of Nansana and its main characters."', 'Then ask: "Give me three sources for that."', 'Try to find the sources. Do they exist?'] }

@@ -25,6 +25,8 @@ interface Props {
     videoId?: string;
     videoUrl?: string;
     audioUrl?: string;
+    /** thumbnail shown before play */
+    poster?: string;
     title: string;
     startAt?: number;
     /** called about every 2s while playing: position and total duration, in seconds */
@@ -36,7 +38,7 @@ interface Props {
     audioOnly?: boolean;
 }
 
-const VideoPlayer: React.FC<Props> = ({ videoId, videoUrl, audioUrl, title, startAt = 0, onProgress, onEnded, dataSaver = false, audioOnly = false }) => {
+const VideoPlayer: React.FC<Props> = ({ videoId, videoUrl, audioUrl, poster, title, startAt = 0, onProgress, onEnded, dataSaver = false, audioOnly = false }) => {
     const [armed, setArmed] = useState(false);
     const mountRef = useRef<HTMLDivElement>(null);
     const playerRef = useRef<any>(null);
@@ -144,6 +146,7 @@ const VideoPlayer: React.FC<Props> = ({ videoId, videoUrl, audioUrl, title, star
                     className="w-full h-full"
                     controls
                     playsInline
+                    poster={poster}
                     preload={dataSaver ? 'none' : 'metadata'}
                     src={videoUrl}
                     title={title}

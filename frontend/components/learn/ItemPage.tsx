@@ -91,6 +91,7 @@ const ItemPage: React.FC = () => {
                         videoId={item.videoId}
                         videoUrl={item.videoUrl}
                         audioUrl={item.audioUrl}
+                        poster={item.videoUrl && item.videoUrl.startsWith('/video/') ? `/thumb/${item.id}.jpg` : undefined}
                         title={item.title}
                         startAt={progress[item.id]?.last || 0}
                         onProgress={onVideoProgress}
