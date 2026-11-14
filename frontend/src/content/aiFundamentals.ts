@@ -378,12 +378,12 @@ export const MODULES: CourseModuleDef[] = [
         id: 'm5', number: 5, title: 'Fair and private', blurb: 'How bias gets in, and how to protect your information and other people\'s.',
         items: [
             {
-                id: 'm5-l1', kind: 'video', title: 'How bias gets into AI', minutes: 7,
+                id: 'm5-l1', kind: 'video', title: 'How bias gets into AI', minutes: 9, videoUrl: '/video/m5-l1.mp4', audioUrl: '/audio/m5-l1.mp3',
                 summary: 'AI learns from human data, so it can inherit human bias. It learns from what people wrote: books, websites, posts and records. Human history is unequal, and old patterns and stereotypes are in the data. So answers can be unfair: sexist, racist, or leaving some people out. AI can also know less about some people, places and languages. A real example: Amazon built an experimental tool to rate job applicants. It learned from ten years of past CVs, most of them from men, and began marking down CVs that mentioned women. Amazon scrapped it (reported by Reuters, 2018). Nobody told it to be unfair. It copied a pattern in the data.',
                 points: ['AI learns from what people wrote', 'Human history is unequal, so the data is too', 'Nobody has to tell AI to be unfair. It copies patterns in its data']
             },
             {
-                id: 'm5-l2', kind: 'video', title: 'Spot bias and reduce it', minutes: 6,
+                id: 'm5-l2', kind: 'video', title: 'Spot bias and reduce it', minutes: 6, videoUrl: '/video/m5-l2.mp4', audioUrl: '/audio/m5-l2.mp3',
                 summary: 'Read AI answers for assumptions: who is a man or a woman, what names appear, which region or tribe, who is rich. Results vary, sometimes it assumes and sometimes it does not. The skill is looking. Four habits reduce bias: look for who is missing, never let AI decide alone about people (hiring, marks, loans, discipline), say what you want ("use varied names and roles"), and ask people who would be affected.',
                 points: ['Look for who is missing or shown as a stereotype', 'Never let AI decide alone about people', 'Say what you want in the prompt', 'Ask the people who would be affected'],
                 tryIt: { title: 'Spot the assumption', steps: ['Type: "Write a short story about a nurse, a boda boda rider and a company director."', 'Read it for assumptions. Who is a man or a woman? What names? Which region or tribe? Who is rich?', 'Ask: "Rewrite this without assuming anyone\'s gender, tribe or background."'] }

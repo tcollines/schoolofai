@@ -12,6 +12,7 @@ const MODS = {
   1: { name: 'What AI really is', line: 'AI, machine learning and generative AI in plain language', motif: 'nest' },
   2: { name: 'How to talk to AI', line: 'Ask clearly. Improve answers. Use your own text.', motif: 'prompt' },
   3: { name: 'Make AI work for you', line: 'Brainstorm, draft, summarise and automate', motif: 'jobs' },
+  5: { name: 'Fair and private', line: 'Bias, privacy and safer habits with AI', motif: 'fair' },
   4: { name: 'When AI gets it wrong', line: 'Hallucinations, real cases and fact-checking', motif: 'warn' },
 };
 const L = [
@@ -30,6 +31,8 @@ const L = [
   ['m3-l3', 3, 'Job 2: Draft in seconds, finish in your own voice', 10],
   ['m3-l4', 3, 'Job 3: Summarise long and messy things', 9],
   ['m3-l5', 3, 'Job 4: Automate without writing code', 8],
+  ['m5-l1', 5, 'How bias gets into AI', 9],
+  ['m5-l2', 5, 'Spot bias and reduce it', 6],
   ['m4-l1', 4, 'Why AI sounds sure and is wrong', 8],
   ['m4-l2', 4, 'Real cases: the lawyers and the airline', 9],
   ['m4-l3', 4, 'How to fact-check in three steps', 9],
@@ -46,6 +49,11 @@ const motif = (m, id) => {
   if (m === 'jobs') {
     const h = jobHi[id] ?? -1;
     return `<div style="display:flex;flex-direction:column;gap:22px">${['Brainstorm','Draft','Summarise','Automate'].map((t,i)=>`<div style="display:flex;align-items:center;gap:24px;background:${h===i?'#6d28d9':'#fff'};color:${h===i?'#fff':'#1c1917'};border:3px solid ${h===i?'#4c1d95':'#e7e2da'};border-radius:28px;padding:24px 34px;font-size:44px;font-weight:700;box-shadow:0 10px 30px rgba(0,0,0,.08)"><span style="width:60px;height:60px;border-radius:50%;background:${h===i?'#fff':'#6d28d9'};color:${h===i?'#6d28d9':'#fff'};display:flex;align-items:center;justify-content:center;font-size:32px;flex:none">${i+1}</span>${t}</div>`).join('')}</div>`;
+  }
+  if (m === 'fair') {
+    const dot = (c, n) => Array.from({ length: n }, () => `<span style="width:46px;height:46px;border-radius:50%;background:${c}"></span>`).join('');
+    const mis = id === 'm5-l2';
+    return `<div style="width:560px;display:flex;flex-direction:column;gap:26px"><div style="background:#fff;border:3px solid #e7e2da;border-radius:30px;padding:30px 36px;box-shadow:0 10px 30px rgba(0,0,0,.08)"><div style="font-size:30px;font-weight:700;color:#57534e;margin-bottom:16px">${mis ? 'Who is in this picture?' : 'What the data shows'}</div><div style="display:flex;gap:12px;flex-wrap:wrap">${dot('#6d28d9', 7)}${dot('#c4b5fd', mis ? 2 : 1)}</div></div><div style="background:${mis ? '#dcfce7' : '#fee2e2'};color:${mis ? '#166534' : '#991b1b'};border-radius:28px;padding:24px 36px;font-size:42px;font-weight:700">${mis ? 'Who is missing?' : 'A pattern, copied'}</div></div>`;
   }
   if (m === 'prompt') {
     const chip = (t, bg, c) => `<div style="background:${bg};color:${c};border-radius:26px;padding:26px 40px;font-size:50px;font-weight:700;box-shadow:0 6px 18px rgba(0,0,0,.08)">${t}</div>`;
