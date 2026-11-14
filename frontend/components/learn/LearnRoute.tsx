@@ -14,7 +14,7 @@ import FinalExam from './FinalExam';
 import CertificatePage from './CertificatePage';
 import LivePanel from './LivePanel';
 import ComingSoon from './ComingSoon';
-import { hasFullAccess, isItemOpen, lessonsAreOpen } from '../../src/lib/courseAccess';
+import { hasFullAccess, lockReason, lessonsAreOpen } from '../../src/lib/courseAccess';
 import { INK, PAPER, Logo, ProgressRing, ThemeButton } from './learnUi';
 
 const Outline: React.FC<{ progress: ProgressMap; base: string; fullAccess: boolean; onNavigate?: () => void }> = ({ progress, base, fullAccess, onNavigate }) => {
@@ -33,7 +33,7 @@ const Outline: React.FC<{ progress: ProgressMap; base: string; fullAccess: boole
                             const Icon = kindIcon(i.kind);
                             const active = pathname === `${base}/item/${i.id}`;
                             const done = progress[i.id]?.status === 'completed';
-                            const locked = !isItemOpen(i.id, fullAccess);
+                            const locked = lockReason(i.id, progress, fullAccess) !== null;
                             return (
                                 <li key={i.id}>
                                     <Link

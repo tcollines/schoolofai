@@ -4,7 +4,7 @@ import { ArrowRight, Award, CalendarClock, CheckCircle2, Circle, FileText, HelpC
 import { ALL_ITEMS, COURSE, MODULES } from '../../src/content/aiFundamentals';
 import { completionState } from '../../src/lib/learnApi';
 import { useLearn } from './learnContext';
-import { LESSONS_OPEN_LABEL, LIVE_SCHEDULE, isItemOpen, lessonsAreOpen } from '../../src/lib/courseAccess';
+import { LESSONS_OPEN_LABEL, LIVE_SCHEDULE, lessonsAreOpen, lockReason } from '../../src/lib/courseAccess';
 import { useSessions } from './LivePanel';
 import { BTN_PRIMARY, BTN_SECONDARY, CARD, MUTED, ProgressRing, formatEAT } from './learnUi';
 
@@ -67,14 +67,15 @@ const CourseHome: React.FC = () => {
                                     {m.items.map(i => {
                                         const Icon = kindIcon(i.kind);
                                         const isDone = progress[i.id]?.status === 'completed';
-                                        const locked = !isItemOpen(i.id, fullAccess);
+                                        const reason = lockReason(i.id, progress, fullAccess);
+                                        const locked = reason !== null;
                                         return (
                                             <li key={i.id}>
                                                 <Link to={`${base}/item/${i.id}`} className="flex items-center gap-3 px-5 py-3.5 hover:bg-stone-50 dark:hover:bg-slate-800/60 min-h-[48px]">
                                                     {isDone ? <CheckCircle2 size={18} className="text-emerald-600 shrink-0" /> : locked ? <Lock size={18} className="text-stone-300 dark:text-slate-600 shrink-0" /> : <Circle size={18} className="text-stone-300 dark:text-slate-600 shrink-0" />}
                                                     <Icon size={16} className="text-stone-400 dark:text-slate-500 shrink-0" />
                                                     <span className="flex-1 text-[15px] leading-snug">{i.title}</span>
-                                                    <span className={`text-xs ${MUTED}`}>{locked ? 'Opens Mon 16 Nov' : `${i.minutes} min`}</span>
+                                                    <span className={`text-xs ${MUTED}`}>{reason === 'date' ? 'Opens Mon 16 Nov' : reason === 'previous' ? 'Finish the previous one first' : `${i.minutes} min`}</span>
                                                 </Link>
                                             </li>
                                         );

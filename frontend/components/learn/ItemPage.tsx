@@ -7,7 +7,8 @@ import { getTranscript } from '../../src/content/transcripts';
 import { useLearn } from './learnContext';
 import VideoPlayer from './VideoPlayer';
 import ComingSoon from './ComingSoon';
-import { isItemOpen } from '../../src/lib/courseAccess';
+import { lockReason } from '../../src/lib/courseAccess';
+import { Lock } from 'lucide-react';
 import QuizView from './QuizView';
 import { BTN_PRIMARY, BTN_SECONDARY, CARD, MUTED, usePlayerPrefs } from './learnUi';
 import { LessonQA, LessonRating, PlayerPrefsBar, TranscriptView } from './LessonExtras';
@@ -17,7 +18,8 @@ const ItemPage: React.FC = () => {
     const item = findItem(itemId);
     const mod = moduleOfItem(itemId);
     const { uid, fullName, progress, markProgress, markComplete, bump, fullAccess } = useLearn();
-    const locked = !!item && !isItemOpen(item.id, fullAccess);
+    const reason = item ? lockReason(item.id, progress, fullAccess) : null;
+    const locked = !!item && reason !== null;
     const navigate = useNavigate();
 
     const { prefs, update: updatePrefs } = usePlayerPrefs();
@@ -43,7 +45,26 @@ const ItemPage: React.FC = () => {
     }, [itemId]);
 
     if (!item || !mod) return <Navigate to={`/learn/${COURSE.slug}`} replace />;
-    if (locked) return <ComingSoon firstName={(fullName || '').split(' ')[0]} />;
+    if (reason === 'date') return <ComingSoon firstName={(fullName || '').split(' ')[0]} />;
+    if (reason === 'previous') {
+        const prevId = prevItemId(item.id);
+        const prevItem = prevId ? findItem(prevId) : undefined;
+        return (
+            <div className="max-w-2xl mx-auto px-4 sm:px-6 py-12">
+                <div className={`${CARD} rounded-3xl p-7 sm:p-10 text-center`}>
+                    <span className="mx-auto w-14 h-14 rounded-full bg-violet-100 dark:bg-violet-950 text-violet-700 dark:text-violet-300 flex items-center justify-center"><Lock size={26} /></span>
+                    <h1 className="font-serif text-2xl sm:text-3xl font-semibold leading-tight mt-5">Finish the previous lesson first</h1>
+                    <p className={`mt-3 text-base leading-relaxed ${MUTED}`}>
+                        Each lesson opens when you finish the one before it, so everything builds step by step. You can see the whole lineup, and "{item.title}" will open as soon as you complete {prevItem ? `"${prevItem.title}"` : 'the previous lesson'}.
+                    </p>
+                    <div className="mt-6 flex flex-col sm:flex-row gap-3 justify-center">
+                        {prevId && <Link to={`/learn/${COURSE.slug}/item/${prevId}`} className={BTN_PRIMARY}><ArrowLeft size={18} /> Go to the previous lesson</Link>}
+                        <Link to={`/learn/${COURSE.slug}`} className={BTN_SECONDARY}>See the course lineup</Link>
+                    </div>
+                </div>
+            </div>
+        );
+    }
 
     const done = progress[item.id]?.status === 'completed';
     const hasVideo = !!(item.videoId || item.videoUrl);
@@ -216,9 +237,10 @@ const ItemPage: React.FC = () => {
 
             {item.kind !== 'quiz' && (item.kind === 'reading' || done || !hasVideo) && <LessonRating uid={uid} itemId={item.id} />}
 
-            <div className="mt-8 pt-6 border-t border-stone-200 dark:border-slate-800 flex items-center justify-between gap-3">
+            {!fullAccess && !done && <p className={`mt-6 text-sm ${MUTED}`}>The next lesson opens when you finish this one.</p>}
+            <div className="mt-4 pt-6 border-t border-stone-200 dark:border-slate-800 flex items-center justify-between gap-3">
                 <button onClick={goPrev} disabled={!prev} className={BTN_SECONDARY}><ArrowLeft size={16} /> Previous</button>
-                <button onClick={goNext} className={done || item.kind === 'quiz' ? BTN_PRIMARY : BTN_SECONDARY}>
+                <button onClick={goNext} disabled={!fullAccess && !done} title={!fullAccess && !done ? 'Finish this lesson to continue' : undefined} className={`${done || item.kind === 'quiz' ? BTN_PRIMARY : BTN_SECONDARY} disabled:opacity-50 disabled:cursor-not-allowed`}>
                     {next ? 'Next' : 'Final assessment'} <ArrowRight size={16} />
                 </button>
             </div>
