@@ -32,6 +32,8 @@ const L = [
   ['m3-l4', 3, 'Job 3: Summarise long and messy things', 9],
   ['m3-l5', 3, 'Job 4: Automate without writing code', 8],
   ['m5-l1', 5, 'How bias gets into AI', 9],
+  ['m5-l4', 5, 'Safer habits and three rules', 6],
+  ['m5-l3', 5, 'Your words may not stay private', 8],
   ['m5-l2', 5, 'Spot bias and reduce it', 6],
   ['m4-l1', 4, 'Why AI sounds sure and is wrong', 8],
   ['m4-l2', 4, 'Real cases: the lawyers and the airline', 9],
@@ -49,6 +51,12 @@ const motif = (m, id) => {
   if (m === 'jobs') {
     const h = jobHi[id] ?? -1;
     return `<div style="display:flex;flex-direction:column;gap:22px">${['Brainstorm','Draft','Summarise','Automate'].map((t,i)=>`<div style="display:flex;align-items:center;gap:24px;background:${h===i?'#6d28d9':'#fff'};color:${h===i?'#fff':'#1c1917'};border:3px solid ${h===i?'#4c1d95':'#e7e2da'};border-radius:28px;padding:24px 34px;font-size:44px;font-weight:700;box-shadow:0 10px 30px rgba(0,0,0,.08)"><span style="width:60px;height:60px;border-radius:50%;background:${h===i?'#fff':'#6d28d9'};color:${h===i?'#6d28d9':'#fff'};display:flex;align-items:center;justify-content:center;font-size:32px;flex:none">${i+1}</span>${t}</div>`).join('')}</div>`;
+  }
+  if (m === 'fair' && id === 'm5-l4') {
+    return `<div style="width:560px;display:flex;flex-direction:column;gap:22px">${['Use approved tools','Check the settings','Not sure? Do not paste it'].map((t,i)=>`<div style="display:flex;align-items:center;gap:24px;background:#fff;border:3px solid #e7e2da;border-radius:28px;padding:26px 34px;font-size:38px;font-weight:600;box-shadow:0 10px 30px rgba(0,0,0,.08)"><span style="width:64px;height:64px;border-radius:50%;background:${i===2?'#dc2626':'#6d28d9'};color:#fff;display:flex;align-items:center;justify-content:center;font-size:34px;flex:none">${i+1}</span>${t}</div>`).join('')}</div>`;
+  }
+  if (m === 'fair' && id === 'm5-l3') {
+    return `<div style="width:560px;display:flex;flex-direction:column;gap:24px"><div style="background:#fff;border:3px solid #e7e2da;border-radius:30px;padding:30px 36px;font-size:40px;box-shadow:0 10px 30px rgba(0,0,0,.08)"><div style="font-size:28px;font-weight:700;color:#57534e;margin-bottom:12px">You type</div>Sarah, <span style="background:#fecaca;color:#991b1b;border-radius:10px;padding:0 10px;font-weight:700">0772 000 000</span></div><div style="background:#fee2e2;color:#991b1b;border-radius:28px;padding:24px 36px;font-size:42px;font-weight:700">May not stay private</div></div>`;
   }
   if (m === 'fair') {
     const dot = (c, n) => Array.from({ length: n }, () => `<span style="width:46px;height:46px;border-radius:50%;background:${c}"></span>`).join('');

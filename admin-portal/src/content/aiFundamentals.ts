@@ -389,12 +389,12 @@ export const MODULES: CourseModuleDef[] = [
                 tryIt: { title: 'Spot the assumption', steps: ['Type: "Write a short story about a nurse, a boda boda rider and a company director."', 'Read it for assumptions. Who is a man or a woman? What names? Which region or tribe? Who is rich?', 'Ask: "Rewrite this without assuming anyone\'s gender, tribe or background."'] }
             },
             {
-                id: 'm5-l3', kind: 'video', title: 'Your words may not stay private', minutes: 7,
+                id: 'm5-l3', kind: 'video', title: 'Your words may not stay private', minutes: 8, videoUrl: '/video/m5-l3.mp4', audioUrl: '/audio/m5-l3.mp3',
                 summary: 'Public AI tools may use what you type to train their models, and could reveal it later. Never put in confidential work information, passwords, or personal information. No exceptions. Personal information, or PII, is anything that identifies a person: a name with a phone number, an ID number, an address, a photo, medical details, bank or mobile money details.',
                 points: ['Public tools may use what you type', 'Never paste passwords, PINs, ID numbers or confidential work information', 'PII is anything that identifies a person']
             },
             {
-                id: 'm5-l4', kind: 'video', title: 'Safer habits and three rules', minutes: 6,
+                id: 'm5-l4', kind: 'video', title: 'Safer habits and three rules', minutes: 6, videoUrl: '/video/m5-l4.mp4', audioUrl: '/audio/m5-l4.mp3',
                 summary: 'Instead of pasting a customer\'s complaint with their name and phone number, describe it: "A customer says their delivery was two days late. Write a polite reply." Instead of pasting your customer list, ask how to analyse a customer list and practise on made-up data. Instead of pasting a full contract, remove names and amounts first, or use a tool your organisation has approved. Three rules for sensitive information: use approved, secure tools; check the settings (a setting is not permission to paste secrets); and if you are not sure, do not paste it. Asking costs a minute. A leak can cost far more.',
                 points: ['Describe the problem, not the person', 'Use approved, secure tools for anything sensitive', 'Check the settings, but a setting is not permission to paste secrets', 'Not sure? Do not paste it']
             },
