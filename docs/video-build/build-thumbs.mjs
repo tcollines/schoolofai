@@ -24,7 +24,9 @@ const L = [
   ['m2-l2', 2, 'Context, task, format: the three-part prompt', 9],
   ['m2-l3', 2, "Not quite right? Refine, don't restart", 7],
   ['m2-l4', 2, 'Give it your own text to work from', 7],
-  ['m4-l1', 4, 'Why AI sounds sure and is wrong', 7],
+  ['m4-l1', 4, 'Why AI sounds sure and is wrong', 8],
+  ['m4-l2', 4, 'Real cases: the lawyers and the airline', 9],
+  ['m4-l3', 4, 'How to fact-check in three steps', 9],
 ];
 const highlight = { 'm1-l2': 0, 'm1-l3': 1, 'm1-l4': 2, 'm1-l5': 3 };
 
@@ -39,6 +41,8 @@ const motif = (m, id) => {
     return `<div style="display:flex;flex-direction:column;gap:26px;align-items:flex-start">${chip('Context', '#ede9fe', '#5b21b6')}${chip('Task', '#dbeafe', '#1e40af')}${chip('Format', '#fef3c7', '#92400e')}</div>`;
   }
   if (m === 'warn') {
+    if (id === 'm4-l2') return `<div style="width:560px;display:flex;flex-direction:column;gap:22px"><div style="background:#fff;border:3px solid #e7e2da;border-radius:28px;padding:28px 36px;font-size:40px;box-shadow:0 10px 30px rgba(0,0,0,.08)"><b>2023</b> · six cases invented</div><div style="background:#fff;border:3px solid #e7e2da;border-radius:28px;padding:28px 36px;font-size:40px;box-shadow:0 10px 30px rgba(0,0,0,.08)"><b>2024</b> · a chatbot’s wrong answer</div><div style="background:#fee2e2;color:#991b1b;border-radius:28px;padding:24px 36px;font-size:40px;font-weight:700">A person was responsible</div></div>`;
+    if (id === 'm4-l3') return `<div style="width:560px;display:flex;flex-direction:column;gap:22px">${['Mark the claims','Check outside the chatbot','Open the sources'].map((t,i)=>`<div style="display:flex;align-items:center;gap:24px;background:#fff;border:3px solid #e7e2da;border-radius:28px;padding:26px 34px;font-size:40px;font-weight:600;box-shadow:0 10px 30px rgba(0,0,0,.08)"><span style="width:64px;height:64px;border-radius:50%;background:#6d28d9;color:#fff;display:flex;align-items:center;justify-content:center;font-size:34px;flex:none">${i+1}</span>${t}</div>`).join('')}</div>`;
     return `<div style="width:560px"><div style="background:#fff;border:3px solid #e7e2da;border-radius:36px 36px 36px 8px;padding:34px 40px;font-size:42px;line-height:1.3;box-shadow:0 10px 30px rgba(0,0,0,.08)">“That one, with the <b>blue stripe</b>.”</div>
     <div style="display:flex;gap:16px;margin-top:24px;align-items:center"><span style="background:#dcfce7;color:#166534;border-radius:999px;padding:10px 28px;font-size:34px;font-weight:700">Sounds sure</span><span style="background:#fee2e2;color:#991b1b;border-radius:999px;padding:10px 28px;font-size:34px;font-weight:700">Wrong bus</span></div></div>`;
   }

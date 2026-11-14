@@ -344,12 +344,12 @@ export const MODULES: CourseModuleDef[] = [
                 tryIt: { title: 'Catch it making things up', steps: ['Ask about something that does not exist: "Tell me about the 1987 book The Golden Boda of Nansana and its main characters."', 'Then ask: "Give me three sources for that."', 'Try to find the sources. Do they exist?'] }
             },
             {
-                id: 'm4-l2', kind: 'video', title: 'Real cases: the lawyers and the airline', minutes: 7,
+                id: 'm4-l2', kind: 'video', title: 'Real cases: the lawyers and the airline', minutes: 9, videoUrl: '/video/m4-l2.mp4', audioUrl: '/audio/m4-l2.mp3',
                 summary: 'In 2023, two New York lawyers filed court papers citing six cases that ChatGPT had invented. The judge fined them and their firm $5,000 in total, saying that using AI for help is not improper, but lawyers must check what they file. In 2024, Air Canada\'s website chatbot told a customer he could claim a bereavement discount after his trip, but the airline\'s real policy said otherwise. A tribunal held the airline responsible and ordered it to pay him about CA$812. Both mistakes looked believable, and in both cases a person was responsible.',
                 points: ['Both mistakes looked believable', 'In both cases a person or company was held responsible', 'Using AI is fine. Checking what you use is your job']
             },
             {
-                id: 'm4-l3', kind: 'video', title: 'How to fact-check in three steps', minutes: 8,
+                id: 'm4-l3', kind: 'video', title: 'How to fact-check in three steps', minutes: 9, videoUrl: '/video/m4-l3.mp4', audioUrl: '/audio/m4-l3.mp3',
                 summary: 'Step one: mark the claims that matter, such as names, numbers, dates, quotes, sources and laws. Step two: check them outside the chatbot, on an official website, in a textbook, with a trusted news source, or with an expert. Step three: ask for sources, then open them. If the link does not exist or does not say that, do not use the claim. The riskier the topic, the more you check: health, law, money and safety. You can reduce hallucinations by giving the AI the text to work from, asking it to say when it does not know, and asking for sources, but you cannot remove them.',
                 points: ['Mark the claims that matter', 'Check them outside the chatbot', 'Ask for sources, then open them', 'Check more when the topic is health, law, money or safety']
             },
