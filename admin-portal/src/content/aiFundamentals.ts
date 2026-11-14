@@ -276,24 +276,24 @@ export const MODULES: CourseModuleDef[] = [
         id: 'm3', number: 3, title: 'Make AI work for you', blurb: 'Four everyday jobs: brainstorm, draft, summarise and automate.',
         items: [
             {
-                id: 'm3-l1', kind: 'video', title: 'AI is your co-pilot, not your replacement', minutes: 6,
+                id: 'm3-l1', kind: 'video', title: 'AI is your co-pilot, not your replacement', minutes: 7, videoUrl: '/video/m3-l1.mp4', audioUrl: '/audio/m3-l1.mp3',
                 summary: 'AI saves time on first drafts, is a partner when you are stuck, organises complex information fast, and handles simple tasks without coding. But you stay in charge. It drafts, you decide.',
                 points: ['Saves time on first drafts', 'A partner when you are stuck', 'Organises complex information fast', 'Handles simple tasks with no coding', 'AI drafts. You decide.']
             },
             {
-                id: 'm3-l2', kind: 'video', title: 'Job 1: Beat the blank page (brainstorm)', minutes: 8,
+                id: 'm3-l2', kind: 'video', title: 'Job 1: Beat the blank page (brainstorm)', minutes: 9, videoUrl: '/video/m3-l2.mp4', audioUrl: '/audio/m3-l2.mp3',
                 summary: 'When you are stuck, AI is the fastest way to go from nothing to a first draft worth reacting to. Ask for 10 taglines for a small business, an outline for a talk, a meeting agenda, or interview questions. Treat the answers as inspiration, then make them yours. You do not get one answer, you get options to react to. That is the real value.',
                 points: ['Ask for many ideas at once', 'Pick the best two and refine them', 'Treat answers as inspiration, then make them yours'],
                 tryIt: { title: 'Brainstorm together', steps: ['Type: "I am organising a school fundraiser for 400 students. Give me 10 ideas to raise money."', 'Pick the two ideas you like best.', 'Ask: "Make idea 3 cheaper and easier to run."'] }
             },
             {
-                id: 'm3-l3', kind: 'video', title: 'Job 2: Draft in seconds, finish in your own voice', minutes: 9,
+                id: 'm3-l3', kind: 'video', title: 'Job 2: Draft in seconds, finish in your own voice', minutes: 10, videoUrl: '/video/m3-l3.mp4', audioUrl: '/audio/m3-l3.mp3',
                 summary: 'AI writes the first version in seconds. You edit the facts, tone and your own voice. You send only after you have read it. Good for emails, reports and social media posts. Always check: is it clear, and does the tone suit your reader? Never send the first draft.',
                 points: ['AI drafts, you edit, you send', 'Check clarity and tone for your reader', 'Add your name, a personal detail, and fix anything untrue'],
                 tryIt: { title: 'Draft, then make it yours', steps: ['Type: "Write a polite follow-up email to a client who has not replied to my quote for five days. Keep it short and friendly."', 'Ask: "Make it warmer." Then: "Make it shorter."', 'Edit by hand: add your name, one personal detail, and fix anything untrue.'] }
             },
             {
-                id: 'm3-l4', kind: 'video', title: 'Job 3: Summarise long and messy things', minutes: 9,
+                id: 'm3-l4', kind: 'video', title: 'Job 3: Summarise long and messy things', minutes: 9, videoUrl: '/video/m3-l4.mp4', audioUrl: '/audio/m3-l4.mp3',
                 summary: 'Turn long and messy into short and clear. Condense a long document into a few bullet points, pull action items out of meeting notes, or turn messy notes into a table with task, owner and due date. If something is missing, tell the AI to write "not stated" so it does not guess.',
                 points: ['Long document into a few bullet points', 'Meeting notes into action items', 'Messy notes into a table: task, owner, due date', 'Tell it to write "not stated" when information is missing'],
                 tryIt: {
@@ -306,7 +306,7 @@ export const MODULES: CourseModuleDef[] = [
                 }
             },
             {
-                id: 'm3-l5', kind: 'video', title: 'Job 4: Automate without writing code', minutes: 8,
+                id: 'm3-l5', kind: 'video', title: 'Job 4: Automate without writing code', minutes: 8, videoUrl: '/video/m3-l5.mp4', audioUrl: '/audio/m3-l5.mp3',
                 summary: 'AI closes the gap between what you can imagine and what you can build on your own. Ask for a spreadsheet formula in plain words, get step-by-step help when software misbehaves, or automate repetitive clicking and copying. Use it to speed up while you learn the skill, not to avoid learning it. Always test the result on one row with a calculator before you trust it.',
                 points: ['Spreadsheet formulas in plain words', 'Step-by-step troubleshooting', 'Small macros for repetitive work', 'Test before you trust'],
                 tryIt: { title: 'Ask for a formula, then test it', steps: ['Type: "My monthly sales are in column B, starting at B2. Write a formula in C3 that shows growth compared with last month as a percentage, and explain it in simple words."', 'The answer should look like =(B3-B2)/B2, formatted as a percentage.', 'Test it on one row with a calculator. If last month could be zero, ask for a version that avoids dividing by zero.'] }

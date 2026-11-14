@@ -11,6 +11,7 @@ const MODS = {
   0: { name: 'Welcome', line: 'How this course works', motif: 'rays' },
   1: { name: 'What AI really is', line: 'AI, machine learning and generative AI in plain language', motif: 'nest' },
   2: { name: 'How to talk to AI', line: 'Ask clearly. Improve answers. Use your own text.', motif: 'prompt' },
+  3: { name: 'Make AI work for you', line: 'Brainstorm, draft, summarise and automate', motif: 'jobs' },
   4: { name: 'When AI gets it wrong', line: 'Hallucinations, real cases and fact-checking', motif: 'warn' },
 };
 const L = [
@@ -24,10 +25,16 @@ const L = [
   ['m2-l2', 2, 'Context, task, format: the three-part prompt', 9],
   ['m2-l3', 2, "Not quite right? Refine, don't restart", 7],
   ['m2-l4', 2, 'Give it your own text to work from', 7],
+  ['m3-l1', 3, 'AI is your co-pilot, not your replacement', 7],
+  ['m3-l2', 3, 'Job 1: Beat the blank page (brainstorm)', 9],
+  ['m3-l3', 3, 'Job 2: Draft in seconds, finish in your own voice', 10],
+  ['m3-l4', 3, 'Job 3: Summarise long and messy things', 9],
+  ['m3-l5', 3, 'Job 4: Automate without writing code', 8],
   ['m4-l1', 4, 'Why AI sounds sure and is wrong', 8],
   ['m4-l2', 4, 'Real cases: the lawyers and the airline', 9],
   ['m4-l3', 4, 'How to fact-check in three steps', 9],
 ];
+const jobHi = { 'm3-l2': 0, 'm3-l3': 1, 'm3-l4': 2, 'm3-l5': 3 };
 const highlight = { 'm1-l2': 0, 'm1-l3': 1, 'm1-l4': 2, 'm1-l5': 3 };
 
 const motif = (m, id) => {
@@ -35,6 +42,10 @@ const motif = (m, id) => {
     const h = highlight[id] ?? -1;
     const rings = [['AI', 560, '#ede9fe', '#a78bfa'], ['Machine learning', 430, '#ddd6fe', '#8b5cf6'], ['Deep learning', 300, '#c4b5fd', '#7c3aed'], ['Generative AI', 170, '#6d28d9', '#4c1d95']];
     return `<div style="position:relative;width:560px;height:560px">${rings.map(([t, s, bg, bd], i) => `<div style="position:absolute;left:${(560 - s) / 2}px;bottom:0;width:${s}px;height:${s}px;border-radius:50%;background:${bg};border:${h === i ? 7 : 3}px solid ${bd};display:flex;justify-content:center;padding-top:${i === 3 ? 62 : 34}px;box-sizing:border-box;font-weight:700;font-size:${i === 3 ? 28 : 25}px;color:${i === 3 ? '#fff' : '#4c1d95'};text-align:center;line-height:1.1">${i === 3 ? 'Generative<br>AI' : t}</div>`).join('')}</div>`;
+  }
+  if (m === 'jobs') {
+    const h = jobHi[id] ?? -1;
+    return `<div style="display:flex;flex-direction:column;gap:22px">${['Brainstorm','Draft','Summarise','Automate'].map((t,i)=>`<div style="display:flex;align-items:center;gap:24px;background:${h===i?'#6d28d9':'#fff'};color:${h===i?'#fff':'#1c1917'};border:3px solid ${h===i?'#4c1d95':'#e7e2da'};border-radius:28px;padding:24px 34px;font-size:44px;font-weight:700;box-shadow:0 10px 30px rgba(0,0,0,.08)"><span style="width:60px;height:60px;border-radius:50%;background:${h===i?'#fff':'#6d28d9'};color:${h===i?'#6d28d9':'#fff'};display:flex;align-items:center;justify-content:center;font-size:32px;flex:none">${i+1}</span>${t}</div>`).join('')}</div>`;
   }
   if (m === 'prompt') {
     const chip = (t, bg, c) => `<div style="background:${bg};color:${c};border-radius:26px;padding:26px 40px;font-size:50px;font-weight:700;box-shadow:0 6px 18px rgba(0,0,0,.08)">${t}</div>`;
