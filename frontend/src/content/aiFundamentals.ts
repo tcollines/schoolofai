@@ -424,12 +424,12 @@ export const MODULES: CourseModuleDef[] = [
         id: 'm6', number: 6, title: 'Using AI responsibly', blurb: 'A simple guide for deciding what is safe, and your plan from here.',
         items: [
             {
-                id: 'm6-l1', kind: 'video', title: 'Green, amber, red', minutes: 8,
+                id: 'm6-l1', kind: 'video', title: 'Green, amber, red', minutes: 9, videoUrl: '/video/m6-l1.mp4', audioUrl: '/audio/m6-l1.mp3',
                 summary: 'A simple guide. Green is low risk, go: brainstorm names and ideas, draft a thank-you note, explain a concept simply, summarise a public article. Amber means check carefully: facts, numbers and quotes; health, legal and money information; anything that goes out under your name. Red means stop: pasting personal or confidential information into a public tool, letting AI alone decide about people, and submitting AI work you cannot explain or that your school or employer does not allow. Four questions to ask of any AI tool: does it do good for people, is it built and tested for safety, is it fair, and is someone accountable?',
                 points: ['Green: low risk, go', 'Amber: check carefully', 'Red: stop', 'Ask: good for people? safe? fair? accountable?']
             },
             {
-                id: 'm6-l2', kind: 'video', title: 'Stay the human in the loop, and your 30-day plan', minutes: 7,
+                id: 'm6-l2', kind: 'video', title: 'Stay the human in the loop, and your 30-day plan', minutes: 9, videoUrl: '/video/m6-l2.mp4', audioUrl: '/audio/m6-l2.mp3',
                 summary: 'AI is powerful. It has no human judgment, empathy or common sense. A person reviews and decides before anything affects real people. You verify the facts. You protect privacy. You make the decision. The three-lesson series in one line: use it, check it, protect people. Your next step is a 30-day plan: pick one task a week, use AI on it, run the three checks (is it true, is it right for my reader, is it safe to share), and note the time you saved. Teach one person one idea from this course.',
                 points: ['Use it: AI is a powerful co-pilot for real tasks', 'Check it: verify facts and look for bias', 'Protect people: keep private and confidential information out', 'Practise on one real task a week']
             },

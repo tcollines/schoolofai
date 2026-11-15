@@ -12,6 +12,7 @@ const MODS = {
   1: { name: 'What AI really is', line: 'AI, machine learning and generative AI in plain language', motif: 'nest' },
   2: { name: 'How to talk to AI', line: 'Ask clearly. Improve answers. Use your own text.', motif: 'prompt' },
   3: { name: 'Make AI work for you', line: 'Brainstorm, draft, summarise and automate', motif: 'jobs' },
+  6: { name: 'Using AI responsibly', line: 'A simple guide for safe, honest use, and your 30-day plan', motif: 'light' },
   5: { name: 'Fair and private', line: 'Bias, privacy and safer habits with AI', motif: 'fair' },
   4: { name: 'When AI gets it wrong', line: 'Hallucinations, real cases and fact-checking', motif: 'warn' },
 };
@@ -31,6 +32,8 @@ const L = [
   ['m3-l3', 3, 'Job 2: Draft in seconds, finish in your own voice', 10],
   ['m3-l4', 3, 'Job 3: Summarise long and messy things', 9],
   ['m3-l5', 3, 'Job 4: Automate without writing code', 8],
+  ['m6-l1', 6, 'Green, amber, red', 9],
+  ['m6-l2', 6, 'Stay the human in the loop, and your 30-day plan', 9],
   ['m5-l1', 5, 'How bias gets into AI', 9],
   ['m5-l4', 5, 'Safer habits and three rules', 6],
   ['m5-l3', 5, 'Your words may not stay private', 8],
@@ -51,6 +54,10 @@ const motif = (m, id) => {
   if (m === 'jobs') {
     const h = jobHi[id] ?? -1;
     return `<div style="display:flex;flex-direction:column;gap:22px">${['Brainstorm','Draft','Summarise','Automate'].map((t,i)=>`<div style="display:flex;align-items:center;gap:24px;background:${h===i?'#6d28d9':'#fff'};color:${h===i?'#fff':'#1c1917'};border:3px solid ${h===i?'#4c1d95':'#e7e2da'};border-radius:28px;padding:24px 34px;font-size:44px;font-weight:700;box-shadow:0 10px 30px rgba(0,0,0,.08)"><span style="width:60px;height:60px;border-radius:50%;background:${h===i?'#fff':'#6d28d9'};color:${h===i?'#6d28d9':'#fff'};display:flex;align-items:center;justify-content:center;font-size:32px;flex:none">${i+1}</span>${t}</div>`).join('')}</div>`;
+  }
+  if (m === 'light') {
+    if (id === 'm6-l2') return `<div style="width:560px;display:flex;flex-direction:column;gap:22px"><div style="background:#fff;border:3px solid #e7e2da;border-radius:30px;padding:30px 36px;box-shadow:0 10px 30px rgba(0,0,0,.08)"><div style="font-size:30px;font-weight:700;color:#57534e;margin-bottom:12px">You</div><div style="font-size:44px;font-weight:700">verify · protect · decide</div></div><div style="display:flex;gap:14px">${['Week 1','Week 2','Week 3','Week 4'].map(w=>`<span style="flex:1;text-align:center;background:#ede9fe;color:#4c1d95;border-radius:20px;padding:18px 0;font-size:30px;font-weight:700">${w}</span>`).join('')}</div></div>`;
+    return `<div style="display:flex;flex-direction:column;gap:22px;width:520px">${[['#16a34a','Green','Go'],['#d97706','Amber','Check carefully'],['#dc2626','Red','Stop']].map(([c,a,b])=>`<div style="display:flex;align-items:center;gap:26px;background:#fff;border:3px solid #e7e2da;border-radius:30px;padding:24px 34px;box-shadow:0 10px 30px rgba(0,0,0,.08)"><span style="width:84px;height:84px;border-radius:50%;background:${c};flex:none"></span><div><div style="font-size:46px;font-weight:700">${a}</div><div style="font-size:30px;color:#57534e">${b}</div></div></div>`).join('')}</div>`;
   }
   if (m === 'fair' && id === 'm5-l4') {
     return `<div style="width:560px;display:flex;flex-direction:column;gap:22px">${['Use approved tools','Check the settings','Not sure? Do not paste it'].map((t,i)=>`<div style="display:flex;align-items:center;gap:24px;background:#fff;border:3px solid #e7e2da;border-radius:28px;padding:26px 34px;font-size:38px;font-weight:600;box-shadow:0 10px 30px rgba(0,0,0,.08)"><span style="width:64px;height:64px;border-radius:50%;background:${i===2?'#dc2626':'#6d28d9'};color:#fff;display:flex;align-items:center;justify-content:center;font-size:34px;flex:none">${i+1}</span>${t}</div>`).join('')}</div>`;
