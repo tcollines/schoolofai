@@ -54,7 +54,9 @@ const maskPhone = p => String(p || '').replace(/^(\+\d{3}).*(\d{2})$/, '$1***$2'
 
 function relative(iso) {
     const mins = Math.round((new Date(iso).getTime() - Date.now()) / 60000);
-    if (mins <= 90) return mins <= 5 ? 'in a few minutes' : 'in about an hour';
+    if (mins <= 5) return 'in a few minutes';
+    if (mins <= 25) return 'in about 15 minutes';
+    if (mins <= 90) return 'in about an hour';
     const h = Math.round(mins / 60);
     return h >= 20 ? 'tomorrow' : `in about ${h} hours`;
 }
