@@ -18,6 +18,15 @@ const AccountSetupGate: React.FC<{ session: any }> = ({ session }) => {
 
     useEffect(() => { setMustChange(!!user && meta.must_change_password === true); }, [user?.id, meta.must_change_password]);
 
+    // Apply the email choice made at sign-up, once.
+    useEffect(() => {
+        if (!user?.id || meta.email_opt_in !== false) return;
+        const key = `welile_optout_applied_${user.id}`;
+        try { if (localStorage.getItem(key)) return; } catch { /* ignore */ }
+        supabase.from('live_reminder_prefs').upsert({ user_id: user.id, email: user.email || null, email_opt_in: false }, { onConflict: 'user_id' })
+            .then(({ error: e }) => { if (!e) { try { localStorage.setItem(key, '1'); } catch { /* ignore */ } } });
+    }, [user?.id, meta.email_opt_in]);
+
     // Enrol once in the chosen course (safe to repeat: the database ignores duplicates).
     useEffect(() => {
         const course = meta.enroll_course;

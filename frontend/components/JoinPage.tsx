@@ -15,7 +15,7 @@ const JoinPage: React.FC = () => {
     const { slug = '' } = useParams();
     const navigate = useNavigate();
     const [agent, setAgent] = useState<string | null>(null);
-    const [form, setForm] = useState({ name: '', email: '', phone: '', password: '', course: FREE_TITLE, consent: false });
+    const [form, setForm] = useState({ name: '', email: '', phone: '', password: '', course: FREE_TITLE, consent: false, emailOptIn: true });
     const [show, setShow] = useState(false);
     const [busy, setBusy] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -50,7 +50,7 @@ const JoinPage: React.FC = () => {
                 options: {
                     emailRedirectTo: `${window.location.origin}/onboarding/profile`,
                     data: {
-                        full_name: form.name.trim(), phone: form.phone.trim(), ref_code: slug.toLowerCase(),
+                        full_name: form.name.trim(), phone: form.phone.trim(), email_opt_in: form.emailOptIn, ref_code: slug.toLowerCase(),
                         signup_source: 'agent_link', interested_course: form.course,
                         ...(isFree ? { enroll_course: FREE_SLUG } : {})
                     }
@@ -92,6 +92,8 @@ const JoinPage: React.FC = () => {
                         {!isFree && <p className={`mt-2 text-sm ${MUTED}`}>You will get the free AI Fundamentals course too. Our team will contact you about {form.course}.</p>}
                     </div>
                     <label className="flex items-start gap-3 text-sm cursor-pointer"><input type="checkbox" checked={form.consent} onChange={set('consent')} className="mt-0.5 accent-violet-700 w-5 h-5 shrink-0" /><span>Welile School of AI may contact me about my programme.</span></label>
+
+                    <label className="flex items-start gap-3 text-sm cursor-pointer"><input type="checkbox" checked={form.emailOptIn} onChange={set('emailOptIn')} className="mt-0.5 accent-violet-700 w-5 h-5 shrink-0" /><span>Email me live-class reminders and course updates. You can change this any time.</span></label>
 
                     {exists && <p role="alert" className="text-sm rounded-lg bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900 p-3">This email already has an account. <a href="/login" className="font-semibold underline">Sign in</a> and open your free course.</p>}
                     {error && <p role="alert" className="text-sm text-red-600 flex items-start gap-2"><AlertTriangle size={16} className="mt-0.5 shrink-0" />{error}</p>}

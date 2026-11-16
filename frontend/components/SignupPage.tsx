@@ -35,6 +35,7 @@ const SignupPage: React.FC = () => {
     const [confirmPassword, setConfirmPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+    const [emailOptIn, setEmailOptIn] = useState(true);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [existingAccountEmail, setExistingAccountEmail] = useState<string | null>(null);
@@ -66,6 +67,7 @@ const SignupPage: React.FC = () => {
                     emailRedirectTo: `${window.location.origin}/onboarding/profile`,
                     data: {
                         full_name: fullName,
+                        email_opt_in: emailOptIn,
                         // Attribution travels with the account from the moment it is created, so it survives
                         // email verification on another device or days later.
                         ...(getReferral()?.code ? { ref_code: getReferral()!.code } : {}),
@@ -334,6 +336,11 @@ const SignupPage: React.FC = () => {
                                     {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                                 </button>
                             </div>
+
+                            <label className="flex items-start gap-3 text-sm text-gray-600 dark:text-slate-300 cursor-pointer pt-3">
+                                <input type="checkbox" checked={emailOptIn} onChange={e => setEmailOptIn(e.target.checked)} className="mt-0.5 w-4 h-4 accent-violet-700 shrink-0" />
+                                <span>Email me live-class reminders and course updates. You can change this any time.</span>
+                            </label>
 
                             <div className="flex items-center justify-between pt-4">
                                 <Link
