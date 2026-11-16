@@ -29,6 +29,7 @@ export interface RegisterInput {
     courseSlug: string | null;
     campaign: string;
     notes: string;
+    location: string;
     consent: boolean;
 }
 export interface RegisterResult { ok: boolean; code?: string; message?: string; id?: string; slug?: string; phone?: string; queued?: boolean; }
@@ -85,7 +86,8 @@ async function callRegister(input: RegisterInput): Promise<RegisterResult> {
         p_course_slug: input.courseSlug,
         p_campaign: input.campaign || null,
         p_notes: input.notes || null,
-        p_consent: input.consent
+        p_consent: input.consent,
+        p_location: input.location || null
     });
     if (error) {
         if (isNetwork(error.message || '')) throw new Error('NETWORK');
@@ -168,7 +170,7 @@ export const generateTempPassword = (): string => {
 };
 
 export interface CreateAccountResult { ok: boolean; code?: 'exists' | 'weak' | 'error'; message?: string; }
-export async function createClientAccount(input: { email: string; password: string; name: string; phone: string; courseSlug: string | null; staffSlug: string }): Promise<CreateAccountResult> {
+export async function createClientAccount(input: { email: string; password: string; name: string; phone: string; courseSlug: string | null; staffSlug: string; location?: string }): Promise<CreateAccountResult> {
     if (input.password.length < 8) return { ok: false, code: 'weak', message: 'The temporary password must be at least 8 characters.' };
     const client = createIsolatedClient();
     const email = input.email.trim().toLowerCase();
@@ -176,10 +178,11 @@ export async function createClientAccount(input: { email: string; password: stri
         email,
         password: input.password,
         options: {
-            emailRedirectTo: `${window.location.origin}/login`,
+            emailRedirectTo: `${window.location.origin}/continue`,
             data: {
                 full_name: input.name,
                 phone: input.phone,
+                ...(input.location ? { location: input.location } : {}),
                 signup_source: 'agent_created',
                 must_change_password: true,
                 ref_code: input.staffSlug,

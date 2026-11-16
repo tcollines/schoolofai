@@ -15,7 +15,7 @@ const JoinPage: React.FC = () => {
     const { slug = '' } = useParams();
     const navigate = useNavigate();
     const [agent, setAgent] = useState<string | null>(null);
-    const [form, setForm] = useState({ name: '', email: '', phone: '', password: '', course: FREE_TITLE, consent: false, emailOptIn: true });
+    const [form, setForm] = useState({ name: '', email: '', phone: '', location: '', password: '', course: FREE_TITLE, consent: false, emailOptIn: true });
     const [show, setShow] = useState(false);
     const [busy, setBusy] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -40,6 +40,7 @@ const JoinPage: React.FC = () => {
         if (form.name.trim().length < 2) return setError('Please enter your full name.');
         if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) return setError('Please enter a valid email address.');
         if (form.phone.replace(/\D/g, '').length < 9) return setError('Please enter a valid phone number.');
+        if (form.location.trim().length < 2) return setError('Please tell us where you are based (town or district).');
         if (form.password.length < 8) return setError('Your password needs at least 8 characters.');
         if (!form.consent) return setError('Please agree to be contacted about your programme.');
         setBusy(true);
@@ -48,9 +49,9 @@ const JoinPage: React.FC = () => {
             const { data, error: err } = await supabase.auth.signUp({
                 email, password: form.password,
                 options: {
-                    emailRedirectTo: `${window.location.origin}/onboarding/profile`,
+                    emailRedirectTo: `${window.location.origin}/continue`,
                     data: {
-                        full_name: form.name.trim(), phone: form.phone.trim(), email_opt_in: form.emailOptIn, ref_code: slug.toLowerCase(),
+                        full_name: form.name.trim(), phone: form.phone.trim(), location: form.location.trim(), email_opt_in: form.emailOptIn, ref_code: slug.toLowerCase(),
                         signup_source: 'agent_link', interested_course: form.course,
                         ...(isFree ? { enroll_course: FREE_SLUG } : {})
                     }
@@ -59,7 +60,7 @@ const JoinPage: React.FC = () => {
             const already = (data?.user && (!data.user.identities || data.user.identities.length === 0)) || (err && /already|registered|exists/i.test(err.message));
             if (already) { setExists(true); return; }
             if (err) throw err;
-            if (data?.session) { navigate('/onboarding/profile'); return; }
+            if (data?.session) { navigate('/continue'); return; }
             navigate('/onboarding/verify', { state: { email } });
         } catch (er: any) {
             setError(er?.message || 'Something went wrong. Please try again.');
@@ -79,6 +80,7 @@ const JoinPage: React.FC = () => {
                     <div><label htmlFor="j-name" className="block text-sm font-semibold mb-1.5">Full name</label><input id="j-name" value={form.name} onChange={set('name')} autoComplete="name" className={INPUT} /></div>
                     <div><label htmlFor="j-email" className="block text-sm font-semibold mb-1.5">Email</label><input id="j-email" type="email" inputMode="email" value={form.email} onChange={set('email')} autoComplete="email" className={INPUT} /></div>
                     <div><label htmlFor="j-phone" className="block text-sm font-semibold mb-1.5">Phone (WhatsApp)</label><input id="j-phone" type="tel" inputMode="tel" value={form.phone} onChange={set('phone')} autoComplete="tel" placeholder="07XX XXX XXX" className={INPUT} /></div>
+                    <div><label htmlFor="j-loc" className="block text-sm font-semibold mb-1.5">Where are you based?</label><input id="j-loc" value={form.location} onChange={set('location')} autoComplete="address-level2" placeholder="Town or district, e.g. Kampala" className={INPUT} /></div>
                     <div>
                         <label htmlFor="j-pass" className="block text-sm font-semibold mb-1.5">Create a password</label>
                         <div className="relative">

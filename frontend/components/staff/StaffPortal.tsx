@@ -155,7 +155,7 @@ const Overview: React.FC<{ profile: StaffProfile; stats: StaffStats | null; onRe
 // ---------------------------------------------------------------------------
 // Register a student
 // ---------------------------------------------------------------------------
-const emptyForm = { name: '', phone: '', email: '', course: FREE_COURSE, campaign: '', notes: '', consent: false, createNow: true, password: '' };
+const emptyForm = { name: '', phone: '', email: '', location: '', course: FREE_COURSE, campaign: '', notes: '', consent: false, createNow: true, password: '' };
 
 const Register: React.FC<{ profile: StaffProfile; onDone: () => void }> = ({ profile, onDone }) => {
     const [form, setForm] = useState(emptyForm);
@@ -173,6 +173,7 @@ const Register: React.FC<{ profile: StaffProfile; onDone: () => void }> = ({ pro
         setError(null);
         if (form.name.trim().length < 2) return setError("Please enter the student's full name.");
         if (form.phone.replace(/\D/g, '').length < 9) return setError('Please enter a valid phone number.');
+        if (form.location.trim().length < 2) return setError('Please enter where the student is based (town or district).');
         if (isFree && !form.email.trim()) return setError('An email address is needed so the student can log in and get their certificate.');
         if (!form.consent) return setError('The student must agree to be contacted.');
         const wantAccount = form.createNow && !!form.email.trim();
@@ -181,7 +182,7 @@ const Register: React.FC<{ profile: StaffProfile; onDone: () => void }> = ({ pro
         const input: RegisterInput = {
             name: form.name.trim(), email: form.email.trim(), phone: form.phone.trim(),
             courseTitle: form.course, courseSlug: isFree ? 'ai-fundamentals' : null,
-            campaign: form.campaign.trim(), notes: form.notes.trim(), consent: true
+            campaign: form.campaign.trim(), notes: form.notes.trim(), location: form.location.trim(), consent: true
         };
         setBusy(true);
         try {
@@ -189,7 +190,7 @@ const Register: React.FC<{ profile: StaffProfile; onDone: () => void }> = ({ pro
             if (!r.ok) { setError(r.message || 'Could not register this student.'); return; }
             let tempPassword: string | null = null, accountMsg: string | null = null;
             if (wantAccount && !r.queued) {
-                const a = await createClientAccount({ email: input.email, password: form.password, name: input.name, phone: input.phone, courseSlug: input.courseSlug, staffSlug: profile.slug });
+                const a = await createClientAccount({ email: input.email, password: form.password, name: input.name, phone: input.phone, courseSlug: input.courseSlug, staffSlug: profile.slug, location: input.location });
                 if (a.ok) tempPassword = form.password; else accountMsg = a.message || 'The account could not be created. The registration was saved; the client can sign up with their email.';
             }
             setDone({ name: input.name, phone: r.phone || input.phone, queued: !!r.queued, email: input.email, tempPassword, accountMsg });
@@ -253,6 +254,10 @@ const Register: React.FC<{ profile: StaffProfile; onDone: () => void }> = ({ pro
                     <label htmlFor="r-email" className="block text-sm font-semibold mb-1.5">Email {isFree ? '*' : '(optional)'}</label>
                     <input id="r-email" type="email" inputMode="email" value={form.email} onChange={set('email')} placeholder="name@example.com" className={INPUT} />
                 </div>
+            </div>
+            <div>
+                <label htmlFor="r-loc" className="block text-sm font-semibold mb-1.5">Location *</label>
+                <input id="r-loc" value={form.location} onChange={set('location')} placeholder="Town or district, e.g. Kampala" className={INPUT} />
             </div>
             {form.email.trim() && (
                 <div className="rounded-xl border border-stone-200 dark:border-slate-700 p-4 space-y-3">

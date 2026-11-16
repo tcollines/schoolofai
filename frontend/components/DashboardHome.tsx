@@ -60,7 +60,7 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({ courses, userId }) => {
                 <h1 className="font-serif text-3xl sm:text-4xl font-semibold leading-tight">
                     {greeting()}{firstName ? `, ${firstName}` : ''}.
                 </h1>
-                <p className="mt-1 text-stone-600 dark:text-slate-400">Here is where you left off.</p>
+                <p className="mt-1 text-stone-600 dark:text-slate-400">Pick up where you left off, or choose a new course below.</p>
             </div>
 
             <FreeCourseCard uid={userId} variant="featured" />

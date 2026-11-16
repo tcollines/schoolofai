@@ -18,6 +18,30 @@ const AccountSetupGate: React.FC<{ session: any }> = ({ session }) => {
 
     useEffect(() => { setMustChange(!!user && meta.must_change_password === true); }, [user?.id, meta.must_change_password]);
 
+    // Make sure every account has a profile with its name (Google sign-ups and email sign-ups alike), so no extra step is needed.
+    useEffect(() => {
+        if (!user?.id) return;
+        const key = `welile_profile_ready_${user.id}`;
+        try { if (localStorage.getItem(key)) return; } catch { /* ignore */ }
+        const name = String(meta.full_name || meta.name || [meta.given_name, meta.family_name].filter(Boolean).join(' ') || '').trim();
+        (async () => {
+            try {
+                const { data: row } = await supabase.from('profiles').select('id, full_name, location, onboarding_complete').eq('id', user.id).maybeSingle();
+                if (!row) {
+                    const { error: e } = await supabase.from('profiles').upsert({ id: user.id, email: user.email, full_name: name || (user.email || '').split('@')[0], onboarding_complete: true, ...(meta.location ? { location: String(meta.location) } : {}) });
+                    if (e) return;
+                } else {
+                    const patch: Record<string, unknown> = {};
+                    if ((!row.full_name || row.full_name === 'Student') && name) patch.full_name = name;
+                    if (!row.location && meta.location) patch.location = String(meta.location);
+                    if (!row.onboarding_complete) patch.onboarding_complete = true;
+                    if (Object.keys(patch).length) { const { error: e } = await supabase.from('profiles').update(patch).eq('id', user.id); if (e) return; }
+                }
+                try { localStorage.setItem(key, '1'); } catch { /* ignore */ }
+            } catch { /* try again next visit */ }
+        })();
+    }, [user?.id]);
+
     // Apply the email choice made at sign-up, once.
     useEffect(() => {
         if (!user?.id || meta.email_opt_in !== false) return;

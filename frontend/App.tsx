@@ -73,6 +73,15 @@ const afterAuthPath = () => {
   return intent ? learnHomePath(intent) : '/dashboard';
 };
 
+// Landing point after confirming an email or signing up: straight into the free course if that is why they came,
+// otherwise the dashboard with every course.
+const ContinueRoute = ({ isAuthenticated, session }: { isAuthenticated: boolean; session: any }) => {
+  if (!isAuthenticated) return <Navigate to="/login" replace />;
+  const back = getReturnTo();
+  const course = session?.user?.user_metadata?.enroll_course || getFreeCourseIntent();
+  return <Navigate to={back || (course ? learnHomePath(course) : '/dashboard')} replace />;
+};
+
 const LoginRoute = ({ isAuthenticated }: { isAuthenticated: boolean }) => {
   const navigate = useNavigate();
   if (isAuthenticated) return <Navigate to={afterAuthPath()} replace />;
@@ -144,12 +153,7 @@ const ProtectedRoute = ({ isAuthenticated, requireOnboarding = false, userProfil
     return <Navigate to="/login" replace />;
   }
   
-  if (requireOnboarding && userProfile && !userProfile.onboarding_complete) {
-     const isAlreadyOnboarding = window.location.pathname.startsWith('/onboarding');
-     if (!isAlreadyOnboarding) {
-         return <Navigate to="/onboarding/profile" replace />;
-     }
-  }
+  // The profile step is optional now: nobody is sent to it. It stays available at /onboarding/profile and in Profile.
 
   return <>{children}</>;
 };
@@ -310,6 +314,7 @@ function App() {
         <Route path="/" element={<LandingRoute isAuthenticated={isAuthenticated} />} />
         <Route path="/login" element={<LoginRoute isAuthenticated={isAuthenticated} />} />
         <Route path="/reset-password" element={<Suspense fallback={<RouteFallback />}><ResetPasswordPage /></Suspense>} />
+        <Route path="/continue" element={<ContinueRoute isAuthenticated={isAuthenticated} session={session} />} />
         <Route path="/signup" element={<SignupRoute isAuthenticated={isAuthenticated} />} />
         <Route path="/register" element={<OutreachRegistration />} />
 

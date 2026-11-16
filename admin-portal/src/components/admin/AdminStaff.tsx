@@ -6,7 +6,7 @@ import AdminAuthPrompt, { MissingDbNotice } from './AdminAuthPrompt';
 interface Staff { id: string; user_id: string | null; staff_code: string; slug: string; display_name: string; role: string | null; phone: string | null; active: boolean; }
 interface Funnel { id: string; name: string; slug: string; role: string | null; active: boolean; linked: boolean; clicks: number; registered: number; accounts: number; enrolled: number; recorded: number; live: number; completed: number; active_7d: number; by_course: Record<string, number>; }
 interface GroupSize { week: string | null; cohort: string | null; learners: number; }
-interface Reg { id: string; created_at: string; full_name: string; email: string | null; phone: string; course_title: string; campaign: string | null; status: string; registered_by_staff_id: string; }
+interface Reg { id: string; created_at: string; full_name: string; email: string | null; phone: string; location?: string | null; course_title: string; campaign: string | null; status: string; registered_by_staff_id: string; }
 
 const card = 'bg-white dark:bg-slate-900 rounded-2xl border border-gray-100 dark:border-slate-800 shadow-sm';
 const input = 'w-full rounded-lg border border-gray-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500';
@@ -30,6 +30,8 @@ const AdminStaff: React.FC = () => {
     const [funnel, setFunnel] = useState<Funnel[]>([]);
     const [groups, setGroups] = useState<GroupSize[]>([]);
     const [agentEmail, setAgentEmail] = useState('');
+    const [q, setQ] = useState('');
+    const [hits, setHits] = useState<{ id: string; name: string; email: string; agent_slug: string | null }[]>([]);
 
     const load = useCallback(async () => {
         setLoading(true);
@@ -66,6 +68,27 @@ const AdminStaff: React.FC = () => {
         setAdding({ name: '', code: '', role: 'Outreach Mobilizer', phone: '' });
         setMsg(`${name} added. Link their login below so they can use the staff portal.`);
         await load();
+    };
+
+    useEffect(() => {
+        if (q.trim().length < 2) { setHits([]); return; }
+        const t = setTimeout(async () => {
+            const { data, error: err } = await supabaseClient.rpc('admin_student_search', { p_q: q });
+            if (!err && data) setHits(data as any);
+        }, 300);
+        return () => clearTimeout(t);
+    }, [q]);
+
+    const makeAgentFor = async (email: string) => {
+        setError(null); setMsg(null); setBusy(true);
+        const { data, error: err } = await supabaseClient.rpc('admin_make_agent', { p_email: email, p_role: 'Sales agent' });
+        setBusy(false);
+        if (err) { setError(err.message); return; }
+        const d: any = data || {};
+        if (!d.ok) { setError(d.message || 'Could not make that person an agent.'); return; }
+        setMsg(`${d.name}: sign-up link ${origin}/join/${d.slug}`);
+        await load();
+        setHits(h => h.map(x => x.email === email ? { ...x, agent_slug: d.slug } : x));
     };
 
     const makeAgent = async (e: React.FormEvent) => {
@@ -123,6 +146,23 @@ const AdminStaff: React.FC = () => {
                     <button type="submit" disabled={busy} className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-semibold bg-violet-600 hover:bg-violet-700 text-white disabled:opacity-60"><UserCheck size={16} /> Make agent</button>
                 </div>
             </form>
+
+            <div className={`${card} p-5`}>
+                <h2 className="font-bold">Find students and give them a personal link</h2>
+                <p className="text-xs text-gray-500 mt-1">Search everyone who has an account. Press <b>Make agent</b> to give that person their own sign-up link and the agent portal.</p>
+                <input value={q} onChange={e => setQ(e.target.value)} placeholder="Search by name or email" className={`${input} max-w-sm mt-3`} />
+                <ul className="mt-2 divide-y divide-gray-100 dark:divide-slate-800">
+                    {hits.map(h => (
+                        <li key={h.id} className="py-2.5 flex flex-wrap items-center gap-2 justify-between">
+                            <div className="min-w-0"><p className="text-sm font-medium truncate">{h.name || '(no name)'}</p><p className="text-xs text-gray-500 truncate">{h.email}</p></div>
+                            {h.agent_slug
+                                ? <div className="flex items-center gap-2"><span className="text-xs text-emerald-700">Agent</span><button onClick={async () => { await navigator.clipboard.writeText(`${origin}/join/${h.agent_slug}`); setCopied(h.id); setTimeout(() => setCopied(null), 1500); }} className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium border border-gray-200 dark:border-slate-700">{copied === h.id ? <><Check size={14} /> Copied</> : <><Copy size={14} /> Copy link</>}</button></div>
+                                : <button onClick={() => makeAgentFor(h.email)} disabled={busy} className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-violet-600 hover:bg-violet-700 text-white disabled:opacity-60">Make agent</button>}
+                        </li>
+                    ))}
+                    {q.trim().length >= 2 && hits.length === 0 && <li className="py-2 text-sm text-gray-500">No students found.</li>}
+                </ul>
+            </div>
 
             <div className={`${card} p-5`}>
                 <h2 className="font-bold">Agent performance</h2>
@@ -207,19 +247,20 @@ const AdminStaff: React.FC = () => {
                 <h2 className="font-bold">Students registered by staff</h2>
                 <div className="overflow-x-auto mt-3">
                     <table className="w-full text-sm">
-                        <thead><tr className="text-left text-xs uppercase text-gray-500"><th className="py-2">Date</th><th>Student</th><th>Contact</th><th>Programme</th><th>Registered by</th><th>Status</th></tr></thead>
+                        <thead><tr className="text-left text-xs uppercase text-gray-500"><th className="py-2">Date</th><th>Student</th><th>Contact</th><th>Location</th><th>Programme</th><th>Registered by</th><th>Status</th></tr></thead>
                         <tbody>
                             {regs.map(r => (
                                 <tr key={r.id} className="border-t border-gray-100 dark:border-slate-800">
                                     <td className="py-2 whitespace-nowrap">{new Date(r.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}</td>
                                     <td className="font-medium">{r.full_name}</td>
                                     <td className="text-gray-500">+{r.phone}{r.email ? <><br />{r.email}</> : null}</td>
+                                    <td>{r.location || ''}</td>
                                     <td>{r.course_title}{r.campaign ? <span className="block text-xs text-gray-500">{r.campaign}</span> : null}</td>
                                     <td>{nameOf(r.registered_by_staff_id)}</td>
                                     <td><span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${r.status === 'account_created' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'}`}>{r.status === 'account_created' ? 'Account created' : 'Waiting to sign up'}</span></td>
                                 </tr>
                             ))}
-                            {regs.length === 0 && <tr><td colSpan={6} className="py-4 text-gray-500">No students registered by staff yet.</td></tr>}
+                            {regs.length === 0 && <tr><td colSpan={7} className="py-4 text-gray-500">No students registered by staff yet.</td></tr>}
                         </tbody>
                     </table>
                 </div>

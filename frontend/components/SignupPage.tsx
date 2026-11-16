@@ -64,7 +64,7 @@ const SignupPage: React.FC = () => {
                 options: {
                     // After confirming, the email link lands on profile setup. (Must be in the Supabase redirect allow-list;
                     // if it is not, Supabase falls back to the Site URL, which also works.)
-                    emailRedirectTo: `${window.location.origin}/onboarding/profile`,
+                    emailRedirectTo: `${window.location.origin}/continue`,
                     data: {
                         full_name: fullName,
                         email_opt_in: emailOptIn,
@@ -98,7 +98,7 @@ const SignupPage: React.FC = () => {
 
             // If session is already created (e.g. email confirmations disabled)
             if (signUpData?.session) {
-                navigate('/onboarding/profile');
+                navigate('/continue');
                 return;
             }
 

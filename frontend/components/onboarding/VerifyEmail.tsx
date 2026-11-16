@@ -17,7 +17,7 @@ const VerifyEmail: React.FC = () => {
         const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
             if (event === 'SIGNED_IN' && session) {
                 setStatus('verified');
-                setTimeout(() => navigate('/onboarding/profile'), 2000);
+                setTimeout(() => navigate('/continue'), 2000);
             }
         });
         
@@ -27,7 +27,7 @@ const VerifyEmail: React.FC = () => {
             if (data.session) {
                 setStatus('verified');
                 clearInterval(interval);
-                setTimeout(() => navigate('/onboarding/profile'), 2000);
+                setTimeout(() => navigate('/continue'), 2000);
             }
         }, 3000);
 
