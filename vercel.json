@@ -5,8 +5,23 @@
       "destination": "https://schoolofai.onrender.com/api/:match*"
     },
     {
+      "source": "/admin/:path*",
+      "destination": "/admin/index.html"
+    },
+    {
       "source": "/(.*)",
       "destination": "/index.html"
+    }
+  ],
+  "headers": [
+    {
+      "source": "/admin/:path*",
+      "headers": [
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow"
+        }
+      ]
     }
   ]
 }

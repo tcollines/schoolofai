@@ -4,7 +4,7 @@ import AdminLayout from './components/admin/AdminLayout';
 
 function App() {
   return (
-    <BrowserRouter>
+    <BrowserRouter basename={import.meta.env.BASE_URL.replace(/\/$/, '') || undefined}>
       <Routes>
         {/* Instructor console routes */}
         <Route path="/instructor/*" element={

@@ -89,7 +89,7 @@ const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, isOpen, onCl
         <div className="p-3 mt-auto space-y-1 border-t border-stone-200 dark:border-slate-800">
           {isAdmin && (
             <a
-              href="http://admin.localhost:4002"
+              href={window.location.hostname.includes('localhost') ? 'http://admin.localhost:4002' : '/admin/'}
               className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-violet-900 dark:text-violet-200 bg-violet-50 dark:bg-violet-950/40 hover:bg-violet-100 dark:hover:bg-violet-950/70 transition-colors"
             >
               <Shield size={18} />

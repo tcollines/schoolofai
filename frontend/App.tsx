@@ -99,9 +99,10 @@ const SignupRoute = ({ isAuthenticated }: { isAuthenticated: boolean }) => {
 
 const AdminRoute = () => {
   useEffect(() => {
+    // Live site: the admin console is served from the same address at /admin/. Local development keeps its own port.
     const adminUrl = window.location.hostname.includes('localhost')
       ? `${window.location.protocol}//admin.localhost:4002`
-      : `${window.location.protocol}//admin.${window.location.hostname}`;
+      : `${window.location.origin}/admin/`;
     window.location.href = adminUrl;
   }, []);
   return (
@@ -116,7 +117,7 @@ const InstructorRoute = () => {
   useEffect(() => {
     const instructorUrl = window.location.hostname.includes('localhost')
       ? `${window.location.protocol}//admin.localhost:4002/instructor/courses`
-      : `${window.location.protocol}//admin.${window.location.hostname}/instructor/courses`;
+      : `${window.location.origin}/admin/instructor/courses`;
     window.location.href = instructorUrl;
   }, []);
   return (
