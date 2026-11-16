@@ -4,6 +4,8 @@ import { Check, Copy, KeyRound, Loader2, Plus, UserCheck, UserX } from 'lucide-r
 import AdminAuthPrompt, { MissingDbNotice } from './AdminAuthPrompt';
 
 interface Staff { id: string; user_id: string | null; staff_code: string; slug: string; display_name: string; role: string | null; phone: string | null; active: boolean; }
+interface Funnel { id: string; name: string; slug: string; role: string | null; active: boolean; linked: boolean; clicks: number; registered: number; accounts: number; enrolled: number; recorded: number; live: number; completed: number; active_7d: number; by_course: Record<string, number>; }
+interface GroupSize { week: string | null; cohort: string | null; learners: number; }
 interface Reg { id: string; created_at: string; full_name: string; email: string | null; phone: string; course_title: string; campaign: string | null; status: string; registered_by_staff_id: string; }
 
 const card = 'bg-white dark:bg-slate-900 rounded-2xl border border-gray-100 dark:border-slate-800 shadow-sm';
@@ -25,6 +27,9 @@ const AdminStaff: React.FC = () => {
     const [linkEmail, setLinkEmail] = useState<Record<string, string>>({});
     const [copied, setCopied] = useState<string | null>(null);
     const [busy, setBusy] = useState(false);
+    const [funnel, setFunnel] = useState<Funnel[]>([]);
+    const [groups, setGroups] = useState<GroupSize[]>([]);
+    const [agentEmail, setAgentEmail] = useState('');
 
     const load = useCallback(async () => {
         setLoading(true);
@@ -33,6 +38,10 @@ const AdminStaff: React.FC = () => {
         else { setStaff((s.data || []) as Staff[]); setError(null); }
         const r = await supabaseClient.from('staff_registrations').select('*').order('created_at', { ascending: false }).limit(200);
         if (!r.error) setRegs((r.data || []) as Reg[]);
+        const f = await supabaseClient.rpc('admin_agent_funnel');
+        if (!f.error && f.data) setFunnel(f.data as Funnel[]);
+        const g = await supabaseClient.rpc('admin_group_sizes', { p_course: 'ai-fundamentals' });
+        if (!g.error && g.data) setGroups(g.data as GroupSize[]);
         setLoading(false);
     }, []);
     useEffect(() => { void load(); }, [load]);
@@ -56,6 +65,22 @@ const AdminStaff: React.FC = () => {
         }
         setAdding({ name: '', code: '', role: 'Outreach Mobilizer', phone: '' });
         setMsg(`${name} added. Link their login below so they can use the staff portal.`);
+        await load();
+    };
+
+    const makeAgent = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setError(null); setMsg(null);
+        const email = agentEmail.trim();
+        if (!email) return setError('Enter the email the student signed up with.');
+        setBusy(true);
+        const { data, error: err } = await supabaseClient.rpc('admin_make_agent', { p_email: email, p_role: 'Sales agent' });
+        setBusy(false);
+        if (err) { setError(err.message); if (isAuthError(err.message)) setNeedsAuth(true); return; }
+        const d: any = data || {};
+        if (!d.ok) { setError(d.message || 'Could not make that person an agent.'); return; }
+        setMsg(`${d.name} is ${d.existing ? 'already ' : 'now '}a sales agent. Their sign-up link is ${origin}/join/${d.slug} and they manage clients at ${origin}/staff.`);
+        setAgentEmail('');
         await load();
     };
 
@@ -90,6 +115,46 @@ const AdminStaff: React.FC = () => {
             {msg && <p role="status" className="text-sm rounded-lg bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-900 p-3">{msg}</p>}
             {error && !missingDb && <p role="alert" className="text-sm text-red-600">{error}</p>}
 
+            <form onSubmit={makeAgent} className={`${card} p-5`}>
+                <h2 className="font-bold">Make a student a sales agent</h2>
+                <p className="text-xs text-gray-500 mt-1">They keep their student account. Enter the email they registered with: they get a personal sign-up link and the agent portal at <span className="font-mono">/staff</span> straight away.</p>
+                <div className="flex flex-wrap gap-2 mt-3">
+                    <input type="email" value={agentEmail} onChange={e => setAgentEmail(e.target.value)} placeholder="Student's email" className={`${input} max-w-sm`} />
+                    <button type="submit" disabled={busy} className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-semibold bg-violet-600 hover:bg-violet-700 text-white disabled:opacity-60"><UserCheck size={16} /> Make agent</button>
+                </div>
+            </form>
+
+            <div className={`${card} p-5`}>
+                <h2 className="font-bold">Agent performance</h2>
+                <p className="text-xs text-gray-500 mt-1">Registrations they entered, accounts opened, and where those learners are now.</p>
+                <div className="overflow-x-auto mt-3">
+                    <table className="w-full text-sm whitespace-nowrap">
+                        <thead><tr className="text-left text-xs uppercase text-gray-500"><th className="py-2 pr-3">Agent</th><th className="px-2">Link clicks</th><th className="px-2">Registered</th><th className="px-2">Accounts</th><th className="px-2">In free course</th><th className="px-2">Recorded</th><th className="px-2">Live</th><th className="px-2">Completed</th><th className="px-2">Active 7d</th></tr></thead>
+                        <tbody>
+                            {funnel.map(f => (
+                                <tr key={f.id} className={`border-t border-gray-100 dark:border-slate-800 ${f.active ? '' : 'opacity-50'}`}>
+                                    <td className="py-2 pr-3 font-medium">{f.name}<span className="block text-xs font-normal text-gray-500">/join/{f.slug}</span></td>
+                                    <td className="px-2">{f.clicks}</td><td className="px-2">{f.registered}</td><td className="px-2">{f.accounts}</td>
+                                    <td className="px-2">{f.enrolled}</td><td className="px-2">{f.recorded}</td><td className="px-2">{f.live}</td><td className="px-2">{f.completed}</td><td className="px-2">{f.active_7d}</td>
+                                </tr>
+                            ))}
+                            {funnel.length === 0 && <tr><td colSpan={9} className="py-3 text-gray-500">No agents yet.</td></tr>}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div className={`${card} p-5`}>
+                <h2 className="font-bold">Cohorts and weekly groups</h2>
+                <p className="text-xs text-gray-500 mt-1">A learner joins the first week whose opening class has not started when they enrol. Reminders follow the group; everyone can join any class.</p>
+                <ul className="mt-3 text-sm divide-y divide-gray-100 dark:divide-slate-800">
+                    {groups.map((g, i) => (
+                        <li key={i} className="py-2 flex justify-between"><span>{g.week ? `${g.cohort} · week of ${new Date(g.week + 'T00:00:00Z').toLocaleDateString('en-GB', { day: 'numeric', month: 'short', timeZone: 'UTC' })}` : 'Waiting for the next live week to be scheduled'}</span><span className="font-semibold">{g.learners} learners</span></li>
+                    ))}
+                    {groups.length === 0 && <li className="py-2 text-gray-500">No data yet.</li>}
+                </ul>
+            </div>
+
             <form onSubmit={addStaff} className={`${card} p-5`}>
                 <h2 className="font-bold">Add a staff member</h2>
                 <div className="grid md:grid-cols-4 gap-3 mt-3">
@@ -113,6 +178,7 @@ const AdminStaff: React.FC = () => {
                                         <div className="min-w-0 flex-1">
                                             <p className="font-semibold">{s.display_name} <span className="text-xs font-normal text-gray-500">{s.staff_code}{s.role ? ` · ${s.role}` : ''}</span></p>
                                             <p className="text-xs text-gray-500 break-all">{link}</p>
+                                            <p className="text-xs text-gray-500 break-all">Quick sign-up form: {origin}/join/{s.slug}</p>
                                             <p className="text-xs mt-1">{s.user_id
                                                 ? <span className="inline-flex items-center gap-1 text-emerald-700 dark:text-emerald-400"><UserCheck size={13} /> Login linked, can use the staff portal</span>
                                                 : <span className="inline-flex items-center gap-1 text-amber-700 dark:text-amber-400"><UserX size={13} /> No login linked yet</span>}</p>

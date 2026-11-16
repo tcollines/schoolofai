@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Bell, CalendarPlus, ExternalLink, Loader2, PlayCircle, Video } from 'lucide-react';
+import { Bell, CalendarPlus, Users, ExternalLink, Loader2, PlayCircle, Video } from 'lucide-react';
 import { supabase } from '../../src/lib/supabaseClient';
 import { useLearn } from './learnContext';
 import { LiveSession, loadLiveSessions } from '../../src/lib/learnApi';
@@ -47,6 +47,51 @@ export const useSessions = () => {
     const [sessions, setSessions] = useState<LiveSession[] | null>(null);
     useEffect(() => { loadLiveSessions().then(setSessions); }, []);
     return sessions;
+};
+
+interface Timetable { enrolled: boolean; my_group: string | null; my_cohort: string | null; sessions: { id: string; week: string; cohort: string; mine: boolean; attended: boolean }[]; }
+const useTimetable = () => {
+    const [tt, setTt] = useState<Timetable | null>(null);
+    useEffect(() => {
+        let alive = true;
+        supabase.rpc('live_timetable', { p_course: 'ai-fundamentals' }).then(({ data, error }) => { if (alive && !error && data) setTt(data as Timetable); });
+        return () => { alive = false; };
+    }, []);
+    return tt;
+};
+const weekLabel = (iso: string) => new Date(iso + 'T00:00:00Z').toLocaleDateString('en-GB', { day: 'numeric', month: 'long', timeZone: 'UTC' });
+
+const GroupBanner: React.FC<{ tt: Timetable | null }> = ({ tt }) => {
+    if (!tt || !tt.enrolled) return null;
+    return (
+        <div className={`${CARD} rounded-2xl p-5 mt-6 flex gap-3`}>
+            <Users size={20} className="text-violet-700 dark:text-violet-400 shrink-0 mt-0.5" />
+            <div className="text-sm">
+                {tt.my_group
+                    ? <>
+                        <p className="font-semibold text-base">You are in the {tt.my_cohort} cohort, group of the week of {weekLabel(tt.my_group)}</p>
+                        <p className={`mt-1 ${MUTED}`}>We send your live-class reminders for that week. You can still join any live class on this page, in any week. Your recorded course is open to you right now.</p>
+                    </>
+                    : <>
+                        <p className="font-semibold text-base">Your group starts when the next live week is scheduled</p>
+                        <p className={`mt-1 ${MUTED}`}>Your recorded course is open to you right now. We will email your timetable as soon as the next week of live classes is announced. Until then you are welcome to join any class listed here.</p>
+                    </>}
+            </div>
+        </div>
+    );
+};
+
+const SessionBadges: React.FC<{ id: string; tt: Timetable | null }> = ({ id, tt }) => {
+    const row = tt?.sessions.find(x => x.id === id);
+    if (!row) return null;
+    return (
+        <div className="mb-1.5 flex flex-wrap gap-2 text-xs font-medium">
+            <span className="px-2 py-0.5 rounded-full bg-stone-100 dark:bg-slate-800">{row.cohort} · week of {weekLabel(row.week)}</span>
+            {row.mine && <span className="px-2 py-0.5 rounded-full bg-violet-100 text-violet-900 dark:bg-violet-950/60 dark:text-violet-200">Your group</span>}
+            {!row.mine && <span className="px-2 py-0.5 rounded-full bg-lime-100 text-lime-900">Open to everyone</span>}
+            {row.attended && <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-900">You attended</span>}
+        </div>
+    );
 };
 
 const SessionCard: React.FC<{ s: LiveSession; now: number }> = ({ s, now }) => {
@@ -145,7 +190,7 @@ const ReminderCard: React.FC = () => {
             whatsapp_opt_in: waOn, phone_e164: cleaned || null
         }, { onConflict: 'user_id' });
         setSaving(false);
-        setMsg(error ? { ok: false, text: 'We could not save that just now. Please try again.' } : { ok: true, text: 'Saved. We will remind you 24 hours and 1 hour before each live class.' });
+        setMsg(error ? { ok: false, text: 'We could not save that just now. Please try again.' } : { ok: true, text: 'Saved. We will remind you 24 hours and 15 minutes before each live class in your group, and skip classes you have already attended.' });
     };
 
     if (unavailable) return null;
@@ -154,7 +199,7 @@ const ReminderCard: React.FC = () => {
     return (
         <form onSubmit={save} className={`${CARD} rounded-2xl p-5 mt-6`} style={{ background: '#faf8f5' }} aria-busy={!loaded}>
             <h2 className="font-serif text-xl font-semibold flex items-center gap-2"><Bell size={18} className="text-violet-700" /> Remind me</h2>
-            <p className={`mt-1 text-sm ${MUTED}`}>Get a gentle reminder 24 hours and 1 hour before each live class.</p>
+            <p className={`mt-1 text-sm ${MUTED}`}>Get a gentle reminder 24 hours and 15 minutes before each live class in your group. We never remind you about a class you have already attended.</p>
 
             <label className="mt-4 flex items-start gap-3 text-sm">
                 <input type="checkbox" checked={emailOn} onChange={e => setEmailOn(e.target.checked)} disabled={!loaded} className="mt-0.5 w-4 h-4 accent-violet-700" />
@@ -185,6 +230,7 @@ const ReminderCard: React.FC = () => {
 
 const LivePanel: React.FC = () => {
     const sessions = useSessions();
+    const tt = useTimetable();
     const now = useNow();
     const upcoming = (sessions || []).filter(s => new Date(s.ends_at).getTime() >= now);
     const past = (sessions || []).filter(s => new Date(s.ends_at).getTime() < now).reverse();
@@ -193,6 +239,8 @@ const LivePanel: React.FC = () => {
         <div className="max-w-3xl mx-auto px-4 sm:px-6 py-8">
             <h1 className="font-serif text-3xl font-semibold">Live classes</h1>
             <p className={`mt-2 ${MUTED}`}>Optional sessions to ask questions and practise with others. Times are shown in East Africa Time, with your local time underneath. Live classes are optional. If you join one, the lessons it covers count as done, and you only take the quizzes for those modules.</p>
+
+            <GroupBanner tt={tt} />
 
             {sessions === null && <p className={`mt-8 ${MUTED}`}>Loading the timetable...</p>}
 
@@ -204,7 +252,7 @@ const LivePanel: React.FC = () => {
                             <p className="font-semibold">Live classes run every Monday, Wednesday and Friday at 2:00 pm</p>
                             <p className={`mt-1 text-sm ${MUTED}`}>East Africa Time. The next sessions will appear here with a join button that opens 10 minutes before the start.</p>
                         </div>
-                        : <ul className="mt-3 space-y-4">{upcoming.map(s => <SessionCard key={s.id} s={s} now={now} />)}</ul>}
+                        : <div className="mt-3 space-y-4">{upcoming.map(s => <div key={s.id}><SessionBadges id={s.id} tt={tt} /><ul><SessionCard s={s} now={now} /></ul></div>)}</div>}
 
                     {past.length > 0 && (
                         <>

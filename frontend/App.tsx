@@ -155,6 +155,9 @@ const ProtectedRoute = ({ isAuthenticated, requireOnboarding = false, userProfil
 };
 
 import InstallRequiredPrompt from './components/InstallRequiredPrompt';
+import AccountSetupGate from './components/AccountSetupGate';
+const JoinPage = lazy(() => import('./components/JoinPage'));
+const UnsubscribePage = lazy(() => import('./components/UnsubscribePage'));
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -301,6 +304,7 @@ function App() {
     <BrowserRouter>
       <ReturnToCleaner />
       <InstallRequiredPrompt uid={session?.user?.id} email={session?.user?.email} />
+      <AccountSetupGate session={session} />
       <Routes>
         {/* Public Routes */}
         <Route path="/" element={<LandingRoute isAuthenticated={isAuthenticated} />} />
@@ -312,6 +316,8 @@ function App() {
         {/* Free course: public page, staff referral links, certificate verification, and the learning area */}
         <Route path="/free/ai-fundamentals" element={<Suspense fallback={<RouteFallback />}><FreeCoursePage /></Suspense>} />
         <Route path="/r/:slug" element={<ReferralRedirect />} />
+        <Route path="/join/:slug" element={<Suspense fallback={<RouteFallback />}><JoinPage /></Suspense>} />
+        <Route path="/unsubscribe" element={<Suspense fallback={<RouteFallback />}><UnsubscribePage /></Suspense>} />
         <Route path="/verify/:id" element={<Suspense fallback={<RouteFallback />}><VerifyCertificatePage /></Suspense>} />
         {/* Staff portal: staff sign in with their normal login; access is granted by an administrator linking the account */}
         <Route path="/staff" element={

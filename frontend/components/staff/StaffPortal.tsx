@@ -10,7 +10,8 @@ import { OFFICIAL_COURSE_CATALOG } from '../../src/lib/outreachSync';
 import {
     LeaderRow, ProfileState, RegisterInput, StaffProfile, StaffStats, StaffStudent,
     flushRegistrationQueue, loadLeaderboard, loadStaffProfile, loadStaffStats, loadStaffStudents,
-    queuedCount, registerStudent, staffLink, startMessage, whatsappShare
+    queuedCount, registerStudent, staffLink, startMessage, whatsappShare,
+    StaffFunnel, loadMyFunnel, joinLink, generateTempPassword, createClientAccount, clientCredentialsMessage
 } from '../../src/lib/staffApi';
 import { BTN_PRIMARY, BTN_SECONDARY, CARD, INK, Logo, MUTED, PAPER, ThemeButton } from '../learn/learnUi';
 
@@ -48,6 +49,9 @@ const useCopy = () => {
 // Overview
 // ---------------------------------------------------------------------------
 const Overview: React.FC<{ profile: StaffProfile; stats: StaffStats | null; onRefresh: () => void }> = ({ profile, stats, onRefresh }) => {
+    const [funnel, setFunnel] = useState<StaffFunnel | null>(null);
+    useEffect(() => { void loadMyFunnel().then(setFunnel); }, [stats]);
+    const quick = joinLink(profile.slug);
     const [target, setTarget] = useState(PAGES[0].to);
     const [qr, setQr] = useState('');
     const { copied, copy } = useCopy();
@@ -68,6 +72,16 @@ const Overview: React.FC<{ profile: StaffProfile; stats: StaffStats | null; onRe
 
     return (
         <div className="space-y-6">
+            <section className={`${CARD} rounded-2xl p-5 sm:p-6`}>
+                <h2 className="font-serif text-xl font-semibold">Quick sign-up link</h2>
+                <p className={`mt-1 text-sm ${MUTED}`}>A very short form where a client opens their own account. They are counted for you automatically. Starts with the free course; other courses can be chosen too.</p>
+                <div className="mt-3 rounded-xl bg-stone-100 dark:bg-slate-800 px-4 py-3 text-sm break-all font-mono">{quick}</div>
+                <div className="mt-3 flex flex-wrap gap-2">
+                    <button onClick={() => copy(quick, 'quick')} className={BTN_PRIMARY}>{copied === 'quick' ? <><Check size={18} /> Copied</> : <><Copy size={18} /> Copy sign-up link</>}</button>
+                    <a href={whatsappShare(`Open your free Welile School of AI account here (takes one minute): ${quick}`)} target="_blank" rel="noreferrer" className={BTN_SECONDARY}><MessageCircle size={18} /> Share on WhatsApp</a>
+                </div>
+            </section>
+
             <section className={`${CARD} rounded-2xl p-5 sm:p-6`}>
                 <h2 className="font-serif text-xl font-semibold">Your personal link</h2>
                 <p className={`mt-1 text-sm ${MUTED}`}>Anyone who joins through this link is counted for you, and they never see your code.</p>
@@ -110,6 +124,26 @@ const Overview: React.FC<{ profile: StaffProfile; stats: StaffStats | null; onRe
                                 </div>
                             ))}
                         </div>
+                        {funnel && (
+                            <div className={`${CARD} rounded-2xl p-4 mt-3`}>
+                                <p className={`text-xs font-semibold uppercase tracking-wide ${MUTED}`}>Where your clients are</p>
+                                {[
+                                    ['Registered by you', funnel.registered], ['Accounts opened', funnel.accounts], ['In the free course', funnel.enrolled],
+                                    ['Studying the recorded lessons', funnel.recorded], ['Joined a live class', funnel.live], ['Active in the last 7 days', funnel.active_7d], ['Completed and certified', funnel.completed]
+                                ].map(([label, n]) => {
+                                    const max = Math.max(1, funnel.registered, funnel.accounts);
+                                    return (
+                                        <div key={String(label)} className="mt-2.5">
+                                            <div className="flex justify-between text-sm"><span>{label}</span><span className="font-semibold">{n}</span></div>
+                                            <div className="h-1.5 rounded-full bg-stone-200 dark:bg-slate-700 mt-1"><div className="h-1.5 rounded-full bg-violet-600" style={{ width: `${Math.min(100, (Number(n) / max) * 100)}%` }} /></div>
+                                        </div>
+                                    );
+                                })}
+                                {Object.keys(funnel.by_course).length > 0 && (
+                                    <p className={`mt-3 text-xs ${MUTED}`}>By course: {Object.entries(funnel.by_course).map(([c, n]) => `${c} ${n}`).join(' · ')}</p>
+                                )}
+                            </div>
+                        )}
                         <p className={`mt-3 text-sm ${MUTED}`}>You are ranked <span className="font-semibold text-[#1c1917] dark:text-slate-100">{stats.rank}</span> of {stats.staff_total}. Points: signed up 1, started 2, completed 5.</p>
                     </>
                 )}
@@ -121,13 +155,13 @@ const Overview: React.FC<{ profile: StaffProfile; stats: StaffStats | null; onRe
 // ---------------------------------------------------------------------------
 // Register a student
 // ---------------------------------------------------------------------------
-const emptyForm = { name: '', phone: '', email: '', course: FREE_COURSE, campaign: '', notes: '', consent: false };
+const emptyForm = { name: '', phone: '', email: '', course: FREE_COURSE, campaign: '', notes: '', consent: false, createNow: true, password: '' };
 
 const Register: React.FC<{ profile: StaffProfile; onDone: () => void }> = ({ profile, onDone }) => {
     const [form, setForm] = useState(emptyForm);
     const [busy, setBusy] = useState(false);
     const [error, setError] = useState<string | null>(null);
-    const [done, setDone] = useState<{ name: string; phone: string; queued: boolean } | null>(null);
+    const [done, setDone] = useState<{ name: string; phone: string; queued: boolean; email: string; tempPassword: string | null; accountMsg: string | null } | null>(null);
     const set = (k: keyof typeof emptyForm) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) =>
         setForm(f => ({ ...f, [k]: e.target.type === 'checkbox' ? (e.target as HTMLInputElement).checked : e.target.value }));
 
@@ -141,6 +175,8 @@ const Register: React.FC<{ profile: StaffProfile; onDone: () => void }> = ({ pro
         if (form.phone.replace(/\D/g, '').length < 9) return setError('Please enter a valid phone number.');
         if (isFree && !form.email.trim()) return setError('An email address is needed so the student can log in and get their certificate.');
         if (!form.consent) return setError('The student must agree to be contacted.');
+        const wantAccount = form.createNow && !!form.email.trim();
+        if (wantAccount && form.password.length < 8) return setError('Choose a temporary password of at least 8 characters, or tap Generate.');
 
         const input: RegisterInput = {
             name: form.name.trim(), email: form.email.trim(), phone: form.phone.trim(),
@@ -151,7 +187,12 @@ const Register: React.FC<{ profile: StaffProfile; onDone: () => void }> = ({ pro
         try {
             const r = await registerStudent(input);
             if (!r.ok) { setError(r.message || 'Could not register this student.'); return; }
-            setDone({ name: input.name, phone: r.phone || input.phone, queued: !!r.queued });
+            let tempPassword: string | null = null, accountMsg: string | null = null;
+            if (wantAccount && !r.queued) {
+                const a = await createClientAccount({ email: input.email, password: form.password, name: input.name, phone: input.phone, courseSlug: input.courseSlug, staffSlug: profile.slug });
+                if (a.ok) tempPassword = form.password; else accountMsg = a.message || 'The account could not be created. The registration was saved; the client can sign up with their email.';
+            }
+            setDone({ name: input.name, phone: r.phone || input.phone, queued: !!r.queued, email: input.email, tempPassword, accountMsg });
             onDone();
         } catch (err: any) {
             setError(err?.message || 'Could not register this student.');
@@ -170,7 +211,16 @@ const Register: React.FC<{ profile: StaffProfile; onDone: () => void }> = ({ pro
                 <p className={`mt-1 ${MUTED}`}>
                     {done.queued ? `${done.name} will be registered as soon as you are online.` : `${done.name} is registered under your name.`}
                 </p>
-                {isFree && (
+                {done.tempPassword && (
+                    <div className="mt-4 text-left rounded-xl bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-900 p-4 text-sm">
+                        <p className="font-semibold">Account created for {done.email}</p>
+                        <p className="mt-1">Temporary password: <span className="font-mono font-semibold">{done.tempPassword}</span></p>
+                        <p className={`mt-2 ${MUTED}`}>We emailed {done.name.split(' ')[0]} a confirmation link. After confirming, they sign in with this password and choose their own. Send them the details now:</p>
+                        <a href={whatsappShare(clientCredentialsMessage(done.name, done.email, done.tempPassword), phoneDigits)} target="_blank" rel="noreferrer" className={`${BTN_PRIMARY} mt-3`}><MessageCircle size={18} /> Send sign-in details on WhatsApp</a>
+                    </div>
+                )}
+                {done.accountMsg && <p role="alert" className="mt-4 text-sm text-amber-800 dark:text-amber-300">{done.accountMsg}</p>}
+                {isFree && !done.tempPassword && (
                     <>
                         <p className={`mt-4 text-sm ${MUTED}`}>Now send them their link so they can create their login and start.</p>
                         <a href={whatsappShare(startMessage(done.name, link), phoneDigits)} target="_blank" rel="noreferrer" className={`${BTN_PRIMARY} mt-3`}>
@@ -204,6 +254,23 @@ const Register: React.FC<{ profile: StaffProfile; onDone: () => void }> = ({ pro
                     <input id="r-email" type="email" inputMode="email" value={form.email} onChange={set('email')} placeholder="name@example.com" className={INPUT} />
                 </div>
             </div>
+            {form.email.trim() && (
+                <div className="rounded-xl border border-stone-200 dark:border-slate-700 p-4 space-y-3">
+                    <label className="flex items-start gap-3 cursor-pointer">
+                        <input type="checkbox" checked={form.createNow} onChange={set('createNow')} className="mt-1 accent-violet-700 w-5 h-5 shrink-0" />
+                        <span className="text-sm leading-snug"><span className="font-semibold">Open their account now</span> with a temporary password. They confirm their email, then choose their own password the first time they sign in.</span>
+                    </label>
+                    {form.createNow && (
+                        <div>
+                            <label htmlFor="r-pass" className="block text-sm font-semibold mb-1.5">Temporary password</label>
+                            <div className="flex gap-2">
+                                <input id="r-pass" value={form.password} onChange={set('password')} autoComplete="off" className={`${INPUT} font-mono`} />
+                                <button type="button" onClick={() => setForm(f => ({ ...f, password: generateTempPassword() }))} className={BTN_SECONDARY}>Generate</button>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            )}
             <div>
                 <label htmlFor="r-course" className="block text-sm font-semibold mb-1.5">Programme</label>
                 <select id="r-course" value={form.course} onChange={set('course')} className={INPUT}>

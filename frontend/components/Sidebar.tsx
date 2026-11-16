@@ -1,5 +1,5 @@
-import React from 'react';
-import { LayoutDashboard, BookOpen, CreditCard, User, Settings, LogOut, Briefcase, X, Compass, Calendar, Shield, Building2, GraduationCap } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { Handshake, LayoutDashboard, BookOpen, CreditCard, User, Settings, LogOut, Briefcase, X, Compass, Calendar, Shield, Building2, GraduationCap } from 'lucide-react';
 import { supabaseClient } from '../src/lib/supabaseClient';
 
 import { useTranslation } from './translations';
@@ -15,6 +15,8 @@ interface SidebarProps {
 
 const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, isOpen, onClose, isAdmin, isCorporate }) => {
   const { t } = useTranslation();
+  const [isStaff, setIsStaff] = useState(false);
+  useEffect(() => { supabaseClient.rpc('is_staff').then(({ data }) => setIsStaff(data === true)); }, []);
 
   const menuItems = [
     { id: 'dashboard', label: t('dashboard'), icon: LayoutDashboard },
@@ -22,6 +24,7 @@ const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, isOpen, onCl
     { id: 'discover', label: t('discover'), icon: Compass },
     { id: 'courses', label: t('my_courses'), icon: BookOpen },
     ...(isCorporate ? [{ id: 'corporate', label: 'Corporate Portal', icon: Building2 }] : []),
+    ...(isStaff ? [{ id: 'staff', label: 'Agent portal', icon: Handshake }] : []),
     { id: 'events', label: t('events') || 'Upcoming Classes', icon: Calendar },
     { id: 'career', label: t('career_growth'), icon: Briefcase },
     { id: 'profile', label: t('my_profile'), icon: User },

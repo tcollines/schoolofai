@@ -1,4 +1,4 @@
-import { supabase } from './supabaseClient';
+import { supabase, createIsolatedClient } from './supabaseClient';
 
 /** Staff portal data layer. Every call goes through a database function that returns only the signed-in staff member's own data. */
 
@@ -138,3 +138,62 @@ export const whatsappShare = (text: string, phone?: string | null) =>
 
 export const startMessage = (studentName: string | null, link: string) =>
     `${studentName ? `Hello ${studentName.split(' ')[0]}, ` : 'Hello, '}study AI for free with Welile School of AI. It takes about 6 hours at your own pace, works on any phone, and you get a free certificate. Start here: ${link}`;
+
+
+// ---------------------------------------------------------------------------
+// Funnel (registered -> account -> recorded -> live -> completed)
+// ---------------------------------------------------------------------------
+export interface StaffFunnel {
+    clicks: number; registered: number; accounts: number; enrolled: number; recorded: number; live: number; completed: number; active_7d: number;
+    by_course: Record<string, number>;
+}
+export async function loadMyFunnel(): Promise<StaffFunnel | null> {
+    const { data, error } = await supabase.rpc('staff_my_funnel');
+    if (error) return null;
+    return data as StaffFunnel;
+}
+
+/** Quick sign-up page for one agent: /join/<slug> */
+export const joinLink = (slug: string) => `${window.location.origin}/join/${slug}`;
+
+// ---------------------------------------------------------------------------
+// Create a client's account with a temporary password (client must choose their own on first sign-in)
+// ---------------------------------------------------------------------------
+export const generateTempPassword = (): string => {
+    const letters = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz';
+    const digits = '23456789';
+    const pick = (set: string) => set[crypto.getRandomValues(new Uint32Array(1))[0] % set.length];
+    const word = Array.from({ length: 6 }, () => pick(letters)).join('');
+    return `${word}-${Array.from({ length: 4 }, () => pick(digits)).join('')}`;
+};
+
+export interface CreateAccountResult { ok: boolean; code?: 'exists' | 'weak' | 'error'; message?: string; }
+export async function createClientAccount(input: { email: string; password: string; name: string; phone: string; courseSlug: string | null; staffSlug: string }): Promise<CreateAccountResult> {
+    if (input.password.length < 8) return { ok: false, code: 'weak', message: 'The temporary password must be at least 8 characters.' };
+    const client = createIsolatedClient();
+    const email = input.email.trim().toLowerCase();
+    const { data, error } = await client.auth.signUp({
+        email,
+        password: input.password,
+        options: {
+            emailRedirectTo: `${window.location.origin}/login`,
+            data: {
+                full_name: input.name,
+                phone: input.phone,
+                signup_source: 'agent_created',
+                must_change_password: true,
+                ref_code: input.staffSlug,
+                ...(input.courseSlug ? { enroll_course: input.courseSlug } : {})
+            }
+        }
+    });
+    if (error) {
+        if (/already|registered|exists/i.test(error.message)) return { ok: false, code: 'exists', message: 'This email already has an account.' };
+        return { ok: false, code: 'error', message: error.message };
+    }
+    if (data?.user && (!data.user.identities || data.user.identities.length === 0)) return { ok: false, code: 'exists', message: 'This email already has an account.' };
+    return { ok: true };
+}
+
+export const clientCredentialsMessage = (name: string, email: string, tempPassword: string) =>
+    `Hello ${name.split(' ')[0]}, your Welile School of AI account is ready.\n\n1. Check your email and tap the confirmation link.\n2. Sign in at ${window.location.origin}/login\nEmail: ${email}\nTemporary password: ${tempPassword}\n\nYou will be asked to choose your own password. Your free AI Fundamentals course opens straight away. Live classes are Monday, Wednesday and Friday at 2:00 pm.`;
