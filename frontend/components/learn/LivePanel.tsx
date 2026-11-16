@@ -4,6 +4,7 @@ import { supabase } from '../../src/lib/supabaseClient';
 import { useLearn } from './learnContext';
 import { LiveSession, loadLiveSessions } from '../../src/lib/learnApi';
 import { COURSE } from '../../src/content/aiFundamentals';
+import { lectureForSession, moduleLabel, recordAttendance } from '../../src/lib/liveClass';
 import { BTN_PRIMARY, BTN_SECONDARY, CARD, MUTED, formatEAT, formatLocal } from './learnUi';
 
 const icsDate = (iso: string) => new Date(iso).toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '');
@@ -49,10 +50,17 @@ export const useSessions = () => {
 };
 
 const SessionCard: React.FC<{ s: LiveSession; now: number }> = ({ s, now }) => {
+    const { uid, attended, refreshAttendance } = useLearn();
+    const lecture = lectureForSession(s);
+    const wasThere = !!lecture && attended.has(lecture.id);
+    const [confirming, setConfirming] = useState(false);
     const start = new Date(s.starts_at).getTime();
     const end = new Date(s.ends_at).getTime();
     const joinable = s.meet_link && now >= start - 10 * 60000 && now <= end;
     const past = now > end;
+    const canConfirm = past && !wasThere && !!lecture && now - end < 48 * 3600000;
+    const onJoin = async () => { await recordAttendance(uid, s, 'join_click'); void refreshAttendance(); };
+    const confirmAttended = async () => { setConfirming(true); await recordAttendance(uid, s, 'self_confirmed'); await refreshAttendance(); setConfirming(false); };
     const mins = Math.max(0, Math.round((start - now) / 60000));
     const when = mins < 60 ? `in ${mins} min` : mins < 1440 ? `in ${Math.round(mins / 60)} h` : `in ${Math.round(mins / 1440)} days`;
 
@@ -62,6 +70,7 @@ const SessionCard: React.FC<{ s: LiveSession; now: number }> = ({ s, now }) => {
                 <div className="min-w-0">
                     <p className="font-semibold leading-snug">{s.title}</p>
                     {s.host_name && <p className={`text-sm ${MUTED}`}>with {s.host_name}</p>}
+                    {lecture && <p className={`text-xs mt-1 ${MUTED}`}>{lecture.label}: {moduleLabel(lecture)}</p>}
                 </div>
                 {!past && !joinable && <span className="shrink-0 text-xs font-semibold px-2.5 py-1 rounded-full bg-violet-100 dark:bg-violet-950 text-violet-800 dark:text-violet-300">{when}</span>}
                 {joinable && <span className="shrink-0 text-xs font-semibold px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800">Live now</span>}
@@ -75,6 +84,7 @@ const SessionCard: React.FC<{ s: LiveSession; now: number }> = ({ s, now }) => {
                     <>
                         <a
                             href={joinable ? s.meet_link : undefined}
+                            onClick={joinable ? () => { void onJoin(); } : undefined}
                             target="_blank" rel="noreferrer"
                             aria-disabled={!joinable}
                             className={`${joinable ? BTN_PRIMARY : BTN_SECONDARY + ' opacity-60 pointer-events-none'} !py-2.5 !px-4 !text-sm`}
@@ -89,6 +99,8 @@ const SessionCard: React.FC<{ s: LiveSession; now: number }> = ({ s, now }) => {
                     <a href={s.recording_url} target="_blank" rel="noreferrer" className={`${BTN_SECONDARY} !py-2.5 !px-4 !text-sm`}><PlayCircle size={16} /> Watch the replay <ExternalLink size={14} /></a>
                 )}
                 {past && !s.recording_url && <span className={`text-sm ${MUTED}`}>Replay will be posted here.</span>}
+                {wasThere && <span className="inline-flex items-center gap-1.5 text-sm font-medium text-emerald-700">You attended: this class's lessons count as done. Take the quizzes.</span>}
+                {canConfirm && <button onClick={confirmAttended} disabled={confirming} className={`${BTN_SECONDARY} !py-2.5 !px-4 !text-sm`}>I was in this class</button>}
             </div>
         </li>
     );
@@ -180,7 +192,7 @@ const LivePanel: React.FC = () => {
     return (
         <div className="max-w-3xl mx-auto px-4 sm:px-6 py-8">
             <h1 className="font-serif text-3xl font-semibold">Live classes</h1>
-            <p className={`mt-2 ${MUTED}`}>Optional sessions to ask questions and practise with others. Times are shown in East Africa Time, with your local time underneath. Live classes are not required for your certificate.</p>
+            <p className={`mt-2 ${MUTED}`}>Optional sessions to ask questions and practise with others. Times are shown in East Africa Time, with your local time underneath. Live classes are optional. If you join one, the lessons it covers count as done, and you only take the quizzes for those modules.</p>
 
             {sessions === null && <p className={`mt-8 ${MUTED}`}>Loading the timetable...</p>}
 

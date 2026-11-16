@@ -2,6 +2,7 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
 import ErrorBoundary from './components/ErrorBoundary';
+import { initPwa } from './src/lib/pwa';
 
 const rootElement = document.getElementById('root');
 if (!rootElement) {
@@ -10,6 +11,7 @@ if (!rootElement) {
 
 
 
+initPwa();
 console.log('Found root element, mounting App...');
 const root = ReactDOM.createRoot(rootElement);
 root.render(

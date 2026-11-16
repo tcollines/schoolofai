@@ -4,6 +4,7 @@ import { ALL_ITEMS, COURSE, MODULES } from '../../src/content/aiFundamentals';
 import { AlertTriangle, Award, Check, Copy, Download, Eye, Loader2, MousePointerClick, RefreshCw, Search, Star, Trophy, UserPlus, Users, Zap } from 'lucide-react';
 import AdminAuthPrompt from './AdminAuthPrompt';
 import AdminLearnQA from './AdminLearnQA';
+import AdminLiveInstallStats from './AdminLiveInstallStats';
 import { Area, AreaChart, Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 
 interface Stats {
@@ -177,6 +178,8 @@ const AdminFreeCourse: React.FC = () => {
                             </div>
                         ))}
                     </div>
+
+                    <AdminLiveInstallStats course={COURSE.slug} learners={learners} enrolled={stats.enrolled} />
 
                     {/* Funnel + signups */}
                     <div className="grid xl:grid-cols-2 gap-6">

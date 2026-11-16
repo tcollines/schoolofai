@@ -16,6 +16,9 @@ import LivePanel from './LivePanel';
 import ComingSoon from './ComingSoon';
 import { hasFullAccess, lockReason, lessonsAreOpen } from '../../src/lib/courseAccess';
 import { INK, PAPER, Logo, ProgressRing, ThemeButton } from './learnUi';
+import LiveTodayBar from './LiveTodayBar';
+import { InstallChip, useInstallTracking } from './InstallApp';
+import { exemptItemIds, loadAttendedLectures } from '../../src/lib/liveClass';
 
 const Outline: React.FC<{ progress: ProgressMap; base: string; fullAccess: boolean; onNavigate?: () => void }> = ({ progress, base, fullAccess, onNavigate }) => {
     const { pathname } = useLocation();
@@ -80,6 +83,8 @@ const LearnRoute: React.FC<Props> = ({ session, userProfile }) => {
     const [ready, setReady] = useState(false);
     const [tick, setTick] = useState(0);
     const [drawer, setDrawer] = useState(false);
+    const [attended, setAttended] = useState<Set<string>>(new Set());
+    useInstallTracking(uid);
 
     useEffect(() => {
         document.title = `${COURSE.short} | Welile School of AI`;
@@ -111,6 +116,29 @@ const LearnRoute: React.FC<Props> = ({ session, userProfile }) => {
         setProgress(await loadProgress(uid));
     }, [uid]);
 
+    const refreshAttendance = useCallback(async () => {
+        if (!uid) return;
+        const lectures = await loadAttendedLectures(uid);
+        setAttended(prev => (prev.size === lectures.size && [...lectures].every(l => prev.has(l)) ? prev : lectures));
+    }, [uid]);
+
+    useEffect(() => { if (ready) void refreshAttendance(); }, [ready, refreshAttendance]);
+
+    // Attending a live class counts as the lessons it covered: mark that class's videos and readings done, so only the quizzes remain.
+    useEffect(() => {
+        if (!uid || !ready || attended.size === 0) return;
+        const todo = exemptItemIds(attended).filter(id => progress[id]?.status !== 'completed');
+        if (todo.length === 0) return;
+        let cancelled = false;
+        (async () => {
+            let latest: ProgressMap | null = null;
+            for (const id of todo) latest = await saveItemProgress(uid, id, { status: 'completed' });
+            if (!cancelled && latest) setProgress({ ...latest });
+        })();
+        return () => { cancelled = true; };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [uid, ready, attended]);
+
     const fullAccess = hasFullAccess(session?.user?.email, userProfile?.role);
     const fullName = userProfile?.name || session?.user?.user_metadata?.full_name || '';
     const ctx = useMemo(() => ({
@@ -125,8 +153,10 @@ const LearnRoute: React.FC<Props> = ({ session, userProfile }) => {
         setCert,
         attemptsTick: tick,
         bump: () => setTick(t => t + 1),
-        fullAccess
-    }), [uid, session, fullName, fullAccess, progress, markProgress, markComplete, refresh, cert, tick]);
+        fullAccess,
+        attended,
+        refreshAttendance
+    }), [uid, session, fullName, fullAccess, progress, markProgress, markComplete, refresh, cert, tick, attended, refreshAttendance]);
 
     if (course !== COURSE.slug) return <Navigate to="/dashboard" replace />;
     if (!uid) { setReturnTo(pathname); return <Navigate to="/login" replace />; }
@@ -165,11 +195,13 @@ const LearnRoute: React.FC<Props> = ({ session, userProfile }) => {
                         <Link to="/dashboard" aria-label="Exit to dashboard" className="flex items-center gap-2 p-2.5 sm:px-3 rounded-lg text-sm font-medium hover:bg-stone-100 dark:hover:bg-slate-800">
                             <LayoutDashboard size={18} /><span className="hidden lg:inline">Dashboard</span>
                         </Link>
+                        <InstallChip />
                         <ThemeButton />
                     </div>
                     <div className="h-1 bg-stone-200 dark:bg-slate-800" role="progressbar" aria-valuenow={state.pct} aria-valuemin={0} aria-valuemax={100} aria-label="Course progress">
                         <div className="h-full bg-violet-700 transition-all duration-500" style={{ width: `${state.pct}%` }} />
                     </div>
+                    <LiveTodayBar />
                 </header>
 
                 <div className="flex">

@@ -1,0 +1,16 @@
+{
+  "name": "Welile School of AI",
+  "short_name": "Welile AI",
+  "description": "Free AI Fundamentals course: learn to use AI with confidence.",
+  "start_url": "/learn/ai-fundamentals?source=app",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#faf8f5",
+  "theme_color": "#6d28d9",
+  "icons": [
+    { "src": "/favicon-192x192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/icon.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "/icon.png", "sizes": "512x512", "type": "image/png", "purpose": "any" }
+  ]
+}

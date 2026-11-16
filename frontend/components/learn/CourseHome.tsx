@@ -6,6 +6,7 @@ import { completionState } from '../../src/lib/learnApi';
 import { useLearn } from './learnContext';
 import { LESSONS_OPEN_LABEL, LIVE_SCHEDULE, lessonsAreOpen, lockReason } from '../../src/lib/courseAccess';
 import { useSessions } from './LivePanel';
+import { InstallTip } from './InstallApp';
 import { BTN_PRIMARY, BTN_SECONDARY, CARD, MUTED, ProgressRing, formatEAT } from './learnUi';
 
 const kindIcon = (kind: string) => kind === 'video' ? PlayCircle : kind === 'quiz' ? HelpCircle : FileText;
@@ -38,6 +39,12 @@ const CourseHome: React.FC = () => {
                 </div>
                 <Link to={resumeTo} className={`${BTN_PRIMARY} w-full sm:w-auto`}>{resumeLabel} <ArrowRight size={18} /></Link>
             </section>
+
+            <div className="mt-4"><InstallTip /></div>
+
+            <p className={`mt-4 text-sm ${MUTED}`}>
+                Join a live class (Monday, Wednesday or Friday, 2:00 pm East Africa Time) and the lessons it covers count as done. You only take the quizzes. <Link to={`${base}/live`} className="font-semibold text-violet-800 dark:text-violet-300 underline underline-offset-2">See the live classes</Link>
+            </p>
 
             {preLaunch && (
                 <section className="mt-6 rounded-3xl border border-violet-200 dark:border-violet-900 bg-gradient-to-r from-violet-50 to-white dark:from-slate-900 dark:to-slate-900 p-6 sm:p-7">

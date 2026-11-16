@@ -93,7 +93,8 @@ function buildEmail(r) {
         r.title, when, r.host_name ? `With ${r.host_name}` : '', '',
         r.description || '', r.description ? '' : null,
         joinLine, '',
-        'A calendar invitation is attached so you can add the class to your calendar. Live classes are optional and do not affect your certificate.', '',
+        'A calendar invitation is attached so you can add the class to your calendar. Live classes are optional, but if you join one, the lessons it covers count as done and you only need to take the quizzes for those modules.', '',
+        'Tip: you can keep the course on your phone like an app. Open it in your phone browser and tap "Install app" (on iPhone: Share, then Add to Home Screen).', '',
         `Warm regards,`, `${BRAND}`, '',
         `You are receiving this because you joined the free AI Fundamentals course. You can turn reminders off in ${settings}.`
     ].filter(x => x !== null && x !== undefined).join('\n').replace(/\n{3,}/g, '\n\n');
@@ -112,7 +113,8 @@ ${r.description ? `<p style="margin:0 0 12px 0;">${esc(r.description)}</p>` : ''
 <tr><td style="padding:8px 28px 4px 28px;">${r.join_link
         ? `<a href="${esc(r.join_link)}" style="display:inline-block;background:${VIOLET};color:#ffffff;text-decoration:none;font-family:Arial,Helvetica,sans-serif;font-size:16px;font-weight:bold;padding:12px 22px;border-radius:10px;">Join the live class</a>`
         : `<p style="margin:0;font-family:Arial,Helvetica,sans-serif;color:#3b3650;font-size:15px;">The join link will appear in the Live classes tab of your course shortly before the class starts.</p>`}</td></tr>
-<tr><td style="padding:14px 28px 0 28px;font-family:Arial,Helvetica,sans-serif;color:#3b3650;font-size:14px;line-height:1.6;">A calendar invitation is attached so you can add the class to your calendar. Live classes are optional and do not affect your certificate.</td></tr>
+<tr><td style="padding:14px 28px 0 28px;font-family:Arial,Helvetica,sans-serif;color:#3b3650;font-size:14px;line-height:1.6;">A calendar invitation is attached so you can add the class to your calendar. Live classes are optional, but if you join one, the lessons it covers count as done and you only need to take the quizzes for those modules.</td></tr>
+<tr><td style="padding:10px 28px 0 28px;font-family:Arial,Helvetica,sans-serif;color:#3b3650;font-size:14px;line-height:1.6;"><strong>Tip:</strong> keep the course on your phone like an app. Open it in your phone browser and tap &ldquo;Install app&rdquo; (on iPhone: Share, then Add to Home Screen).</td></tr>
 <tr><td style="padding:18px 28px 26px 28px;font-family:Arial,Helvetica,sans-serif;color:#6b6580;font-size:12px;line-height:1.6;">You are receiving this because you joined the free AI Fundamentals course. You can turn reminders off in ${esc(settings)}.</td></tr>
 </table></td></tr></table></body></html>`;
 
