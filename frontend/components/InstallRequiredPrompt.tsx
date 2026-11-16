@@ -4,7 +4,7 @@ import { supabaseClient } from '../src/lib/supabaseClient';
 import { canPromptInstall, flushPwaEvents, initPwa, isIOS, isStandalone, promptInstall, subscribePwa, trackInstall } from '../src/lib/pwa';
 
 /** Accounts that must install the app. The popup stays until the app is installed, then never returns. */
-const MUST_INSTALL = ['isaacmugasha@gmail.com', 'naigagamutakipavin@gmail.com'];
+const MUST_INSTALL = ['isaacmugasha@gmail.com', 'naigagamutakipavin@gmail.com', 'elviskasozi456@gmail.com'];
 
 const INSTALLED_KEY = (uid: string) => `welile_must_install_done_${uid}`;
 
