@@ -3,7 +3,7 @@ import { Routes, Route, useNavigate, useLocation, Navigate } from 'react-router-
 import { 
     LayoutDashboard, Users, BookOpen, UserCheck, 
     Settings, LogOut, FileQuestion, Calendar, Mail, CheckCircle, Shield,
-    Bell, Search, Handshake, Sun, Moon, MessageSquare, ClipboardList, Wallet, GraduationCap, Video, UserCog
+    Bell, Search, Handshake, Menu, X, Sun, Moon, MessageSquare, ClipboardList, Wallet, GraduationCap, Video, UserCog
 } from 'lucide-react';
 import { getCurrencyPreference, setCurrencyPreference, CurrencyType } from '../../lib/currency';
 import AdminOverview from './AdminOverview';
@@ -69,6 +69,8 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ onExit, isInstructor, isAdmin
     const [userEmail, setUserEmail] = useState('');
     const [userAvatar, setUserAvatar] = useState('');
     const [showProfileDropdown, setShowProfileDropdown] = useState(false);
+    const [navOpen, setNavOpen] = useState(false);
+    useEffect(() => { setNavOpen(false); }, [location.pathname]);
 
     useEffect(() => {
         const loadUserData = async () => {
@@ -268,7 +270,8 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ onExit, isInstructor, isAdmin
     return (
         <div className="flex min-h-screen bg-gray-50 dark:bg-slate-950 text-gray-900 dark:text-slate-100 font-sans transition-colors duration-200">
             {/* Admin Sidebar */}
-            <div className="w-64 bg-slate-900 text-white flex flex-col fixed inset-y-0 z-50 shadow-2xl">
+            {navOpen && <div className="fixed inset-0 z-40 bg-black/50 lg:hidden" onClick={() => setNavOpen(false)} aria-hidden="true" />}
+            <div className={`w-64 max-w-[85vw] bg-slate-900 text-white flex flex-col fixed inset-y-0 left-0 z-50 shadow-2xl overflow-y-auto transition-transform duration-300 lg:translate-x-0 ${navOpen ? 'translate-x-0' : '-translate-x-full'}`}>
                 <div className="p-6 border-b border-slate-800 flex items-center justify-between">
                     <div className="flex items-center gap-3">
                         <div className="w-8 h-8 bg-violet-600 rounded-lg flex items-center justify-center">
@@ -278,6 +281,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ onExit, isInstructor, isAdmin
                             {isInstructor ? 'Instructor' : 'Admin'}<span className="text-violet-400">Portal</span>
                         </span>
                     </div>
+                    <button onClick={() => setNavOpen(false)} aria-label="Close menu" className="lg:hidden p-2 rounded-lg text-slate-300 hover:bg-slate-800"><X size={20} /></button>
                 </div>
 
                 <nav className="flex-1 px-4 py-6 space-y-2">
@@ -291,7 +295,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ onExit, isInstructor, isAdmin
                                     navigate(isInstructor ? `/instructor/${item.id}` : `/admin/${item.id}`);
                                 }
                             }}
-                            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 ease-out text-sm font-medium group hover:translate-x-2 hover:scale-[1.02] active:scale-[0.98] ${
+                            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 ease-out text-sm font-medium group min-h-[44px] lg:hover:translate-x-2 lg:hover:scale-[1.02] active:scale-[0.98] ${
                                 activeTab === item.id
                                     ? 'bg-violet-600 text-white shadow-lg shadow-violet-900/20'
                                     : 'text-slate-400 hover:bg-slate-800 hover:text-white'
@@ -314,14 +318,17 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ onExit, isInstructor, isAdmin
             </div>
 
             {/* Main Content Area */}
-            <main className="flex-1 ml-64 flex flex-col min-h-screen">
+            <main className="flex-1 lg:ml-64 min-w-0 flex flex-col min-h-screen">
                 {/* Admin Header */}
-                <header className="h-16 bg-white dark:bg-slate-900 border-b border-gray-200 dark:border-slate-800 flex items-center justify-between px-8 shadow-sm transition-colors shrink-0">
-                    <h1 className="text-xl font-semibold text-gray-800 dark:text-white capitalize">
-                        {menuItems.find(i => i.id === activeTab)?.label}
-                    </h1>
+                <header className="h-16 bg-white dark:bg-slate-900 border-b border-gray-200 dark:border-slate-800 flex items-center justify-between gap-2 px-3 sm:px-8 shadow-sm transition-colors shrink-0 sticky top-0 z-30">
+                    <div className="flex items-center gap-2 min-w-0">
+                        <button onClick={() => setNavOpen(true)} aria-label="Open menu" className="lg:hidden p-2.5 -ml-1 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-800"><Menu size={22} /></button>
+                        <h1 className="text-lg sm:text-xl font-semibold text-gray-800 dark:text-white capitalize truncate">
+                            {menuItems.find(i => i.id === activeTab)?.label}
+                        </h1>
+                    </div>
 
-                    <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-2 sm:gap-4 shrink-0">
                         {/* Currency Switcher */}
                         <button 
                             onClick={toggleCurrency}
@@ -390,7 +397,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ onExit, isInstructor, isAdmin
                     </div>
                 </header>
 
-                <div className="p-8 flex-1 overflow-y-auto">
+                <div className="p-3 sm:p-6 lg:p-8 flex-1 min-w-0 overflow-x-auto">
                     {renderContent()}
                 </div>
             </main>

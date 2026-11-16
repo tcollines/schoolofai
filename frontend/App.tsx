@@ -154,6 +154,8 @@ const ProtectedRoute = ({ isAuthenticated, requireOnboarding = false, userProfil
   return <>{children}</>;
 };
 
+import InstallRequiredPrompt from './components/InstallRequiredPrompt';
+
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [session, setSession] = useState<any>(null);
@@ -298,6 +300,7 @@ function App() {
   return (
     <BrowserRouter>
       <ReturnToCleaner />
+      <InstallRequiredPrompt uid={session?.user?.id} email={session?.user?.email} />
       <Routes>
         {/* Public Routes */}
         <Route path="/" element={<LandingRoute isAuthenticated={isAuthenticated} />} />
