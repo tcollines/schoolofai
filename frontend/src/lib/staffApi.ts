@@ -147,10 +147,11 @@ export const startMessage = (studentName: string | null, link: string) =>
 // ---------------------------------------------------------------------------
 export interface StaffFunnel {
     clicks: number; registered: number; accounts: number; enrolled: number; recorded: number; live: number; completed: number; active_7d: number;
-    by_course: Record<string, number>;
+    by_course: Record<string, number>; by_location: Record<string, number>; daily: number[];
 }
-export async function loadMyFunnel(): Promise<StaffFunnel | null> {
-    const { data, error } = await supabase.rpc('staff_my_funnel');
+export const sinceFor = (days: number | null): string | null => (days ? new Date(Date.now() - days * 86400000).toISOString() : null);
+export async function loadMyFunnel(days: number | null = null): Promise<StaffFunnel | null> {
+    const { data, error } = await supabase.rpc('staff_my_funnel', { p_since: sinceFor(days) });
     if (error) return null;
     return data as StaffFunnel;
 }

@@ -5,7 +5,8 @@ import Header from '../Header';
 import { AuthModal } from '../AuthModal';
 import { useProfile } from '../../src/hooks/useProfile';
 import { UserRole, Course } from '../../types';
-import { CheckCircle, Sparkles, X, PartyPopper, LayoutDashboard, Compass, BookOpen, Calendar, User } from 'lucide-react';
+import { CheckCircle, Sparkles, X, PartyPopper, LayoutDashboard, Compass, BookOpen, Calendar, User, Handshake } from 'lucide-react';
+import { supabase } from '../../src/lib/supabaseClient';
 import { useTranslation } from '../translations';
 
 interface StudentLayoutProps {
@@ -45,6 +46,8 @@ const StudentLayout: React.FC<StudentLayoutProps> = ({ session, isAuthenticated,
     }, []);
 
     const { profile } = useProfile(isAuthenticated ? session : null);
+    const [isStaff, setIsStaff] = React.useState(false);
+    React.useEffect(() => { if (isAuthenticated) supabase.rpc('is_staff').then(({ data }) => setIsStaff(data === true)); }, [isAuthenticated]);
 
     const displayUser = profile || {
         id: 'guest',
@@ -112,13 +115,14 @@ const StudentLayout: React.FC<StudentLayoutProps> = ({ session, isAuthenticated,
             {/* Phone navigation: the five things students use most */}
             <nav
                 aria-label="Quick navigation"
-                className="lg:hidden fixed bottom-0 inset-x-0 z-40 grid grid-cols-5 bg-white/95 dark:bg-slate-900/95 backdrop-blur border-t border-stone-200 dark:border-slate-800 pb-[env(safe-area-inset-bottom)]"
+                className={`lg:hidden fixed bottom-0 inset-x-0 z-40 grid ${isStaff ? 'grid-cols-6' : 'grid-cols-5'} bg-white/95 dark:bg-slate-900/95 backdrop-blur border-t border-stone-200 dark:border-slate-800 pb-[env(safe-area-inset-bottom)]`}
             >
                 {[
                     { id: 'dashboard', label: 'Home', icon: LayoutDashboard },
                     { id: 'discover', label: t('discover'), icon: Compass },
                     { id: 'courses', label: t('my_courses'), icon: BookOpen },
                     { id: 'events', label: 'Live', icon: Calendar },
+                    ...(isStaff ? [{ id: 'staff', label: 'Agent', icon: Handshake }] : []),
                     { id: 'profile', label: 'Profile', icon: User }
                 ].map(item => {
                     const active = activeSidebarTab === item.id;

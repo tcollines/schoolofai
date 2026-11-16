@@ -50,7 +50,8 @@ const useCopy = () => {
 // ---------------------------------------------------------------------------
 const Overview: React.FC<{ profile: StaffProfile; stats: StaffStats | null; onRefresh: () => void }> = ({ profile, stats, onRefresh }) => {
     const [funnel, setFunnel] = useState<StaffFunnel | null>(null);
-    useEffect(() => { void loadMyFunnel().then(setFunnel); }, [stats]);
+    const [days, setDays] = useState<number | null>(null);
+    useEffect(() => { void loadMyFunnel(days).then(setFunnel); }, [stats, days]);
     const quick = joinLink(profile.slug);
     const [target, setTarget] = useState(PAGES[0].to);
     const [qr, setQr] = useState('');
@@ -126,7 +127,25 @@ const Overview: React.FC<{ profile: StaffProfile; stats: StaffStats | null; onRe
                         </div>
                         {funnel && (
                             <div className={`${CARD} rounded-2xl p-4 mt-3`}>
-                                <p className={`text-xs font-semibold uppercase tracking-wide ${MUTED}`}>Where your clients are</p>
+                                <div className="flex items-center justify-between gap-2">
+                                    <p className={`text-xs font-semibold uppercase tracking-wide ${MUTED}`}>Where your clients are</p>
+                                    <div className="inline-flex rounded-lg border border-stone-300 dark:border-slate-700 overflow-hidden text-xs font-semibold" role="group" aria-label="Period">
+                                        {([[7, '7 days'], [30, '30 days'], [null, 'All']] as [number | null, string][]).map(([d, l]) => (
+                                            <button key={l} onClick={() => setDays(d)} aria-pressed={days === d} className={`px-3 py-1.5 ${days === d ? 'bg-violet-700 text-white' : 'bg-white dark:bg-slate-900'}`}>{l}</button>
+                                        ))}
+                                    </div>
+                                </div>
+                                {funnel.daily && funnel.daily.length > 0 && (
+                                    <div className="mt-3" aria-label="New accounts per day, last 14 days">
+                                        <div className="flex items-end gap-1 h-12">
+                                            {funnel.daily.map((n, i) => {
+                                                const m = Math.max(1, ...funnel.daily);
+                                                return <div key={i} title={`${n}`} className="flex-1 rounded-sm bg-violet-300 dark:bg-violet-700" style={{ height: `${Math.max(8, (n / m) * 100)}%`, opacity: n ? 1 : 0.35 }} />;
+                                            })}
+                                        </div>
+                                        <p className={`mt-1 text-xs ${MUTED}`}>New accounts per day, last 14 days</p>
+                                    </div>
+                                )}
                                 {[
                                     ['Registered by you', funnel.registered], ['Accounts opened', funnel.accounts], ['In the free course', funnel.enrolled],
                                     ['Studying the recorded lessons', funnel.recorded], ['Joined a live class', funnel.live], ['Active in the last 7 days', funnel.active_7d], ['Completed and certified', funnel.completed]
@@ -139,6 +158,9 @@ const Overview: React.FC<{ profile: StaffProfile; stats: StaffStats | null; onRe
                                         </div>
                                     );
                                 })}
+                                {funnel.by_location && Object.keys(funnel.by_location).length > 0 && (
+                                    <p className={`mt-3 text-xs ${MUTED}`}>Where they are: {Object.entries(funnel.by_location).map(([c, n]) => `${c} ${n}`).join(' · ')}</p>
+                                )}
                                 {Object.keys(funnel.by_course).length > 0 && (
                                     <p className={`mt-3 text-xs ${MUTED}`}>By course: {Object.entries(funnel.by_course).map(([c, n]) => `${c} ${n}`).join(' · ')}</p>
                                 )}
@@ -506,7 +528,7 @@ const StaffPortal: React.FC<{ session: any }> = ({ session }) => {
                         ))}
                     </nav>
                     <div className="flex-1" />
-                    <Link to="/dashboard" className="text-sm font-medium px-3 py-2 rounded-lg hover:bg-stone-100 dark:hover:bg-slate-800">Exit</Link>
+                    <Link to="/dashboard" className="text-sm font-medium px-3 py-2 rounded-lg hover:bg-stone-100 dark:hover:bg-slate-800">My courses</Link>
                     <ThemeButton />
                 </div>
             </header>

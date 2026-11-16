@@ -4,8 +4,10 @@ import { Check, Copy, KeyRound, Loader2, Plus, UserCheck, UserX } from 'lucide-r
 import AdminAuthPrompt, { MissingDbNotice } from './AdminAuthPrompt';
 
 interface Staff { id: string; user_id: string | null; staff_code: string; slug: string; display_name: string; role: string | null; phone: string | null; active: boolean; }
-interface Funnel { id: string; name: string; slug: string; role: string | null; active: boolean; linked: boolean; clicks: number; registered: number; accounts: number; enrolled: number; recorded: number; live: number; completed: number; active_7d: number; by_course: Record<string, number>; }
+interface Client { name: string; email: string | null; phone: string | null; location: string | null; stage: string; joined: string; }
+interface Funnel { id: string; name: string; slug: string; role: string | null; active: boolean; linked: boolean; clicks: number; registered: number; accounts: number; enrolled: number; recorded: number; live: number; completed: number; active_7d: number; by_course: Record<string, number>; by_location: Record<string, number>; }
 interface GroupSize { week: string | null; cohort: string | null; learners: number; }
+interface Hit { id: string; name: string; email: string; phone?: string | null; location?: string | null; agent_slug: string | null; }
 interface Reg { id: string; created_at: string; full_name: string; email: string | null; phone: string; location?: string | null; course_title: string; campaign: string | null; status: string; registered_by_staff_id: string; }
 
 const card = 'bg-white dark:bg-slate-900 rounded-2xl border border-gray-100 dark:border-slate-800 shadow-sm';
@@ -30,8 +32,21 @@ const AdminStaff: React.FC = () => {
     const [funnel, setFunnel] = useState<Funnel[]>([]);
     const [groups, setGroups] = useState<GroupSize[]>([]);
     const [agentEmail, setAgentEmail] = useState('');
+    const [days, setDays] = useState<number | null>(null);
+    const [sortBy, setSortBy] = useState<'accounts' | 'registered' | 'completed' | 'live' | 'name'>('accounts');
+    const [openAgent, setOpenAgent] = useState<string | null>(null);
+    const [clients, setClients] = useState<Client[] | null>(null);
+    const sinceIso = days ? new Date(Date.now() - days * 86400000).toISOString() : null;
+    const totals = funnel.reduce((a, f) => ({ registered: a.registered + f.registered, accounts: a.accounts + f.accounts, recorded: a.recorded + f.recorded, completed: a.completed + f.completed }), { registered: 0, accounts: 0, recorded: 0, completed: 0 });
+    const sortedFunnel = [...funnel].sort((a, b) => sortBy === 'name' ? a.name.localeCompare(b.name) : (b[sortBy] as number) - (a[sortBy] as number));
+    const openClients = async (id: string) => {
+        if (openAgent === id) { setOpenAgent(null); return; }
+        setOpenAgent(id); setClients(null);
+        const { data } = await supabaseClient.rpc('admin_agent_clients', { p_staff: id, p_since: sinceIso });
+        setClients((data || []) as Client[]);
+    };
     const [q, setQ] = useState('');
-    const [hits, setHits] = useState<{ id: string; name: string; email: string; agent_slug: string | null }[]>([]);
+    const [hits, setHits] = useState<Hit[]>([]);
 
     const load = useCallback(async () => {
         setLoading(true);
@@ -40,12 +55,12 @@ const AdminStaff: React.FC = () => {
         else { setStaff((s.data || []) as Staff[]); setError(null); }
         const r = await supabaseClient.from('staff_registrations').select('*').order('created_at', { ascending: false }).limit(200);
         if (!r.error) setRegs((r.data || []) as Reg[]);
-        const f = await supabaseClient.rpc('admin_agent_funnel');
+        const f = await supabaseClient.rpc('admin_agent_funnel', { p_since: days ? new Date(Date.now() - days * 86400000).toISOString() : null });
         if (!f.error && f.data) setFunnel(f.data as Funnel[]);
         const g = await supabaseClient.rpc('admin_group_sizes', { p_course: 'ai-fundamentals' });
         if (!g.error && g.data) setGroups(g.data as GroupSize[]);
         setLoading(false);
-    }, []);
+    }, [days]);
     useEffect(() => { void load(); }, [load]);
 
     const origin = window.location.origin.replace('admin.', '');
@@ -150,11 +165,11 @@ const AdminStaff: React.FC = () => {
             <div className={`${card} p-5`}>
                 <h2 className="font-bold">Find students and give them a personal link</h2>
                 <p className="text-xs text-gray-500 mt-1">Search everyone who has an account. Press <b>Make agent</b> to give that person their own sign-up link and the agent portal.</p>
-                <input value={q} onChange={e => setQ(e.target.value)} placeholder="Search by name or email" className={`${input} max-w-sm mt-3`} />
+                <input value={q} onChange={e => setQ(e.target.value)} placeholder="Search by name, email, phone or location" className={`${input} max-w-sm mt-3`} />
                 <ul className="mt-2 divide-y divide-gray-100 dark:divide-slate-800">
                     {hits.map(h => (
                         <li key={h.id} className="py-2.5 flex flex-wrap items-center gap-2 justify-between">
-                            <div className="min-w-0"><p className="text-sm font-medium truncate">{h.name || '(no name)'}</p><p className="text-xs text-gray-500 truncate">{h.email}</p></div>
+                            <div className="min-w-0"><p className="text-sm font-medium truncate">{h.name || '(no name)'}</p><p className="text-xs text-gray-500 truncate">{[h.email, h.phone, h.location].filter(Boolean).join(' · ')}</p></div>
                             {h.agent_slug
                                 ? <div className="flex items-center gap-2"><span className="text-xs text-emerald-700">Agent</span><button onClick={async () => { await navigator.clipboard.writeText(`${origin}/join/${h.agent_slug}`); setCopied(h.id); setTimeout(() => setCopied(null), 1500); }} className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium border border-gray-200 dark:border-slate-700">{copied === h.id ? <><Check size={14} /> Copied</> : <><Copy size={14} /> Copy link</>}</button></div>
                                 : <button onClick={() => makeAgentFor(h.email)} disabled={busy} className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-violet-600 hover:bg-violet-700 text-white disabled:opacity-60">Make agent</button>}
@@ -165,23 +180,67 @@ const AdminStaff: React.FC = () => {
             </div>
 
             <div className={`${card} p-5`}>
-                <h2 className="font-bold">Agent performance</h2>
-                <p className="text-xs text-gray-500 mt-1">Registrations they entered, accounts opened, and where those learners are now.</p>
-                <div className="overflow-x-auto mt-3">
-                    <table className="w-full text-sm whitespace-nowrap">
-                        <thead><tr className="text-left text-xs uppercase text-gray-500"><th className="py-2 pr-3">Agent</th><th className="px-2">Link clicks</th><th className="px-2">Registered</th><th className="px-2">Accounts</th><th className="px-2">In free course</th><th className="px-2">Recorded</th><th className="px-2">Live</th><th className="px-2">Completed</th><th className="px-2">Active 7d</th></tr></thead>
-                        <tbody>
-                            {funnel.map(f => (
-                                <tr key={f.id} className={`border-t border-gray-100 dark:border-slate-800 ${f.active ? '' : 'opacity-50'}`}>
-                                    <td className="py-2 pr-3 font-medium">{f.name}<span className="block text-xs font-normal text-gray-500">/join/{f.slug}</span></td>
-                                    <td className="px-2">{f.clicks}</td><td className="px-2">{f.registered}</td><td className="px-2">{f.accounts}</td>
-                                    <td className="px-2">{f.enrolled}</td><td className="px-2">{f.recorded}</td><td className="px-2">{f.live}</td><td className="px-2">{f.completed}</td><td className="px-2">{f.active_7d}</td>
-                                </tr>
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                    <div>
+                        <h2 className="font-bold">Agent performance</h2>
+                        <p className="text-xs text-gray-500 mt-1">Clients each agent brought in during the period, and where they are now.</p>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                        <div className="inline-flex rounded-lg border border-gray-300 dark:border-slate-700 overflow-hidden text-xs font-semibold" role="group" aria-label="Period">
+                            {([[7, '7 days'], [30, '30 days'], [null, 'All time']] as [number | null, string][]).map(([d, l]) => (
+                                <button key={l} onClick={() => setDays(d)} aria-pressed={days === d} className={`px-3 py-2 ${days === d ? 'bg-violet-600 text-white' : 'bg-white dark:bg-slate-900'}`}>{l}</button>
                             ))}
-                            {funnel.length === 0 && <tr><td colSpan={9} className="py-3 text-gray-500">No agents yet.</td></tr>}
-                        </tbody>
-                    </table>
+                        </div>
+                        <select value={sortBy} onChange={e => setSortBy(e.target.value as any)} className="rounded-lg border border-gray-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-2 py-2 text-xs font-semibold" aria-label="Sort agents by">
+                            <option value="accounts">Most accounts</option><option value="registered">Most registered</option><option value="completed">Most completed</option><option value="live">Most live attendees</option><option value="name">Name</option>
+                        </select>
+                    </div>
                 </div>
+
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-4">
+                    {([['Registered', totals.registered], ['Accounts', totals.accounts], ['Studying', totals.recorded], ['Completed', totals.completed]] as [string, number][]).map(([l, n]) => (
+                        <div key={l} className="rounded-xl bg-violet-50 dark:bg-violet-950/30 p-3"><p className="text-xs text-gray-500">{l} (all agents)</p><p className="text-2xl font-extrabold">{n}</p></div>
+                    ))}
+                </div>
+
+                <ul className="mt-4 space-y-3">
+                    {sortedFunnel.map(f => {
+                        const max = Math.max(1, f.registered, f.accounts);
+                        const rows: [string, number][] = [['Link clicks', f.clicks], ['Registered', f.registered], ['Accounts', f.accounts], ['In free course', f.enrolled], ['Recorded lessons', f.recorded], ['Joined live', f.live], ['Active 7d', f.active_7d], ['Completed', f.completed]];
+                        return (
+                            <li key={f.id} className={`rounded-xl border border-gray-100 dark:border-slate-800 p-4 ${f.active ? '' : 'opacity-50'}`}>
+                                <div className="flex flex-wrap items-center justify-between gap-2">
+                                    <div className="min-w-0"><p className="font-semibold">{f.name} <span className="text-xs font-normal text-gray-500">{f.role}</span></p><p className="text-xs text-gray-500 break-all">{origin}/join/{f.slug}</p></div>
+                                    <button onClick={() => openClients(f.id)} className="px-3 py-1.5 rounded-lg text-xs font-semibold border border-gray-200 dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-800">{openAgent === f.id ? 'Hide clients' : 'View clients'}</button>
+                                </div>
+                                <div className="mt-3 grid sm:grid-cols-2 gap-x-6 gap-y-2">
+                                    {rows.map(([l, n]) => (
+                                        <div key={l}>
+                                            <div className="flex justify-between text-xs"><span className="text-gray-500">{l}</span><span className="font-semibold">{n}</span></div>
+                                            <div className="h-1.5 rounded-full bg-gray-100 dark:bg-slate-800 mt-1"><div className="h-1.5 rounded-full bg-violet-500" style={{ width: `${Math.min(100, (n / max) * 100)}%` }} /></div>
+                                        </div>
+                                    ))}
+                                </div>
+                                {f.by_location && Object.keys(f.by_location).length > 0 && <p className="mt-2 text-xs text-gray-500">Locations: {Object.entries(f.by_location).map(([c, n]) => `${c} ${n}`).join(' · ')}</p>}
+                                {openAgent === f.id && (
+                                    <div className="mt-3 border-t border-gray-100 dark:border-slate-800 pt-3">
+                                        {clients === null ? <p className="text-sm text-gray-500">Loading...</p> : clients.length === 0 ? <p className="text-sm text-gray-500">No clients in this period.</p> : (
+                                            <ul className="divide-y divide-gray-100 dark:divide-slate-800">
+                                                {clients.map((c, i) => (
+                                                    <li key={i} className="py-2 flex flex-wrap items-center justify-between gap-2 text-sm">
+                                                        <div className="min-w-0"><p className="font-medium truncate">{c.name || '(no name)'}</p><p className="text-xs text-gray-500 truncate">{[c.email, c.phone, c.location].filter(Boolean).join(' · ')}</p></div>
+                                                        <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-violet-100 text-violet-800">{c.stage}</span>
+                                                    </li>
+                                                ))}
+                                            </ul>
+                                        )}
+                                    </div>
+                                )}
+                            </li>
+                        );
+                    })}
+                    {funnel.length === 0 && <li className="text-sm text-gray-500">No agents yet.</li>}
+                </ul>
             </div>
 
             <div className={`${card} p-5`}>
