@@ -46,6 +46,12 @@ const JoinPage: React.FC = () => {
         setBusy(true);
         try {
             if (isFree) setFreeCourseIntent(FREE_SLUG);
+            // Count the registration straight away, even if they never confirm their email.
+            await supabase.rpc('register_lead', {
+                p_name: form.name.trim(), p_email: email, p_phone: form.phone.trim(), p_location: form.location.trim(),
+                p_course_slug: isFree ? FREE_SLUG : null, p_course_title: form.course, p_source: 'agent_link', p_ref: slug.toLowerCase(),
+                p_consent: true, p_email_opt_in: form.emailOptIn
+            }).then(() => undefined, () => undefined);
             const { data, error: err } = await supabase.auth.signUp({
                 email, password: form.password,
                 options: {

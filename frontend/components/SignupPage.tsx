@@ -58,6 +58,12 @@ const SignupPage: React.FC = () => {
         const cleanEmail = email.trim().toLowerCase();
 
         try {
+            const intent = getFreeCourseIntent();
+            await supabase.rpc('register_lead', {
+                p_name: fullName.trim(), p_email: cleanEmail, p_course_slug: intent || null,
+                p_course_title: intent ? 'AI Fundamentals (free)' : 'General sign-up', p_source: getFreeCourseIntent() ? 'free_course_page' : 'website',
+                p_ref: getReferral()?.code || null, p_consent: true, p_email_opt_in: emailOptIn
+            }).then(() => undefined, () => undefined);
             const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
                 email: cleanEmail,
                 password,

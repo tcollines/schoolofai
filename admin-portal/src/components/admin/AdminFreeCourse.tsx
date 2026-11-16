@@ -5,6 +5,7 @@ import { AlertTriangle, Award, Check, Copy, Download, Eye, Loader2, MousePointer
 import AdminAuthPrompt from './AdminAuthPrompt';
 import AdminLearnQA from './AdminLearnQA';
 import AdminLiveInstallStats from './AdminLiveInstallStats';
+import AdminRegistrationPipeline from './AdminRegistrationPipeline';
 import { Area, AreaChart, Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 
 interface Stats {
@@ -144,6 +145,8 @@ const AdminFreeCourse: React.FC = () => {
                     <button onClick={() => void load()} className="inline-flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium bg-violet-600 hover:bg-violet-700 text-white"><RefreshCw size={16} className={loading ? 'animate-spin' : ''} /> Refresh</button>
                 </div>
             </div>
+
+            <AdminRegistrationPipeline course={COURSE.slug} />
 
             {loading && !stats && <div className="flex items-center gap-2 text-gray-500"><Loader2 className="animate-spin" size={18} /> Loading statistics...</div>}
 
