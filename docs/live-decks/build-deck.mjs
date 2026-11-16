@@ -45,16 +45,25 @@ td,th{padding:20px 28px;text-align:left;border-bottom:1.5px solid #e7e2da;vertic
 th{background:#ede9fe;color:#4c1d95}
 .tag{display:inline-block;font-size:26px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;border-radius:12px;padding:6px 16px;margin-right:12px}
 .mark{background:#fde68a;color:#78350f;border-radius:10px;padding:2px 12px;font-weight:700}
+.slide.compact h2{font-size:62px;margin-bottom:26px}.slide.compact .item{font-size:36px;padding:18px 30px;gap:22px}.slide.compact .item .n{width:52px;height:52px;font-size:28px}.slide.compact .list{gap:16px}.slide.compact .note{font-size:30px;margin-top:20px}.slide.compact .prompt .q{font-size:38px}.slide.compact .lead{font-size:40px}.slide.compact .card{font-size:34px;padding:26px 32px}.slide.compact table{font-size:32px}.slide.compact td,.slide.compact th{padding:14px 24px}
 .ring{position:relative;width:820px;height:820px}
 .ring div{position:absolute;border-radius:50%;left:50%;transform:translateX(-50%);bottom:0;display:flex;justify-content:center;font-weight:700;text-align:center}
 `;
-const slidesHtml = deck.slides.map((s, i) => `<section class="slide"><div class="bar"><span><b>WELILE SCHOOL OF AI</b> &nbsp;·&nbsp; ${deck.short}</span><span>${deck.part}</span></div>${s}<div class="foot"><span>${deck.title}</span><span>${i + 1} / ${deck.slides.length}</span></div></section>`).join('\n');
+const slidesHtml = deck.slides.map((s, i) => `<section class="slide${s.includes('<!--compact-->') ? ' compact' : ''}"><div class="bar"><span><b>WELILE SCHOOL OF AI</b> &nbsp;·&nbsp; ${deck.short}</span><span>${deck.part}</span></div>${s}<div class="foot"><span>${deck.title}</span><span>${i + 1} / ${deck.slides.length}</span></div></section>`).join('\n');
 const html = `<html><head><meta charset="utf-8"><title>${deck.title}</title><style>${CSS}</style></head><body>${slidesHtml}</body></html>`;
 
+({ executablePath: process.env.CHROME });
 const b = await chromium.launch({ executablePath: process.env.CHROME });
 const p = await b.newPage({ viewport: { width: 1920, height: 1080 } });
 await p.setContent(html, { waitUntil: 'networkidle' });
 await p.evaluate(() => document.fonts.ready);
+// overflow check: warn when content runs into the footer area
+const over = await p.evaluate(() => [...document.querySelectorAll('.slide')].map((sl, i) => {
+    const top = sl.getBoundingClientRect().top; let bottom = 0;
+    sl.querySelectorAll(':scope > *:not(.bar):not(.foot)').forEach(el => { bottom = Math.max(bottom, el.getBoundingClientRect().bottom - top); el.querySelectorAll('*').forEach(c => { bottom = Math.max(bottom, c.getBoundingClientRect().bottom - top); }); });
+    return bottom > 985 ? `slide ${i + 1} bottom ${Math.round(bottom)}` : null;
+}).filter(Boolean));
+if (over.length) console.log('OVERFLOW:', over.join('; '));
 fs.mkdirSync(outDir, { recursive: true });
 const pdf = path.join(outDir, deck.file + '.pdf');
 await p.pdf({ path: pdf, width: '1920px', height: '1080px', printBackground: true, preferCSSPageSize: true });

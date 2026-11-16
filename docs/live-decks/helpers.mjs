@@ -1,0 +1,12 @@
+export const E = s => `<div class="eyebrow">${s}</div>`;
+export const list = (items, hlLast = false) => `<div class="list">${items.map((t, i) => `<div class="item${hlLast && i === items.length - 1 ? ' hl' : ''}"><span class="n">${i + 1}</span><span>${t}</span></div>`).join('')}</div>`;
+export const plain = items => `<div class="list">${items.map(t => `<div class="item"><span>${t}</span></div>`).join('')}</div>`;
+export const slide = (eyebrow, title, body, note = '') => `${E(eyebrow)}<h2>${title}</h2>${body}${note ? `<p class="note">${note}</p>` : ''}`;
+export const prompt = (label, text) => `<div class="prompt"><div class="t">${label}</div><div class="q">${text}</div></div>`;
+export const ask = t => `<p class="note"><span class="tag" style="background:#fde68a;color:#78350f">Ask the class</span>${t}</p>`;
+export const demo = t => `<p class="note"><span class="tag" style="background:#dbeafe;color:#1e40af">Live demo</span>${t}</p>`;
+export const act = t => `<p class="note"><span class="tag" style="background:#dcfce7;color:#166534">Activity</span>${t}</p>`;
+export const pills = (arr, cls = '', fs = 36) => arr.map(t => `<span class="pill ${cls}" style="font-size:${fs}px;padding:12px 30px">${t}</span>`).join('');
+export const center = (eyebrow, h1, lead = '', sub = '') => `<div class="center">${E(eyebrow)}<h1>${h1}</h1>${lead ? `<p class="lead" style="margin-top:40px">${lead}</p>` : ''}${sub ? `<p class="sub" style="margin-top:18px">${sub}</p>` : ''}</div>`;
+export const table = (head, rows) => `<table><tr>${head.map(h => `<th>${h}</th>`).join('')}</tr>${rows.map(r => `<tr>${r.map(c => `<td>${c}</td>`).join('')}</tr>`).join('')}</table>`;
+export const keywords = rows => table(['Word', 'Meaning', 'Example'], rows.map(r => [`<b>${r[0]}</b>`, r[1], r[2]]));
