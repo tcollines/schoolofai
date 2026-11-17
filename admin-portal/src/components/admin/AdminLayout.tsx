@@ -3,10 +3,11 @@ import { Routes, Route, useNavigate, useLocation, Navigate } from 'react-router-
 import { 
     LayoutDashboard, Users, BookOpen, UserCheck, 
     Settings, LogOut, FileQuestion, Calendar, Mail, CheckCircle, Shield,
-    Bell, Search, Handshake, Menu, X, Sun, Moon, MessageSquare, ClipboardList, Wallet, GraduationCap, Video, UserCog
+    Bell, Search, Handshake, Menu, X, Sun, Moon, MessageSquare, ClipboardList, Wallet, GraduationCap, Video, UserCog, Home
 } from 'lucide-react';
 import { getCurrencyPreference, setCurrencyPreference, CurrencyType } from '../../lib/currency';
 import AdminOverview from './AdminOverview';
+import AdminDashboard from './AdminDashboard';
 import AdminEnrollments from './AdminEnrollments';
 import AdminWallet from './AdminWallet';
 import AdminCourses from './AdminCourses';
@@ -39,7 +40,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ onExit, isInstructor, isAdmin
         ? (location.pathname.split('/')[2] || 'courses')
         : location.pathname.includes('/admin/')
         ? (location.pathname.split('/')[2] || 'enrollments')
-        : (location.pathname.split('/')[1] || (isInstructor ? 'courses' : 'enrollments'));
+        : (location.pathname.split('/')[1] || (isInstructor ? 'courses' : 'dashboard'));
 
     // Persist admin/instructor session across page refreshes
     const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(() => {
@@ -225,6 +226,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ onExit, isInstructor, isAdmin
             { id: 'events', label: 'Ongoing Events', icon: Calendar },
           ] as const)
         : ([
+            { id: 'dashboard', label: 'Dashboard', icon: Home },
             { id: 'enrollments', label: 'Enrollments', icon: Users },
             { id: 'registrations', label: 'Registrations', icon: ClipboardList },
             { id: 'free-course', label: 'Free Course', icon: GraduationCap },
@@ -243,7 +245,8 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ onExit, isInstructor, isAdmin
     const renderContent = () => {
         return (
             <Routes>
-                <Route path="/" element={<Navigate to={isInstructor ? "courses" : "enrollments"} replace />} />
+                <Route path="/" element={<Navigate to={isInstructor ? "courses" : "dashboard"} replace />} />
+                {!isInstructor && <Route path="dashboard" element={<AdminDashboard />} />}
                 {!isInstructor && <Route path="enrollments" element={<AdminEnrollments />} />}
                 {!isInstructor && <Route path="registrations" element={<AdminRegistrations />} />}
                 {!isInstructor && <Route path="free-course" element={<AdminFreeCourse />} />}

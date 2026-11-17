@@ -42,6 +42,7 @@ const AdminFreeCourse: React.FC = () => {
     const [copied, setCopied] = useState<string | null>(null);
     const [learners, setLearners] = useState<Learner[]>([]);
     const [search, setSearch] = useState('');
+    const [more, setMore] = useState(false);
 
     const load = useCallback(async () => {
         setLoading(true);
@@ -138,7 +139,7 @@ const AdminFreeCourse: React.FC = () => {
             <div className="flex flex-wrap items-start justify-between gap-3">
                 <div>
                     <h1 className="text-2xl font-bold">Free Course: AI Fundamentals</h1>
-                    <p className="text-sm text-gray-500 dark:text-slate-400">Registration, progress, completion and staff results. Updates every minute.</p>
+                    <p className="text-sm text-gray-500 dark:text-slate-400">Who registered, who has an account, who is studying, and who finished. Pick a tab, then follow up.</p>
                 </div>
                 <div className="flex gap-2">
                     <button onClick={exportCsv} disabled={!stats} className="inline-flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium border border-gray-200 dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-800 disabled:opacity-50"><Download size={16} /> Export funnel</button>
@@ -148,11 +149,11 @@ const AdminFreeCourse: React.FC = () => {
 
             <AdminRegistrationPipeline course={COURSE.slug} />
 
-            {loading && !stats && <div className="flex items-center gap-2 text-gray-500"><Loader2 className="animate-spin" size={18} /> Loading statistics...</div>}
+            {more && loading && !stats && <div className="flex items-center gap-2 text-gray-500"><Loader2 className="animate-spin" size={18} /> Loading statistics...</div>}
 
             {error?.kind === 'auth' && <AdminAuthPrompt onSignedIn={() => void load()} />}
 
-            {error && error.kind !== 'auth' && (
+            {more && error && error.kind !== 'auth' && (
                 <div className="rounded-2xl border border-amber-300 bg-amber-50 dark:bg-amber-950/30 dark:border-amber-900 p-5 flex gap-3">
                     <AlertTriangle className="text-amber-600 shrink-0" />
                     <div className="text-sm">
@@ -162,7 +163,11 @@ const AdminFreeCourse: React.FC = () => {
                 </div>
             )}
 
-            {stats && (
+            <button onClick={() => setMore(m => !m)} aria-expanded={more} className="w-full text-left px-4 py-3 rounded-2xl border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm font-semibold flex justify-between">
+                <span>More analytics: funnel, staff results, quizzes, lesson drop-off</span><span>{more ? 'Hide' : 'Show'}</span>
+            </button>
+
+            {more && stats && (
                 <>
                     {/* KPIs */}
                     <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
@@ -302,36 +307,6 @@ const AdminFreeCourse: React.FC = () => {
                                     </tbody>
                                 </table>
                             </div>
-                        </div>
-                    </div>
-
-                    {/* Learners */}
-                    <div className={`${card} p-5`}>
-                        <div className="flex flex-wrap items-center justify-between gap-3">
-                            <h2 className="font-bold">Learners ({learners.length})</h2>
-                            <div className="flex gap-2">
-                                <div className="relative"><Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" /><input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search name, email, staff" className="pl-8 pr-3 py-2 rounded-lg border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm" /></div>
-                                <button onClick={exportLearners} className="inline-flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium border border-gray-200 dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-800"><Download size={14} /> CSV</button>
-                            </div>
-                        </div>
-                        <div className="overflow-x-auto mt-3 max-h-96 overflow-y-auto">
-                            <table className="w-full text-sm">
-                                <thead className="sticky top-0 bg-white dark:bg-slate-900"><tr className="text-left text-xs uppercase text-gray-500"><th className="py-2">Learner</th><th>Joined</th><th>Source</th><th>Staff</th><th className="text-right">Progress</th><th>Last active</th><th>Status</th></tr></thead>
-                                <tbody>
-                                    {filteredLearners.map(l => (
-                                        <tr key={l.user_id} className="border-t border-gray-100 dark:border-slate-800">
-                                            <td className="py-2"><span className="font-medium">{l.name || 'Unnamed'}</span><span className="block text-xs text-gray-500">{l.email}</span></td>
-                                            <td className="whitespace-nowrap">{new Date(l.enrolled_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}</td>
-                                            <td className="capitalize">{l.source.replace('_', ' ')}</td>
-                                            <td>{l.staff || '-'}</td>
-                                            <td className="text-right">{Math.round((l.items_done / ALL_ITEMS.length) * 100)}%</td>
-                                            <td className="whitespace-nowrap">{l.last_active ? new Date(l.last_active).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) : '-'}</td>
-                                            <td>{l.certificate_id ? <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800">Certified</span> : l.final_passed ? <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-violet-100 text-violet-800">Passed final</span> : l.items_done > 0 ? <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-amber-100 text-amber-800">Learning</span> : <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-gray-200 text-gray-700">Not started</span>}</td>
-                                        </tr>
-                                    ))}
-                                    {filteredLearners.length === 0 && <tr><td colSpan={7} className="py-4 text-gray-500">No learners match.</td></tr>}
-                                </tbody>
-                            </table>
                         </div>
                     </div>
 
