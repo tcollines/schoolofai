@@ -36,10 +36,10 @@ const FreeCoursePage: React.FC = () => {
     };
 
     const facts = [
-        { icon: <Clock size={18} />, label: `About ${COURSE.hours}` },
+        { icon: <HeartHandshake size={18} />, label: '100% free, no payment ever' },
+        { icon: <Clock size={18} />, label: `About ${COURSE.hours}, at your pace` },
         { icon: <Layers size={18} />, label: `${MODULES.length - 1} modules, ${lessonCount} short videos` },
-        { icon: <Award size={18} />, label: 'Free certificate' },
-        { icon: <Smartphone size={18} />, label: 'Works on any phone' }
+        { icon: <Award size={18} />, label: 'Free certificate' }
     ];
 
     return (
@@ -71,10 +71,18 @@ const FreeCoursePage: React.FC = () => {
                     </h1>
                     <p className={`mt-5 text-lg leading-relaxed ${MUTED} max-w-xl`}>{COURSE.tagline}</p>
 
-                    <div className="mt-6 rounded-2xl border border-violet-200 dark:border-violet-900 bg-violet-50 dark:bg-violet-950/40 px-4 py-3 text-sm leading-snug max-w-xl">
-                        <p className="font-semibold text-violet-900 dark:text-violet-200">Two ways to learn, both free. Lessons start Monday 16th November.</p>
-                        <p className="mt-1 text-stone-700 dark:text-slate-300">Join our 3 live classes (Monday, Wednesday and Friday at 2:00 pm, East Africa Time), or study at your own pace once every lesson opens on Monday 16th. Register now to save your place and watch the welcome video straight away.</p>
-                    </div>
+                    <ol className="mt-6 grid gap-2.5 max-w-xl" aria-label="How it works">
+                        {[
+                            ['1', 'Register free', 'One minute, on any phone.'],
+                            ['2', 'Learn your way', 'Recorded lessons any time. Live classes Mon, Wed and Fri at 2:00 pm are optional.'],
+                            ['3', 'Get certified', 'Pass the final assessment and download your free certificate.']
+                        ].map(([n, t, d]) => (
+                            <li key={n} className="flex items-start gap-3">
+                                <span className="shrink-0 w-7 h-7 rounded-full bg-violet-700 text-white text-sm font-bold flex items-center justify-center mt-0.5">{n}</span>
+                                <span className="text-[15px] leading-snug"><span className="font-semibold">{t}.</span> <span className={MUTED}>{d}</span></span>
+                            </li>
+                        ))}
+                    </ol>
 
                     <div className="mt-6 flex flex-col sm:flex-row gap-3">
                         <button onClick={start} className={`${BTN_PRIMARY} text-base`}>
@@ -187,19 +195,19 @@ const FreeCoursePage: React.FC = () => {
                 <div className="max-w-4xl mx-auto px-4 sm:px-6 py-14">
                     <div className="flex items-center gap-3">
                         <CalendarClock className="text-violet-700 dark:text-violet-400" />
-                        <h2 className="font-serif text-3xl font-semibold">Two ways to learn</h2>
+                        <h2 className="font-serif text-3xl font-semibold">Learn your way</h2>
                     </div>
                     <p className={`mt-2 ${MUTED}`}>Both are free and lead to the same certificate. Choose what suits you, or do both.</p>
                     <div className="mt-6 grid sm:grid-cols-2 gap-4">
                         <div className={`${CARD} rounded-2xl p-6`}>
-                            <p className="text-xs font-semibold uppercase tracking-wide text-violet-800 dark:text-violet-300">Live with us</p>
-                            <p className="font-serif text-xl font-semibold mt-1">3 live classes a week</p>
-                            <p className={`mt-2 text-[15px] leading-snug ${MUTED}`}>Every Monday, Wednesday and Friday at 2:00 pm (East Africa Time). Learn with others, ask questions and practise together.</p>
+                            <p className="text-xs font-semibold uppercase tracking-wide text-violet-800 dark:text-violet-300">Recorded lessons</p>
+                            <p className="font-serif text-xl font-semibold mt-1">Study any time</p>
+                            <p className={`mt-2 text-[15px] leading-snug ${MUTED}`}>Every lesson is open now. Watch, try the tasks and take the quizzes whenever it suits you, on any phone. Your progress is saved.</p>
                         </div>
                         <div className={`${CARD} rounded-2xl p-6`}>
-                            <p className="text-xs font-semibold uppercase tracking-wide text-violet-800 dark:text-violet-300">At your own pace</p>
-                            <p className="font-serif text-xl font-semibold mt-1">Study any time</p>
-                            <p className={`mt-2 text-[15px] leading-snug ${MUTED}`}>Every lesson opens on Monday 16th November. Watch, try the tasks and take the quizzes whenever it suits you, on any phone.</p>
+                            <p className="text-xs font-semibold uppercase tracking-wide text-violet-800 dark:text-violet-300">Live classes, optional</p>
+                            <p className="font-serif text-xl font-semibold mt-1">Mon, Wed and Fri, 2:00 pm</p>
+                            <p className={`mt-2 text-[15px] leading-snug ${MUTED}`}>East Africa Time. Learn with others and ask questions. Attend a live class and that lecture's videos and readings count as done: you only take its quizzes.</p>
                         </div>
                     </div>
                     {sessions.length === 0 ? (

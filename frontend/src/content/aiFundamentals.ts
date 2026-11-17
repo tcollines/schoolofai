@@ -76,7 +76,8 @@ export const COURSE = {
         { q: 'Do I need to pay anything?', a: 'No. The course and the certificate are free, sponsored by Welile Technologies.' },
         { q: 'Do I need a computer?', a: 'A smartphone is enough. Videos adapt to slow connections, and every lesson has written notes too.' },
         { q: 'How long does it take?', a: 'About 6 hours in total. Most people finish in one to two weeks, studying a little each day.' },
-        { q: 'Do I have to attend the live classes?', a: 'No. There are two ways to learn. Join our 3 live classes (Monday, Wednesday and Friday at 2:00 pm, East Africa Time), or study at your own pace once every lesson opens on Monday 16th November. Both are free and lead to the same certificate.' },
+        { q: 'Do I have to attend the live classes?', a: 'No, they are optional. You can study the recorded lessons at your own pace, or join our live classes on Monday, Wednesday and Friday at 2:00 pm (East Africa Time), or do both. If you attend a live class, the videos and readings for that lecture count as done, and you only take its quizzes. Both ways lead to the same free certificate.' },
+        { q: 'When can I start?', a: 'Right now. Every lesson is open. Register for free and your progress is saved, so you can stop and carry on any time. Lessons open one at a time, in order.' },
         { q: 'How do I get the certificate?', a: 'Finish every lesson, pass each module quiz, and pass the final assessment. Your certificate is issued instantly and can be verified online.' },
         { q: 'Which AI tool do I need?', a: 'Any major chatbot works. The course is tool-neutral and shows you how to pick one.' }
     ],
