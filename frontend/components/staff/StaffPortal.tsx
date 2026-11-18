@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import QRCode from 'qrcode';
 import {
@@ -182,6 +182,7 @@ const emptyForm = { name: '', phone: '', email: '', location: '', course: FREE_C
 const Register: React.FC<{ profile: StaffProfile; onDone: () => void }> = ({ profile, onDone }) => {
     const [form, setForm] = useState(emptyForm);
     const [busy, setBusy] = useState(false);
+    const sending = useRef(false);
     const [error, setError] = useState<string | null>(null);
     const [done, setDone] = useState<{ name: string; phone: string; queued: boolean; email: string; tempPassword: string | null; accountMsg: string | null } | null>(null);
     const set = (k: keyof typeof emptyForm) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) =>
@@ -192,6 +193,7 @@ const Register: React.FC<{ profile: StaffProfile; onDone: () => void }> = ({ pro
 
     const submit = async (e: React.FormEvent) => {
         e.preventDefault();
+        if (sending.current) return;   // a double tap must not send the same student twice
         setError(null);
         if (form.name.trim().length < 2) return setError("Please enter the student's full name.");
         if (form.phone.replace(/\D/g, '').length < 9) return setError('Please enter a valid phone number.');
@@ -205,6 +207,7 @@ const Register: React.FC<{ profile: StaffProfile; onDone: () => void }> = ({ pro
             courseTitle: form.course, courseSlug: isFree ? 'ai-fundamentals' : null,
             campaign: form.campaign.trim(), notes: form.notes.trim(), location: form.location.trim(), consent: true
         };
+        sending.current = true;
         setBusy(true);
         try {
             const r = await registerStudent(input);
@@ -219,6 +222,7 @@ const Register: React.FC<{ profile: StaffProfile; onDone: () => void }> = ({ pro
         } catch (err: any) {
             setError(err?.message || 'Could not register this student.');
         } finally {
+            sending.current = false;
             setBusy(false);
         }
     };
@@ -250,7 +254,7 @@ const Register: React.FC<{ profile: StaffProfile; onDone: () => void }> = ({ pro
                         </a>
                     </>
                 )}
-                <div className="mt-3"><button onClick={() => { setDone(null); setForm(emptyForm); }} className={BTN_SECONDARY}><UserPlus size={18} /> Register another student</button></div>
+                <div className="mt-3"><button onClick={() => { setDone(null); setError(null); setForm(emptyForm); }} className={BTN_SECONDARY}><UserPlus size={18} /> Register another student</button></div>
             </div>
         );
     }
