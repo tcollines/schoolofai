@@ -1,0 +1,40 @@
+name: Send lesson notes
+
+on:
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Dry run (list recipients, send nothing)'
+        type: boolean
+        default: true
+
+concurrency:
+  group: send-lesson-notes
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  send:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+      - name: Install root dependencies (nodemailer)
+        run: npm ci --omit=dev --ignore-scripts --no-audit --no-fund
+      - name: Send lesson notes
+        env:
+          SMTP_HOST: ${{ secrets.SMTP_HOST }}
+          SMTP_PORT: ${{ secrets.SMTP_PORT }}
+          SMTP_USER: ${{ secrets.SMTP_USER }}
+          SMTP_PASS: ${{ secrets.SMTP_PASS }}
+          SMTP_FROM_NAME: ${{ secrets.SMTP_FROM_NAME }}
+          APP_URL: ${{ secrets.APP_URL }}
+          NOTES_RECIPIENTS: ${{ secrets.NOTES_RECIPIENTS }}
+          DRY: ${{ inputs.dry_run && '--dry' || '' }}
+        run: node scripts/send-lesson-notes.mjs $DRY
