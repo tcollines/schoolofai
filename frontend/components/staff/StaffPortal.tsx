@@ -196,7 +196,6 @@ const Register: React.FC<{ profile: StaffProfile; onDone: () => void }> = ({ pro
         if (form.name.trim().length < 2) return setError("Please enter the student's full name.");
         if (form.phone.replace(/\D/g, '').length < 9) return setError('Please enter a valid phone number.');
         if (form.location.trim().length < 2) return setError('Please enter where the student is based (town or district).');
-        if (isFree && !form.email.trim()) return setError('An email address is needed so the student can log in and get their certificate.');
         if (!form.consent) return setError('The student must agree to be contacted.');
         const wantAccount = form.createNow && !!form.email.trim();
         if (wantAccount && form.password.length < 8) return setError('Choose a temporary password of at least 8 characters, or tap Generate.');
@@ -273,8 +272,9 @@ const Register: React.FC<{ profile: StaffProfile; onDone: () => void }> = ({ pro
                     <input id="r-phone" type="tel" inputMode="tel" value={form.phone} onChange={set('phone')} placeholder="07XX XXX XXX" className={INPUT} />
                 </div>
                 <div>
-                    <label htmlFor="r-email" className="block text-sm font-semibold mb-1.5">Email {isFree ? '*' : '(optional)'}</label>
+                    <label htmlFor="r-email" className="block text-sm font-semibold mb-1.5">Email (optional)</label>
                     <input id="r-email" type="email" inputMode="email" value={form.email} onChange={set('email')} placeholder="name@example.com" className={INPUT} />
+                    {!form.email.trim() && <p className={`mt-1 text-xs ${MUTED}`}>No email? That is fine. We will follow up on the phone number, and they can open their account later with your link.</p>}
                 </div>
             </div>
             <div>
