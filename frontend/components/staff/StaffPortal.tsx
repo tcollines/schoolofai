@@ -475,8 +475,9 @@ const StaffPortal: React.FC<{ session: any }> = ({ session }) => {
         if (queuedCount() === 0) return;
         const r = await flushRegistrationQueue();
         setPending(r.remaining);
-        if (r.sent || r.rejected) {
-            setNotice(`${r.sent} saved registration${r.sent === 1 ? '' : 's'} sent${r.rejected ? `, ${r.rejected} could not be added (already registered)` : ''}.`);
+        if (r.sent || r.rejected.length) {
+            const bad = r.rejected.map(x => `${x.name}: ${x.reason}`).join(' ');
+            setNotice(`${r.sent} saved registration${r.sent === 1 ? '' : 's'} sent.${bad ? ` Not added: ${bad}` : ''}`);
             void loadAll();
         }
     }, [loadAll]);

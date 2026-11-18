@@ -109,16 +109,23 @@ export async function registerStudent(input: RegisterInput): Promise<RegisterRes
     }
 }
 
-/** Send queued registrations. Returns how many were sent and how many were rejected (duplicates etc). */
-export async function flushRegistrationQueue(): Promise<{ sent: number; rejected: number; remaining: number }> {
+/**
+ * Send queued registrations. A saved entry is only dropped when the server gives a clear answer about THAT student
+ * (registered, or a real duplicate / invalid detail). Anything else (signed out, server error, no signal) keeps the entry
+ * on the phone so it is retried, instead of being lost.
+ */
+export async function flushRegistrationQueue(): Promise<{ sent: number; rejected: { name: string; reason: string }[]; remaining: number }> {
     const q = readQueue();
-    if (q.length === 0) return { sent: 0, rejected: 0, remaining: 0 };
+    if (q.length === 0) return { sent: 0, rejected: [], remaining: 0 };
     const keep: RegisterInput[] = [];
-    let sent = 0, rejected = 0;
+    const rejected: { name: string; reason: string }[] = [];
+    let sent = 0;
     for (const item of q) {
         try {
             const r = await callRegister(item);
-            if (r.ok) sent++; else rejected++;
+            if (r.ok) sent++;
+            else if (r.code === 'duplicate' || r.code === 'invalid' || r.code === 'has_account') rejected.push({ name: item.name, reason: r.message || 'Could not be added.' });
+            else keep.push(item);
         } catch {
             keep.push(item);
         }
