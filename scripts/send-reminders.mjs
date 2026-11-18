@@ -120,8 +120,49 @@ function buildWelcomeEmail(r) {
     return { subject, text, html };
 }
 
+function buildReschedEmail(r) {
+    const name = firstName(r.name);
+    const was = whenEAT(r.rescheduled_from || r.starts_at);
+    const now = whenEAT(r.starts_at);
+    const unsub = unsubUrl(r);
+    const settings = unsub || 'the Live classes tab of your course';
+    const subject = `We are sorry: ${r.title} has moved to ${now}`;
+    const joinLine = r.join_link ? `Join here: ${r.join_link}` : 'The join link will appear in the Live classes tab of your course shortly before the class starts.';
+    const text = [
+        `Hello ${name},`, '',
+        `We are sorry. The live class you were reminded about will not go ahead as planned on ${was}.`, '',
+        `It has moved to ${now}, at the same time of day.`, '',
+        r.title, now, r.host_name ? `With ${r.host_name}` : '', '',
+        joinLine, '',
+        'The calendar invitation attached to this email replaces the old one, so your calendar will show the new time. You do not need to do anything else. Live classes are optional, and the recorded lessons stay open if you would like to keep studying in the meantime.', '',
+        'Thank you for your patience, and sorry for the inconvenience.', '',
+        'Warm regards,', `${BRAND}`, '',
+        `You are receiving this because you joined the free AI Fundamentals course. You can turn reminders off here: ${settings}`
+    ].filter(x => x !== null && x !== undefined).join('\n').replace(/\n{3,}/g, '\n\n');
+    const html = `<!doctype html><html><body style="margin:0;padding:0;background:${PAPER};">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:${PAPER};"><tr><td align="center" style="padding:24px 12px;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;background:#ffffff;border:1px solid #e7e2da;border-radius:14px;">
+<tr><td style="padding:28px 28px 8px 28px;font-family:Georgia,'Times New Roman',serif;color:${VIOLET};font-size:14px;letter-spacing:.04em;text-transform:uppercase;">${esc(BRAND)}</td></tr>
+<tr><td style="padding:4px 28px 0 28px;font-family:Georgia,'Times New Roman',serif;color:#1f1b2e;font-size:24px;line-height:1.3;">Our apologies: the class has moved</td></tr>
+<tr><td style="padding:12px 28px 0 28px;font-family:Arial,Helvetica,sans-serif;color:#3b3650;font-size:16px;line-height:1.6;">
+<p style="margin:0 0 12px 0;">Hello ${esc(name)},</p>
+<p style="margin:0 0 12px 0;">We are sorry. <strong>${esc(r.title)}</strong> will not go ahead as planned on ${esc(was)}.</p>
+<p style="margin:0 0 12px 0;">It has moved to the same time the next day:</p>
+<p style="margin:0 0 12px 0;padding:12px 14px;background:${PAPER};border-radius:10px;"><strong>${esc(now)}</strong>${r.host_name ? `<br>With ${esc(r.host_name)}` : ''}</p>
+</td></tr>
+<tr><td style="padding:8px 28px 4px 28px;">${r.join_link
+        ? `<a href="${esc(r.join_link)}" style="display:inline-block;background:${VIOLET};color:#ffffff;text-decoration:none;font-family:Arial,Helvetica,sans-serif;font-size:16px;font-weight:bold;padding:12px 22px;border-radius:10px;">Join the class</a>`
+        : `<p style="margin:0;font-family:Arial,Helvetica,sans-serif;color:#3b3650;font-size:15px;">The join link will appear in the Live classes tab of your course shortly before the class starts.</p>`}</td></tr>
+<tr><td style="padding:14px 28px 0 28px;font-family:Arial,Helvetica,sans-serif;color:#3b3650;font-size:14px;line-height:1.6;">The calendar invitation attached replaces the old one, so your calendar will show the new time. Nothing else is needed from you. Live classes are optional and the recorded lessons stay open if you want to keep studying.</td></tr>
+<tr><td style="padding:10px 28px 0 28px;font-family:Arial,Helvetica,sans-serif;color:#3b3650;font-size:14px;line-height:1.6;">Thank you for your patience, and sorry for the inconvenience.</td></tr>
+<tr><td style="padding:18px 28px 26px 28px;font-family:Arial,Helvetica,sans-serif;color:#6b6580;font-size:12px;line-height:1.6;">You are receiving this because you joined the free AI Fundamentals course. ${unsub ? `<a href="${esc(unsub)}" style="color:#6b6580;">Turn reminders off</a>` : ''}</td></tr>
+</table></td></tr></table></body></html>`;
+    return { subject, text, html };
+}
+
 function buildEmail(r) {
     if (r.kind === 'welcome') return buildWelcomeEmail(r);
+    if (r.kind === 'resched') return buildReschedEmail(r);
     const name = firstName(r.name);
     const when = whenEAT(r.starts_at);
     const subject = `Reminder: ${r.title} starts ${relative(r.starts_at)} (${eat(r.starts_at, { hour: '2-digit', minute: '2-digit' })} EAT)`;
