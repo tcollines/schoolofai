@@ -1,17 +1,21 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import {
-    ArrowUpRight, BarChart3, Clock, Download, ExternalLink, Globe,
-    Loader2, Monitor, MousePointerClick, RefreshCw, Smartphone, Tablet, Video
+    ArrowUpRight, BarChart3, Clock, Download, ExternalLink, Globe, Info,
+    Loader2, Monitor, MousePointerClick, RefreshCw, Smartphone, Tablet
 } from 'lucide-react';
 import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { supabaseClient } from '../../lib/supabaseClient';
 import AdminAuthPrompt, { MissingDbNotice } from './AdminAuthPrompt';
 
 interface SiteAnalytics {
+    tracking_since?: string;
+    history_since?: string;
     overview: {
         total_page_views: number;
+        live_page_views?: number;
         unique_visitors: number;
         signed_in_visitors: number;
+        guest_visitors?: number;
         website_visitors: number;
         app_visitors: number;
         app_launches: number;
@@ -25,6 +29,7 @@ interface SiteAnalytics {
         hist_app_installed: number;
         hist_app_opened: number;
         hist_referral_clicks: number;
+        total_sessions?: number;
     };
     devices: Record<string, number>;
     daily: { day: string; iso: string; views: number; visitors: number; app_views: number; clicks: number; welile_clicks: number }[];
@@ -33,7 +38,7 @@ interface SiteAnalytics {
     top_ctas: { label: string; category: string; path: string; clicks: number; unique_visitors: number }[];
     referrers: { referrer: string; visits: number; unique_visitors: number }[];
     recent_clicks: {
-        id: number;
+        id: string | number;
         created_at: string;
         event_type: string;
         label: string | null;
@@ -171,18 +176,26 @@ const AdminAnalytics: React.FC = () => {
 
             {data && ov && (
                 <>
+                    {/* Transparent History vs Live-Click Tracking Banner */}
+                    <div className="rounded-xl bg-violet-50/70 dark:bg-violet-950/30 border border-violet-200/80 dark:border-violet-900/60 px-4 py-3 text-xs text-violet-900 dark:text-violet-200 flex items-start gap-2.5">
+                        <Info size={16} className="text-violet-600 dark:text-violet-400 shrink-0 mt-0.5" />
+                        <p className="leading-relaxed">
+                            <strong>Historical + Live Data:</strong> Visitor totals, daily trends, mobile/desktop devices, app installs, and top pages combine all recorded platform activity since <strong>{data.history_since || '27 Oct 2026'}</strong>. Anonymous visitor page views and outbound link clicks (such as <strong>Welile Technologies / welile.com</strong>) began live capture on <strong>19 Nov 2026</strong> — past external clicks were never stored before then.
+                        </p>
+                    </div>
+
                     {/* Top KPI Cards */}
                     <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
                         <div className={`${card} p-4`}>
                             <div className="flex items-center justify-between">
-                                <span className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-slate-400">Website &amp; App Visits</span>
+                                <span className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-slate-400">Unique Visitors &amp; Users</span>
                                 <span className="w-8 h-8 rounded-lg flex items-center justify-center text-violet-600 bg-violet-50 dark:bg-violet-950/40">
                                     <Globe size={16} />
                                 </span>
                             </div>
-                            <p className="text-3xl font-extrabold mt-2">{ov.total_page_views}</p>
+                            <p className="text-3xl font-extrabold mt-2">{ov.unique_visitors}</p>
                             <p className="text-xs text-gray-500 dark:text-slate-400 mt-1">
-                                <b>{ov.unique_visitors}</b> unique visitors · {ov.signed_in_visitors} signed in
+                                <b>{ov.total_page_views}</b> visits/views · {ov.signed_in_visitors} signed in{ov.guest_visitors ? ` · ${ov.guest_visitors} guests` : ''}
                             </p>
                         </div>
 
