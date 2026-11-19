@@ -10,7 +10,7 @@ interface Summary {
 }
 interface PRow { stage: string; followup: string; live_count?: number; certificate_id?: string | null; }
 interface Agent { name: string; registered: number; accounts: number; completed: number; active: boolean; }
-interface TrafficMini { total_page_views: number; unique_visitors: number; welile_tech_clicks: number; welile_tech_unique: number; live_link_clicks: number; app_launches: number; }
+interface TrafficMini { total_visits?: number; total_page_views: number; unique_visitors: number; welile_tech_clicks: number; welile_tech_unique: number; live_link_clicks: number; app_launches: number; }
 
 const card = 'bg-white dark:bg-slate-900 rounded-2xl border border-gray-100 dark:border-slate-800 shadow-sm';
 const when = (iso: string) => new Date(iso).toLocaleString('en-GB', { weekday: 'long', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit', timeZone: 'Africa/Kampala' }) + ' EAT';
@@ -129,9 +129,9 @@ const AdminDashboard: React.FC = () => {
                                         <ArrowUpRight size={14} />
                                     </div>
                                     <div className="grid grid-cols-3 gap-2 mt-2 text-center">
-                                        <div><p className="text-lg font-extrabold">{traffic.unique_visitors}</p><p className="text-[10px] text-gray-500">visitors</p></div>
+                                        <div><p className="text-lg font-extrabold">{traffic.total_visits ?? traffic.total_page_views}</p><p className="text-[10px] text-gray-500">total visits</p></div>
+                                        <div><p className="text-lg font-extrabold">{traffic.unique_visitors}</p><p className="text-[10px] text-gray-500">unique</p></div>
                                         <div><p className="text-lg font-extrabold text-violet-700 dark:text-violet-300">{traffic.welile_tech_clicks}</p><p className="text-[10px] text-gray-500">welile.com</p></div>
-                                        <div><p className="text-lg font-extrabold">{traffic.live_link_clicks}</p><p className="text-[10px] text-gray-500">live clicks</p></div>
                                     </div>
                                 </Link>
                             )}

@@ -1,9 +1,10 @@
-import { supabase, isSupabaseConfigured } from './supabaseClient';
+import { SUPABASE_ANON_KEY, SUPABASE_URL, isSupabaseConfigured, supabase } from './supabaseClient';
 import { isStandalone } from './pwa';
 
 const VISITOR_KEY = 'welile_visitor_id_v1';
 const SESSION_KEY = 'welile_session_id_v1';
-const APP_LAUNCH_KEY = 'welile_app_launch_tracked_v1';
+const SESSION_TS_KEY = 'welile_session_ts_v1';
+const SESSION_IDLE_MS = 30 * 60 * 1000; // 30 minutes idle starts a new visit session
 
 const randomId = (prefix: string) => {
     try {
@@ -27,13 +28,23 @@ export function getVisitorId(): string {
     }
 }
 
-export function getSessionId(): string {
+/**
+ * Returns the active visit session ID. Creates a new visit ID whenever:
+ * - A fresh tab/window opens, OR
+ * - More than 30 minutes elapsed since last activity, OR
+ * - forceNew is true (e.g. returning to the tab/app after being away).
+ * This ensures repeat visits by the same person (even 100x/day) are all counted!
+ */
+export function getSessionId(forceNew = false): string {
     try {
+        const now = Date.now();
+        const prevTs = Number(sessionStorage.getItem(SESSION_TS_KEY) || '0');
         let id = sessionStorage.getItem(SESSION_KEY);
-        if (!id) {
+        if (forceNew || !id || (prevTs > 0 && now - prevTs > SESSION_IDLE_MS)) {
             id = randomId('s');
             sessionStorage.setItem(SESSION_KEY, id);
         }
+        sessionStorage.setItem(SESSION_TS_KEY, String(now));
         return id;
     } catch {
         return randomId('s');
@@ -113,9 +124,11 @@ export interface SiteEventPayload {
     category?: string;
     source?: string;
     meta?: Record<string, unknown>;
+    forceNewSession?: boolean;
+    keepalive?: boolean;
 }
 
-// Short dedupe window to prevent double-firing on overlapping click handlers
+// Short dedupe window to prevent double-firing when overlapping click handlers fire on the same click
 let lastEventSig = '';
 let lastEventAt = 0;
 
@@ -124,15 +137,15 @@ export function trackSiteEvent(payload: SiteEventPayload): void {
     try {
         const now = Date.now();
         const sig = `${payload.eventType}|${payload.path || ''}|${payload.targetUrl || ''}|${payload.label || ''}`;
-        if (sig === lastEventSig && now - lastEventAt < 600) return;
+        if (!payload.forceNewSession && sig === lastEventSig && now - lastEventAt < 500) return;
         lastEventSig = sig;
         lastEventAt = now;
 
         const isApp = isStandalone();
         const path = payload.path ?? (window.location.pathname || '/');
-        void supabase.rpc('track_site_event', {
+        const body = {
             p_visitor_id: getVisitorId(),
-            p_session_id: getSessionId(),
+            p_session_id: getSessionId(!!payload.forceNewSession),
             p_event_type: payload.eventType,
             p_path: path,
             p_target_url: payload.targetUrl || null,
@@ -143,32 +156,55 @@ export function trackSiteEvent(payload: SiteEventPayload): void {
             p_is_app: isApp,
             p_device_type: getDeviceType(),
             p_meta: payload.meta || {},
-        });
+        };
+
+        // For outbound/navigation clicks, use fetch with keepalive so the request survives immediate tab navigation
+        if (payload.keepalive) {
+            supabase.auth.getSession().then(({ data }) => {
+                const token = data?.session?.access_token || SUPABASE_ANON_KEY;
+                void fetch(`${SUPABASE_URL}/rest/v1/rpc/track_site_event`, {
+                    method: 'POST',
+                    keepalive: true,
+                    headers: {
+                        apikey: SUPABASE_ANON_KEY,
+                        Authorization: `Bearer ${token}`,
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(body),
+                }).catch(() => {});
+            }).catch(() => {});
+            return;
+        }
+
+        // IMPORTANT: In @supabase/supabase-js v2, supabase.rpc() is a lazy thenable and
+        // ONLY sends the HTTP request when .then() / await is invoked!
+        supabase.rpc('track_site_event', body).then(() => {}, () => {});
     } catch {
         // Never disrupt UX for analytics
     }
 }
 
-export function trackPageView(pathname: string): void {
+export function trackPageView(pathname: string, opts?: { returnVisit?: boolean; forceNewSession?: boolean }): void {
     trackSiteEvent({
         eventType: 'page_view',
         path: pathname || '/',
         category: 'navigation',
         source: isStandalone() ? 'app' : getInitialSource(),
+        forceNewSession: opts?.forceNewSession,
+        meta: opts?.returnVisit ? { return_visit: true } : {},
     });
 }
 
-export function trackAppLaunchOnce(): void {
+export function trackAppLaunch(forceNewSession = false): void {
     try {
         if (!isStandalone()) return;
-        if (sessionStorage.getItem(APP_LAUNCH_KEY)) return;
-        sessionStorage.setItem(APP_LAUNCH_KEY, '1');
         trackSiteEvent({
             eventType: 'app_launch',
             path: window.location.pathname || '/',
             label: 'Opened Installed App',
             category: 'install',
             source: 'app',
+            forceNewSession,
         });
     } catch { /* ignore */ }
 }
@@ -181,6 +217,7 @@ export function trackOutboundClick(url: string, label?: string, category?: strin
         targetUrl: url,
         label: label || classified.label,
         category: category || classified.category,
+        keepalive: true,
     });
 }
 
@@ -192,6 +229,7 @@ export function trackCtaClick(label: string, category = 'cta', targetUrl?: strin
         label,
         category,
         meta,
+        keepalive: true,
     });
 }
 

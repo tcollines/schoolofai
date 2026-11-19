@@ -2,43 +2,68 @@ import React, { useEffect, useRef } from 'react';
 import { useLocation } from 'react-router-dom';
 import {
     classifyExternalUrl,
-    trackAppLaunchOnce,
+    trackAppLaunch,
     trackCtaClick,
     trackOutboundClick,
     trackPageView,
 } from '../src/lib/analytics';
 
 /**
- * Invisible global analytics tracker mounted inside BrowserRouter:
- * - Tracks every SPA page view (website & installed PWA app)
- * - Tracks installed PWA app launches (even before login)
+ * Global analytics tracker mounted inside BrowserRouter:
+ * - Counts EVERY page load & SPA route visit (including repeat visits by the same person!)
+ * - Counts return visits whenever a user returns to the tab or reopens the installed PWA app after >= 60s away
  * - Automatically captures EVERY outbound link click (including Welile Technologies / welile.com,
- *   WhatsApp, Google Calendar, Google Meet, and partner links)
- * - Captures high-signal internal CTAs (Free Course, Sign Up, Register, Plans, Staff/Agent links)
+ *   WhatsApp, Google Calendar, Google Meet, and partner links) with fetch keepalive
+ * - Captures high-signal internal CTAs (Free Course, Sign Up, Register, Plans, etc.)
  */
 const AnalyticsTracker: React.FC = () => {
     const location = useLocation();
     const lastPathRef = useRef<string>('');
+    const hiddenAtRef = useRef<number | null>(null);
 
+    // Count initial launch of installed PWA app (every time the app is opened freshly)
     useEffect(() => {
-        trackAppLaunchOnce();
+        trackAppLaunch(true);
     }, []);
 
+    // Track every route navigation and initial page load
     useEffect(() => {
         const path = location.pathname || '/';
         if (lastPathRef.current === path) return;
+        const isFirstLoad = lastPathRef.current === '';
         lastPathRef.current = path;
-        // Skip /live/join/:id since LiveJoinRedirect records its own live_join_click event
         if (path.startsWith('/live/join/')) return;
-        trackPageView(path);
+        trackPageView(path, { forceNewSession: isFirstLoad });
     }, [location.pathname]);
 
+    // Track return visits when user comes back to the tab or installed app after being away (>= 60s)
+    useEffect(() => {
+        const onVisibility = () => {
+            if (document.visibilityState === 'hidden') {
+                hiddenAtRef.current = Date.now();
+            } else if (document.visibilityState === 'visible' && hiddenAtRef.current) {
+                const awayMs = Date.now() - hiddenAtRef.current;
+                hiddenAtRef.current = null;
+                if (awayMs >= 60 * 1000) {
+                    const path = window.location.pathname || '/';
+                    if (!path.startsWith('/live/join/')) {
+                        trackPageView(path, { returnVisit: true, forceNewSession: true });
+                        trackAppLaunch(false);
+                    }
+                }
+            }
+        };
+        document.addEventListener('visibilitychange', onVisibility);
+        return () => document.removeEventListener('visibilitychange', onVisibility);
+    }, []);
+
+    // Global capture listener for outbound links & key CTAs
     useEffect(() => {
         const handleClick = (e: MouseEvent) => {
             const target = e.target as HTMLElement | null;
             if (!target) return;
 
-            // 1. Explicit data-track attribute on any clickable element
+            // 1. Explicit data-track attribute
             const trackedEl = target.closest<HTMLElement>('[data-track]');
             if (trackedEl) {
                 const label = trackedEl.getAttribute('data-track') || 'Action';
