@@ -51,7 +51,7 @@ const AdminDashboard: React.FC = () => {
         const n = (st: string) => rows.filter(r => r.stage === st).length;
         return { all: rows.length, noAccount: n('Registered'), account: n('Account opened'), inCourse: n('In course'), studying: n('Studying'), live: n('Joined live'), completed: n('Completed'), toContact: rows.filter(r => r.followup === 'new' && r.stage !== 'Completed').length };
     }, [rows]);
-    const topAgents = useMemo(() => [...agents].filter(a => a.active).sort((x, y) => y.accounts - x.accounts || y.registered - x.registered).slice(0, 3), [agents]);
+    const topAgents = useMemo(() => [...agents].filter(a => a.active).sort((x, y) => y.registered - x.registered || y.accounts - x.accounts).slice(0, 5), [agents]);
     const max = Math.max(1, ...(s?.signups_daily || [1]));
     const funnel: [string, number][] = [['Registered', by.all], ['Have an account', by.all - by.noAccount], ['In the course', by.inCourse + by.studying + by.live + by.completed], ['Studying', by.studying + by.live + by.completed], ['Joined a live class', by.live + by.completed], ['Completed', by.completed]];
 
@@ -106,12 +106,18 @@ const AdminDashboard: React.FC = () => {
 
                     <div className="grid lg:grid-cols-2 gap-4">
                         <div className={`${card} p-5`}>
-                            <div className="flex items-center justify-between"><h2 className="font-bold flex items-center gap-2"><Handshake size={18} className="text-violet-600" /> Agents</h2><Link to="/staff" className="text-sm font-semibold text-violet-700">Manage agents</Link></div>
+                            <div className="flex items-center justify-between gap-2">
+                                <h2 className="font-bold flex items-center gap-2"><Handshake size={18} className="text-violet-600" /> Agents</h2>
+                                <div className="flex items-center gap-3 text-sm font-semibold">
+                                    <Link to="/agents" className="text-violet-700 hover:underline">Monitor agents</Link>
+                                    <Link to="/staff" className="text-gray-500 hover:text-gray-800 dark:text-slate-400">Manage</Link>
+                                </div>
+                            </div>
                             <p className="text-sm text-gray-500 mt-1">{s.agents} active agents · {s.agent_regs_7d} registrations this week · {s.leads_7d} sign-ups through links</p>
                             <table className="w-full text-sm mt-3">
                                 <thead><tr className="text-left text-xs uppercase text-gray-500"><th className="py-1">Top agents</th><th>Registered</th><th>Accounts</th><th>Completed</th></tr></thead>
                                 <tbody>
-                                    {topAgents.map(a => <tr key={a.name} className="border-t border-gray-100 dark:border-slate-800"><td className="py-2 font-medium">{a.name}</td><td>{a.registered}</td><td>{a.accounts}</td><td>{a.completed}</td></tr>)}
+                                    {topAgents.map(a => <tr key={a.name} className="border-t border-gray-100 dark:border-slate-800"><td className="py-2 font-medium">{a.name}</td><td className="font-semibold">{a.registered}</td><td>{a.accounts}</td><td>{a.completed}</td></tr>)}
                                     {topAgents.length === 0 && <tr><td colSpan={4} className="py-3 text-gray-500">No agents yet. Make a student an agent in Staff & Links.</td></tr>}
                                 </tbody>
                             </table>
