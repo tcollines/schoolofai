@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
-    Activity, Award, BookOpen, Check, ChevronDown, ChevronUp, Clock, Copy,
+    Activity, Award, BookOpen, CalendarDays, Check, ChevronDown, ChevronUp, Clock, Copy,
     Download, GraduationCap, Handshake, Loader2, MapPin, RefreshCw, Search,
     TrendingUp, UserCheck, UserPlus, Users, Video, X
 } from 'lucide-react';
@@ -51,6 +51,26 @@ interface AgentClient {
     registered_by?: string | null;
 }
 
+interface DailyRegSummary {
+    reg_date: string;
+    staff_id: string;
+    field_officer: string;
+    staff_code?: string | null;
+    role?: string | null;
+    email?: string | null;
+    active: boolean;
+    total_registered: number;
+    field_registered: number;
+    link_signups: number;
+    accounts_opened: number;
+    waiting_signup: number;
+    conversion_pct: number;
+    first_reg_at: string;
+    last_reg_at: string;
+    programmes: string[];
+    top_locations: { location: string; count: number }[];
+}
+
 const card = 'bg-white dark:bg-slate-900 rounded-2xl border border-gray-100 dark:border-slate-800 shadow-sm';
 const input = 'w-full rounded-lg border border-gray-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500';
 const isMissingFn = (m: string) => /schema cache|does not exist|could not find the function/i.test(m);
@@ -85,6 +105,28 @@ const formatEatDate = (iso: string) =>
         year: 'numeric',
         timeZone: 'Africa/Kampala',
     });
+
+const formatSummaryDate = (ymd: string) =>
+    new Date(`${ymd}T12:00:00Z`).toLocaleDateString('en-GB', {
+        weekday: 'short',
+        day: 'numeric',
+        month: 'short',
+        year: 'numeric',
+        timeZone: 'UTC',
+    });
+
+const formatEatTime = (iso: string) =>
+    new Date(iso).toLocaleTimeString('en-GB', {
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: false,
+        timeZone: 'Africa/Kampala',
+    });
+
+const getTodayEatYmd = () => {
+    const d = new Date(Date.now() + 3 * 3600 * 1000);
+    return d.toISOString().slice(0, 10);
+};
 
 const csvEscape = (v: unknown) => {
     const s = String(v ?? '');
@@ -123,10 +165,17 @@ const MiniSparkline: React.FC<{ data: number[] }> = ({ data }) => {
 
 const AdminAgents: React.FC = () => {
     const [agents, setAgents] = useState<AgentSummary[]>([]);
+    const [regSummary, setRegSummary] = useState<DailyRegSummary[]>([]);
     const [loading, setLoading] = useState(true);
     const [needsAuth, setNeedsAuth] = useState(false);
     const [missingDb, setMissingDb] = useState(false);
     const [error, setError] = useState<string | null>(null);
+
+    // Registration summary table filters
+    const [summaryOfficer, setSummaryOfficer] = useState<string>('all');
+    const [summaryDate, setSummaryDate] = useState<string>('');
+    const [summaryQuickRange, setSummaryQuickRange] = useState<'all' | 'today' | '7d'>('all');
+    const [showAllSummary, setShowAllSummary] = useState(false);
 
     // Filters & sorting
     const [days, setDays] = useState<number | null>(null);
@@ -151,16 +200,22 @@ const AdminAgents: React.FC = () => {
 
     const load = useCallback(async () => {
         setLoading(true);
-        const { data, error: err } = await supabaseClient.rpc('admin_agent_funnel', { p_since: sinceIso });
-        if (err) {
-            if (isMissingFn(err.message)) setMissingDb(true);
+        const [funnelRes, summaryRes] = await Promise.all([
+            supabaseClient.rpc('admin_agent_funnel', { p_since: sinceIso }),
+            supabaseClient.rpc('admin_agent_registration_summary', { p_since: sinceIso }),
+        ]);
+        if (funnelRes.error) {
+            if (isMissingFn(funnelRes.error.message)) setMissingDb(true);
             else {
-                setError(err.message);
-                if (isAuthError(err.message)) setNeedsAuth(true);
+                setError(funnelRes.error.message);
+                if (isAuthError(funnelRes.error.message)) setNeedsAuth(true);
             }
         } else {
             setError(null);
-            setAgents((data || []) as AgentSummary[]);
+            setAgents((funnelRes.data || []) as AgentSummary[]);
+        }
+        if (!summaryRes.error && summaryRes.data) {
+            setRegSummary(summaryRes.data as DailyRegSummary[]);
         }
         setLoading(false);
     }, [sinceIso]);
@@ -342,6 +397,66 @@ const AdminAgents: React.FC = () => {
         );
     };
 
+    const todayYmd = useMemo(() => getTodayEatYmd(), []);
+
+    const summaryOfficers = useMemo(() => {
+        const map = new Map<string, string>();
+        regSummary.forEach(r => { if (!map.has(r.staff_id)) map.set(r.staff_id, r.field_officer); });
+        return Array.from(map.entries()).sort((a, b) => a[1].localeCompare(b[1]));
+    }, [regSummary]);
+
+    const filteredRegSummary = useMemo(() => {
+        const sevenDaysAgoYmd = new Date(Date.now() + 3 * 3600 * 1000 - 6 * 86400000).toISOString().slice(0, 10);
+        return regSummary.filter(r => {
+            if (summaryOfficer !== 'all' && r.staff_id !== summaryOfficer) return false;
+            if (summaryDate && r.reg_date !== summaryDate) return false;
+            if (!summaryDate && summaryQuickRange === 'today' && r.reg_date !== todayYmd) return false;
+            if (!summaryDate && summaryQuickRange === '7d' && r.reg_date < sevenDaysAgoYmd) return false;
+            return true;
+        });
+    }, [regSummary, summaryOfficer, summaryDate, summaryQuickRange, todayYmd]);
+
+    const summaryTotals = useMemo(() => {
+        return filteredRegSummary.reduce(
+            (acc, r) => ({
+                total: acc.total + r.total_registered,
+                field: acc.field + r.field_registered,
+                link: acc.link + r.link_signups,
+                opened: acc.opened + r.accounts_opened,
+                waiting: acc.waiting + r.waiting_signup,
+            }),
+            { total: 0, field: 0, link: 0, opened: 0, waiting: 0 }
+        );
+    }, [filteredRegSummary]);
+
+    const maxSummaryCount = useMemo(
+        () => Math.max(1, ...filteredRegSummary.map(r => r.total_registered)),
+        [filteredRegSummary]
+    );
+
+    const exportRegSummaryCsv = () => {
+        downloadCsv(
+            `welile-registration-summary-${new Date().toISOString().slice(0, 10)}.csv`,
+            ['Date', 'Field Officer', 'Staff Code', 'Role', 'People Registered', 'Field Booth', 'Link Signups', 'Accounts Opened', 'Waiting Signup', 'Conversion %', 'Locations Covered', 'First Entry (EAT)', 'Last Entry (EAT)', 'Programmes'],
+            filteredRegSummary.map(r => [
+                r.reg_date,
+                r.field_officer,
+                r.staff_code || '',
+                r.role || '',
+                r.total_registered,
+                r.field_registered,
+                r.link_signups,
+                r.accounts_opened,
+                r.waiting_signup,
+                `${r.conversion_pct}%`,
+                (r.top_locations || []).map(l => `${l.location} (${l.count})`).join('; '),
+                formatEatTime(r.first_reg_at),
+                formatEatTime(r.last_reg_at),
+                (r.programmes || []).join('; '),
+            ])
+        );
+    };
+
     const overallConversion = totals.totalStudents > 0
         ? Math.round((totals.accounts / totals.totalStudents) * 100)
         : 0;
@@ -442,6 +557,237 @@ const AdminAgents: React.FC = () => {
                         {totals.live} joined live · {totals.completed} completed
                     </p>
                 </div>
+            </div>
+
+            {/* Registration Summary Table (Date × Field Officer Daily Breakdown) */}
+            <div className={`${card} overflow-hidden`}>
+                <div className="px-5 py-4 border-b border-gray-100 dark:border-slate-800 flex flex-wrap items-start justify-between gap-3">
+                    <div>
+                        <div className="flex flex-wrap items-center gap-2">
+                            <h2 className="font-bold text-base flex items-center gap-2">
+                                <CalendarDays size={18} className="text-violet-600" />
+                                Registration Summary
+                            </h2>
+                            <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-violet-100 text-violet-800 dark:bg-violet-950/60 dark:text-violet-300">
+                                {summaryTotals.total.toLocaleString()} {summaryTotals.total === 1 ? 'person' : 'people'} across {filteredRegSummary.length} {filteredRegSummary.length === 1 ? 'entry' : 'entries'}
+                            </span>
+                        </div>
+                        <p className="text-xs text-gray-500 dark:text-slate-400 mt-0.5">
+                            Daily field registration report by date and field officer — total people registered, account conversions, locations covered, and field activity hours (EAT).
+                        </p>
+                    </div>
+
+                    <div className="flex flex-wrap items-center gap-2">
+                        <div className="inline-flex rounded-lg border border-gray-300 dark:border-slate-700 overflow-hidden text-xs font-semibold" role="group" aria-label="Registration summary range">
+                            {([['all', 'All'], ['today', 'Today'], ['7d', '7 days']] as const).map(([val, label]) => (
+                                <button
+                                    key={val}
+                                    type="button"
+                                    onClick={() => { setSummaryDate(''); setSummaryQuickRange(val); }}
+                                    className={`px-2.5 py-1.5 ${!summaryDate && summaryQuickRange === val ? 'bg-violet-600 text-white' : 'bg-white dark:bg-slate-900 text-gray-700 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-slate-800'}`}
+                                >
+                                    {label}
+                                </button>
+                            ))}
+                        </div>
+
+                        <div className="flex items-center gap-1">
+                            <input
+                                type="date"
+                                value={summaryDate}
+                                onChange={e => setSummaryDate(e.target.value)}
+                                aria-label="Filter by exact date"
+                                className="rounded-lg border border-gray-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-2.5 py-1.5 text-xs font-medium"
+                            />
+                            {summaryDate && (
+                                <button
+                                    type="button"
+                                    onClick={() => setSummaryDate('')}
+                                    aria-label="Clear date filter"
+                                    className="p-1.5 rounded-lg border border-gray-200 dark:border-slate-700 hover:bg-gray-100 dark:hover:bg-slate-800"
+                                >
+                                    <X size={13} />
+                                </button>
+                            )}
+                        </div>
+
+                        <select
+                            value={summaryOfficer}
+                            onChange={e => setSummaryOfficer(e.target.value)}
+                            aria-label="Filter by field officer"
+                            className="rounded-lg border border-gray-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-2.5 py-1.5 text-xs font-semibold"
+                        >
+                            <option value="all">All Field Officers</option>
+                            {summaryOfficers.map(([id, name]) => (
+                                <option key={id} value={id}>{name}</option>
+                            ))}
+                        </select>
+
+                        <button
+                            type="button"
+                            onClick={exportRegSummaryCsv}
+                            disabled={filteredRegSummary.length === 0}
+                            className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-900 hover:bg-gray-50 dark:hover:bg-slate-800 disabled:opacity-50"
+                        >
+                            <Download size={13} /> Export CSV
+                        </button>
+                    </div>
+                </div>
+
+                {loading && regSummary.length === 0 ? (
+                    <div className="p-8 flex items-center justify-center gap-2 text-sm text-gray-500">
+                        <Loader2 className="animate-spin" size={16} /> Loading registration summary...
+                    </div>
+                ) : filteredRegSummary.length === 0 ? (
+                    <div className="p-8 text-center text-sm text-gray-500">
+                        No field registrations recorded for the selected date or field officer.
+                    </div>
+                ) : (
+                    <>
+                        <div className="overflow-x-auto">
+                            <table className="w-full text-sm min-w-[780px]">
+                                <thead>
+                                    <tr className="text-left text-xs uppercase tracking-wider text-gray-500 dark:text-slate-400 bg-gray-50/70 dark:bg-slate-800/40">
+                                        <th className="py-3 px-4">Date</th>
+                                        <th className="py-3 px-3">Field Officer</th>
+                                        <th className="py-3 px-3">People Registered</th>
+                                        <th className="py-3 px-3">Account Status</th>
+                                        <th className="py-3 px-3 hidden md:table-cell">Locations Covered</th>
+                                        <th className="py-3 px-4 text-right hidden lg:table-cell">Field Window (EAT)</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-gray-100 dark:divide-slate-800">
+                                    {(showAllSummary ? filteredRegSummary : filteredRegSummary.slice(0, 20)).map(row => {
+                                        const isToday = row.reg_date === todayYmd;
+                                        const firstT = formatEatTime(row.first_reg_at);
+                                        const lastT = formatEatTime(row.last_reg_at);
+                                        const barPct = Math.max(8, Math.round((row.total_registered / maxSummaryCount) * 100));
+                                        return (
+                                            <tr
+                                                key={`${row.reg_date}-${row.staff_id}`}
+                                                onClick={() => {
+                                                    if (selectedAgentId !== row.staff_id) toggleSelectAgent(row.staff_id);
+                                                }}
+                                                title="Click to inspect this field officer's full student roster below"
+                                                className="cursor-pointer hover:bg-violet-50/50 dark:hover:bg-slate-800/40 transition-colors"
+                                            >
+                                                <td className="py-3 px-4 whitespace-nowrap">
+                                                    <div className="flex items-center gap-2">
+                                                        <span className="font-semibold text-gray-900 dark:text-white">
+                                                            {formatSummaryDate(row.reg_date)}
+                                                        </span>
+                                                        {isToday && (
+                                                            <span className="text-[10px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300">
+                                                                Today
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                </td>
+
+                                                <td className="py-3 px-3">
+                                                    <div className="flex items-center gap-2.5">
+                                                        <div className="w-8 h-8 rounded-full bg-violet-100 dark:bg-violet-950/60 text-violet-700 dark:text-violet-300 flex items-center justify-center font-bold text-xs shrink-0">
+                                                            {row.field_officer.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase()}
+                                                        </div>
+                                                        <div className="min-w-0">
+                                                            <p className="font-semibold text-gray-900 dark:text-white truncate">{row.field_officer}</p>
+                                                            <p className="text-xs text-gray-500 dark:text-slate-400 truncate">
+                                                                {[row.staff_code, row.role].filter(Boolean).join(' · ') || 'Field Officer'}
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                </td>
+
+                                                <td className="py-3 px-3 min-w-[175px]">
+                                                    <div className="flex items-baseline gap-2">
+                                                        <span className="text-lg font-extrabold text-gray-900 dark:text-white">
+                                                            {row.total_registered}
+                                                        </span>
+                                                        <span className="text-xs text-gray-500 dark:text-slate-400">
+                                                            {row.total_registered === 1 ? 'person' : 'people'}
+                                                            {row.link_signups > 0 ? ` (${row.field_registered} field · ${row.link_signups} link)` : ''}
+                                                        </span>
+                                                    </div>
+                                                    <div className="h-1.5 w-36 rounded-full bg-gray-100 dark:bg-slate-800 mt-1 overflow-hidden">
+                                                        <div className="h-full rounded-full bg-violet-600" style={{ width: `${barPct}%` }} />
+                                                    </div>
+                                                </td>
+
+                                                <td className="py-3 px-3 whitespace-nowrap">
+                                                    <div className="flex flex-wrap items-center gap-1.5">
+                                                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800 dark:bg-emerald-950/50 dark:text-emerald-300">
+                                                            {row.accounts_opened} opened
+                                                        </span>
+                                                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-amber-100 text-amber-800 dark:bg-amber-950/50 dark:text-amber-300">
+                                                            {row.waiting_signup} waiting
+                                                        </span>
+                                                        <span className="text-[11px] text-gray-500 dark:text-slate-400 font-medium">
+                                                            ({row.conversion_pct}%)
+                                                        </span>
+                                                    </div>
+                                                </td>
+
+                                                <td className="py-3 px-3 hidden md:table-cell">
+                                                    {row.top_locations && row.top_locations.length > 0 ? (
+                                                        <div className="flex flex-wrap gap-1 max-w-[240px]">
+                                                            {row.top_locations.map(loc => (
+                                                                <span
+                                                                    key={loc.location}
+                                                                    className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-medium bg-gray-100 dark:bg-slate-800 text-gray-700 dark:text-slate-300"
+                                                                >
+                                                                    {loc.location} <b className="text-violet-700 dark:text-violet-300">{loc.count}</b>
+                                                                </span>
+                                                            ))}
+                                                        </div>
+                                                    ) : (
+                                                        <span className="text-xs text-gray-400">—</span>
+                                                    )}
+                                                </td>
+
+                                                <td className="py-3 px-4 text-right whitespace-nowrap hidden lg:table-cell text-xs font-mono text-gray-500 dark:text-slate-400">
+                                                    {firstT === lastT ? `${firstT} EAT` : `${firstT} – ${lastT} EAT`}
+                                                </td>
+                                            </tr>
+                                        );
+                                    })}
+                                </tbody>
+                                <tfoot>
+                                    <tr className="bg-gray-50/90 dark:bg-slate-800/60 border-t-2 border-gray-200 dark:border-slate-700 font-semibold text-xs">
+                                        <td className="py-3 px-4 text-gray-700 dark:text-slate-200" colSpan={2}>
+                                            Total ({filteredRegSummary.length} {filteredRegSummary.length === 1 ? 'record' : 'records'})
+                                        </td>
+                                        <td className="py-3 px-3 text-gray-900 dark:text-white text-sm font-extrabold">
+                                            {summaryTotals.total.toLocaleString()} {summaryTotals.total === 1 ? 'person' : 'people'}
+                                        </td>
+                                        <td className="py-3 px-3">
+                                            <span className="text-emerald-700 dark:text-emerald-400">{summaryTotals.opened} opened</span>
+                                            {' · '}
+                                            <span className="text-amber-700 dark:text-amber-400">{summaryTotals.waiting} waiting</span>
+                                            {' · '}
+                                            <span className="text-gray-500">
+                                                ({summaryTotals.total > 0 ? Math.round((summaryTotals.opened / summaryTotals.total) * 100) : 0}%)
+                                            </span>
+                                        </td>
+                                        <td className="py-3 px-3 hidden md:table-cell text-gray-500 dark:text-slate-400" colSpan={2}>
+                                            Click any row to view that officer&apos;s full student list
+                                        </td>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+                        {filteredRegSummary.length > 20 && (
+                            <div className="px-5 py-3 border-t border-gray-100 dark:border-slate-800 text-center">
+                                <button
+                                    type="button"
+                                    onClick={() => setShowAllSummary(v => !v)}
+                                    className="text-xs font-semibold text-violet-700 dark:text-violet-300 hover:underline"
+                                >
+                                    {showAllSummary ? 'Show latest 20 entries' : `Show all ${filteredRegSummary.length} entries`}
+                                </button>
+                            </div>
+                        )}
+                    </>
+                )}
             </div>
 
             {/* Filter & Controls Bar */}
