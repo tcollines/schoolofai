@@ -66,7 +66,17 @@ const icsStamp = iso => new Date(iso).toISOString().replace(/[-:]/g, '').replace
 const icsText = s => String(s ?? '').replace(/\\/g, '\\\\').replace(/\r?\n/g, '\\n').replace(/([,;])/g, '\\$1');
 const fold = line => { const out = []; let l = line; while (l.length > 74) { out.push(l.slice(0, 74)); l = ' ' + l.slice(74); } out.push(l); return out.join('\r\n'); };
 
+const siteUrl = () => (env('APP_URL') || 'https://www.welileschoolofai.org').replace(/\/+$/, '');
+const unsubUrl = r => (r.unsub_token ? `${siteUrl()}/unsubscribe?u=${encodeURIComponent(r.user_id)}&t=${encodeURIComponent(r.unsub_token)}` : null);
+const trackedJoinUrl = (r, src = 'email') => {
+    if (!r.join_link) return null;
+    if (!r.session_id) return r.join_link;
+    const u = r.user_id ? `u=${encodeURIComponent(r.user_id)}&` : '';
+    return `${siteUrl()}/live/join/${encodeURIComponent(r.session_id)}?${u}src=${encodeURIComponent(src)}`;
+};
+
 function buildIcs(r) {
+    const join = trackedJoinUrl(r, 'calendar');
     const lines = [
         'BEGIN:VCALENDAR', 'VERSION:2.0', `PRODID:-//${BRAND}//Live class//EN`, 'CALSCALE:GREGORIAN', 'METHOD:PUBLISH',
         'BEGIN:VEVENT',
@@ -74,16 +84,12 @@ function buildIcs(r) {
         `DTSTAMP:${icsStamp(new Date().toISOString())}`,
         `DTSTART:${icsStamp(r.starts_at)}`, `DTEND:${icsStamp(r.ends_at)}`,
         `SUMMARY:${icsText(r.title)}`,
-        `DESCRIPTION:${icsText([r.description || 'Live class for the free AI Fundamentals course.', r.join_link ? `Join: ${r.join_link}` : ''].filter(Boolean).join('\n'))}`,
-        `LOCATION:${icsText(r.join_link || 'Online')}`,
+        `DESCRIPTION:${icsText([r.description || 'Live class for the free AI Fundamentals course.', join ? `Join: ${join}` : ''].filter(Boolean).join('\n'))}`,
+        `LOCATION:${icsText(join || 'Online')}`,
         'STATUS:CONFIRMED', 'END:VEVENT', 'END:VCALENDAR'
     ];
     return lines.map(fold).join('\r\n') + '\r\n';
 }
-
-// ---------- Email content ---------------------------------------------------
-const siteUrl = () => (env('APP_URL') || 'https://www.welileschoolofai.org').replace(/\/+$/, '');
-const unsubUrl = r => (r.unsub_token ? `${siteUrl()}/unsubscribe?u=${encodeURIComponent(r.user_id)}&t=${encodeURIComponent(r.unsub_token)}` : null);
 
 function buildWelcomeEmail(r) {
     const name = firstName(r.name);
@@ -127,7 +133,8 @@ function buildReschedEmail(r) {
     const unsub = unsubUrl(r);
     const settings = unsub || 'the Live classes tab of your course';
     const subject = `We are sorry: ${r.title} has moved to ${now}`;
-    const joinLine = r.join_link ? `Join here: ${r.join_link}` : 'The join link will appear in the Live classes tab of your course shortly before the class starts.';
+    const joinUrl = trackedJoinUrl(r, 'email');
+    const joinLine = joinUrl ? `Join here: ${joinUrl}` : 'The join link will appear in the Live classes tab of your course shortly before the class starts.';
     const text = [
         `Hello ${name},`, '',
         `We are sorry. The live class you were reminded about will not go ahead as planned on ${was}.`, '',
@@ -150,8 +157,8 @@ function buildReschedEmail(r) {
 <p style="margin:0 0 12px 0;">It has moved to the same time the next day:</p>
 <p style="margin:0 0 12px 0;padding:12px 14px;background:${PAPER};border-radius:10px;"><strong>${esc(now)}</strong>${r.host_name ? `<br>With ${esc(r.host_name)}` : ''}</p>
 </td></tr>
-<tr><td style="padding:8px 28px 4px 28px;">${r.join_link
-        ? `<a href="${esc(r.join_link)}" style="display:inline-block;background:${VIOLET};color:#ffffff;text-decoration:none;font-family:Arial,Helvetica,sans-serif;font-size:16px;font-weight:bold;padding:12px 22px;border-radius:10px;">Join the class</a>`
+<tr><td style="padding:8px 28px 4px 28px;">${joinUrl
+        ? `<a href="${esc(joinUrl)}" style="display:inline-block;background:${VIOLET};color:#ffffff;text-decoration:none;font-family:Arial,Helvetica,sans-serif;font-size:16px;font-weight:bold;padding:12px 22px;border-radius:10px;">Join the class</a>`
         : `<p style="margin:0;font-family:Arial,Helvetica,sans-serif;color:#3b3650;font-size:15px;">The join link will appear in the Live classes tab of your course shortly before the class starts.</p>`}</td></tr>
 <tr><td style="padding:14px 28px 0 28px;font-family:Arial,Helvetica,sans-serif;color:#3b3650;font-size:14px;line-height:1.6;">The calendar invitation attached replaces the old one, so your calendar will show the new time. Nothing else is needed from you. Live classes are optional and the recorded lessons stay open if you want to keep studying.</td></tr>
 <tr><td style="padding:10px 28px 0 28px;font-family:Arial,Helvetica,sans-serif;color:#3b3650;font-size:14px;line-height:1.6;">Thank you for your patience, and sorry for the inconvenience.</td></tr>
@@ -168,7 +175,8 @@ function buildEmail(r) {
     const subject = `Reminder: ${r.title} starts ${relative(r.starts_at)} (${eat(r.starts_at, { hour: '2-digit', minute: '2-digit' })} EAT)`;
     const unsub = unsubUrl(r);
     const settings = unsub || 'the Live classes tab of your course';
-    const joinLine = r.join_link ? `Join here: ${r.join_link}` : 'The join link will appear in the Live classes tab of your course shortly before the class starts.';
+    const joinUrl = trackedJoinUrl(r, 'email');
+    const joinLine = joinUrl ? `Join here: ${joinUrl}` : 'The join link will appear in the Live classes tab of your course shortly before the class starts.';
 
     const text = [
         `Hello ${name},`, '',
@@ -193,8 +201,8 @@ function buildEmail(r) {
 <p style="margin:0 0 12px 0;padding:12px 14px;background:${PAPER};border-radius:10px;"><strong>${esc(when)}</strong>${r.host_name ? `<br>With ${esc(r.host_name)}` : ''}</p>
 ${r.description ? `<p style="margin:0 0 12px 0;">${esc(r.description)}</p>` : ''}
 </td></tr>
-<tr><td style="padding:8px 28px 4px 28px;">${r.join_link
-        ? `<a href="${esc(r.join_link)}" style="display:inline-block;background:${VIOLET};color:#ffffff;text-decoration:none;font-family:Arial,Helvetica,sans-serif;font-size:16px;font-weight:bold;padding:12px 22px;border-radius:10px;">Join the live class</a>`
+<tr><td style="padding:8px 28px 4px 28px;">${joinUrl
+        ? `<a href="${esc(joinUrl)}" style="display:inline-block;background:${VIOLET};color:#ffffff;text-decoration:none;font-family:Arial,Helvetica,sans-serif;font-size:16px;font-weight:bold;padding:12px 22px;border-radius:10px;">Join the live class</a>`
         : `<p style="margin:0;font-family:Arial,Helvetica,sans-serif;color:#3b3650;font-size:15px;">The join link will appear in the Live classes tab of your course shortly before the class starts.</p>`}</td></tr>
 <tr><td style="padding:14px 28px 0 28px;font-family:Arial,Helvetica,sans-serif;color:#3b3650;font-size:14px;line-height:1.6;">A calendar invitation is attached so you can add the class to your calendar. Live classes are optional, but if you join one, the lessons it covers count as done and you only need to take the quizzes for those modules.</td></tr>
 <tr><td style="padding:10px 28px 0 28px;font-family:Arial,Helvetica,sans-serif;color:#3b3650;font-size:14px;line-height:1.6;"><strong>Tip:</strong> keep the course on your phone like an app. Open it in your phone browser and tap &ldquo;Install app&rdquo; (on iPhone: Share, then Add to Home Screen).</td></tr>
@@ -215,7 +223,7 @@ async function sendWhatsApp(r) {
             language: { code: env('WHATSAPP_TEMPLATE_LANG', 'en') },
             components: [{
                 type: 'body',
-                parameters: [firstName(r.name), r.title, whenEAT(r.starts_at), r.join_link || 'the Live classes tab of your course']
+                parameters: [firstName(r.name), r.title, whenEAT(r.starts_at), trackedJoinUrl(r, 'whatsapp') || 'the Live classes tab of your course']
                     .map(t => ({ type: 'text', text: String(t).replace(/\s+/g, ' ').slice(0, 500) }))
             }]
         }

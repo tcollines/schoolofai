@@ -6,6 +6,8 @@ const WelileTechLink: React.FC<{ children?: React.ReactNode; className?: string 
         href="https://welile.com/"
         target="_blank"
         rel="noopener noreferrer"
+        data-track="Welile Technologies (welile.com)"
+        data-track-category="welile_tech"
         className={`underline decoration-dotted decoration-1 underline-offset-[3px] decoration-stone-400 hover:decoration-solid ${className}`}
     >
         {children ?? 'Welile Technologies'}

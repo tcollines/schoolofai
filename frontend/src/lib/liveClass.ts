@@ -6,6 +6,7 @@
 import { ALL_ITEMS, MODULES } from '../content/aiFundamentals';
 import { recordEvent } from './learnApi';
 import { supabase } from './supabaseClient';
+import { trackSiteEvent } from './analytics';
 
 export interface Lecture {
     id: 'lecture-1' | 'lecture-2' | 'lecture-3';
@@ -36,6 +37,8 @@ export function lectureForSession(s: { module_id?: string | null; starts_at: str
         if (hit) return hit;
     }
     const day = eat(new Date(s.starts_at).getTime()).getUTCDay();
+    // Thursday (4) counts as Lecture 2 when a Wednesday session is rescheduled
+    if (day === 4) return LECTURES.find(l => l.id === 'lecture-2') || null;
     return LECTURES.find(l => l.day === day) || null;
 }
 
@@ -47,7 +50,8 @@ export const moduleLabel = (l: Lecture) => {
 /** Today's class, from the weekly timetable, in East Africa Time. Null on days without a class. */
 export function todaysClass(now = Date.now()): { lecture: Lecture; startsAt: number; endsAt: number } | null {
     const d = eat(now);
-    const lecture = LECTURES.find(l => l.day === d.getUTCDay());
+    const day = d.getUTCDay();
+    const lecture = day === 4 ? LECTURES.find(l => l.id === 'lecture-2') : LECTURES.find(l => l.day === day);
     if (!lecture) return null;
     const startsAt = Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate(), 14, 0, 0) - EAT_OFFSET_MS;
     return { lecture, startsAt, endsAt: startsAt + 90 * 60000 };
@@ -64,17 +68,33 @@ export function exemptItemIds(lectureIds: Iterable<string>): string[] {
 // ---- attendance ------------------------------------------------------------------
 const joinedKey = (uid: string) => `welile_live_joined_${uid}`;
 
-export async function recordAttendance(uid: string, s: { id: string; title: string; starts_at: string; module_id?: string | null }, method: 'join_click' | 'self_confirmed') {
+export async function recordAttendance(uid: string, s: { id: string; title: string; starts_at: string; module_id?: string | null; meet_link?: string | null }, method: 'join_click' | 'self_confirmed') {
     const lecture = lectureForSession(s);
-    if (!lecture) return null;
-    const payload = { lecture: lecture.id, method, title: s.title, starts_at: s.starts_at };
+    const payload = {
+        lecture: lecture?.id || null,
+        method,
+        source: method === 'self_confirmed' ? 'self_confirmed' : 'app',
+        title: s.title,
+        starts_at: s.starts_at
+    };
     let first = true;
     try {
         const seen = JSON.parse(localStorage.getItem(joinedKey(uid)) || '[]') as string[];
         first = !seen.includes(s.id);
         if (first) localStorage.setItem(joinedKey(uid), JSON.stringify([...seen, s.id]));
     } catch { /* ignore */ }
-    // one event per class for a join click; a confirmation is always recorded so it shows as its own method
+    if (method === 'join_click') {
+        trackSiteEvent({
+            eventType: 'live_join_click',
+            path: `/live/join/${s.id}`,
+            targetUrl: s.meet_link || undefined,
+            label: s.title,
+            category: 'live_class',
+            source: 'app',
+            meta: { session_id: s.id, lecture: lecture?.id || null, identified: true }
+        });
+    }
+    // Always record attendance (even if session day is non-standard)
     if (first || method === 'self_confirmed') await recordEvent(uid, 'live_joined', s.id, payload);
     return lecture;
 }

@@ -160,8 +160,10 @@ const ProtectedRoute = ({ isAuthenticated, requireOnboarding = false, userProfil
 
 import InstallRequiredPrompt from './components/InstallRequiredPrompt';
 import AccountSetupGate from './components/AccountSetupGate';
+import AnalyticsTracker from './components/AnalyticsTracker';
 const JoinPage = lazy(() => import('./components/JoinPage'));
 const UnsubscribePage = lazy(() => import('./components/UnsubscribePage'));
+const LiveJoinRedirect = lazy(() => import('./components/learn/LiveJoinRedirect'));
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -306,6 +308,7 @@ function App() {
 
   return (
     <BrowserRouter>
+      <AnalyticsTracker />
       <ReturnToCleaner />
       <InstallRequiredPrompt uid={session?.user?.id} email={session?.user?.email} />
       <AccountSetupGate session={session} />
@@ -318,8 +321,9 @@ function App() {
         <Route path="/signup" element={<SignupRoute isAuthenticated={isAuthenticated} />} />
         <Route path="/register" element={<OutreachRegistration />} />
 
-        {/* Free course: public page, staff referral links, certificate verification, and the learning area */}
+        {/* Free course: public page, staff referral links, tracked live join links, certificate verification, and the learning area */}
         <Route path="/free/ai-fundamentals" element={<Suspense fallback={<RouteFallback />}><FreeCoursePage /></Suspense>} />
+        <Route path="/live/join/:sessionId" element={<Suspense fallback={<RouteFallback />}><LiveJoinRedirect /></Suspense>} />
         <Route path="/r/:slug" element={<ReferralRedirect />} />
         <Route path="/join/:slug" element={<Suspense fallback={<RouteFallback />}><JoinPage /></Suspense>} />
         <Route path="/unsubscribe" element={<Suspense fallback={<RouteFallback />}><UnsubscribePage /></Suspense>} />

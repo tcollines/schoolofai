@@ -3,7 +3,7 @@ import { Routes, Route, useNavigate, useLocation, Navigate } from 'react-router-
 import { 
     LayoutDashboard, Users, BookOpen, UserCheck, 
     Settings, LogOut, FileQuestion, Calendar, Mail, CheckCircle, Shield,
-    Bell, Search, Handshake, Menu, X, Sun, Moon, MessageSquare, ClipboardList, Wallet, GraduationCap, Video, UserCog, Home, Activity
+    Bell, Search, Handshake, Menu, X, Sun, Moon, MessageSquare, ClipboardList, Wallet, GraduationCap, Video, UserCog, Home, Activity, BarChart3
 } from 'lucide-react';
 import { getCurrencyPreference, setCurrencyPreference, CurrencyType } from '../../lib/currency';
 import AdminOverview from './AdminOverview';
@@ -24,6 +24,7 @@ import AdminFreeCourse from './AdminFreeCourse';
 import AdminLiveSessions from './AdminLiveSessions';
 import AdminStaff from './AdminStaff';
 import AdminAgents from './AdminAgents';
+import AdminAnalytics from './AdminAnalytics';
 import { supabaseClient } from '../../lib/supabaseClient';
 import { verifyConsoleSession, clearConsoleFlags } from '../../lib/consoleAuth';
 
@@ -233,6 +234,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ onExit, isInstructor, isAdmin
             { id: 'free-course', label: 'Free Course', icon: GraduationCap },
             { id: 'live-classes', label: 'Live Classes', icon: Video },
             { id: 'agents', label: 'Agent Monitoring', icon: Activity },
+            { id: 'analytics', label: 'Traffic & Clicks', icon: BarChart3 },
             { id: 'staff', label: 'Staff & Links', icon: UserCog },
             { id: 'wallet', label: 'Wallet & Ledger', icon: Wallet },
             { id: 'courses', label: 'Course Setup', icon: BookOpen },
@@ -254,6 +256,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ onExit, isInstructor, isAdmin
                 {!isInstructor && <Route path="free-course" element={<AdminFreeCourse />} />}
                 {!isInstructor && <Route path="live-classes" element={<AdminLiveSessions />} />}
                 {!isInstructor && <Route path="agents" element={<AdminAgents />} />}
+                {!isInstructor && <Route path="analytics" element={<AdminAnalytics />} />}
                 {!isInstructor && <Route path="staff" element={<AdminStaff />} />}
                 {!isInstructor && <Route path="wallet" element={<AdminWallet />} />}
                 <Route path="courses" element={<AdminCourses isInstructor={isInstructor} />} />

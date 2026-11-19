@@ -33,20 +33,25 @@ const maskEmail = e => String(e || '').replace(/^(.).*(@.*)$/, '$1***$2');
 const icsStamp = iso => new Date(iso).toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '');
 const icsText = s => String(s ?? '').replace(/\\/g, '\\\\').replace(/\r?\n/g, '\\n').replace(/([,;])/g, '\\$1');
 const fold = l => { const o = []; let x = l; while (x.length > 74) { o.push(x.slice(0, 74)); x = ' ' + x.slice(74); } o.push(x); return o.join('\r\n'); };
-const buildIcs = s => ['BEGIN:VCALENDAR', 'VERSION:2.0', `PRODID:-//${BRAND}//Live class//EN`, 'CALSCALE:GREGORIAN', 'METHOD:PUBLISH', 'BEGIN:VEVENT',
-    `UID:${s.id}@welile-school-of-ai`, `DTSTAMP:${icsStamp(new Date().toISOString())}`, `DTSTART:${icsStamp(s.starts_at)}`, `DTEND:${icsStamp(s.ends_at)}`,
-    `SUMMARY:${icsText(s.title)}`, `DESCRIPTION:${icsText([s.description || 'Live class for the free AI Fundamentals course.', s.join_link ? `Join: ${s.join_link}` : ''].filter(Boolean).join('\n'))}`,
-    `LOCATION:${icsText(s.join_link || 'Online')}`, 'STATUS:CONFIRMED', 'END:VEVENT', 'END:VCALENDAR'].map(fold).join('\r\n') + '\r\n';
+const trackedOutreachJoin = (s, src = 'outreach') => (s?.join_link ? (s?.id ? `${APP}/live/join/${encodeURIComponent(s.id)}?src=${encodeURIComponent(src)}` : s.join_link) : null);
+const buildIcs = s => {
+    const join = trackedOutreachJoin(s, 'calendar');
+    return ['BEGIN:VCALENDAR', 'VERSION:2.0', `PRODID:-//${BRAND}//Live class//EN`, 'CALSCALE:GREGORIAN', 'METHOD:PUBLISH', 'BEGIN:VEVENT',
+        `UID:${s.id}@welile-school-of-ai`, `DTSTAMP:${icsStamp(new Date().toISOString())}`, `DTSTART:${icsStamp(s.starts_at)}`, `DTEND:${icsStamp(s.ends_at)}`,
+        `SUMMARY:${icsText(s.title)}`, `DESCRIPTION:${icsText([s.description || 'Live class for the free AI Fundamentals course.', join ? `Join: ${join}` : ''].filter(Boolean).join('\n'))}`,
+        `LOCATION:${icsText(join || 'Online')}`, 'STATUS:CONFIRMED', 'END:VEVENT', 'END:VCALENDAR'].map(fold).join('\r\n') + '\r\n';
+};
 
 function buildEmail(r) {
     const name = firstName(r.name);
-    const link = `${APP}/free/ai-fundamentals`;
+    const link = `${APP}/free/ai-fundamentals?src=outreach`;
     const s = r.session;
+    const joinUrl = trackedOutreachJoin(s, 'outreach');
     const subject = 'You are registered for the free AI Fundamentals course';
     const step = r.has_account
         ? `Your place is ready. Sign in with this email address (${r.email}) and open the course:`
         : `Your place is saved. Create your free account with this email address (${r.email}) and the course opens for you straight away:`;
-    const live = s ? `Next live class: ${s.title}, ${whenEAT(s.starts_at)}.${s.join_link ? ` Join here: ${s.join_link}` : ''}` : 'Live classes run every Monday, Wednesday and Friday at 2:00 pm East Africa Time.';
+    const live = s ? `Next live class: ${s.title}, ${whenEAT(s.starts_at)}.${joinUrl ? ` Join here: ${joinUrl}` : ''}` : 'Live classes run every Monday, Wednesday and Friday at 2:00 pm East Africa Time.';
     const text = [
         `Hello ${name},`, '',
         'You registered with Welile School of AI, and we have opened a place for you in our free course, AI Fundamentals: Use AI with Confidence. It teaches you to ask AI clearly, put it to work, check what it says, and use it fairly and safely.', '',
@@ -65,7 +70,7 @@ function buildEmail(r) {
 <p style="margin:0 0 12px;">You registered with Welile School of AI, and we have opened a place for you in our <strong>free</strong> course, <em>AI Fundamentals: Use AI with Confidence</em>. You will learn to ask AI clearly, put it to work, check what it says, and use it fairly and safely.</p>
 <p style="margin:0 0 12px;">${esc(step)}</p></td></tr>
 <tr><td style="padding:4px 28px;"><a href="${esc(link)}" style="display:inline-block;background:${VIOLET};color:#ffffff;text-decoration:none;font-family:Arial,Helvetica,sans-serif;font-size:16px;font-weight:bold;padding:12px 22px;border-radius:10px;">${r.has_account ? 'Open the course' : 'Create my free account'}</a></td></tr>
-<tr><td style="padding:14px 28px 0;font-family:Arial,Helvetica,sans-serif;color:#3b3650;font-size:15px;line-height:1.6;"><p style="margin:0 0 10px;padding:12px 14px;background:${PAPER};border-radius:10px;">${s ? `<strong>Next live class:</strong> ${esc(s.title)}<br>${esc(whenEAT(s.starts_at))}${s.join_link ? `<br><a href="${esc(s.join_link)}" style="color:${VIOLET};">Join the live class</a>` : ''}` : '<strong>Live classes</strong> run every Monday, Wednesday and Friday at 2:00 pm East Africa Time.'}</p>
+<tr><td style="padding:14px 28px 0;font-family:Arial,Helvetica,sans-serif;color:#3b3650;font-size:15px;line-height:1.6;"><p style="margin:0 0 10px;padding:12px 14px;background:${PAPER};border-radius:10px;">${s ? `<strong>Next live class:</strong> ${esc(s.title)}<br>${esc(whenEAT(s.starts_at))}${joinUrl ? `<br><a href="${esc(joinUrl)}" style="color:${VIOLET};">Join the live class</a>` : ''}` : '<strong>Live classes</strong> run every Monday, Wednesday and Friday at 2:00 pm East Africa Time.'}</p>
 <p style="margin:0 0 10px;">Live classes are optional. If you join one, the lessons it covers count as done and you only take the quizzes for those modules.</p>
 <p style="margin:0;"><strong>Tip:</strong> keep the course on your phone like an app. Open it in your phone browser and tap &ldquo;Install app&rdquo; (on iPhone: Share, then Add to Home Screen).</p></td></tr>
 <tr><td style="padding:18px 28px 26px;font-family:Arial,Helvetica,sans-serif;color:#6b6580;font-size:12px;line-height:1.6;">You are receiving this because you registered with Welile School of AI and agreed to be contacted.</td></tr>

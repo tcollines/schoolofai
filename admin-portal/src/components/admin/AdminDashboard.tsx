@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Award, CalendarClock, GraduationCap, Handshake, Loader2, RefreshCw, Smartphone, UserPlus, Users, Bell, Phone } from 'lucide-react';
+import { ArrowUpRight, Award, BarChart3, CalendarClock, Globe, GraduationCap, Handshake, Loader2, RefreshCw, Smartphone, UserPlus, Users, Bell, Phone } from 'lucide-react';
 import { supabaseClient } from '../../lib/supabaseClient';
 
 interface Summary {
@@ -8,8 +8,9 @@ interface Summary {
     next_session: { title: string; starts_at: string; meet_link: string | null } | null; sessions_ahead: number;
     reminders_7d: number; opted_out: number; agents: number; agent_regs_7d: number; leads_7d: number; signups_daily: number[];
 }
-interface PRow { stage: string; followup: string; }
+interface PRow { stage: string; followup: string; live_count?: number; certificate_id?: string | null; }
 interface Agent { name: string; registered: number; accounts: number; completed: number; active: boolean; }
+interface TrafficMini { total_page_views: number; unique_visitors: number; welile_tech_clicks: number; welile_tech_unique: number; live_link_clicks: number; app_launches: number; }
 
 const card = 'bg-white dark:bg-slate-900 rounded-2xl border border-gray-100 dark:border-slate-800 shadow-sm';
 const when = (iso: string) => new Date(iso).toLocaleString('en-GB', { weekday: 'long', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit', timeZone: 'Africa/Kampala' }) + ' EAT';
@@ -30,30 +31,54 @@ const AdminDashboard: React.FC = () => {
     const [s, setS] = useState<Summary | null>(null);
     const [rows, setRows] = useState<PRow[]>([]);
     const [agents, setAgents] = useState<Agent[]>([]);
+    const [traffic, setTraffic] = useState<TrafficMini | null>(null);
     const [error, setError] = useState<string | null>(null);
     const [loading, setLoading] = useState(true);
 
     const load = useCallback(async () => {
         setLoading(true);
-        const [a, b, c] = await Promise.all([
+        const [a, b, c, d] = await Promise.all([
             supabaseClient.rpc('admin_dashboard'),
-            supabaseClient.rpc('admin_registration_pipeline', { p_course: 'ai-fundamentals' }),
-            supabaseClient.rpc('admin_agent_funnel', { p_since: null })
+            supabaseClient.rpc('admin_course_stage_students', { p_course: 'ai-fundamentals' }),
+            supabaseClient.rpc('admin_agent_funnel', { p_since: null }),
+            supabaseClient.rpc('admin_site_analytics', { p_days: 30 })
         ]);
         if (a.error) setError(a.error.message); else { setError(null); setS(a.data as Summary); }
         if (!b.error && b.data) setRows(b.data as PRow[]);
+        else {
+            const fb = await supabaseClient.rpc('admin_registration_pipeline', { p_course: 'ai-fundamentals' });
+            if (!fb.error && fb.data) setRows(fb.data as PRow[]);
+        }
         if (!c.error && c.data) setAgents(c.data as Agent[]);
+        if (!d.error && d.data && (d.data as any).overview) setTraffic((d.data as any).overview as TrafficMini);
         setLoading(false);
     }, []);
     useEffect(() => { void load(); const t = window.setInterval(load, 60000); return () => window.clearInterval(t); }, [load]);
 
     const by = useMemo(() => {
         const n = (st: string) => rows.filter(r => r.stage === st).length;
-        return { all: rows.length, noAccount: n('Registered'), account: n('Account opened'), inCourse: n('In course'), studying: n('Studying'), live: n('Joined live'), completed: n('Completed'), toContact: rows.filter(r => r.followup === 'new' && r.stage !== 'Completed').length };
+        return {
+            all: rows.length,
+            noAccount: n('Registered'),
+            account: n('Account opened'),
+            inCourse: n('In course'),
+            studying: n('Studying'),
+            live: rows.filter(r => r.stage === 'Joined live' || (r.live_count || 0) > 0).length,
+            passedFinal: n('Passed final'),
+            completed: rows.filter(r => r.stage === 'Completed' || !!r.certificate_id).length,
+            toContact: rows.filter(r => r.followup === 'new' && r.stage !== 'Completed').length
+        };
     }, [rows]);
     const topAgents = useMemo(() => [...agents].filter(a => a.active).sort((x, y) => y.registered - x.registered || y.accounts - x.accounts).slice(0, 5), [agents]);
     const max = Math.max(1, ...(s?.signups_daily || [1]));
-    const funnel: [string, number][] = [['Registered', by.all], ['Have an account', by.all - by.noAccount], ['In the course', by.inCourse + by.studying + by.live + by.completed], ['Studying', by.studying + by.live + by.completed], ['Joined a live class', by.live + by.completed], ['Completed', by.completed]];
+    const funnel: { label: string; n: number; to: string }[] = [
+        { label: 'Registered (all)', n: by.all, to: '/free-course' },
+        { label: 'Registered, no account yet', n: by.noAccount, to: '/free-course?stage=Registered' },
+        { label: 'In the course (not started)', n: by.inCourse, to: '/free-course?stage=In%20course' },
+        { label: 'Studying recorded lessons', n: by.studying, to: '/free-course?stage=Studying' },
+        { label: 'Joined a live class', n: by.live, to: '/free-course?stage=Joined%20live' },
+        { label: 'Completed & certified', n: by.completed, to: '/free-course?stage=Completed' },
+    ];
 
     return (
         <div className="space-y-6">
@@ -69,39 +94,55 @@ const AdminDashboard: React.FC = () => {
                 <>
                     <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
                         <Stat label="Students" value={s.students} sub={`${s.new_today} today · ${s.new_7d} this week`} icon={Users} to="/enrollments" />
-                        <Stat label="Registered, free course" value={by.all} sub={`${by.noAccount} without an account`} icon={UserPlus} to="/free-course" />
-                        <Stat label="Studying now" value={by.studying + by.live} sub={`${s.active_7d} active in 7 days`} icon={GraduationCap} to="/free-course" tone="text-emerald-600 bg-emerald-50 dark:bg-emerald-950/40" />
-                        <Stat label="Certificates" value={s.certificates} sub={`${by.completed} completed the course`} icon={Award} to="/free-course" tone="text-amber-600 bg-amber-50 dark:bg-amber-950/40" />
+                        <Stat label="Registered, free course" value={by.all} sub={`${by.noAccount} without an account`} icon={UserPlus} to="/free-course?stage=Registered" />
+                        <Stat label="Studying now" value={by.studying + by.live} sub={`${s.active_7d} active in 7 days`} icon={GraduationCap} to="/free-course?stage=Studying" tone="text-emerald-600 bg-emerald-50 dark:bg-emerald-950/40" />
+                        <Stat label="Certificates" value={s.certificates} sub={`${by.completed} completed · click to view`} icon={Award} to="/free-course?stage=Completed" tone="text-amber-600 bg-amber-50 dark:bg-amber-950/40" />
                     </div>
 
                     <div className="grid lg:grid-cols-3 gap-4">
                         <div className={`${card} p-5 lg:col-span-2`}>
-                            <div className="flex items-center justify-between"><h2 className="font-bold">Free course: where everyone is</h2><Link to="/free-course" className="text-sm font-semibold text-violet-700">Open the list</Link></div>
-                            <div className="mt-3 space-y-2.5">
-                                {funnel.map(([l, n]) => (
-                                    <div key={l}>
-                                        <div className="flex justify-between text-sm"><span>{l}</span><span className="font-semibold">{n}</span></div>
-                                        <div className="h-2 rounded-full bg-gray-100 dark:bg-slate-800 mt-1"><div className="h-2 rounded-full bg-violet-500" style={{ width: `${Math.min(100, (n / Math.max(1, by.all)) * 100)}%` }} /></div>
-                                    </div>
+                            <div className="flex items-center justify-between"><h2 className="font-bold">Free course: where everyone is</h2><Link to="/free-course" className="text-sm font-semibold text-violet-700">Open full explorer</Link></div>
+                            <p className="text-xs text-gray-500 mt-0.5">Click any stage below to see the exact students at that stage.</p>
+                            <div className="mt-3 space-y-2">
+                                {funnel.map(f => (
+                                    <Link key={f.label} to={f.to} className="block rounded-lg p-1.5 -mx-1.5 hover:bg-violet-50/70 dark:hover:bg-slate-800/60 transition-colors">
+                                        <div className="flex justify-between text-sm"><span className="font-medium">{f.label}</span><span className="font-bold text-violet-700 dark:text-violet-300">{f.n} →</span></div>
+                                        <div className="h-2 rounded-full bg-gray-100 dark:bg-slate-800 mt-1"><div className="h-2 rounded-full bg-violet-500" style={{ width: `${Math.min(100, (f.n / Math.max(1, by.all)) * 100)}%` }} /></div>
+                                    </Link>
                                 ))}
                             </div>
-                            <p className="mt-3 text-sm"><b>{by.toContact}</b> {by.toContact === 1 ? 'person has' : 'people have'} not been followed up yet. <Link to="/free-course" className="font-semibold text-violet-700">Follow up</Link></p>
+                            <p className="mt-3 text-sm"><b>{by.toContact}</b> {by.toContact === 1 ? 'person has' : 'people have'} not been followed up yet. <Link to="/free-course?stage=Registered" className="font-semibold text-violet-700">Follow up</Link></p>
                         </div>
 
-                        <div className={`${card} p-5`}>
-                            <h2 className="font-bold">New students, last 14 days</h2>
-                            <div className="flex items-end gap-1 h-28 mt-4" aria-label="New students per day">
-                                {(s.signups_daily || []).map((n, i) => <div key={i} title={`${n}`} className="flex-1 rounded-sm bg-violet-300 dark:bg-violet-700" style={{ height: `${Math.max(4, (n / max) * 100)}%`, opacity: n ? 1 : 0.35 }} />)}
+                        <div className={`${card} p-5 flex flex-col justify-between`}>
+                            <div>
+                                <h2 className="font-bold">New students, last 14 days</h2>
+                                <div className="flex items-end gap-1 h-28 mt-4" aria-label="New students per day">
+                                    {(s.signups_daily || []).map((n, i) => <div key={i} title={`${n}`} className="flex-1 rounded-sm bg-violet-300 dark:bg-violet-700" style={{ height: `${Math.max(4, (n / max) * 100)}%`, opacity: n ? 1 : 0.35 }} />)}
+                                </div>
+                                <p className="text-xs text-gray-500 mt-2">{s.new_7d} new in the last 7 days</p>
                             </div>
-                            <p className="text-xs text-gray-500 mt-2">{s.new_7d} new in the last 7 days</p>
+                            {traffic && (
+                                <Link to="/analytics" className="mt-4 block rounded-xl bg-violet-50/80 dark:bg-violet-950/30 border border-violet-100 dark:border-violet-900/50 p-3.5 hover:ring-2 hover:ring-violet-300 transition">
+                                    <div className="flex items-center justify-between text-xs font-bold text-violet-700 dark:text-violet-300">
+                                        <span className="flex items-center gap-1.5"><BarChart3 size={14} /> Traffic &amp; Welile Tech (30d)</span>
+                                        <ArrowUpRight size={14} />
+                                    </div>
+                                    <div className="grid grid-cols-3 gap-2 mt-2 text-center">
+                                        <div><p className="text-lg font-extrabold">{traffic.unique_visitors}</p><p className="text-[10px] text-gray-500">visitors</p></div>
+                                        <div><p className="text-lg font-extrabold text-violet-700 dark:text-violet-300">{traffic.welile_tech_clicks}</p><p className="text-[10px] text-gray-500">welile.com</p></div>
+                                        <div><p className="text-lg font-extrabold">{traffic.live_link_clicks}</p><p className="text-[10px] text-gray-500">live clicks</p></div>
+                                    </div>
+                                </Link>
+                            )}
                         </div>
                     </div>
 
                     <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
                         <Stat label="Next live class" value={s.next_session ? '' : 'None'} sub={s.next_session ? `${s.next_session.title}, ${when(s.next_session.starts_at)}` : 'Create the next sessions in Live Classes'} icon={CalendarClock} to="/live-classes" tone="text-sky-600 bg-sky-50 dark:bg-sky-950/40" />
-                        <Stat label="Live classes ahead" value={s.sessions_ahead} sub={`${s.live_joined} people have joined live`} icon={CalendarClock} to="/live-classes" tone="text-sky-600 bg-sky-50 dark:bg-sky-950/40" />
+                        <Stat label="Live classes ahead" value={s.sessions_ahead} sub={`${s.live_joined} tracked live joins`} icon={CalendarClock} to="/live-classes" tone="text-sky-600 bg-sky-50 dark:bg-sky-950/40" />
                         <Stat label="Reminders sent" value={s.reminders_7d} sub={`last 7 days · ${s.opted_out} opted out`} icon={Bell} to="/live-classes" tone="text-sky-600 bg-sky-50 dark:bg-sky-950/40" />
-                        <Stat label="App installs" value={s.installs} sub="people with the app" icon={Smartphone} to="/free-course" tone="text-sky-600 bg-sky-50 dark:bg-sky-950/40" />
+                        <Stat label="App installs & traffic" value={s.installs} sub={traffic ? `${traffic.total_page_views} views · ${traffic.welile_tech_clicks} welile.com` : 'people with the app'} icon={Smartphone} to="/analytics" tone="text-sky-600 bg-sky-50 dark:bg-sky-950/40" />
                     </div>
 
                     <div className="grid lg:grid-cols-2 gap-4">

@@ -5,29 +5,32 @@ import { useLearn } from './learnContext';
 import { LiveSession, loadLiveSessions } from '../../src/lib/learnApi';
 import { COURSE } from '../../src/content/aiFundamentals';
 import { lectureForSession, moduleLabel, recordAttendance } from '../../src/lib/liveClass';
+import { trackedLiveJoinUrl } from '../../src/lib/analytics';
 import { BTN_PRIMARY, BTN_SECONDARY, CARD, MUTED, formatEAT, formatLocal } from './learnUi';
 
 const icsDate = (iso: string) => new Date(iso).toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '');
 
-const googleCalendarUrl = (s: LiveSession) => {
+const googleCalendarUrl = (s: LiveSession, uid?: string) => {
+    const joinUrl = s.meet_link ? trackedLiveJoinUrl(s.id, uid, 'calendar') : '';
     const p = new URLSearchParams({
         action: 'TEMPLATE',
         text: `${s.title} (${COURSE.short} live class)`,
         dates: `${icsDate(s.starts_at)}/${icsDate(s.ends_at)}`,
-        details: `${s.description || 'Live class for the free AI Fundamentals course.'}${s.meet_link ? `\nJoin: ${s.meet_link}` : ''}`,
-        location: s.meet_link || 'Online'
+        details: `${s.description || 'Live class for the free AI Fundamentals course.'}${joinUrl ? `\nJoin: ${joinUrl}` : ''}`,
+        location: joinUrl || 'Online'
     });
     return `https://calendar.google.com/calendar/render?${p.toString()}`;
 };
 
-const downloadIcs = (s: LiveSession) => {
+const downloadIcs = (s: LiveSession, uid?: string) => {
+    const joinUrl = s.meet_link ? trackedLiveJoinUrl(s.id, uid, 'calendar') : '';
     const lines = [
         'BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Welile School of AI//Live class//EN', 'BEGIN:VEVENT',
         `UID:${s.id}@welile`, `DTSTAMP:${icsDate(new Date().toISOString())}`,
         `DTSTART:${icsDate(s.starts_at)}`, `DTEND:${icsDate(s.ends_at)}`,
         `SUMMARY:${s.title.replace(/[,;]/g, ' ')}`,
-        `DESCRIPTION:${(s.description || 'Live class').replace(/\n/g, ' ').replace(/[,;]/g, ' ')}`,
-        `LOCATION:${s.meet_link || 'Online'}`, 'END:VEVENT', 'END:VCALENDAR'
+        `DESCRIPTION:${(s.description || 'Live class').replace(/\n/g, ' ').replace(/[,;]/g, ' ')}${joinUrl ? ` Join: ${joinUrl}` : ''}`,
+        `LOCATION:${joinUrl || 'Online'}`, 'END:VEVENT', 'END:VCALENDAR'
     ];
     const blob = new Blob([lines.join('\r\n')], { type: 'text/calendar' });
     const a = document.createElement('a');
@@ -136,8 +139,8 @@ const SessionCard: React.FC<{ s: LiveSession; now: number }> = ({ s, now }) => {
                         >
                             <Video size={16} /> {joinable ? 'Join now' : 'Join opens 10 min before'}
                         </a>
-                        <a href={googleCalendarUrl(s)} target="_blank" rel="noreferrer" className={`${BTN_SECONDARY} !py-2.5 !px-4 !text-sm`}><CalendarPlus size={16} /> Google Calendar</a>
-                        <button onClick={() => downloadIcs(s)} className={`${BTN_SECONDARY} !py-2.5 !px-4 !text-sm`}>.ics</button>
+                        <a href={googleCalendarUrl(s, uid)} target="_blank" rel="noreferrer" className={`${BTN_SECONDARY} !py-2.5 !px-4 !text-sm`}><CalendarPlus size={16} /> Google Calendar</a>
+                        <button onClick={() => downloadIcs(s, uid)} className={`${BTN_SECONDARY} !py-2.5 !px-4 !text-sm`}>.ics</button>
                     </>
                 )}
                 {past && s.recording_url && (
