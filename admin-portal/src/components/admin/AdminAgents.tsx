@@ -14,6 +14,7 @@ interface AgentSummary {
     slug: string;
     staff_code?: string | null;
     role: string | null;
+    agent_type?: 'student_agent' | 'field_only';
     email?: string | null;
     phone?: string | null;
     active: boolean;
@@ -57,6 +58,7 @@ interface DailyRegSummary {
     field_officer: string;
     staff_code?: string | null;
     role?: string | null;
+    agent_type?: 'student_agent' | 'field_only';
     email?: string | null;
     active: boolean;
     total_registered: number;
@@ -690,7 +692,14 @@ const AdminAgents: React.FC = () => {
                                                             {row.field_officer.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase()}
                                                         </div>
                                                         <div className="min-w-0">
-                                                            <p className="font-semibold text-gray-900 dark:text-white truncate">{row.field_officer}</p>
+                                                            <div className="flex items-center gap-1.5 flex-wrap">
+                                                                <p className="font-semibold text-gray-900 dark:text-white truncate">{row.field_officer}</p>
+                                                                {row.agent_type === 'field_only' && (
+                                                                    <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300">
+                                                                        Field-Only
+                                                                    </span>
+                                                                )}
+                                                            </div>
                                                             <p className="text-xs text-gray-500 dark:text-slate-400 truncate">
                                                                 {[row.staff_code, row.role].filter(Boolean).join(' · ') || 'Field Officer'}
                                                             </p>

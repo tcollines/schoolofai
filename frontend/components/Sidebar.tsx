@@ -1,6 +1,7 @@
-import React, { useEffect, useState } from 'react';
-import { Handshake, LayoutDashboard, BookOpen, CreditCard, User, Settings, LogOut, Briefcase, X, Compass, Calendar, Shield, Building2, GraduationCap } from 'lucide-react';
+import React from 'react';
+import { LayoutDashboard, BookOpen, User, Settings, LogOut, Briefcase, X, Compass, Calendar, Building2, GraduationCap, LayoutGrid } from 'lucide-react';
 import { supabaseClient } from '../src/lib/supabaseClient';
+import { clearPortalRolesCache } from '../src/lib/roles';
 
 import { useTranslation } from './translations';
 
@@ -11,12 +12,11 @@ interface SidebarProps {
   onClose: () => void;
   isAdmin?: boolean;
   isCorporate?: boolean;
+  hasMultipleRoles?: boolean;
 }
 
-const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, isOpen, onClose, isAdmin, isCorporate }) => {
+const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, isOpen, onClose, isAdmin, isCorporate, hasMultipleRoles }) => {
   const { t } = useTranslation();
-  const [isStaff, setIsStaff] = useState(false);
-  useEffect(() => { supabaseClient.rpc('is_staff').then(({ data }) => setIsStaff(data === true)); }, []);
 
   const menuItems = [
     { id: 'dashboard', label: t('dashboard'), icon: LayoutDashboard },
@@ -24,7 +24,6 @@ const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, isOpen, onCl
     { id: 'discover', label: t('discover'), icon: Compass },
     { id: 'courses', label: t('my_courses'), icon: BookOpen },
     ...(isCorporate ? [{ id: 'corporate', label: 'Corporate Portal', icon: Building2 }] : []),
-    ...(isStaff ? [{ id: 'staff', label: 'Agent portal', icon: Handshake }] : []),
     { id: 'events', label: t('events') || 'Upcoming Classes', icon: Calendar },
     { id: 'career', label: t('career_growth'), icon: Briefcase },
     { id: 'profile', label: t('my_profile'), icon: User },
@@ -90,17 +89,18 @@ const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, isOpen, onCl
         </nav>
 
         <div className="p-3 mt-auto space-y-1 border-t border-stone-200 dark:border-slate-800">
-          {isAdmin && (
-            <a
-              href={window.location.hostname.includes('localhost') ? 'http://admin.localhost:4002' : '/admin/'}
-              className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-violet-900 dark:text-violet-200 bg-violet-50 dark:bg-violet-950/40 hover:bg-violet-100 dark:hover:bg-violet-950/70 transition-colors"
+          {(hasMultipleRoles || isAdmin) && (
+            <button
+              onClick={() => setActiveTab('portal')}
+              className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-violet-900 dark:text-violet-200 bg-violet-50 dark:bg-violet-950/40 hover:bg-violet-100 dark:hover:bg-violet-950/70 transition-colors"
             >
-              <Shield size={18} />
-              <span>Admin Console</span>
-            </a>
+              <LayoutGrid size={18} />
+              <span>Switch Workspace</span>
+            </button>
           )}
           <button
             onClick={async () => {
+              clearPortalRolesCache();
               await supabaseClient.auth.signOut();
               window.location.href = '/';
             }}

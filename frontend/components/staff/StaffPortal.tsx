@@ -2,9 +2,11 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom';
 import QRCode from 'qrcode';
 import {
-    AlertTriangle, Check, CheckCircle2, Clock, Copy, Download, ExternalLink, LayoutDashboard, Loader2, MessageCircle,
+    AlertTriangle, BarChart3, Check, CheckCircle2, Clock, Copy, Download, ExternalLink, LayoutDashboard, LayoutGrid, Loader2, LogOut, MessageCircle,
     RefreshCw, Search, Trophy, UserPlus, Users, WifiOff
 } from 'lucide-react';
+import { supabase } from '../../src/lib/supabaseClient';
+import { clearPortalRolesCache } from '../../src/lib/roles';
 import { ALL_ITEMS } from '../../src/content/aiFundamentals';
 import { OFFICIAL_COURSE_CATALOG } from '../../src/lib/outreachSync';
 import {
@@ -447,13 +449,213 @@ const Leaderboard: React.FC<{ rows: LeaderRow[] | null }> = ({ rows }) => {
 };
 
 // ---------------------------------------------------------------------------
+// ---------------------------------------------------------------------------
+// Streamlined 3-Field Register & Stats for Non-Student Field-Only Agents
+// ---------------------------------------------------------------------------
+const FieldOnlyRegister: React.FC<{ profile: StaffProfile; onDone: () => void }> = ({ profile, onDone }) => {
+    const [name, setName] = useState('');
+    const [phone, setPhone] = useState('');
+    const [location, setLocation] = useState('');
+    const [busy, setBusy] = useState(false);
+    const sending = useRef(false);
+    const [error, setError] = useState<string | null>(null);
+    const [done, setDone] = useState<{ name: string; phone: string; queued: boolean } | null>(null);
+
+    const submit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (sending.current) return;
+        setError(null);
+        if (name.trim().length < 2) return setError("Please enter the student's full name.");
+        if (phone.replace(/\D/g, '').length < 9) return setError('Please enter a valid phone number.');
+        if (location.trim().length < 2) return setError('Please enter the student\'s location (town or district).');
+
+        const input: RegisterInput = {
+            name: name.trim(),
+            email: '',
+            phone: phone.trim(),
+            courseTitle: FREE_COURSE,
+            courseSlug: 'ai-fundamentals',
+            campaign: '',
+            notes: '',
+            location: location.trim(),
+            consent: true,
+        };
+        sending.current = true;
+        setBusy(true);
+        try {
+            const r = await registerStudent(input);
+            if (!r.ok) { setError(r.message || 'Could not register this student.'); return; }
+            setDone({ name: input.name, phone: r.phone || input.phone, queued: !!r.queued });
+            onDone();
+        } catch (err: any) {
+            setError(err?.message || 'Could not register this student.');
+        } finally {
+            sending.current = false;
+            setBusy(false);
+        }
+    };
+
+    if (done) {
+        const link = staffLink(profile.slug, '/free/ai-fundamentals');
+        const phoneDigits = (() => { const d = done.phone.replace(/\D/g, ''); return d.startsWith('0') ? '256' + d.slice(1) : d; })();
+        return (
+            <div className={`${CARD} rounded-2xl p-6 text-center space-y-4`}>
+                <CheckCircle2 className="mx-auto text-emerald-600" size={52} />
+                <div>
+                    <h2 className="font-serif text-2xl font-semibold">{done.queued ? 'Saved on this phone' : 'Student registered'}</h2>
+                    <p className={`mt-1 text-sm ${MUTED}`}>
+                        {done.queued ? `${done.name} will sync automatically when you are back online.` : `${done.name} has been recorded under ${profile.display_name}.`}
+                    </p>
+                </div>
+                <div className="flex flex-col sm:flex-row items-center justify-center gap-2.5 pt-2">
+                    <button
+                        type="button"
+                        onClick={() => { setDone(null); setError(null); setName(''); setPhone(''); setLocation(''); }}
+                        className={`${BTN_PRIMARY} w-full sm:w-auto`}
+                    >
+                        <UserPlus size={18} /> Register Next Student
+                    </button>
+                    <a
+                        href={whatsappShare(startMessage(done.name, link), phoneDigits)}
+                        target="_blank"
+                        rel="noreferrer"
+                        className={`${BTN_SECONDARY} w-full sm:w-auto`}
+                    >
+                        <MessageCircle size={18} /> Send Start Link on WhatsApp
+                    </a>
+                </div>
+            </div>
+        );
+    }
+
+    return (
+        <form onSubmit={submit} className={`${CARD} rounded-2xl p-5 sm:p-6 space-y-5`} noValidate>
+            <div>
+                <h2 className="font-serif text-2xl font-semibold">Register a Student</h2>
+                <p className={`text-sm mt-1 ${MUTED}`}>
+                    Field Officer: <span className="font-semibold">{profile.display_name}</span> ({profile.staff_code}). Works offline if signal drops.
+                </p>
+            </div>
+
+            <div>
+                <label htmlFor="fo-name" className="block text-sm font-semibold mb-1.5">Full Name *</label>
+                <input id="fo-name" value={name} onChange={e => setName(e.target.value)} placeholder="e.g. Grace Namukasa" autoComplete="off" className={INPUT} />
+            </div>
+
+            <div>
+                <label htmlFor="fo-phone" className="block text-sm font-semibold mb-1.5">Phone Number *</label>
+                <input id="fo-phone" type="tel" inputMode="tel" value={phone} onChange={e => setPhone(e.target.value)} placeholder="07XX XXX XXX" className={INPUT} />
+            </div>
+
+            <div>
+                <label htmlFor="fo-loc" className="block text-sm font-semibold mb-1.5">Location *</label>
+                <input id="fo-loc" value={location} onChange={e => setLocation(e.target.value)} placeholder="Town or district, e.g. Kyanja, Kampala" className={INPUT} />
+            </div>
+
+            {error && <p role="alert" className="text-sm text-red-600 flex items-start gap-2"><AlertTriangle size={16} className="mt-0.5 shrink-0" />{error}</p>}
+
+            <button type="submit" disabled={busy} className={`${BTN_PRIMARY} w-full !py-3.5 text-base`}>
+                {busy ? <><Loader2 className="animate-spin" size={18} /> Saving...</> : <><UserPlus size={18} /> Register Student</>}
+            </button>
+        </form>
+    );
+};
+
+const FieldOnlyOverview: React.FC<{ profile: StaffProfile; stats: StaffStats | null; onRefresh: () => void }> = ({ profile, stats, onRefresh }) => {
+    const [funnel, setFunnel] = useState<(StaffFunnel & { registered_today?: number; registered_7d?: number; daily_registered?: number[]; waiting?: number }) | null>(null);
+    const [days, setDays] = useState<number | null>(null);
+    useEffect(() => { void loadMyFunnel(days).then(f => setFunnel(f as any)); }, [stats, days]);
+
+    const dailyBars = funnel?.daily_registered || funnel?.daily || [];
+    const maxBar = Math.max(1, ...dailyBars);
+
+    return (
+        <div className="space-y-5">
+            <div className="flex items-center justify-between gap-2">
+                <div>
+                    <h2 className="font-serif text-xl font-semibold">My Field Stats</h2>
+                    <p className={`text-xs ${MUTED}`}>{profile.display_name} · {profile.staff_code}</p>
+                </div>
+                <div className="flex items-center gap-2">
+                    <div className="inline-flex rounded-lg border border-stone-300 dark:border-slate-700 overflow-hidden text-xs font-semibold">
+                        {([[7, '7d'], [30, '30d'], [null, 'All']] as [number | null, string][]).map(([d, l]) => (
+                            <button key={l} onClick={() => setDays(d)} className={`px-2.5 py-1.5 ${days === d ? 'bg-violet-700 text-white' : 'bg-white dark:bg-slate-900'}`}>{l}</button>
+                        ))}
+                    </div>
+                    <button onClick={onRefresh} className="p-2 rounded-lg border border-stone-300 dark:border-slate-700" aria-label="Refresh stats"><RefreshCw size={15} /></button>
+                </div>
+            </div>
+
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                <div className={`${CARD} rounded-2xl p-4`}>
+                    <p className={`text-xs font-semibold uppercase tracking-wide ${MUTED}`}>Today</p>
+                    <p className="text-3xl font-extrabold mt-1 text-emerald-700 dark:text-emerald-400">{funnel?.registered_today ?? 0}</p>
+                </div>
+                <div className={`${CARD} rounded-2xl p-4`}>
+                    <p className={`text-xs font-semibold uppercase tracking-wide ${MUTED}`}>Total Registered</p>
+                    <p className="text-3xl font-extrabold mt-1">{funnel?.registered ?? stats?.registered ?? 0}</p>
+                </div>
+                <div className={`${CARD} rounded-2xl p-4`}>
+                    <p className={`text-xs font-semibold uppercase tracking-wide ${MUTED}`}>Last 7 Days</p>
+                    <p className="text-3xl font-extrabold mt-1">{funnel?.registered_7d ?? 0}</p>
+                </div>
+                <div className={`${CARD} rounded-2xl p-4`}>
+                    <p className={`text-xs font-semibold uppercase tracking-wide ${MUTED}`}>Accounts Opened</p>
+                    <p className="text-3xl font-extrabold mt-1 text-violet-700 dark:text-violet-300">{funnel?.accounts ?? stats?.signups ?? 0}</p>
+                </div>
+            </div>
+
+            {funnel && (
+                <div className={`${CARD} rounded-2xl p-5 space-y-4`}>
+                    <div>
+                        <p className={`text-xs font-semibold uppercase tracking-wide ${MUTED}`}>Daily Registrations (Last 14 Days)</p>
+                        <div className="flex items-end gap-1.5 h-24 mt-3">
+                            {dailyBars.map((n, i) => (
+                                <div key={i} className="flex-1 flex flex-col items-center justify-end h-full gap-1">
+                                    {n > 0 && <span className="text-[10px] font-bold text-violet-700 dark:text-violet-300">{n}</span>}
+                                    <div
+                                        title={`${n}`}
+                                        className={`w-full rounded-t-sm ${n > 0 ? 'bg-violet-600' : 'bg-stone-200 dark:bg-slate-800'}`}
+                                        style={{ height: `${Math.max(8, Math.round((n / maxBar) * 80))}%` }}
+                                    />
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+
+                    {funnel.by_location && Object.keys(funnel.by_location).length > 0 && (
+                        <div className="border-t border-stone-100 dark:border-slate-800 pt-3">
+                            <p className={`text-xs font-semibold uppercase tracking-wide ${MUTED}`}>Locations Covered</p>
+                            <div className="flex flex-wrap gap-1.5 mt-2">
+                                {Object.entries(funnel.by_location).sort((a, b) => b[1] - a[1]).map(([loc, n]) => (
+                                    <span key={loc} className="px-2.5 py-1 rounded-full text-xs font-medium bg-stone-100 dark:bg-slate-800">
+                                        {loc} <b className="text-violet-700 dark:text-violet-300">{n}</b>
+                                    </span>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+                </div>
+            )}
+        </div>
+    );
+};
+
+// ---------------------------------------------------------------------------
 // Portal shell
 // ---------------------------------------------------------------------------
-const TABS: { id: Tab; label: string; icon: React.FC<any> }[] = [
+const STUDENT_AGENT_TABS: { id: Tab; label: string; icon: React.FC<any> }[] = [
     { id: 'overview', label: 'Overview', icon: LayoutDashboard },
     { id: 'register', label: 'Register', icon: UserPlus },
     { id: 'students', label: 'My students', icon: Users },
     { id: 'leaderboard', label: 'Leaderboard', icon: Trophy }
+];
+
+const FIELD_ONLY_TABS: { id: Tab; label: string; icon: React.FC<any> }[] = [
+    { id: 'register', label: 'Register', icon: UserPlus },
+    { id: 'overview', label: 'My Stats', icon: BarChart3 },
+    { id: 'students', label: 'Registered', icon: Users },
+    { id: 'leaderboard', label: 'Top Agents', icon: Trophy }
 ];
 
 const StaffPortal: React.FC<{ session: any }> = ({ session }) => {
@@ -483,12 +685,25 @@ const StaffPortal: React.FC<{ session: any }> = ({ session }) => {
     }, [loadAll]);
 
     useEffect(() => {
-        document.title = 'Staff portal | Welile School of AI';
-        loadStaffProfile().then(s => { setState(s); if (s.status === 'ok') { void loadAll(); void flush(); } });
+        document.title = 'Agent portal | Welile School of AI';
+        loadStaffProfile().then(s => {
+            setState(s);
+            if (s.status === 'ok') {
+                if (s.profile.agent_type === 'field_only') setTab('register');
+                void loadAll();
+                void flush();
+            }
+        });
         const onOnline = () => void flush();
         window.addEventListener('online', onOnline);
         return () => window.removeEventListener('online', onOnline);
     }, [loadAll, flush]);
+
+    const handleSignOut = async () => {
+        clearPortalRolesCache();
+        await supabase.auth.signOut();
+        window.location.href = '/';
+    };
 
     if (!state) return <div className={`min-h-screen ${PAPER} flex items-center justify-center`}><Loader2 className="animate-spin text-violet-700" size={32} /></div>;
 
@@ -514,6 +729,8 @@ const StaffPortal: React.FC<{ session: any }> = ({ session }) => {
     }
 
     const profile = state.profile;
+    const isFieldOnly = profile.agent_type === 'field_only';
+    const tabs = isFieldOnly ? FIELD_ONLY_TABS : STUDENT_AGENT_TABS;
 
     return (
         <div className={`min-h-screen ${PAPER} ${INK} pb-24 md:pb-10`}>
@@ -521,11 +738,11 @@ const StaffPortal: React.FC<{ session: any }> = ({ session }) => {
                 <div className="max-w-4xl mx-auto px-4 h-16 flex items-center gap-3">
                     <Logo className="h-9" />
                     <div className="hidden sm:block leading-tight">
-                        <p className="font-serif font-semibold">Staff portal</p>
+                        <p className="font-serif font-semibold">{isFieldOnly ? 'Field Agent Portal' : 'Agent Portal'}</p>
                         <p className={`text-xs ${MUTED}`}>{profile.display_name}</p>
                     </div>
-                    <nav className="hidden md:flex items-center gap-1 ml-6" aria-label="Staff sections">
-                        {TABS.map(t => (
+                    <nav className="hidden md:flex items-center gap-1 ml-6" aria-label="Agent sections">
+                        {tabs.map(t => (
                             <button key={t.id} onClick={() => setTab(t.id)} aria-current={tab === t.id ? 'page' : undefined}
                                 className={`px-3.5 py-2 rounded-lg text-sm font-semibold ${tab === t.id ? 'bg-violet-100 dark:bg-violet-950 text-violet-900 dark:text-violet-200' : 'hover:bg-stone-100 dark:hover:bg-slate-800'}`}>
                                 {t.label}
@@ -533,8 +750,16 @@ const StaffPortal: React.FC<{ session: any }> = ({ session }) => {
                         ))}
                     </nav>
                     <div className="flex-1" />
-                    <Link to="/dashboard" className="text-sm font-medium px-3 py-2 rounded-lg hover:bg-stone-100 dark:hover:bg-slate-800">My courses</Link>
+                    {!isFieldOnly && (
+                        <Link to="/portal" className="inline-flex items-center gap-1.5 text-xs sm:text-sm font-semibold px-3 py-2 rounded-lg bg-violet-100 dark:bg-violet-950/60 text-violet-900 dark:text-violet-200 hover:bg-violet-200 dark:hover:bg-violet-900/60">
+                            <LayoutGrid size={15} />
+                            <span className="hidden sm:inline">Switch Role</span>
+                        </Link>
+                    )}
                     <ThemeButton />
+                    <button onClick={handleSignOut} title="Sign out" className="p-2 rounded-lg text-stone-600 dark:text-slate-300 hover:bg-stone-100 dark:hover:bg-slate-800">
+                        <LogOut size={16} />
+                    </button>
                 </div>
             </header>
 
@@ -547,15 +772,19 @@ const StaffPortal: React.FC<{ session: any }> = ({ session }) => {
                 )}
                 {notice && <div role="status" className="rounded-xl border border-emerald-300 bg-emerald-50 dark:bg-emerald-950/30 p-3.5 text-sm">{notice}</div>}
 
-                {tab === 'overview' && <Overview profile={profile} stats={stats} onRefresh={() => void loadAll()} />}
-                {tab === 'register' && <Register profile={profile} onDone={() => { setPending(queuedCount()); void loadAll(); }} />}
+                {tab === 'overview' && (isFieldOnly
+                    ? <FieldOnlyOverview profile={profile} stats={stats} onRefresh={() => void loadAll()} />
+                    : <Overview profile={profile} stats={stats} onRefresh={() => void loadAll()} />)}
+                {tab === 'register' && (isFieldOnly
+                    ? <FieldOnlyRegister profile={profile} onDone={() => { setPending(queuedCount()); void loadAll(); }} />
+                    : <Register profile={profile} onDone={() => { setPending(queuedCount()); void loadAll(); }} />)}
                 {tab === 'students' && <Students profile={profile} students={students} onRefresh={() => void loadAll()} />}
                 {tab === 'leaderboard' && <Leaderboard rows={leaders} />}
             </main>
 
             {/* phone navigation */}
-            <nav className="md:hidden fixed bottom-0 inset-x-0 z-30 bg-white/95 dark:bg-slate-900/95 backdrop-blur border-t border-stone-200 dark:border-slate-800 grid grid-cols-4 pb-[env(safe-area-inset-bottom)]" aria-label="Staff sections">
-                {TABS.map(t => (
+            <nav className="md:hidden fixed bottom-0 inset-x-0 z-30 bg-white/95 dark:bg-slate-900/95 backdrop-blur border-t border-stone-200 dark:border-slate-800 grid grid-cols-4 pb-[env(safe-area-inset-bottom)]" aria-label="Agent sections">
+                {tabs.map(t => (
                     <button key={t.id} onClick={() => setTab(t.id)} aria-current={tab === t.id ? 'page' : undefined}
                         className={`flex flex-col items-center gap-1 py-2.5 text-[11px] font-semibold ${tab === t.id ? 'text-violet-800 dark:text-violet-300' : 'text-stone-500 dark:text-slate-400'}`}>
                         <t.icon size={22} />{t.label}
