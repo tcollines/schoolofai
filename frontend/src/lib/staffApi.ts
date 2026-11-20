@@ -27,7 +27,7 @@ export interface StaffStudent {
     last_active: string | null;
     completed: boolean;
 }
-export interface LeaderRow { id: string; display_name: string; signups: number; completed: number; points: number; is_me: boolean; }
+export interface LeaderRow { id: string; display_name: string; registered?: number; signups: number; started?: number; completed: number; points: number; is_me: boolean; }
 
 export interface RegisterInput {
     name: string;

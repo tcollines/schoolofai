@@ -219,17 +219,17 @@ const AdminFreeCourse: React.FC = () => {
                     <div className="grid xl:grid-cols-2 gap-6">
                         <div className={`${card} p-5`}>
                             <h2 className="font-bold flex items-center gap-2"><Trophy size={18} className="text-amber-500" /> Staff leaderboard</h2>
-                            <p className="text-xs text-gray-500 dark:text-slate-400 mb-3">Points: registered 1, started 2, completed 5. First referral wins; staff-registered students count for the registrar.</p>
+                            <p className="text-xs text-gray-500 dark:text-slate-400 mb-3">Ranked by total students registered. Points: registered 1, account 1, started 2, completed 5.</p>
                             {stats.leaderboard.length === 0 ? <p className="text-sm text-gray-500">No attributed registrations yet. Share the staff links below.</p> : (
                                 <div className="overflow-x-auto">
                                     <table className="w-full text-sm">
-                                        <thead><tr className="text-left text-xs uppercase text-gray-500"><th className="py-2">#</th><th>Staff</th><th className="text-right">Clicks</th><th className="text-right">Reg.</th><th className="text-right">Started</th><th className="text-right">Done</th><th className="text-right">Pts</th></tr></thead>
+                                        <thead><tr className="text-left text-xs uppercase text-gray-500"><th className="py-2">#</th><th>Staff</th><th className="text-right">Clicks</th><th className="text-right">Reg.</th><th className="text-right">Accts</th><th className="text-right">Started</th><th className="text-right">Done</th><th className="text-right">Pts</th></tr></thead>
                                         <tbody>
                                             {stats.leaderboard.map((l, i) => (
                                                 <tr key={l.id} className="border-t border-gray-100 dark:border-slate-800">
                                                     <td className="py-2 font-semibold">{i + 1}</td>
                                                     <td><span className="font-medium">{l.display_name}</span><span className="block text-xs text-gray-500">{l.staff_code}</span></td>
-                                                    <td className="text-right">{l.clicks}</td><td className="text-right">{l.signups}</td><td className="text-right">{l.started}</td><td className="text-right">{l.completed}</td>
+                                                    <td className="text-right">{l.clicks}</td><td className="text-right font-semibold">{l.registered ?? l.signups}</td><td className="text-right">{l.signups}</td><td className="text-right">{l.started}</td><td className="text-right">{l.completed}</td>
                                                     <td className="text-right font-bold text-violet-600">{l.points}</td>
                                                 </tr>
                                             ))}

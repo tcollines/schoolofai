@@ -168,7 +168,7 @@ const Overview: React.FC<{ profile: StaffProfile; stats: StaffStats | null; onRe
                                 )}
                             </div>
                         )}
-                        <p className={`mt-3 text-sm ${MUTED}`}>You are ranked <span className="font-semibold text-[#1c1917] dark:text-slate-100">{stats.rank}</span> of {stats.staff_total}. Points: signed up 1, started 2, completed 5.</p>
+                        <p className={`mt-3 text-sm ${MUTED}`}>You are ranked <span className="font-semibold text-[#1c1917] dark:text-slate-100">{stats.rank}</span> of {stats.staff_total} by total students registered.</p>
                     </>
                 )}
             </section>
@@ -428,20 +428,26 @@ const Leaderboard: React.FC<{ rows: LeaderRow[] | null }> = ({ rows }) => {
         <div className={`${CARD} rounded-2xl overflow-hidden`}>
             <div className="px-5 py-4 border-b border-stone-100 dark:border-slate-800">
                 <h2 className="font-serif text-xl font-semibold flex items-center gap-2"><Trophy size={20} className="text-amber-500" /> Top staff</h2>
-                <p className={`text-sm mt-1 ${MUTED}`}>Points: signed up 1, started learning 2, completed the course 5.</p>
+                <p className={`text-sm mt-1 ${MUTED}`}>Ranked by total students registered.</p>
             </div>
             {rows.length === 0 ? <p className={`p-5 text-sm ${MUTED}`}>No results yet.</p> : (
                 <ol>
-                    {rows.map((r, i) => (
-                        <li key={r.id} className={`flex items-center gap-4 px-5 py-3.5 border-t border-stone-100 dark:border-slate-800 ${r.is_me ? 'bg-violet-50 dark:bg-violet-950/30' : ''}`}>
-                            <span className="w-7 text-center font-bold text-lg">{i + 1}</span>
-                            <span className="flex-1 min-w-0">
-                                <span className="block font-medium truncate">{r.display_name}{r.is_me && <span className="ml-2 text-xs font-semibold text-violet-800 dark:text-violet-300">You</span>}</span>
-                                <span className={`block text-xs ${MUTED}`}>{r.signups} signed up · {r.completed} completed</span>
-                            </span>
-                            <span className="font-extrabold text-violet-700 dark:text-violet-300">{r.points}</span>
-                        </li>
-                    ))}
+                    {rows.map((r, i) => {
+                        const registered = r.registered ?? r.signups;
+                        return (
+                            <li key={r.id} className={`flex items-center gap-4 px-5 py-3.5 border-t border-stone-100 dark:border-slate-800 ${r.is_me ? 'bg-violet-50 dark:bg-violet-950/30' : ''}`}>
+                                <span className="w-7 text-center font-bold text-lg">{i + 1}</span>
+                                <span className="flex-1 min-w-0">
+                                    <span className="block font-medium truncate">{r.display_name}{r.is_me && <span className="ml-2 text-xs font-semibold text-violet-800 dark:text-violet-300">You</span>}</span>
+                                    <span className={`block text-xs ${MUTED}`}>{r.signups} accounts · {r.started ?? 0} started · {r.completed} completed</span>
+                                </span>
+                                <span className="text-right shrink-0">
+                                    <span className="block text-lg font-extrabold leading-tight text-violet-700 dark:text-violet-300">{registered}</span>
+                                    <span className={`block text-[10px] font-semibold uppercase tracking-wide ${MUTED}`}>students</span>
+                                </span>
+                            </li>
+                        );
+                    })}
                 </ol>
             )}
         </div>
