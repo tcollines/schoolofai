@@ -252,7 +252,7 @@ const LivePanel: React.FC = () => {
                     <h2 className="mt-8 text-sm font-semibold uppercase tracking-wide text-violet-800 dark:text-violet-300">Upcoming</h2>
                     {upcoming.length === 0
                         ? <div className={`${CARD} rounded-2xl p-5 mt-3`}>
-                            <p className="font-semibold">Live classes run every Monday, Wednesday and Friday at 2:00 pm</p>
+                            <p className="font-semibold">Live classes run every Wednesday and Friday at 2:00 pm</p>
                             <p className={`mt-1 text-sm ${MUTED}`}>East Africa Time. The next sessions will appear here with a join button that opens 10 minutes before the start.</p>
                         </div>
                         : <div className="mt-3 space-y-4">{upcoming.map(s => <div key={s.id}><SessionBadges id={s.id} tt={tt} /><ul><SessionCard s={s} now={now} /></ul></div>)}</div>}

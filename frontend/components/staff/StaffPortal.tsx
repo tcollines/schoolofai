@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom';
 import QRCode from 'qrcode';
 import {
-    AlertTriangle, BarChart3, Check, CheckCircle2, Clock, Copy, Download, ExternalLink, LayoutDashboard, LayoutGrid, Loader2, LogOut, MessageCircle,
+    AlertTriangle, BarChart3, CalendarDays, Check, CheckCircle2, Clock, Copy, Download, ExternalLink, LayoutDashboard, LayoutGrid, Loader2, LogOut, MessageCircle,
     RefreshCw, Search, Trophy, UserPlus, Users, WifiOff
 } from 'lucide-react';
 import { supabase } from '../../src/lib/supabaseClient';
@@ -16,8 +16,9 @@ import {
     StaffFunnel, loadMyFunnel, joinLink, generateTempPassword, createClientAccount, clientCredentialsMessage
 } from '../../src/lib/staffApi';
 import { BTN_PRIMARY, BTN_SECONDARY, CARD, INK, Logo, MUTED, PAPER, ThemeButton } from '../learn/learnUi';
+import StaffCalendar from './StaffCalendar';
 
-type Tab = 'overview' | 'register' | 'students' | 'leaderboard';
+type Tab = 'overview' | 'register' | 'students' | 'leaderboard' | 'calendar';
 const TOTAL_ITEMS = ALL_ITEMS.length;
 
 const FREE_COURSE = 'AI Fundamentals (free)';
@@ -654,14 +655,16 @@ const STUDENT_AGENT_TABS: { id: Tab; label: string; icon: React.FC<any> }[] = [
     { id: 'overview', label: 'Overview', icon: LayoutDashboard },
     { id: 'register', label: 'Register', icon: UserPlus },
     { id: 'students', label: 'My students', icon: Users },
-    { id: 'leaderboard', label: 'Leaderboard', icon: Trophy }
+    { id: 'leaderboard', label: 'Leaderboard', icon: Trophy },
+    { id: 'calendar', label: 'My calendar', icon: CalendarDays }
 ];
 
 const FIELD_ONLY_TABS: { id: Tab; label: string; icon: React.FC<any> }[] = [
     { id: 'register', label: 'Register', icon: UserPlus },
     { id: 'overview', label: 'My Stats', icon: BarChart3 },
     { id: 'students', label: 'Registered', icon: Users },
-    { id: 'leaderboard', label: 'Top Agents', icon: Trophy }
+    { id: 'leaderboard', label: 'Top Agents', icon: Trophy },
+    { id: 'calendar', label: 'My calendar', icon: CalendarDays }
 ];
 
 const StaffPortal: React.FC<{ session: any }> = ({ session }) => {
@@ -786,14 +789,15 @@ const StaffPortal: React.FC<{ session: any }> = ({ session }) => {
                     : <Register profile={profile} onDone={() => { setPending(queuedCount()); void loadAll(); }} />)}
                 {tab === 'students' && <Students profile={profile} students={students} onRefresh={() => void loadAll()} />}
                 {tab === 'leaderboard' && <Leaderboard rows={leaders} />}
+                {tab === 'calendar' && <StaffCalendar />}
             </main>
 
             {/* phone navigation */}
-            <nav className="md:hidden fixed bottom-0 inset-x-0 z-30 bg-white/95 dark:bg-slate-900/95 backdrop-blur border-t border-stone-200 dark:border-slate-800 grid grid-cols-4 pb-[env(safe-area-inset-bottom)]" aria-label="Agent sections">
+            <nav className="md:hidden fixed bottom-0 inset-x-0 z-30 bg-white/95 dark:bg-slate-900/95 backdrop-blur border-t border-stone-200 dark:border-slate-800 grid grid-cols-5 pb-[env(safe-area-inset-bottom)]" aria-label="Agent sections">
                 {tabs.map(t => (
                     <button key={t.id} onClick={() => setTab(t.id)} aria-current={tab === t.id ? 'page' : undefined}
                         className={`flex flex-col items-center gap-1 py-2.5 text-[11px] font-semibold ${tab === t.id ? 'text-violet-800 dark:text-violet-300' : 'text-stone-500 dark:text-slate-400'}`}>
-                        <t.icon size={22} />{t.label}
+                        <t.icon size={22} /><span className="truncate max-w-full px-0.5">{t.label}</span>
                     </button>
                 ))}
             </nav>

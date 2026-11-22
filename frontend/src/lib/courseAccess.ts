@@ -9,9 +9,8 @@ export const LESSONS_OPEN_LABEL = 'Monday 16th November';
 export const OPEN_ITEM_IDS = ['m0-l1'];
 export const EARLY_ACCESS_EMAILS = ['tcwaniaye@gmail.com', 'tkwaniaye17@gmail.com', 'pexpert46@gmail.com', 'namulyaisaac@gmail.com'];
 
-/** Live classes (East Africa Time): every Monday, Wednesday and Friday at 2:00 pm. */
+/** Live classes (East Africa Time): two classes a week, Wednesday and Friday at 2:00 pm. */
 export const LIVE_SCHEDULE = [
-    { day: 'Monday', time: '2:00 pm' },
     { day: 'Wednesday', time: '2:00 pm' },
     { day: 'Friday', time: '2:00 pm' }
 ];

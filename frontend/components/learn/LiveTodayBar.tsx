@@ -6,7 +6,7 @@ import { LiveSession, loadLiveSessions } from '../../src/lib/learnApi';
 import { lectureForSession, moduleLabel, recordAttendance, todaysClass } from '../../src/lib/liveClass';
 import { useLearn } from './learnContext';
 
-/** A slim bar on class days (Mon, Wed, Fri): tells the learner about the 2:00 pm class and links to the join page. */
+/** A slim bar on class days (Wed and Fri): tells the learner about the 2:00 pm class and links to the join page. */
 const LiveTodayBar: React.FC = () => {
     const { uid } = useLearn();
     const [now, setNow] = useState(Date.now());

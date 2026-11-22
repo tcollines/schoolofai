@@ -35,7 +35,7 @@ function buildEmail(r) {
         'All six modules are open: What AI really is, How to talk to AI, Make AI work for you, When AI gets it wrong, Fair and private, and Using AI responsibly.',
         'Lessons open one at a time. You can see the whole lineup, and each lesson opens when you finish the one before it, so everything builds step by step.',
         'Each module ends with a short quiz (70% to pass). When every lesson and quiz is done, take the final assessment (20 questions, 80% to pass) and get your certificate.',
-        'Live classes run every Monday, Wednesday and Friday at 2:00 pm East Africa Time, two modules each. If you join a class, the lessons it covers count as done and you only take the quizzes for those modules.',
+        'Live classes run twice a week, on Wednesday and Friday at 2:00 pm East Africa Time, three modules each. If you join a class, the lessons it covers count as done and you only take the quizzes for those modules.',
         'Tip: keep the course on your phone like an app. Open it in your phone browser and tap "Install app" (on iPhone: Share, then Add to Home Screen).'
     ];
     const text = [`Hello ${name},`, '', 'Good news: the whole course is now open for you.', '', ...points.map(p => `- ${p}`), '', `Continue where you left off: ${link}`, '', 'Warm regards,', BRAND, '', 'You are receiving this because you registered for the free AI Fundamentals course.'].join('\n');
