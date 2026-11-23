@@ -5,6 +5,7 @@ import {
     Mail, MessageCircle, Phone, RefreshCw, Search, Smartphone, Video
 } from 'lucide-react';
 import { supabaseClient } from '../../lib/supabaseClient';
+import { CHANNELS, channelOf } from './peopleChannels';
 
 type Stage = 'Registered' | 'Account opened' | 'In course' | 'Studying' | 'Joined live' | 'Passed final' | 'Completed';
 
@@ -89,10 +90,18 @@ const AdminRegistrationPipeline: React.FC<{ course: string }> = ({ course }) => 
     const [tab, setTab] = useState<'all' | Stage>(initialStage);
     const [q, setQ] = useState('');
     const [moduleFilter, setModuleFilter] = useState<string>('all');
-    const [agentFilter, setAgentFilter] = useState<string>('all');
+    const [agentFilter, setAgentFilter] = useState<string>(searchParams.get('agent') || 'all');
+    const [channelFilter, setChannelFilter] = useState<string>(searchParams.get('channel') || 'all');
     const [onlyAppInstalled, setOnlyAppInstalled] = useState(false);
     const [limit, setLimit] = useState(50);
     const [notes, setNotes] = useState<Record<string, string>>({});
+
+    // Keep the agent and channel filters in step with the People page summary tables
+    useEffect(() => {
+        setAgentFilter(searchParams.get('agent') || 'all');
+        setChannelFilter(searchParams.get('channel') || 'all');
+        setLimit(50);
+    }, [searchParams]);
 
     // Sync tab if user clicked a stage link from Dashboard
     useEffect(() => {
@@ -172,6 +181,7 @@ const AdminRegistrationPipeline: React.FC<{ course: string }> = ({ course }) => 
                 if (agentFilter === '__none__' && r.agent) return false;
                 if (agentFilter !== '__none__' && r.agent !== agentFilter) return false;
             }
+            if (channelFilter !== 'all' && channelOf(r) !== channelFilter) return false;
             if (onlyAppInstalled && !r.app_installed) return false;
             if (term) {
                 const hay = `${r.name} ${r.email || ''} ${r.phone || ''} ${r.location || ''} ${r.agent || ''} ${r.certificate_id || ''}`.toLowerCase();
@@ -179,7 +189,7 @@ const AdminRegistrationPipeline: React.FC<{ course: string }> = ({ course }) => 
             }
             return true;
         });
-    }, [rows, tab, moduleFilter, agentFilter, onlyAppInstalled, q]);
+    }, [rows, tab, moduleFilter, agentFilter, channelFilter, onlyAppInstalled, q]);
 
     const save = async (r: StudentRow, status: StudentRow['followup'], note: string | null) => {
         setRows(prev => (prev || []).map(x => x.key === r.key ? { ...x, followup: status, note } : x));
@@ -297,6 +307,16 @@ const AdminRegistrationPipeline: React.FC<{ course: string }> = ({ course }) => 
                         ))}
                     </select>
                 </div>
+
+                <select
+                    value={channelFilter}
+                    onChange={e => { setChannelFilter(e.target.value); setLimit(50); }}
+                    aria-label="Filter by how they registered"
+                    className={`${field} text-xs`}
+                >
+                    <option value="all">All ways of registering</option>
+                    {CHANNELS.map(c => <option key={c} value={c}>{c}</option>)}
+                </select>
 
                 {agentOptions.length > 0 && (
                     <select

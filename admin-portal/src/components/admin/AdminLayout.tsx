@@ -3,7 +3,7 @@ import { Routes, Route, useNavigate, useLocation, Navigate } from 'react-router-
 import { 
     LayoutDashboard, Users, BookOpen, UserCheck, 
     Settings, LogOut, FileQuestion, Calendar, Mail, CheckCircle, Shield,
-    Bell, Search, Handshake, Menu, X, Sun, Moon, MessageSquare, ClipboardList, Wallet, GraduationCap, Video, UserCog, Home, Activity, BarChart3
+    Bell, Search, Handshake, Menu, X, Sun, Moon, MessageSquare, ClipboardList, Wallet, GraduationCap, Video, UserCog, Home, Activity, BarChart3, UsersRound
 } from 'lucide-react';
 import { getCurrencyPreference, setCurrencyPreference, CurrencyType } from '../../lib/currency';
 import AdminOverview from './AdminOverview';
@@ -25,6 +25,7 @@ import AdminLiveSessions from './AdminLiveSessions';
 import AdminStaff from './AdminStaff';
 import AdminAgents from './AdminAgents';
 import AdminAnalytics from './AdminAnalytics';
+import AdminPeople from './AdminPeople';
 import { supabaseClient } from '../../lib/supabaseClient';
 import { verifyConsoleSession, clearConsoleFlags } from '../../lib/consoleAuth';
 
@@ -229,6 +230,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ onExit, isInstructor, isAdmin
           ] as const)
         : ([
             { id: 'dashboard', label: 'Dashboard', icon: Home },
+            { id: 'people', label: 'All People', icon: UsersRound },
             { id: 'enrollments', label: 'Enrollments', icon: Users },
             { id: 'registrations', label: 'Registrations', icon: ClipboardList },
             { id: 'free-course', label: 'Free Course', icon: GraduationCap },
@@ -251,6 +253,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ onExit, isInstructor, isAdmin
             <Routes>
                 <Route path="/" element={<Navigate to={isInstructor ? "courses" : "dashboard"} replace />} />
                 {!isInstructor && <Route path="dashboard" element={<AdminDashboard />} />}
+                {!isInstructor && <Route path="people" element={<AdminPeople />} />}
                 {!isInstructor && <Route path="enrollments" element={<AdminEnrollments />} />}
                 {!isInstructor && <Route path="registrations" element={<AdminRegistrations />} />}
                 {!isInstructor && <Route path="free-course" element={<AdminFreeCourse />} />}
