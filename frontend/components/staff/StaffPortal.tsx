@@ -510,6 +510,34 @@ const Leaderboard: React.FC<{ rows: LeaderRow[] | null }> = ({ rows }) => {
 
 // ---------------------------------------------------------------------------
 // ---------------------------------------------------------------------------
+// Sign-up link card for field agents (not students): people open their own account and are counted for the agent
+// ---------------------------------------------------------------------------
+const FieldAgentLinkCard: React.FC<{ profile: StaffProfile; compact?: boolean }> = ({ profile, compact }) => {
+    const { copied, copy } = useCopy();
+    const quick = joinLink(profile.slug);
+    return (
+        <section className={`${CARD} p-5 sm:p-6`}>
+            <div className="flex items-start gap-3">
+                <span className="w-11 h-11 rounded-[14px] bg-lime-200 text-night inline-flex items-center justify-center shrink-0"><UserPlus size={20} /></span>
+                <div className="min-w-0">
+                    <h2 className="m-0 text-[17px] font-extrabold">Your sign-up link</h2>
+                    <p className={`mt-1 mb-0 text-[13px] leading-relaxed ${MUTED}`}>
+                        {compact
+                            ? 'Share this link and people can open their own free account. They are counted for you automatically.'
+                            : 'Send this link to anyone. They open their own free account in about a minute and are counted for you automatically, on top of the students you register yourself.'}
+                    </p>
+                </div>
+            </div>
+            <div className="mt-4 rounded-[14px] bg-panel dark:bg-night-3 px-4 py-3 text-[13px] break-all font-mono">{quick}</div>
+            <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                <button type="button" onClick={() => copy(quick, 'quick')} className={BTN_PRIMARY}>{copied === 'quick' ? <><Check size={18} /> Copied</> : <><Copy size={18} /> Copy my link</>}</button>
+                <a href={whatsappShare(`Open your free Welile School of AI account here (takes one minute): ${quick}`)} target="_blank" rel="noreferrer" className={BTN_SECONDARY}><MessageCircle size={18} /> Share on WhatsApp</a>
+            </div>
+        </section>
+    );
+};
+
+// ---------------------------------------------------------------------------
 // Streamlined 3-Field Register & Stats for Non-Student Field-Only Agents
 // ---------------------------------------------------------------------------
 const FieldOnlyRegister: React.FC<{ profile: StaffProfile; onDone: () => void }> = ({ profile, onDone }) => {
@@ -589,6 +617,7 @@ const FieldOnlyRegister: React.FC<{ profile: StaffProfile; onDone: () => void }>
     }
 
     return (
+        <div className="space-y-4">
         <form onSubmit={submit} className={`${CARD} rounded-2xl p-5 sm:p-6 space-y-5`} noValidate>
             <div>
                 <h2 className="font-serif text-2xl font-semibold">Register a Student</h2>
@@ -618,6 +647,8 @@ const FieldOnlyRegister: React.FC<{ profile: StaffProfile; onDone: () => void }>
                 {busy ? <><Loader2 className="animate-spin" size={18} /> Saving...</> : <><UserPlus size={18} /> Register Student</>}
             </button>
         </form>
+        <FieldAgentLinkCard profile={profile} compact />
+        </div>
     );
 };
 
@@ -664,6 +695,8 @@ const FieldOnlyOverview: React.FC<{ profile: StaffProfile; stats: StaffStats | n
                     <p className="text-3xl font-extrabold mt-1 text-violet-700 dark:text-violet-300">{funnel?.accounts ?? stats?.signups ?? 0}</p>
                 </div>
             </div>
+
+            <FieldAgentLinkCard profile={profile} />
 
             {funnel && (
                 <div className={`${CARD} rounded-2xl p-5 space-y-4`}>
