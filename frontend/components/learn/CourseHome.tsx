@@ -75,7 +75,7 @@ const CourseHome: React.FC = () => {
                 <section className="mt-4 rounded-[24px] bg-brand-soft dark:bg-night-2 p-6 sm:p-7">
                     <p className="m-0 text-[12px] font-bold uppercase tracking-[0.12em] text-brand dark:text-violet-300">You are registered</p>
                     <h2 className="mt-1.5 mb-0 text-[22px] font-extrabold tracking-[-0.01em] text-brand-ink dark:text-white">Your lessons begin on {LESSONS_OPEN_LABEL}</h2>
-                    <p className={`mt-2 mb-0 text-[14px] leading-relaxed ${MUTED}`}>Watch the welcome video today. You can then learn two ways: join our 3 live classes (Monday, Wednesday and Friday at 2:00 pm, East Africa Time), or study at your own pace once every lesson opens on {LESSONS_OPEN_LABEL}.</p>
+                    <p className={`mt-2 mb-0 text-[14px] leading-relaxed ${MUTED}`}>Watch the welcome video today. You can then learn two ways: join our 2 live classes each week (Wednesday and Friday at 2:00 pm, East Africa Time), or study at your own pace once every lesson opens on {LESSONS_OPEN_LABEL}.</p>
                     <Link to={`${base}/item/m0-l1`} className={`${BTN_PRIMARY} mt-4`}><PlayCircle size={18} /> Watch the welcome video</Link>
                 </section>
             )}
@@ -155,7 +155,7 @@ const CourseHome: React.FC = () => {
                             </>
                         ) : (
                             <div className="mt-3">
-                                <p className="m-0 text-[14px] font-bold">Every Monday, Wednesday and Friday at 2:00 pm</p>
+                                <p className="m-0 text-[14px] font-bold">Every Wednesday and Friday at 2:00 pm</p>
                                 <p className={`m-0 text-[13px] ${MUTED}`}>East Africa Time. The join link appears in the timetable before each class.</p>
                             </div>
                         )}

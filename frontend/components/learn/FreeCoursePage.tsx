@@ -74,7 +74,7 @@ const FreeCoursePage: React.FC = () => {
                     <ol className="mt-6 grid gap-2.5 max-w-xl" aria-label="How it works">
                         {[
                             ['1', 'Register free', 'One minute, on any phone.'],
-                            ['2', 'Learn your way', 'Recorded lessons any time. Live classes Mon, Wed and Fri at 2:00 pm are optional.'],
+                            ['2', 'Learn your way', 'Recorded lessons any time. Two live classes a week, Wed and Fri at 2:00 pm, are optional.'],
                             ['3', 'Get certified', 'Pass the final assessment and download your free certificate.']
                         ].map(([n, t, d]) => (
                             <li key={n} className="flex items-start gap-3">
@@ -206,7 +206,7 @@ const FreeCoursePage: React.FC = () => {
                         </div>
                         <div className={`${CARD} p-6`}>
                             <p className="text-xs font-semibold uppercase tracking-wide text-brand dark:text-violet-300">Live classes, optional</p>
-                            <p className="text-xl font-extrabold tracking-[-0.02em] mt-1">Mon, Wed and Fri, 2:00 pm</p>
+                            <p className="text-xl font-extrabold tracking-[-0.02em] mt-1">Wed and Fri, 2:00 pm</p>
                             <p className={`mt-2 text-[15px] leading-snug ${MUTED}`}>East Africa Time. Learn with others and ask questions. Attend a live class and that lecture's videos and readings count as done: you only take its quizzes.</p>
                         </div>
                     </div>

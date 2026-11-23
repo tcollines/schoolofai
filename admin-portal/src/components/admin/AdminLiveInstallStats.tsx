@@ -9,7 +9,7 @@ interface Ev { user_id: string; event_type: string; item_id: string | null; payl
 interface Learner { user_id: string; name: string; email: string }
 
 const card = 'bg-white dark:bg-night-2 rounded-[22px]';
-const LECTURES: Record<string, string> = { 'lecture-1': 'Lecture 1 (Modules 1 and 2)', 'lecture-2': 'Lecture 2 (Modules 3 and 4)', 'lecture-3': 'Lecture 3 (Modules 5 and 6)' };
+const LECTURES: Record<string, string> = { 'part-1': 'Part 1, Wednesday (Modules 1 to 3)', 'part-2': 'Part 2, Friday (Modules 4 to 6)', 'lecture-1': 'Lecture 1, old Monday class (Modules 1 and 2)', 'lecture-2': 'Lecture 2, old Wednesday class (Modules 3 and 4)', 'lecture-3': 'Lecture 3, old Friday class (Modules 5 and 6)' };
 const TYPES = ['live_joined', 'app_install_available', 'app_install_clicked', 'app_installed', 'app_install_dismissed', 'app_opened'];
 
 const AdminLiveInstallStats: React.FC<{ course: string; learners: Learner[]; enrolled: number }> = ({ course, learners, enrolled }) => {

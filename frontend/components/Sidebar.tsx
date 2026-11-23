@@ -1,10 +1,11 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
-  Home, GraduationCap, BookOpen, Video, Compass, Award, Handshake, Building2, CreditCard, User, SlidersHorizontal,
-  LogOut, Shield, PanelLeftClose, PanelLeftOpen, X
+  Home, GraduationCap, BookOpen, Video, Compass, Award, Building2, CreditCard, User, SlidersHorizontal,
+  LogOut, Shield, PanelLeftClose, PanelLeftOpen, X, LayoutGrid
 } from 'lucide-react';
 import { supabaseClient } from '../src/lib/supabaseClient';
+import { clearPortalRolesCache, adminConsoleUrl } from '../src/lib/roles';
 import { useFreeCourse } from '../src/hooks/useFreeCourse';
 import { COURSE } from '../src/content/aiFundamentals';
 import { useTranslation } from './translations';
@@ -17,6 +18,7 @@ interface SidebarProps {
   onClose: () => void;
   isAdmin?: boolean;
   isCorporate?: boolean;
+  hasMultipleRoles?: boolean;
   user?: { id?: string; name?: string; email?: string; role?: string };
 }
 
@@ -24,10 +26,8 @@ type Item = { id: string; to: string; label: string; icon: React.ComponentType<a
 
 const OPEN_KEY = 'welile_sidebar_open';
 
-const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, isOpen, onClose, isAdmin, isCorporate, user }) => {
+const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, isOpen, onClose, isAdmin, isCorporate, hasMultipleRoles, user }) => {
   const { t } = useTranslation();
-  const [isStaff, setIsStaff] = useState(false);
-  useEffect(() => { supabaseClient.rpc('is_staff').then(({ data }) => setIsStaff(data === true)); }, []);
 
   // Desktop: open (labels) or collapsed (icons). Remembered on this device.
   const [open, setOpen] = useState<boolean>(() => {
@@ -55,7 +55,7 @@ const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, isOpen, onCl
     { id: 'career', to: '/career', label: 'Certificates', icon: Award },
   ];
   const work: Item[] = [
-    ...(isStaff ? [{ id: 'staff', to: '/staff', label: 'Agent portal', icon: Handshake }] : []),
+    ...(hasMultipleRoles ? [{ id: 'portal', to: '/portal', label: 'Switch Workspace', icon: LayoutGrid }] : []),
     ...(isCorporate ? [{ id: 'corporate', to: '/corporate', label: 'Corporate portal', icon: Building2 }] : []),
   ];
   const account: Item[] = [
@@ -65,6 +65,7 @@ const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, isOpen, onCl
   ];
 
   const signOut = async () => {
+    clearPortalRolesCache();
     await supabaseClient.auth.signOut();
     window.location.href = '/';
   };
@@ -131,7 +132,7 @@ const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, isOpen, onCl
         )}
 
         {isAdmin && (
-          <a href={window.location.hostname.includes('localhost') ? 'http://admin.localhost:4002' : '/admin/'}
+          <a href={adminConsoleUrl()}
             title={expanded ? undefined : 'Admin console'} aria-label={expanded ? undefined : 'Admin console'}
             className={cx('press flex items-center gap-3 min-h-[44px] rounded-[14px] text-[13px] font-bold text-brand-ink dark:text-violet-200 bg-brand-soft dark:bg-night-3 mb-2 no-underline', expanded ? 'px-3' : 'w-12 mx-auto justify-center')}>
             <Shield size={18} className="shrink-0" />{expanded && <span>Admin console</span>}

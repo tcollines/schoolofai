@@ -17,7 +17,7 @@ export interface LearnCtx {
     bump: () => void;
     /** staff / admin accounts can open every lesson before the public start date */
     fullAccess: boolean;
-    /** lectures (lecture-1..3) this learner attended live: their videos and readings count as done, only quizzes remain */
+    /** lectures (part-1, part-2, or the older lecture-1..3) this learner attended live: their videos and readings count as done, only quizzes remain */
     attended: Set<string>;
     refreshAttendance: () => Promise<void>;
 }

@@ -51,7 +51,7 @@ function buildEmail(r) {
     const step = r.has_account
         ? `Your place is ready. Sign in with this email address (${r.email}) and open the course:`
         : `Your place is saved. Create your free account with this email address (${r.email}) and the course opens for you straight away:`;
-    const live = s ? `Next live class: ${s.title}, ${whenEAT(s.starts_at)}.${joinUrl ? ` Join here: ${joinUrl}` : ''}` : 'Live classes run every Monday, Wednesday and Friday at 2:00 pm East Africa Time.';
+    const live = s ? `Next live class: ${s.title}, ${whenEAT(s.starts_at)}.${joinUrl ? ` Join here: ${joinUrl}` : ''}` : 'Live classes run every Wednesday and Friday at 2:00 pm East Africa Time.';
     const text = [
         `Hello ${name},`, '',
         'You registered with Welile School of AI, and we have opened a place for you in our free course, AI Fundamentals: Use AI with Confidence. It teaches you to ask AI clearly, put it to work, check what it says, and use it fairly and safely.', '',

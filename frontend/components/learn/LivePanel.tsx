@@ -248,7 +248,7 @@ const LivePanel: React.FC = () => {
             <section className="relative overflow-hidden rounded-[26px] bg-night text-white p-6 sm:p-8">
                 <span aria-hidden="true" className="absolute -right-16 -top-20 w-[260px] h-[260px] rounded-full bg-night-3" />
                 <span aria-hidden="true" className="absolute right-32 -bottom-28 w-[200px] h-[200px] rounded-full bg-night-2" />
-                <p className="relative m-0 inline-flex items-center gap-2 h-8 px-3 rounded-full bg-white/10 text-[12px] font-bold"><span className="w-2 h-2 rounded-full bg-[#F0533A]" aria-hidden="true" /> Mon, Wed, Fri · 2:00 pm EAT</p>
+                <p className="relative m-0 inline-flex items-center gap-2 h-8 px-3 rounded-full bg-white/10 text-[12px] font-bold"><span className="w-2 h-2 rounded-full bg-[#F0533A]" aria-hidden="true" /> Wed, Fri · 2:00 pm EAT</p>
                 <h1 className="relative mt-3 mb-0 text-[28px] sm:text-[32px] font-extrabold tracking-[-0.02em]">Live classes</h1>
                 <p className="relative mt-2 mb-0 max-w-[560px] text-[14px] leading-relaxed text-[#C9C3E6]">Optional sessions to ask questions and practise with others. Times are shown in East Africa Time, with your local time underneath. Live classes are optional. If you join one, the lessons it covers count as done, and you only take the quizzes for those modules.</p>
             </section>
@@ -262,7 +262,7 @@ const LivePanel: React.FC = () => {
                     <h2 className="mt-7 mb-0 text-[18px] font-extrabold">Upcoming</h2>
                     {upcoming.length === 0
                         ? <div className={`${CARD} p-5 mt-3`}>
-                            <p className="font-semibold">Live classes run every Monday, Wednesday and Friday at 2:00 pm</p>
+                            <p className="font-semibold">Live classes run every Wednesday and Friday at 2:00 pm</p>
                             <p className={`mt-1 text-sm ${MUTED}`}>East Africa Time. The next sessions will appear here with a join button that opens 10 minutes before the start.</p>
                         </div>
                         : <div className="mt-3 space-y-4">{upcoming.map(s => <div key={s.id}><SessionBadges id={s.id} tt={tt} /><ul className="m-0 p-0 list-none"><SessionCard s={s} now={now} /></ul></div>)}</div>}

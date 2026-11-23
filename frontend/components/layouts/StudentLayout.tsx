@@ -8,6 +8,7 @@ import { UserRole, Course } from '../../types';
 import { CheckCircle, Sparkles, X, PartyPopper } from 'lucide-react';
 import MobileTabBar from './MobileTabBar';
 import { supabase } from '../../src/lib/supabaseClient';
+import { fetchMyPortalRoles, PortalRoles } from '../../src/lib/roles';
 import { useTranslation } from '../translations';
 
 interface StudentLayoutProps {
@@ -47,8 +48,18 @@ const StudentLayout: React.FC<StudentLayoutProps> = ({ session, isAuthenticated,
     }, []);
 
     const { profile } = useProfile(isAuthenticated ? session : null);
-    const [isStaff, setIsStaff] = React.useState(false);
-    React.useEffect(() => { if (isAuthenticated) supabase.rpc('is_staff').then(({ data }) => setIsStaff(data === true)); }, [isAuthenticated]);
+    const [portalRoles, setPortalRoles] = React.useState<PortalRoles | null>(null);
+    React.useEffect(() => {
+        if (!isAuthenticated || !session?.user?.id) { setPortalRoles(null); return; }
+        fetchMyPortalRoles(session.user.id).then(r => {
+            setPortalRoles(r);
+            // Non-student field-only agents belong exclusively in their streamlined Field Agent Portal
+            if (!r.is_student && r.is_agent && !r.is_admin && !r.is_supervisor) {
+                navigate('/staff', { replace: true });
+            }
+        });
+    }, [isAuthenticated, session?.user?.id, navigate]);
+    const hasMultipleRoles = (portalRoles?.role_count || 0) >= 2;
 
     const displayUser = profile || {
         id: 'guest',
@@ -101,6 +112,7 @@ const StudentLayout: React.FC<StudentLayoutProps> = ({ session, isAuthenticated,
                     onClose={() => setIsMobileMenuOpen(false)}
                     isAdmin={isAdminMode || displayUser?.role === UserRole.ADMIN}
                     isCorporate={isCorporate}
+                    hasMultipleRoles={hasMultipleRoles}
                     user={displayUser as any}
                 />
 

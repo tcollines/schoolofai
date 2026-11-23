@@ -19,8 +19,8 @@ const ComingSoon: React.FC<{ firstName?: string; compact?: boolean }> = ({ first
             </p>
 
             <div className="mt-7 text-left rounded-[20px] bg-panel dark:bg-night-3/60 p-5">
-                <p className="flex items-center gap-2 font-semibold"><Video size={18} className="text-brand dark:text-violet-400" /> Live classes: 3 a week</p>
-                <ul className="mt-3 grid grid-cols-3 gap-2 text-center">
+                <p className="flex items-center gap-2 font-semibold"><Video size={18} className="text-brand dark:text-violet-400" /> Live classes: 2 a week</p>
+                <ul className="mt-3 grid grid-cols-2 gap-2 text-center">
                     {LIVE_SCHEDULE.map(s => (
                         <li key={s.day} className="rounded-[14px] bg-white dark:bg-night-2 py-3 px-1">
                             <p className="font-semibold text-sm">{s.day}</p>

@@ -39,6 +39,9 @@ const LearnRoute = lazy(() => import('./components/learn/LearnRoute'));
 const VerifyCertificatePage = lazy(() => import('./components/learn/VerifyCertificatePage'));
 const ResetPasswordPage = lazy(() => import('./components/ResetPasswordPage'));
 const StaffPortal = lazy(() => import('./components/staff/StaffPortal'));
+const RolePortalPage = lazy(() => import('./components/RolePortalPage'));
+const AgentSupervisionPage = lazy(() => import('./components/staff/AgentSupervisionPage'));
+import { clearPortalRolesCache } from './src/lib/roles';
 const RouteFallback = () => (
   <div className="flex items-center justify-center h-screen">
     <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-welile-purple"></div>
@@ -54,14 +57,14 @@ import { UserRole } from './types';
 
 const LandingRoute = ({ isAuthenticated, session }: { isAuthenticated: boolean; session: any }) => {
   const navigate = useNavigate();
-  // Signed-in students never see the marketing page: new accounts get the Get started screen, everyone else their dashboard.
-  if (isAuthenticated) return <Navigate to={needsWelcome(session) ? '/welcome' : '/dashboard'} replace />;
+  // The public home page stays open to everyone, signed in or not. Signed-in visitors go to /portal
+  // which auto-routes single-role users straight to their portal and shows role cards to multi-role users.
   return (
     <LandingPage
-      isAuthenticated={false}
-      onGetStarted={() => navigate('/signup')}
-      onLoginClick={() => navigate('/login')}
-      onSignupClick={() => navigate('/signup')}
+      isAuthenticated={isAuthenticated}
+      onGetStarted={() => navigate(isAuthenticated ? '/portal' : '/signup')}
+      onLoginClick={() => navigate(isAuthenticated ? '/portal' : '/login')}
+      onSignupClick={() => navigate(isAuthenticated ? '/portal' : '/signup')}
     />
   );
 };
@@ -80,11 +83,11 @@ const afterAuthPath = () => {
   const back = getReturnTo();
   if (back) return back;
   const intent = getFreeCourseIntent();
-  return intent ? learnHomePath(intent) : '/dashboard';
+  return intent ? learnHomePath(intent) : '/portal';
 };
 
 // Landing point after confirming an email or signing up: straight into the free course if that is why they came,
-// otherwise the dashboard with every course.
+// otherwise /portal (which auto-routes single-role users directly to /dashboard or /staff).
 
 // First sign-in: show Get started once, then carry on to where the student was going.
 /** Dashboard plus the one-time "new dashboard" tour for students who used the old design. */
@@ -134,7 +137,7 @@ const ContinueRoute = ({ isAuthenticated, session }: { isAuthenticated: boolean;
   if (!isAuthenticated) return <Navigate to="/login" replace />;
   const back = getReturnTo();
   const course = session?.user?.user_metadata?.enroll_course || getFreeCourseIntent();
-  return <Navigate to={withWelcome(session, back || (course ? learnHomePath(course) : '/dashboard'))} replace />;
+  return <Navigate to={withWelcome(session, back || (course ? learnHomePath(course) : '/portal'))} replace />;
 };
 
 const LoginRoute = ({ isAuthenticated, session }: { isAuthenticated: boolean; session?: any }) => {
@@ -303,6 +306,7 @@ function App() {
       if (session) {
           localStorage.setItem('logged_in_email', session.user?.email || 'student@test.com');
       } else {
+          clearPortalRolesCache();
           localStorage.removeItem('logged_in_email');
           // Clear login fired flag from sessionStorage on logout
           const keysToRemove: string[] = [];
@@ -385,7 +389,19 @@ function App() {
         <Route path="/join/:slug" element={<Suspense fallback={<RouteFallback />}><JoinPage /></Suspense>} />
         <Route path="/unsubscribe" element={<Suspense fallback={<RouteFallback />}><UnsubscribePage /></Suspense>} />
         <Route path="/verify/:id" element={<Suspense fallback={<RouteFallback />}><VerifyCertificatePage /></Suspense>} />
-        {/* Staff portal: staff sign in with their normal login; access is granted by an administrator linking the account */}
+        {/* Multi-role workspace launcher (auto-routes single-role users straight to their portal) */}
+        <Route path="/portal" element={
+          <ProtectedRoute isAuthenticated={isAuthenticated} userProfile={userProfile}>
+            <Suspense fallback={<RouteFallback />}><RolePortalPage session={session} /></Suspense>
+          </ProtectedRoute>
+        } />
+        {/* Agent Supervision workspace (Mugasha Isaac, tkwaniaye17@gmail.com, and Admins) */}
+        <Route path="/supervision" element={
+          <ProtectedRoute isAuthenticated={isAuthenticated} userProfile={userProfile}>
+            <Suspense fallback={<RouteFallback />}><AgentSupervisionPage session={session} /></Suspense>
+          </ProtectedRoute>
+        } />
+        {/* Staff / Field Agent portal */}
         <Route path="/staff" element={
           <ProtectedRoute isAuthenticated={isAuthenticated} userProfile={userProfile}>
             <Suspense fallback={<RouteFallback />}><StaffPortal session={session} /></Suspense>

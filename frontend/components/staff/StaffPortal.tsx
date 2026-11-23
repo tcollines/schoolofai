@@ -2,9 +2,11 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom';
 import QRCode from 'qrcode';
 import {
-    AlertTriangle, Check, CheckCircle2, Clock, Copy, Download, ExternalLink, LayoutDashboard, Loader2, MessageCircle,
+    AlertTriangle, BarChart3, CalendarDays, Check, CheckCircle2, Clock, Copy, Download, ExternalLink, LayoutDashboard, LayoutGrid, Loader2, LogOut, MessageCircle,
     RefreshCw, Search, Trophy, UserPlus, Users, WifiOff
 } from 'lucide-react';
+import { supabase } from '../../src/lib/supabaseClient';
+import { clearPortalRolesCache } from '../../src/lib/roles';
 import { ALL_ITEMS } from '../../src/content/aiFundamentals';
 import { OFFICIAL_COURSE_CATALOG } from '../../src/lib/outreachSync';
 import {
@@ -14,8 +16,9 @@ import {
     StaffFunnel, loadMyFunnel, joinLink, generateTempPassword, createClientAccount, clientCredentialsMessage
 } from '../../src/lib/staffApi';
 import { BTN_PRIMARY, BTN_SECONDARY, CARD, INK, Logo, MUTED, PAPER, ThemeButton } from '../learn/learnUi';
+import StaffCalendar from './StaffCalendar';
 
-type Tab = 'overview' | 'register' | 'students' | 'leaderboard';
+type Tab = 'overview' | 'register' | 'students' | 'leaderboard' | 'calendar';
 const TOTAL_ITEMS = ALL_ITEMS.length;
 
 const FREE_COURSE = 'AI Fundamentals (free)';
@@ -215,7 +218,7 @@ const Overview: React.FC<{ profile: StaffProfile; stats: StaffStats | null; onRe
                             )}
                         </>
                     )}
-                    {stats && <p className={`mt-5 mb-0 text-[13px] ${MUTED}`}>You are ranked <span className="font-extrabold text-ink dark:text-slate-100">{stats.rank}</span> of {stats.staff_total}.</p>}
+                    {stats && <p className={`mt-5 mb-0 text-[13px] ${MUTED}`}>You are ranked <span className="font-extrabold text-ink dark:text-slate-100">{stats.rank}</span> of {stats.staff_total} by total students registered.</p>}
                 </section>
             </div>
         </div>
@@ -479,21 +482,220 @@ const Leaderboard: React.FC<{ rows: LeaderRow[] | null }> = ({ rows }) => {
             <div className="relative overflow-hidden px-6 py-6 bg-night text-white">
                 <span aria-hidden="true" className="absolute -right-10 -top-14 w-44 h-44 rounded-full bg-night-3" />
                 <h2 className="relative m-0 text-[22px] font-extrabold tracking-[-0.02em] flex items-center gap-2"><Trophy size={22} className="text-lime-200" /> Top agents</h2>
-                <p className="relative mt-1 mb-0 text-[13px] text-[#C9C3E6]">Points: signed up 1, started learning 2, completed the course 5.</p>
+                <p className="relative mt-1 mb-0 text-[13px] text-[#C9C3E6]">Ranked by total students registered.</p>
             </div>
             {rows.length === 0 ? <p className={`p-5 text-sm ${MUTED}`}>No results yet.</p> : (
                 <ol className="m-0 p-2 list-none">
-                    {rows.map((r, i) => (
-                        <li key={r.id} className={`flex items-center gap-4 px-4 py-3 rounded-[16px] ${r.is_me ? 'bg-brand-soft dark:bg-night-3' : ''}`}>
-                            <span className={`w-9 h-9 rounded-[11px] inline-flex items-center justify-center text-[15px] font-extrabold shrink-0 ${i === 0 ? 'bg-lime-200 text-night' : i === 1 ? 'bg-brand text-white' : i === 2 ? 'bg-brand-soft text-brand dark:bg-night-3 dark:text-violet-300' : 'bg-panel dark:bg-night-3 text-[#6B6680]'}`}>{i + 1}</span>
-                            <span className="flex-1 min-w-0">
-                                <span className="block font-medium truncate">{r.display_name}{r.is_me && <span className="ml-2 text-xs font-semibold text-brand dark:text-violet-300">You</span>}</span>
-                                <span className={`block text-xs ${MUTED}`}>{r.signups} signed up · {r.completed} completed</span>
-                            </span>
-                            <span className="text-[18px] font-extrabold tabular-nums text-brand dark:text-violet-300">{r.points}<span className="text-[11px] font-bold text-[#6B6680] ml-1">pts</span></span>
-                        </li>
-                    ))}
+                    {rows.map((r, i) => {
+                        const registered = r.registered ?? r.signups;
+                        return (
+                            <li key={r.id} className={`flex items-center gap-4 px-4 py-3 rounded-[16px] ${r.is_me ? 'bg-brand-soft dark:bg-night-3' : ''}`}>
+                                <span className={`w-9 h-9 rounded-[11px] inline-flex items-center justify-center text-[15px] font-extrabold shrink-0 ${i === 0 ? 'bg-lime-200 text-night' : i === 1 ? 'bg-brand text-white' : i === 2 ? 'bg-brand-soft text-brand dark:bg-night-3 dark:text-violet-300' : 'bg-panel dark:bg-night-3 text-[#6B6680]'}`}>{i + 1}</span>
+                                <span className="flex-1 min-w-0">
+                                    <span className="block font-medium truncate">{r.display_name}{r.is_me && <span className="ml-2 text-xs font-semibold text-brand dark:text-violet-300">You</span>}</span>
+                                    <span className={`block text-xs ${MUTED}`}>{r.signups} accounts · {r.started ?? 0} started · {r.completed} completed</span>
+                                </span>
+                                <span className="text-right shrink-0">
+                                    <span className="block text-[18px] font-extrabold tabular-nums leading-tight text-brand dark:text-violet-300">{registered}</span>
+                                    <span className={`block text-[10px] font-bold uppercase tracking-wide ${MUTED}`}>students</span>
+                                </span>
+                            </li>
+                        );
+                    })}
                 </ol>
+            )}
+        </div>
+    );
+};
+
+// ---------------------------------------------------------------------------
+// ---------------------------------------------------------------------------
+// Streamlined 3-Field Register & Stats for Non-Student Field-Only Agents
+// ---------------------------------------------------------------------------
+const FieldOnlyRegister: React.FC<{ profile: StaffProfile; onDone: () => void }> = ({ profile, onDone }) => {
+    const [name, setName] = useState('');
+    const [phone, setPhone] = useState('');
+    const [location, setLocation] = useState('');
+    const [busy, setBusy] = useState(false);
+    const sending = useRef(false);
+    const [error, setError] = useState<string | null>(null);
+    const [done, setDone] = useState<{ name: string; phone: string; queued: boolean } | null>(null);
+
+    const submit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (sending.current) return;
+        setError(null);
+        if (name.trim().length < 2) return setError("Please enter the student's full name.");
+        if (phone.replace(/\D/g, '').length < 9) return setError('Please enter a valid phone number.');
+        if (location.trim().length < 2) return setError('Please enter the student\'s location (town or district).');
+
+        const input: RegisterInput = {
+            name: name.trim(),
+            email: '',
+            phone: phone.trim(),
+            courseTitle: FREE_COURSE,
+            courseSlug: 'ai-fundamentals',
+            campaign: '',
+            notes: '',
+            location: location.trim(),
+            consent: true,
+        };
+        sending.current = true;
+        setBusy(true);
+        try {
+            const r = await registerStudent(input);
+            if (!r.ok) { setError(r.message || 'Could not register this student.'); return; }
+            setDone({ name: input.name, phone: r.phone || input.phone, queued: !!r.queued });
+            onDone();
+        } catch (err: any) {
+            setError(err?.message || 'Could not register this student.');
+        } finally {
+            sending.current = false;
+            setBusy(false);
+        }
+    };
+
+    if (done) {
+        const link = staffLink(profile.slug, '/free/ai-fundamentals');
+        const phoneDigits = (() => { const d = done.phone.replace(/\D/g, ''); return d.startsWith('0') ? '256' + d.slice(1) : d; })();
+        return (
+            <div className={`${CARD} rounded-2xl p-6 text-center space-y-4`}>
+                <CheckCircle2 className="mx-auto text-emerald-600" size={52} />
+                <div>
+                    <h2 className="font-serif text-2xl font-semibold">{done.queued ? 'Saved on this phone' : 'Student registered'}</h2>
+                    <p className={`mt-1 text-sm ${MUTED}`}>
+                        {done.queued ? `${done.name} will sync automatically when you are back online.` : `${done.name} has been recorded under ${profile.display_name}.`}
+                    </p>
+                </div>
+                <div className="flex flex-col sm:flex-row items-center justify-center gap-2.5 pt-2">
+                    <button
+                        type="button"
+                        onClick={() => { setDone(null); setError(null); setName(''); setPhone(''); setLocation(''); }}
+                        className={`${BTN_PRIMARY} w-full sm:w-auto`}
+                    >
+                        <UserPlus size={18} /> Register Next Student
+                    </button>
+                    <a
+                        href={whatsappShare(startMessage(done.name, link), phoneDigits)}
+                        target="_blank"
+                        rel="noreferrer"
+                        className={`${BTN_SECONDARY} w-full sm:w-auto`}
+                    >
+                        <MessageCircle size={18} /> Send Start Link on WhatsApp
+                    </a>
+                </div>
+            </div>
+        );
+    }
+
+    return (
+        <form onSubmit={submit} className={`${CARD} rounded-2xl p-5 sm:p-6 space-y-5`} noValidate>
+            <div>
+                <h2 className="font-serif text-2xl font-semibold">Register a Student</h2>
+                <p className={`text-sm mt-1 ${MUTED}`}>
+                    Field Officer: <span className="font-semibold">{profile.display_name}</span> ({profile.staff_code}). Works offline if signal drops.
+                </p>
+            </div>
+
+            <div>
+                <label htmlFor="fo-name" className="block text-sm font-semibold mb-1.5">Full Name *</label>
+                <input id="fo-name" value={name} onChange={e => setName(e.target.value)} placeholder="e.g. Grace Namukasa" autoComplete="off" className={INPUT} />
+            </div>
+
+            <div>
+                <label htmlFor="fo-phone" className="block text-sm font-semibold mb-1.5">Phone Number *</label>
+                <input id="fo-phone" type="tel" inputMode="tel" value={phone} onChange={e => setPhone(e.target.value)} placeholder="07XX XXX XXX" className={INPUT} />
+            </div>
+
+            <div>
+                <label htmlFor="fo-loc" className="block text-sm font-semibold mb-1.5">Location *</label>
+                <input id="fo-loc" value={location} onChange={e => setLocation(e.target.value)} placeholder="Town or district, e.g. Kyanja, Kampala" className={INPUT} />
+            </div>
+
+            {error && <p role="alert" className="text-sm text-red-600 flex items-start gap-2"><AlertTriangle size={16} className="mt-0.5 shrink-0" />{error}</p>}
+
+            <button type="submit" disabled={busy} className={`${BTN_PRIMARY} w-full !py-3.5 text-base`}>
+                {busy ? <><Loader2 className="animate-spin" size={18} /> Saving...</> : <><UserPlus size={18} /> Register Student</>}
+            </button>
+        </form>
+    );
+};
+
+const FieldOnlyOverview: React.FC<{ profile: StaffProfile; stats: StaffStats | null; onRefresh: () => void }> = ({ profile, stats, onRefresh }) => {
+    const [funnel, setFunnel] = useState<(StaffFunnel & { registered_today?: number; registered_7d?: number; daily_registered?: number[]; waiting?: number }) | null>(null);
+    const [days, setDays] = useState<number | null>(null);
+    useEffect(() => { void loadMyFunnel(days).then(f => setFunnel(f as any)); }, [stats, days]);
+
+    const dailyBars = funnel?.daily_registered || funnel?.daily || [];
+    const maxBar = Math.max(1, ...dailyBars);
+
+    return (
+        <div className="space-y-5">
+            <div className="flex items-center justify-between gap-2">
+                <div>
+                    <h2 className="font-serif text-xl font-semibold">My Field Stats</h2>
+                    <p className={`text-xs ${MUTED}`}>{profile.display_name} · {profile.staff_code}</p>
+                </div>
+                <div className="flex items-center gap-2">
+                    <div className="inline-flex rounded-lg border border-stone-300 dark:border-slate-700 overflow-hidden text-xs font-semibold">
+                        {([[7, '7d'], [30, '30d'], [null, 'All']] as [number | null, string][]).map(([d, l]) => (
+                            <button key={l} onClick={() => setDays(d)} className={`px-2.5 py-1.5 ${days === d ? 'bg-violet-700 text-white' : 'bg-white dark:bg-slate-900'}`}>{l}</button>
+                        ))}
+                    </div>
+                    <button onClick={onRefresh} className="p-2 rounded-lg border border-stone-300 dark:border-slate-700" aria-label="Refresh stats"><RefreshCw size={15} /></button>
+                </div>
+            </div>
+
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                <div className={`${CARD} rounded-2xl p-4`}>
+                    <p className={`text-xs font-semibold uppercase tracking-wide ${MUTED}`}>Today</p>
+                    <p className="text-3xl font-extrabold mt-1 text-emerald-700 dark:text-emerald-400">{funnel?.registered_today ?? 0}</p>
+                </div>
+                <div className={`${CARD} rounded-2xl p-4`}>
+                    <p className={`text-xs font-semibold uppercase tracking-wide ${MUTED}`}>Total Registered</p>
+                    <p className="text-3xl font-extrabold mt-1">{funnel?.registered ?? stats?.registered ?? 0}</p>
+                </div>
+                <div className={`${CARD} rounded-2xl p-4`}>
+                    <p className={`text-xs font-semibold uppercase tracking-wide ${MUTED}`}>Last 7 Days</p>
+                    <p className="text-3xl font-extrabold mt-1">{funnel?.registered_7d ?? 0}</p>
+                </div>
+                <div className={`${CARD} rounded-2xl p-4`}>
+                    <p className={`text-xs font-semibold uppercase tracking-wide ${MUTED}`}>Accounts Opened</p>
+                    <p className="text-3xl font-extrabold mt-1 text-violet-700 dark:text-violet-300">{funnel?.accounts ?? stats?.signups ?? 0}</p>
+                </div>
+            </div>
+
+            {funnel && (
+                <div className={`${CARD} rounded-2xl p-5 space-y-4`}>
+                    <div>
+                        <p className={`text-xs font-semibold uppercase tracking-wide ${MUTED}`}>Daily Registrations (Last 14 Days)</p>
+                        <div className="flex items-end gap-1.5 h-24 mt-3">
+                            {dailyBars.map((n, i) => (
+                                <div key={i} className="flex-1 flex flex-col items-center justify-end h-full gap-1">
+                                    {n > 0 && <span className="text-[10px] font-bold text-violet-700 dark:text-violet-300">{n}</span>}
+                                    <div
+                                        title={`${n}`}
+                                        className={`w-full rounded-t-sm ${n > 0 ? 'bg-violet-600' : 'bg-stone-200 dark:bg-slate-800'}`}
+                                        style={{ height: `${Math.max(8, Math.round((n / maxBar) * 80))}%` }}
+                                    />
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+
+                    {funnel.by_location && Object.keys(funnel.by_location).length > 0 && (
+                        <div className="border-t border-stone-100 dark:border-slate-800 pt-3">
+                            <p className={`text-xs font-semibold uppercase tracking-wide ${MUTED}`}>Locations Covered</p>
+                            <div className="flex flex-wrap gap-1.5 mt-2">
+                                {Object.entries(funnel.by_location).sort((a, b) => b[1] - a[1]).map(([loc, n]) => (
+                                    <span key={loc} className="px-2.5 py-1 rounded-full text-xs font-medium bg-stone-100 dark:bg-slate-800">
+                                        {loc} <b className="text-violet-700 dark:text-violet-300">{n}</b>
+                                    </span>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+                </div>
             )}
         </div>
     );
@@ -502,11 +704,20 @@ const Leaderboard: React.FC<{ rows: LeaderRow[] | null }> = ({ rows }) => {
 // ---------------------------------------------------------------------------
 // Portal shell
 // ---------------------------------------------------------------------------
-const TABS: { id: Tab; label: string; icon: React.FC<any> }[] = [
+const STUDENT_AGENT_TABS: { id: Tab; label: string; icon: React.FC<any> }[] = [
     { id: 'overview', label: 'Overview', icon: LayoutDashboard },
     { id: 'register', label: 'Register', icon: UserPlus },
     { id: 'students', label: 'My students', icon: Users },
-    { id: 'leaderboard', label: 'Leaderboard', icon: Trophy }
+    { id: 'leaderboard', label: 'Leaderboard', icon: Trophy },
+    { id: 'calendar', label: 'My calendar', icon: CalendarDays }
+];
+
+const FIELD_ONLY_TABS: { id: Tab; label: string; icon: React.FC<any> }[] = [
+    { id: 'register', label: 'Register', icon: UserPlus },
+    { id: 'overview', label: 'My Stats', icon: BarChart3 },
+    { id: 'students', label: 'Registered', icon: Users },
+    { id: 'leaderboard', label: 'Top Agents', icon: Trophy },
+    { id: 'calendar', label: 'My calendar', icon: CalendarDays }
 ];
 
 const StaffPortal: React.FC<{ session: any }> = ({ session }) => {
@@ -537,11 +748,24 @@ const StaffPortal: React.FC<{ session: any }> = ({ session }) => {
 
     useEffect(() => {
         document.title = 'Agent portal | Welile School of AI';
-        loadStaffProfile().then(s => { setState(s); if (s.status === 'ok') { void loadAll(); void flush(); } });
+        loadStaffProfile().then(s => {
+            setState(s);
+            if (s.status === 'ok') {
+                if (s.profile.agent_type === 'field_only') setTab('register');
+                void loadAll();
+                void flush();
+            }
+        });
         const onOnline = () => void flush();
         window.addEventListener('online', onOnline);
         return () => window.removeEventListener('online', onOnline);
     }, [loadAll, flush]);
+
+    const handleSignOut = async () => {
+        clearPortalRolesCache();
+        await supabase.auth.signOut();
+        window.location.href = '/';
+    };
 
     if (!state) return <div className={`min-h-screen ${PAPER} flex items-center justify-center`}><Loader2 className="animate-spin text-brand" size={32} /></div>;
 
@@ -567,6 +791,8 @@ const StaffPortal: React.FC<{ session: any }> = ({ session }) => {
     }
 
     const profile = state.profile;
+    const isFieldOnly = profile.agent_type === 'field_only';
+    const tabs = isFieldOnly ? FIELD_ONLY_TABS : STUDENT_AGENT_TABS;
 
     return (
         <div className={`min-h-screen ${PAPER} ${INK} pb-32 lg:pb-0`}>
@@ -578,12 +804,12 @@ const StaffPortal: React.FC<{ session: any }> = ({ session }) => {
                         <span aria-hidden="true" className="w-11 h-11 rounded-full bg-brand text-white inline-flex items-center justify-center text-[15px] font-extrabold">{(profile.display_name || 'A').trim().split(/\s+/).slice(0, 2).map(w => w[0]).join('').toUpperCase()}</span>
                         <span className="min-w-0">
                             <span className="block text-[14px] font-extrabold truncate">{profile.display_name}</span>
-                            <span className="block text-[12px] font-semibold text-brand dark:text-violet-300">Sales agent · {profile.staff_code}</span>
+                            <span className="block text-[12px] font-semibold text-brand dark:text-violet-300">{isFieldOnly ? 'Field agent' : 'Sales agent'} · {profile.staff_code}</span>
                         </span>
                     </div>
-                    <p className="mt-5 mb-2 px-3 text-[11px] font-bold uppercase tracking-[0.12em] text-[#6B6680] dark:text-slate-400">Agent portal</p>
+                    <p className="mt-5 mb-2 px-3 text-[11px] font-bold uppercase tracking-[0.12em] text-[#6B6680] dark:text-slate-400">{isFieldOnly ? 'Field Agent Portal' : 'Agent portal'}</p>
                     <nav className="flex flex-col gap-1" aria-label="Agent sections">
-                        {TABS.map(t => {
+                        {tabs.map(t => {
                             const on = tab === t.id;
                             return (
                                 <button key={t.id} onClick={() => setTab(t.id)} aria-current={on ? 'page' : undefined}
@@ -604,8 +830,13 @@ const StaffPortal: React.FC<{ session: any }> = ({ session }) => {
                     )}
                     <div className="flex-1" />
                     <div className="flex items-center gap-2 pt-3 border-t border-[#EEEBF6] dark:border-night-3">
-                        <Link to="/dashboard" className="press flex-1 h-11 px-3 rounded-[14px] bg-panel dark:bg-night-3 text-[13px] font-bold inline-flex items-center gap-2 no-underline text-ink dark:text-white"><LayoutDashboard size={16} />My courses</Link>
+                        {!isFieldOnly && (
+                            <Link to="/portal" className="press flex-1 h-11 px-3 rounded-[14px] bg-panel dark:bg-night-3 text-[13px] font-bold inline-flex items-center gap-2 no-underline text-ink dark:text-white"><LayoutGrid size={16} />Switch Role</Link>
+                        )}
                         <ThemeButton />
+                        <button onClick={handleSignOut} title="Sign out" className="press w-11 h-11 rounded-[14px] bg-panel dark:bg-night-3 text-[#C2410C] inline-flex items-center justify-center">
+                            <LogOut size={16} />
+                        </button>
                     </div>
                 </aside>
 
@@ -615,12 +846,17 @@ const StaffPortal: React.FC<{ session: any }> = ({ session }) => {
                         <div className="px-4 h-[68px] flex items-center gap-3">
                             <Logo className="h-9" />
                             <div className="leading-tight min-w-0">
-                                <p className="m-0 text-[14px] font-extrabold">Agent portal</p>
+                                <p className="m-0 text-[14px] font-extrabold">{isFieldOnly ? 'Field Agent Portal' : 'Agent portal'}</p>
                                 <p className={`m-0 text-[12px] truncate ${MUTED}`}>{profile.display_name}</p>
                             </div>
                             <div className="flex-1" />
-                            <Link to="/dashboard" aria-label="My courses" className="press w-11 h-11 rounded-[14px] bg-white dark:bg-night-2 inline-flex items-center justify-center text-ink dark:text-white"><LayoutDashboard size={18} /></Link>
+                            {!isFieldOnly && (
+                                <Link to="/portal" aria-label="Switch Role" className="press w-11 h-11 rounded-[14px] bg-white dark:bg-night-2 inline-flex items-center justify-center text-ink dark:text-white"><LayoutGrid size={18} /></Link>
+                            )}
                             <ThemeButton />
+                            <button onClick={handleSignOut} title="Sign out" className="press w-11 h-11 rounded-[14px] bg-white dark:bg-night-2 inline-flex items-center justify-center text-[#C2410C]">
+                                <LogOut size={18} />
+                            </button>
                         </div>
                     </header>
 
@@ -634,22 +870,27 @@ const StaffPortal: React.FC<{ session: any }> = ({ session }) => {
                         )}
                         {notice && <div role="status" className="rounded-[18px] bg-mint-soft text-[#0E5A35] dark:bg-emerald-950/30 dark:text-emerald-200 p-4 text-[14px]">{notice}</div>}
 
-                        {tab === 'overview' && <Overview profile={profile} stats={stats} onRefresh={() => void loadAll()} />}
-                        {tab === 'register' && <Register profile={profile} onDone={() => { setPending(queuedCount()); void loadAll(); }} />}
+                        {tab === 'overview' && (isFieldOnly
+                            ? <FieldOnlyOverview profile={profile} stats={stats} onRefresh={() => void loadAll()} />
+                            : <Overview profile={profile} stats={stats} onRefresh={() => void loadAll()} />)}
+                        {tab === 'register' && (isFieldOnly
+                            ? <FieldOnlyRegister profile={profile} onDone={() => { setPending(queuedCount()); void loadAll(); }} />
+                            : <Register profile={profile} onDone={() => { setPending(queuedCount()); void loadAll(); }} />)}
                         {tab === 'students' && <Students profile={profile} students={students} onRefresh={() => void loadAll()} />}
                         {tab === 'leaderboard' && <Leaderboard rows={leaders} />}
+                        {tab === 'calendar' && <StaffCalendar />}
                     </main>
                 </div>
             </div>
 
             {/* phone navigation */}
-            <nav className="lg:hidden fixed bottom-3 inset-x-3 z-30 frost-white rounded-[24px] h-[68px] grid grid-cols-4 px-1.5 mb-[env(safe-area-inset-bottom)] shadow-[0_10px_30px_rgba(30,27,46,0.12)]" aria-label="Agent sections">
-                {TABS.map(t => {
+            <nav className="lg:hidden fixed bottom-3 inset-x-3 z-30 frost-white rounded-[24px] h-[68px] grid grid-cols-5 px-1.5 mb-[env(safe-area-inset-bottom)] shadow-[0_10px_30px_rgba(30,27,46,0.12)]" aria-label="Agent sections">
+                {tabs.map(t => {
                     const on = tab === t.id;
                     return (
                         <button key={t.id} onClick={() => setTab(t.id)} aria-current={on ? 'page' : undefined}
-                            className={`press flex flex-col items-center justify-center gap-1 my-1.5 rounded-[18px] text-[11px] font-bold ${on ? 'bg-brand text-white' : 'text-[#6B6680] dark:text-slate-400'}`}>
-                            <t.icon size={20} />{t.label}
+                            className={`press flex flex-col items-center justify-center gap-1 my-1.5 rounded-[18px] text-[10px] font-bold ${on ? 'bg-brand text-white' : 'text-[#6B6680] dark:text-slate-400'}`}>
+                            <t.icon size={19} /><span className="truncate max-w-full px-0.5">{t.label}</span>
                         </button>
                     );
                 })}

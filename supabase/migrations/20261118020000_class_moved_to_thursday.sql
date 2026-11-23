@@ -35,8 +35,6 @@ BEGIN
     RETURN n;
 END $$;
 
-REVOKE ALL ON FUNCTION public.reminders_due(TEXT) FROM PUBLIC, anon, authenticated;
-
 CREATE OR REPLACE FUNCTION public.reminders_due(p_secret TEXT)
 RETURNS JSONB LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path = public AS $$
 DECLARE r JSONB;

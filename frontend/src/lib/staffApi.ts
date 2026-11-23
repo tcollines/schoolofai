@@ -2,7 +2,15 @@ import { supabase, createIsolatedClient } from './supabaseClient';
 
 /** Staff portal data layer. Every call goes through a database function that returns only the signed-in staff member's own data. */
 
-export interface StaffProfile { id: string; display_name: string; staff_code: string; slug: string; role: string | null; }
+export interface StaffProfile {
+    id: string;
+    display_name: string;
+    staff_code: string;
+    slug: string;
+    role: string | null;
+    agent_type?: 'student_agent' | 'field_only';
+    can_supervise_agents?: boolean;
+}
 export interface StaffStats {
     clicks: number; registered: number; signups: number; started: number; completed: number; points: number; rank: number; staff_total: number;
 }
@@ -19,7 +27,7 @@ export interface StaffStudent {
     last_active: string | null;
     completed: boolean;
 }
-export interface LeaderRow { id: string; display_name: string; signups: number; completed: number; points: number; is_me: boolean; }
+export interface LeaderRow { id: string; display_name: string; registered?: number; signups: number; started?: number; completed: number; points: number; is_me: boolean; }
 
 export interface RegisterInput {
     name: string;
@@ -208,3 +216,83 @@ export async function createClientAccount(input: { email: string; password: stri
 
 export const clientCredentialsMessage = (name: string, email: string, tempPassword: string) =>
     `Hello ${name.split(' ')[0]}, your Welile School of AI account is ready.\n\n1. Check your email and tap the confirmation link.\n2. Sign in at ${window.location.origin}/login\nEmail: ${email}\nTemporary password: ${tempPassword}\n\nYou will be asked to choose your own password. Your free AI Fundamentals course opens straight away. Live classes are Monday, Wednesday and Friday at 2:00 pm.`;
+
+// ---------------------------------------------------------------------------
+// Supervisor onboarding: Create a Field-Only Agent (not a student)
+// ---------------------------------------------------------------------------
+export interface CreateFieldAgentInput {
+    name: string;
+    email: string;
+    phone?: string;
+    role?: string;
+    password: string;
+}
+
+export interface CreateFieldAgentResult {
+    ok: boolean;
+    message?: string;
+    id?: string;
+    slug?: string;
+    staff_code?: string;
+    name?: string;
+    email?: string;
+}
+
+export async function createFieldOnlyAgent(input: CreateFieldAgentInput): Promise<CreateFieldAgentResult> {
+    const cleanName = input.name.trim();
+    const cleanEmail = input.email.trim().toLowerCase();
+    const cleanPhone = (input.phone || '').trim();
+    const cleanRole = (input.role || 'Field Agent').trim() || 'Field Agent';
+
+    if (cleanName.length < 2) return { ok: false, message: 'Please enter the agent\'s full name.' };
+    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(cleanEmail)) return { ok: false, message: 'Please enter a valid email address.' };
+    if (input.password.length < 8) return { ok: false, message: 'Temporary password must be at least 8 characters.' };
+
+    // 1. Create Auth account via isolated client (never signs out the supervisor)
+    const isolated = createIsolatedClient();
+    const { data: signUpData, error: signUpErr } = await isolated.auth.signUp({
+        email: cleanEmail,
+        password: input.password,
+        options: {
+            data: {
+                full_name: cleanName,
+                ...(cleanPhone ? { phone: cleanPhone } : {}),
+                signup_source: 'supervisor_field_agent',
+                is_field_only: true,
+                must_change_password: true,
+            },
+        },
+    });
+
+    if (signUpErr) {
+        if (/already|registered|exists/i.test(signUpErr.message)) {
+            return { ok: false, message: 'That email already has an account in the system. Use a fresh email for a non-student field agent, or make them a student-agent in Admin → Staff & Links.' };
+        }
+        return { ok: false, message: signUpErr.message };
+    }
+    if (signUpData?.user && (!signUpData.user.identities || signUpData.user.identities.length === 0)) {
+        return { ok: false, message: 'That email already has an account in the system. Use a different email for a non-student field agent.' };
+    }
+
+    // 2. Confirm email & link as field_only agent via supervisor RPC
+    const { data, error } = await supabase.rpc('supervisor_finalize_field_agent', {
+        p_email: cleanEmail,
+        p_name: cleanName,
+        p_phone: cleanPhone || null,
+        p_role: cleanRole,
+    });
+    if (error) return { ok: false, message: error.message };
+    const d: any = data || {};
+    if (!d.ok) return { ok: false, message: d.message || 'Could not finalize field agent.' };
+    return {
+        ok: true,
+        id: d.id,
+        slug: d.slug,
+        staff_code: d.staff_code,
+        name: d.name || cleanName,
+        email: d.email || cleanEmail,
+    };
+}
+
+export const fieldAgentCredentialsMessage = (name: string, email: string, tempPassword: string, staffCode?: string) =>
+    `Hello ${name.split(' ')[0]}, your Welile School of AI Field Agent account is ready.\n\nSign in at: ${window.location.origin}/login\nEmail: ${email}\nTemporary password: ${tempPassword}${staffCode ? `\nAgent Code: ${staffCode}` : ''}\n\nYou will be asked to choose your own password on first sign-in. Once inside, you can start registering students right away (Name, Phone Number, and Location).`;
