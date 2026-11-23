@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { supabaseClient } from '../../lib/supabaseClient';
-import { Trash2, Mail, MailOpen, Filter, Inbox, Check, Building } from 'lucide-react';
+import { Trash2, Mail, Inbox, Building, Reply, Search } from 'lucide-react';
 
 const AdminMails: React.FC = () => {
     const [mails, setMails] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [filter, setFilter] = useState<'ALL' | 'INQUIRY' | 'ENROLLMENT'>('ALL');
     const [expandedMailIds, setExpandedMailIds] = useState<Set<string>>(new Set());
+    const [selectedId, setSelectedId] = useState<string | null>(null);
+    const [query, setQuery] = useState('');
 
     const toggleMailExpand = (id: string) => {
         const newExpanded = new Set(expandedMailIds);
@@ -66,137 +68,97 @@ const AdminMails: React.FC = () => {
         }
     };
 
-    const filteredMails = mails.filter(m => {
-        if (filter === 'ALL') return true;
-        return m.type === filter;
-    });
+    const clean = (msg?: string) => (msg || '').replace(/\n?<!--OUTREACH_JSON:[\s\S]*?-->/, '');
+    const q = query.trim().toLowerCase();
+    const filteredMails = mails.filter(m => (filter === 'ALL' || m.type === filter) && (!q || `${m.name} ${m.email} ${m.company_name || ''} ${clean(m.message)}`.toLowerCase().includes(q)));
+    const selected = filteredMails.find(m => m.id === selectedId) || filteredMails[0] || null;
 
     const formatDate = (dateStr?: string) => {
         if (!dateStr) return '';
         const d = new Date(dateStr);
-        return d.toLocaleDateString() + ' ' + d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) + ' · ' + d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     };
+    const kindLabel = (t: string) => (t === 'INQUIRY' ? 'Inquiry' : 'Enrollment request');
+    const kindTone = (t: string) => (t === 'INQUIRY' ? 'bg-brand-soft text-brand-ink dark:bg-night-3 dark:text-violet-200' : 'bg-lime-100 text-lime-900');
+    const ini = (n?: string) => (n || '?').split(' ').map((w: string) => w[0]).join('').slice(0, 2).toUpperCase();
+    const tabs: { id: 'ALL' | 'INQUIRY' | 'ENROLLMENT'; label: string; n: number }[] = [
+        { id: 'ALL', label: 'All', n: mails.length },
+        { id: 'INQUIRY', label: 'Inquiries', n: mails.filter(m => m.type === 'INQUIRY').length },
+        { id: 'ENROLLMENT', label: 'Enrollment requests', n: mails.filter(m => m.type === 'ENROLLMENT').length },
+    ];
 
     return (
-        <div className="space-y-6">
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white dark:bg-slate-900 p-6 rounded-2xl border border-gray-150 dark:border-slate-800 shadow-sm transition-colors">
-                <div>
-                    <h2 className="text-xl font-bold text-gray-900 dark:text-white">Corporate Inbox</h2>
-                    <p className="text-xs text-gray-550 dark:text-slate-400 mt-1">Review corporate inquiries and enrollment requests</p>
+        <div className="flex flex-col gap-[18px]">
+            <div className="flex flex-wrap items-center gap-3">
+                <div className="flex-1 min-w-[260px]">
+                    <p className="m-0 text-[12px] font-extrabold tracking-[0.12em] uppercase text-brand dark:text-violet-300">Mails</p>
+                    <h1 className="m-0 mt-0.5 text-[28px] font-extrabold tracking-[-0.02em]">Corporate inbox</h1>
+                    <p className="m-0 mt-1 text-[13px] text-[#6B6680] dark:text-slate-400">Business quote requests and enrollment messages from the website</p>
                 </div>
-                
-                {/* Filter Tabs */}
-                <div className="flex bg-gray-100 dark:bg-slate-800 p-1.5 rounded-xl gap-1.5 self-stretch sm:self-auto">
-                    <button
-                        onClick={() => setFilter('ALL')}
-                        className={`flex-1 sm:flex-none text-xs font-bold px-3 py-2 rounded-lg transition-colors cursor-pointer ${
-                            filter === 'ALL'
-                                ? 'bg-white dark:bg-slate-900 text-violet-600 dark:text-violet-400 shadow-sm'
-                                : 'text-gray-550 hover:text-gray-900 dark:hover:text-white'
-                        }`}
-                    >
-                        All ({mails.length})
-                    </button>
-                    <button
-                        onClick={() => setFilter('INQUIRY')}
-                        className={`flex-1 sm:flex-none text-xs font-bold px-3 py-2 rounded-lg transition-colors cursor-pointer ${
-                            filter === 'INQUIRY'
-                                ? 'bg-white dark:bg-slate-900 text-green-600 dark:text-green-400 shadow-sm'
-                                : 'text-gray-550 hover:text-gray-900 dark:hover:text-white'
-                        }`}
-                    >
-                        Inquiries ({mails.filter(m => m.type === 'INQUIRY').length})
-                    </button>
-                    <button
-                        onClick={() => setFilter('ENROLLMENT')}
-                        className={`flex-1 sm:flex-none text-xs font-bold px-3 py-2 rounded-lg transition-colors cursor-pointer ${
-                            filter === 'ENROLLMENT'
-                                ? 'bg-white dark:bg-slate-900 text-indigo-600 dark:text-indigo-400 shadow-sm'
-                                : 'text-gray-550 hover:text-gray-900 dark:hover:text-white'
-                        }`}
-                    >
-                        Enrollments ({mails.filter(m => m.type === 'ENROLLMENT').length})
-                    </button>
+                <div role="group" aria-label="Filter" className="inline-flex p-[3px] gap-0.5 rounded-[11px] bg-[#F1EFF6] dark:bg-night-3">
+                    {tabs.map(t => (
+                        <button key={t.id} type="button" aria-pressed={filter === t.id} onClick={() => setFilter(t.id)}
+                            className={`h-[34px] px-3 rounded-[9px] text-[12px] ${filter === t.id ? 'bg-white dark:bg-night-2 font-extrabold shadow-[0_1px_3px_rgba(30,27,46,0.12)]' : 'font-semibold text-[#6B6680] dark:text-slate-400'}`}>
+                            {t.label} ({t.n})
+                        </button>
+                    ))}
                 </div>
             </div>
 
             {loading ? (
-                <div className="p-12 text-center text-gray-500">Loading inbox...</div>
+                <div className="p-12 text-center text-[#6B6680]">Loading inbox…</div>
             ) : filteredMails.length === 0 ? (
-                <div className="bg-white dark:bg-slate-900 border border-gray-150 dark:border-slate-800 rounded-2xl p-16 text-center shadow-sm space-y-4 max-w-xl mx-auto transition-colors">
-                    <div className="w-16 h-16 bg-gray-50 dark:bg-slate-850 text-gray-400 dark:text-slate-500 rounded-full flex items-center justify-center mx-auto">
-                        <Inbox size={32} />
-                    </div>
-                    <div>
-                        <h4 className="text-lg font-bold text-gray-900 dark:text-white">Your inbox is clean</h4>
-                        <p className="text-xs text-gray-550 dark:text-slate-400 mt-1">No corporate messages found for this filter.</p>
-                    </div>
+                <div className="bg-white dark:bg-night-2 rounded-[22px] p-14 text-center">
+                    <span className="mx-auto w-16 h-16 rounded-[20px] bg-brand-soft dark:bg-night-3 text-brand dark:text-violet-300 flex items-center justify-center"><Inbox size={30} /></span>
+                    <h4 className="m-0 mt-4 text-[18px] font-extrabold">Your inbox is clean</h4>
+                    <p className="m-0 mt-1 text-[13px] text-[#6B6680] dark:text-slate-400">No messages for this filter.</p>
                 </div>
             ) : (
-                <div className="grid gap-6">
-                    {filteredMails.map((m) => {
-                        const isExpanded = expandedMailIds.has(m.id);
-                        return (
-                            <div 
-                                key={m.id} 
-                                onClick={() => toggleMailExpand(m.id)}
-                                className="bg-white dark:bg-slate-900 border border-gray-150 dark:border-slate-800 rounded-2xl p-6 shadow-sm flex flex-col md:flex-row justify-between items-start gap-6 hover:shadow-md transition-all duration-200 cursor-pointer hover:bg-gray-50/30 dark:hover:bg-slate-850/10"
-                            >
-                                <div className="space-y-4 flex-1">
-                                    <div className="flex flex-wrap items-center gap-2.5">
-                                        <div className="text-gray-400 dark:text-slate-500">
-                                            {isExpanded ? <MailOpen size={16} className="text-violet-500 dark:text-violet-400" /> : <Mail size={16} />}
-                                        </div>
-                                        <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold inline-block border ${
-                                            m.type === 'INQUIRY'
-                                                ? 'bg-green-50 text-green-700 border-green-200 dark:bg-green-950/20 dark:text-green-400 dark:border-green-900/50'
-                                                : 'bg-indigo-50 text-indigo-700 border-indigo-200 dark:bg-indigo-950/20 dark:text-indigo-400 dark:border-indigo-900/50'
-                                        }`}>
-                                            {m.type === 'INQUIRY' ? 'Inquiry' : 'Enrollment Request'}
+                <div className="grid grid-cols-1 lg:grid-cols-[380px_minmax(0,1fr)] gap-4 items-start">
+                    <section aria-label="Messages" className="bg-white dark:bg-night-2 rounded-[22px] overflow-hidden">
+                        <div className="p-3.5 border-b border-[#F1EFF6] dark:border-night-3">
+                            <label className="flex items-center gap-2.5 h-[42px] px-3.5 rounded-[12px] bg-panel dark:bg-night-3 text-[#6B6680]">
+                                <Search size={16} />
+                                <input type="search" value={query} onChange={e => setQuery(e.target.value)} aria-label="Search messages" placeholder="Search messages" className="flex-1 min-w-0 border-0 outline-0 bg-transparent text-[13px] text-ink dark:text-white" />
+                            </label>
+                        </div>
+                        <div className="max-h-[70vh] overflow-y-auto">
+                            {filteredMails.map(m => {
+                                const on = selected?.id === m.id;
+                                return (
+                                    <button key={m.id} type="button" onClick={() => { setSelectedId(m.id); toggleMailExpand(m.id); }} aria-pressed={on}
+                                        className={`w-full text-left flex items-start gap-3 p-3.5 border-t border-[#F4F2F9] dark:border-night-3 first:border-t-0 ${on ? 'bg-brand-soft dark:bg-night-3 shadow-[inset_4px_0_0_#5B2BC4]' : 'hover:bg-panel dark:hover:bg-night-3/50'}`}>
+                                        <span className="w-10 h-10 rounded-full bg-brand-soft dark:bg-night text-brand dark:text-violet-300 text-[13px] font-extrabold inline-flex items-center justify-center shrink-0">{ini(m.name)}</span>
+                                        <span className="flex-1 min-w-0">
+                                            <span className="flex items-center gap-2"><span className="flex-1 text-[14px] font-extrabold truncate">{m.name}</span><span className="text-[11px] text-[#6B6680] shrink-0">{formatDate(m.created_at)}</span></span>
+                                            <span className="block text-[12px] text-[#4A4560] dark:text-slate-300 truncate">{m.company_name ? `${m.company_name} · ` : ''}{clean(m.message).slice(0, 90) || 'Empty message'}</span>
+                                            <span className={`inline-block mt-1.5 px-2 py-0.5 rounded-full text-[10px] font-extrabold ${kindTone(m.type)}`}>{kindLabel(m.type)}</span>
                                         </span>
-                                        
-                                        <span className="text-xs text-gray-400">{formatDate(m.created_at)}</span>
-                                    </div>
-
-                                    <div>
-                                        <h3 className="font-bold text-gray-900 dark:text-white flex items-center gap-2 flex-wrap text-sm sm:text-base">
-                                            {m.name}
-                                            <span className="text-xs text-gray-500 dark:text-slate-400 font-normal">({m.email})</span>
-                                        </h3>
-                                        {m.company_name && (
-                                            <p className="text-xs text-indigo-650 dark:text-indigo-400 font-semibold mt-1">
-                                                <Building className="inline-block w-4 h-4 mr-1 align-middle" /> Company: {m.company_name}
-                                            </p>
-                                        )}
-                                    </div>
-
-                                    {isExpanded ? (
-                                        <div className="p-4 bg-gray-50 dark:bg-slate-850 rounded-xl border dark:border-slate-800 text-sm text-gray-700 dark:text-slate-300 leading-relaxed font-sans whitespace-pre-wrap animate-in fade-in duration-200">
-                                            {(m.message || '').replace(/\n?<!--OUTREACH_JSON:[\s\S]*?-->/, '')}
-                                        </div>
-                                    ) : (
-                                        <p className="text-xs text-gray-500 dark:text-slate-400 line-clamp-1 italic font-medium">
-                                            {m.message ? m.message.replace(/\n?<!--OUTREACH_JSON:[\s\S]*?-->/, '').slice(0, 100) + (m.message.replace(/\n?<!--OUTREACH_JSON:[\s\S]*?-->/, '').length > 100 ? '...' : '') : 'Empty message'}
-                                        </p>
-                                    )}
-                                </div>
-
-                                <div className="flex md:flex-col justify-end w-full md:w-auto border-t md:border-t-0 pt-4 md:pt-0 border-gray-100 dark:border-slate-850">
-                                    <button 
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            handleDeleteMail(m.id);
-                                        }}
-                                        className="p-2.5 bg-red-50 hover:bg-red-150 text-red-600 dark:bg-red-950/20 dark:hover:bg-red-950/40 dark:text-red-400 rounded-xl transition-colors cursor-pointer flex items-center gap-1.5 text-xs font-bold"
-                                        title="Delete Message"
-                                    >
-                                        <Trash2 size={16} />
-                                        Delete
                                     </button>
+                                );
+                            })}
+                        </div>
+                    </section>
+
+                    {selected && (
+                        <section aria-label="Message" className="bg-white dark:bg-night-2 rounded-[22px] p-6 flex flex-col gap-4">
+                            <div className="flex items-start gap-3.5">
+                                <span className="w-[52px] h-[52px] rounded-full bg-brand text-white text-[17px] font-extrabold inline-flex items-center justify-center shrink-0">{ini(selected.name)}</span>
+                                <div className="flex-1 min-w-0">
+                                    <h2 className="m-0 text-[20px] font-extrabold tracking-[-0.01em]">{selected.name}</h2>
+                                    <p className="m-0 mt-0.5 text-[13px] text-[#6B6680] dark:text-slate-400 break-all">{selected.email} · {formatDate(selected.created_at)}</p>
+                                    {selected.company_name && <p className="m-0 mt-1 text-[13px] font-bold text-brand dark:text-violet-300 flex items-center gap-1.5"><Building size={14} />{selected.company_name}</p>}
                                 </div>
+                                <span className={`px-3 py-1 rounded-full text-[11px] font-extrabold ${kindTone(selected.type)}`}>{kindLabel(selected.type)}</span>
                             </div>
-                        );
-                    })}
+                            <div className="rounded-[18px] bg-panel dark:bg-night-3/60 p-5 text-[14px] leading-relaxed whitespace-pre-wrap">{clean(selected.message) || 'Empty message'}</div>
+                            <div className="flex flex-wrap gap-2">
+                                <a href={`mailto:${selected.email}?subject=${encodeURIComponent('Re: your message to Welile School of AI')}`} className="press h-11 px-4 rounded-[12px] bg-brand text-white text-[13px] font-extrabold inline-flex items-center gap-2 no-underline"><Reply size={16} />Reply by email</a>
+                                <span className="flex-1" />
+                                <button type="button" onClick={() => handleDeleteMail(selected.id)} className="press h-11 px-4 rounded-[12px] bg-[#FDECE8] text-[#A3321F] text-[13px] font-bold inline-flex items-center gap-2"><Trash2 size={16} />Delete</button>
+                            </div>
+                        </section>
+                    )}
                 </div>
             )}
         </div>

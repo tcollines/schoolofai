@@ -12,11 +12,13 @@
     <link rel="icon" type="image/png" sizes="512x512" href="/icon.png" />
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Source+Serif+4:ital,wght@0,600;1,600&display=swap" rel="stylesheet">
     <style>
       body {
-        font-family: 'Inter', sans-serif;
-        background-color: #f3f4f6; /* Light gray background */
+        font-family: -apple-system, BlinkMacSystemFont, 'Plus Jakarta Sans', system-ui, sans-serif;
+        background-color: #F7F6FC; /* Welile panel lavender */
+        color: #1E1B2E;
+        -webkit-font-smoothing: antialiased;
         transition: background-color 0.2s, color 0.2s;
       }
       /* Custom scrollbar for webkit */
@@ -37,7 +39,7 @@
 
       /* Dark mode CSS overrides */
       .dark body {
-        background-color: #020617; /* slate-950 */
+        background-color: #16122B; /* Welile night */
       }
       .dark .bg-white {
         background-color: #0f172a !important; /* slate-900 */
@@ -87,32 +89,61 @@
         cursor: text;
         display: block;
       }
+
+      /* Welile redesign helpers */
+      .frost { background: rgba(247, 246, 252, 0.78); -webkit-backdrop-filter: saturate(180%) blur(18px); backdrop-filter: saturate(180%) blur(18px); }
+      .dark .frost { background: rgba(22, 18, 43, 0.78); }
+      .press { transition: transform 120ms ease-out; }
+      .press:active { transform: scale(0.97); }
+      .lift { transition: transform 160ms ease-out, box-shadow 160ms ease-out; }
+      .lift:hover { transform: translateY(-2px); box-shadow: 0 12px 28px rgba(76, 52, 150, 0.12); }
+      .no-scrollbar { scrollbar-width: none; }
+      .no-scrollbar::-webkit-scrollbar { display: none; }
+      @media (prefers-reduced-motion: reduce) { .press, .lift { transition: none; } .press:active, .lift:hover { transform: none; } }
+      @media (prefers-reduced-transparency: reduce) { .frost { background: #F7F6FC; backdrop-filter: none; } .dark .frost { background: #16122B; } }
     </style>
     <script>
       tailwind.config = {
         darkMode: 'class',
         theme: {
           extend: {
+            fontFamily: {
+              sans: ['-apple-system', 'BlinkMacSystemFont', '"Plus Jakarta Sans"', 'system-ui', 'sans-serif'],
+              // Headings that used the old serif now use the redesign's display sans
+              serif: ['-apple-system', 'BlinkMacSystemFont', '"Plus Jakarta Sans"', 'system-ui', 'sans-serif'],
+              display: ['-apple-system', 'BlinkMacSystemFont', '"Plus Jakarta Sans"', 'system-ui', 'sans-serif'],
+              cert: ['"Source Serif 4"', 'Georgia', 'serif'],
+            },
+            borderRadius: { '4xl': '2rem' },
             colors: {
+              ink: '#1E1B2E',
+              panel: '#F7F6FC',
+              lilac: '#ECE8F7',
+              brand: { DEFAULT: '#5B2BC4', soft: '#EEE8FD', ink: '#2A1A5E', mid: '#6B3BD6', light: '#7A4CE0' },
+              night: { DEFAULT: '#16122B', 2: '#221B40', 3: '#2A2347', line: '#4B4062' },
+              mint: { DEFAULT: '#157A4A', soft: '#DDF3E6', ink: '#0F5A35' },
               welile: {
-                dark: '#111111',
-                gray: '#222222',
-                purple: '#a855f7', // Primary Accent (Electric/Neon Purple)
-                lightPurple: '#f3e8ff', // Brighter light purple
-                lime: '#d9f99d', // Secondary Accent for specific buttons
+                dark: '#16122B',
+                gray: '#2A2347',
+                purple: '#5B2BC4',
+                lightPurple: '#EEE8FD',
+                lime: '#D7F27A',
               },
               violet: {
-                50: '#faf5ff',
-                100: '#f3e8ff',
-                200: '#e9d5ff',
-                300: '#d8b4fe',
-                400: '#c084fc',
-                500: '#c084fc',
-                600: '#a855f7', // Map violet-600 to Electric/Neon Purple
-                700: '#9333ea', // Map violet-700 to Electric/Neon Purple Hover
-                800: '#7e22ce',
-                900: '#581c87',
-                950: '#2e1065',
+                50: '#F7F4FE', 100: '#EEE8FD', 200: '#DCD2FA', 300: '#C1AEF5', 400: '#9C7BF0',
+                500: '#7A4CE0', 600: '#6B3BD6', 700: '#5B2BC4', 800: '#4A20A6', 900: '#3B1A8A', 950: '#2A1A5E'
+              },
+              stone: {
+                50: '#F7F6FC', 100: '#F1EFF6', 200: '#E7E3F0', 300: '#D3CDE3', 400: '#A39DB5',
+                500: '#8A85A0', 600: '#6B6680', 700: '#4A4560', 800: '#2C2840', 900: '#1E1B2E', 950: '#16122B'
+              },
+              slate: {
+                50: '#F7F6FC', 100: '#F1EFF6', 200: '#E6E1EE', 300: '#CFC8DC', 400: '#A39DB5', 500: '#8A85A0',
+                600: '#6B6680', 700: '#2A2347', 800: '#221B40', 900: '#16122B', 950: '#0F0C1D'
+              },
+              lime: {
+                50: '#F7FBE8', 100: '#EFF7D6', 200: '#D7F27A', 300: '#C8E85C', 400: '#B5D94A', 500: '#8DB31A',
+                600: '#6E8C12', 700: '#55690F', 800: '#3F4A1C', 900: '#2E3A06'
               }
             }
           }

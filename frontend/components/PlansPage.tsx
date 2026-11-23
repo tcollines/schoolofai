@@ -96,50 +96,36 @@ const PlansPage: React.FC<PlansPageProps> = ({ user, currentPlan, onUpgrade, onB
     };
 
     return (
-        <div className="max-w-6xl mx-auto">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
-                <div>
-                    <div className="flex flex-wrap items-center gap-3">
-                        <h2 className="text-3xl font-semibold text-stone-900 dark:text-white font-serif">{t('subscription_plans')}</h2>
-                        <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-violet-50 dark:bg-violet-950/40 border border-violet-200 dark:border-violet-900/50 rounded-full text-xs font-bold text-violet-700 dark:text-violet-300">
-                            <TrendingUp size={13} />
-                            Live Rate: $1 USD = {getExchangeRate().toLocaleString()} UGX
-                        </span>
-                        <div className="inline-flex items-center gap-1 bg-white dark:bg-slate-900 border border-stone-200 dark:border-slate-800 p-1 rounded-xl shadow-sm text-xs font-bold">
-                            <button
-                                type="button"
-                                onClick={() => setCurrencyPreference('USD')}
-                                className={`px-3 py-1 rounded-lg transition-all cursor-pointer ${currency === 'USD' ? 'bg-violet-700 text-white shadow' : 'text-stone-600 dark:text-slate-400 hover:text-stone-900 dark:hover:text-white'}`}
-                            >
-                                USD ($)
-                            </button>
-                            <button
-                                type="button"
-                                onClick={() => setCurrencyPreference('UGX')}
-                                className={`px-3 py-1 rounded-lg transition-all cursor-pointer ${currency === 'UGX' ? 'bg-violet-700 text-white shadow' : 'text-stone-600 dark:text-slate-400 hover:text-stone-900 dark:hover:text-white'}`}
-                            >
-                                UGX (USh)
-                            </button>
-                        </div>
-                    </div>
-                    <p className="text-stone-600 dark:text-slate-400 mt-2">{t('choose_plan')}</p>
+        <div className="max-w-[1240px] mx-auto">
+            <section className="relative overflow-hidden rounded-[24px] bg-night text-white px-6 sm:px-8 py-7 sm:py-8 mb-6 flex flex-wrap items-end justify-between gap-5">
+                <span aria-hidden="true" className="absolute -right-[60px] -top-20 w-[280px] h-[280px] rounded-full bg-night-3" />
+                <div className="relative max-w-[620px]">
+                    <p className="m-0 text-[12px] font-bold tracking-[0.12em] uppercase text-lime-200">Plans and payments</p>
+                    <h1 className="mt-2.5 mb-0 text-[26px] sm:text-[30px] leading-[1.15] font-extrabold tracking-[-0.02em]">{t('subscription_plans')}</h1>
+                    <p className="mt-2 mb-0 text-[14px] text-[#C9C3E6]">{t('choose_plan')} Pay with MTN MoMo or Airtel Money.</p>
+                    <p className="mt-3 mb-0 inline-flex items-center gap-1.5 h-8 px-3 rounded-full bg-night-3 text-[12px] font-bold text-[#E6E1EE]"><TrendingUp size={13} />Live rate: $1 = {getExchangeRate().toLocaleString()} UGX</p>
                 </div>
-                <button
-                    onClick={() => navigate('/profile')}
-                    className="hidden sm:inline-block text-stone-600 dark:text-slate-400 hover:text-stone-900 dark:hover:text-white font-medium px-4 py-2 hover:bg-stone-100 dark:hover:bg-slate-800 rounded-lg transition-colors cursor-pointer"
-                >
-                    ← {t('back_to_profile')}
-                </button>
-            </div>
+                <div className="relative flex items-center gap-2">
+                    <div role="radiogroup" aria-label="Currency" className="inline-flex p-1 rounded-[14px] bg-night-3">
+                        {(['USD', 'UGX'] as const).map(c => (
+                            <button key={c} type="button" role="radio" aria-checked={currency === c} onClick={() => setCurrencyPreference(c)}
+                                className={`press h-10 px-4 rounded-[11px] text-[13px] font-extrabold ${currency === c ? 'bg-white text-ink' : 'text-[#C9C3E6]'}`}>
+                                {c === 'USD' ? 'USD $' : 'UGX USh'}
+                            </button>
+                        ))}
+                    </div>
+                    <button onClick={() => navigate('/profile')} className="press hidden sm:inline-flex h-12 px-4 items-center rounded-[14px] bg-night-3 text-[13px] font-bold">← {t('back_to_profile')}</button>
+                </div>
+            </section>
 
             {(rating > 0 || localStorage.getItem(`schoolofai-rating-${user?.id || 'guest'}`)) ? (
-                <div className="max-w-2xl mx-auto bg-white dark:bg-slate-900 border border-stone-100 dark:border-slate-800 rounded-2xl p-8 shadow-sm text-center space-y-6">
+                <div className="max-w-2xl mx-auto bg-white dark:bg-night-2 rounded-[22px] p-8 text-center space-y-6">
                     <div className="w-16 h-16 bg-violet-50 dark:bg-violet-950/20 text-violet-700 dark:text-violet-400 rounded-full flex items-center justify-center mx-auto">
                         <Sparkles size={32} />
                     </div>
                     
                     <div>
-                        <h3 className="font-serif text-2xl font-semibold text-stone-900 dark:text-white mb-2">Thank you for your feedback!</h3>
+                        <h3 className="tracking-[-0.02em] text-2xl font-semibold text-stone-900 dark:text-white mb-2">Thank you for your feedback!</h3>
                         <p className="text-sm text-stone-600 dark:text-slate-400 leading-relaxed">
                             {currentPlan === 'SPONSORED'
                                 ? `Your learning account is fully sponsored. We're glad to have you here.`
@@ -173,16 +159,16 @@ const PlansPage: React.FC<PlansPageProps> = ({ user, currentPlan, onUpgrade, onB
                     </div>
                 </div>
             ) : (
-                <div className="grid xl:grid-cols-4 lg:grid-cols-2 grid-cols-1 gap-6 max-w-7xl mx-auto px-4 items-stretch">
+                <div className="grid xl:grid-cols-4 md:grid-cols-2 grid-cols-1 gap-4 items-stretch">
                     {/* Basic Plan */}
-                    <div className="p-7 rounded-2xl bg-white dark:bg-slate-900 border border-stone-200 dark:border-slate-800 shadow-sm transition-all duration-300 flex flex-col justify-between relative group">
+                    <div className="p-7 rounded-[26px] bg-white dark:bg-night-2 transition-all duration-300 flex flex-col justify-between relative group">
                         <div>
                             <div className="flex items-center justify-between mb-4">
                                 <span className="text-xs font-bold tracking-wider uppercase px-3 py-1 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
                                     Free
                                 </span>
                             </div>
-                            <h3 className="font-serif text-2xl font-semibold text-stone-900 dark:text-white mb-1">Basic</h3>
+                            <h3 className="tracking-[-0.02em] text-2xl font-semibold text-stone-900 dark:text-white mb-1">Basic</h3>
                             <div className="flex items-baseline gap-1 mb-2">
                                 <span className="text-4xl font-bold text-stone-900 dark:text-white">Free</span>
                                 <span className="text-sm font-medium text-stone-600 dark:text-slate-400">/ forever</span>
@@ -193,13 +179,13 @@ const PlansPage: React.FC<PlansPageProps> = ({ user, currentPlan, onUpgrade, onB
 
                             <div className="mb-6">
                                 {currentPlan === 'INDIVIDUAL' ? (
-                                    <div className="w-full py-2.5 rounded-xl bg-stone-100 dark:bg-slate-800 text-stone-600 dark:text-slate-400 font-bold text-xs text-center border border-stone-200 dark:border-slate-700">
+                                    <div className="w-full h-12 inline-flex items-center justify-center rounded-[14px] bg-stone-100 dark:bg-slate-800 text-stone-600 dark:text-slate-400 font-bold text-[13px] text-center ">
                                         {t('current_plan')}
                                     </div>
                                 ) : (
                                     <button 
                                         onClick={() => {}}
-                                        className="w-full py-2.5 rounded-xl bg-stone-100 hover:bg-stone-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-stone-900 dark:text-white font-bold text-xs transition-colors cursor-pointer"
+                                        className="w-full h-12 inline-flex items-center justify-center rounded-[14px] bg-stone-100 hover:bg-stone-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-stone-900 dark:text-white font-bold text-[13px] transition-colors cursor-pointer"
                                     >
                                         Downgrade to Free
                                     </button>
@@ -210,15 +196,15 @@ const PlansPage: React.FC<PlansPageProps> = ({ user, currentPlan, onUpgrade, onB
                                 <p className="text-xs font-bold text-stone-500 dark:text-slate-500 uppercase tracking-wider mb-3">Included Benefits</p>
                                 <ul className="space-y-3 text-xs text-stone-600 dark:text-slate-300">
                                     <li className="flex items-center gap-2.5">
-                                        <CheckCircle size={16} className="text-emerald-500 shrink-0" />
+                                        <CheckCircle size={16} className="text-mint shrink-0" />
                                         <span>Access to <strong>Introduction modules</strong></span>
                                     </li>
                                     <li className="flex items-center gap-2.5">
-                                        <CheckCircle size={16} className="text-emerald-500 shrink-0" />
+                                        <CheckCircle size={16} className="text-mint shrink-0" />
                                         <span>Free community forums & discussions</span>
                                     </li>
                                     <li className="flex items-center gap-2.5">
-                                        <CheckCircle size={16} className="text-emerald-500 shrink-0" />
+                                        <CheckCircle size={16} className="text-mint shrink-0" />
                                         <span>Standard course progress tracking</span>
                                     </li>
                                     <li className="flex items-center gap-2.5 text-stone-500 dark:text-slate-600">
@@ -231,31 +217,31 @@ const PlansPage: React.FC<PlansPageProps> = ({ user, currentPlan, onUpgrade, onB
                     </div>
 
                     {/* Pro Plan ($25 / month) */}
-                    <div className="p-7 rounded-2xl bg-white dark:bg-slate-900 border-2 border-violet-500 shadow-sm transition-all duration-300 flex flex-col justify-between relative overflow-hidden group">
+                    <div className="p-7 rounded-[26px] bg-brand text-white transition-all duration-300 flex flex-col justify-between relative overflow-hidden group">
                         <div>
                             <div className="flex items-center justify-between mb-4">
-                                <span className="text-xs font-bold tracking-wider uppercase px-3 py-1 rounded-full bg-amber-600 text-white shadow-sm flex items-center gap-1">
+                                <span className="text-xs font-bold tracking-wider uppercase px-3 py-1 rounded-full bg-lime-200 text-night flex items-center gap-1">
                                     <Star size={12} className="fill-current" /> Most Popular
                                 </span>
                             </div>
-                            <h3 className="font-serif text-2xl font-semibold text-stone-900 dark:text-white mb-1">Pro</h3>
+                            <h3 className="tracking-[-0.02em] text-2xl font-semibold text-white mb-1">Pro</h3>
                             <div className="flex items-baseline gap-1 mb-2">
-                                <span className="text-4xl font-bold text-stone-900 dark:text-white">{formatAmount(25)}</span>
-                                <span className="text-sm font-medium text-stone-600 dark:text-slate-400">/ month</span>
+                                <span className="text-4xl font-bold text-white">{formatAmount(25)}</span>
+                                <span className="text-sm font-medium text-[#E4DAFF]">/ month</span>
                             </div>
-                            <p className="text-xs text-stone-600 dark:text-slate-400 mb-6 min-h-[32px]">
+                            <p className="text-xs text-[#E4DAFF] mb-6 min-h-[32px]">
                                 Full monthly access for dedicated self-paced learners.
                             </p>
 
                             <div className="mb-6">
                                 {((currentPlan as string) === 'PRO') ? (
-                                    <div className="w-full py-2.5 rounded-xl bg-violet-50 dark:bg-violet-950/40 text-violet-700 dark:text-violet-300 font-bold text-xs text-center border border-violet-200 dark:border-violet-900/60">
+                                    <div className="w-full h-12 inline-flex items-center justify-center rounded-[14px] bg-white/15 text-white font-bold text-[13px] text-center">
                                         Current Plan
                                     </div>
                                 ) : (
                                     <button
-                                        onClick={() => setSelectedPlanName('PRO')}
-                                        className="w-full py-2.5 rounded-xl bg-violet-700 hover:bg-violet-800 text-white font-bold text-xs shadow-sm transition-all cursor-pointer flex items-center justify-center gap-1.5"
+                                        onClick={() => (window.matchMedia('(min-width: 1024px)').matches ? navigate('/checkout?plan=pro&back=/plans') : setSelectedPlanName('PRO'))}
+                                        className="w-full h-12 inline-flex items-center justify-center rounded-[14px] bg-white hover:bg-brand-soft text-brand font-extrabold text-xs transition-all cursor-pointer flex items-center justify-center gap-1.5"
                                     >
                                         <span>Upgrade to Pro</span>
                                         <ArrowRight size={14} />
@@ -263,23 +249,23 @@ const PlansPage: React.FC<PlansPageProps> = ({ user, currentPlan, onUpgrade, onB
                                 )}
                             </div>
 
-                            <div className="border-t border-stone-100 dark:border-slate-800/80 pt-5">
-                                <p className="text-xs font-bold text-stone-500 dark:text-slate-500 uppercase tracking-wider mb-3">Included Benefits</p>
-                                <ul className="space-y-3 text-xs text-stone-600 dark:text-slate-300">
+                            <div className="border-t border-white/15 pt-5">
+                                <p className="text-xs font-bold text-[#D9CCFF] uppercase tracking-wider mb-3">Included Benefits</p>
+                                <ul className="space-y-3 text-xs text-[#F1ECFF]">
                                     <li className="flex items-center gap-2.5">
-                                        <CheckCircle size={16} className="text-violet-700 dark:text-violet-400 shrink-0" />
+                                        <CheckCircle size={16} className="text-lime-200 shrink-0" />
                                         <span><strong>All Pro & Free courses</strong> unlocked</span>
                                     </li>
                                     <li className="flex items-center gap-2.5">
-                                        <CheckCircle size={16} className="text-violet-700 dark:text-violet-400 shrink-0" />
+                                        <CheckCircle size={16} className="text-lime-200 shrink-0" />
                                         <span><strong>24/7 AI Tutor</strong> support</span>
                                     </li>
                                     <li className="flex items-center gap-2.5">
-                                        <CheckCircle size={16} className="text-violet-700 dark:text-violet-400 shrink-0" />
+                                        <CheckCircle size={16} className="text-lime-200 shrink-0" />
                                         <span>Downloadable resources & exercises</span>
                                     </li>
                                     <li className="flex items-center gap-2.5">
-                                        <CheckCircle size={16} className="text-violet-700 dark:text-violet-400 shrink-0" />
+                                        <CheckCircle size={16} className="text-lime-200 shrink-0" />
                                         <span>Verified course completion certificates</span>
                                     </li>
                                 </ul>
@@ -288,31 +274,31 @@ const PlansPage: React.FC<PlansPageProps> = ({ user, currentPlan, onUpgrade, onB
                     </div>
 
                     {/* Premium Plan ($150 one-time) */}
-                    <div className="p-7 rounded-2xl bg-violet-800 text-white border border-violet-400/40 shadow-sm transition-all duration-300 flex flex-col justify-between relative overflow-hidden group">
+                    <div className="p-7 rounded-[26px] bg-night text-white transition-all duration-300 flex flex-col justify-between relative overflow-hidden group">
                         <div>
                             <div className="flex items-center justify-between mb-4">
                                 <span className="text-xs font-bold tracking-wider uppercase px-3 py-1 rounded-full bg-white/20 backdrop-blur-sm text-white border border-white/25 flex items-center gap-1">
                                     <Sparkles size={12} className="fill-current" /> Lifetime Access
                                 </span>
                             </div>
-                            <h3 className="font-serif text-2xl font-semibold text-white mb-1">Premium</h3>
+                            <h3 className="tracking-[-0.02em] text-2xl font-semibold text-white mb-1">Premium</h3>
                             <div className="flex items-baseline gap-1 mb-2">
                                 <span className="text-4xl font-bold text-white">{formatAmount(150)}</span>
-                                <span className="text-sm font-medium text-violet-200">one-time</span>
+                                <span className="text-sm font-medium text-[#C9C3E6]">one-time</span>
                             </div>
-                            <p className="text-xs text-violet-100/90 mb-6 min-h-[32px]">
+                            <p className="text-xs text-[#C9C3E6] mb-6 min-h-[32px]">
                                 One-time payment • Lifetime access to all Pro & free courses.
                             </p>
 
                             <div className="mb-6">
                                 {((currentPlan as string) === 'PREMIUM' || (currentPlan as string) === 'SPONSORED') ? (
-                                    <div className="w-full py-2.5 rounded-xl bg-white/20 text-white font-bold text-xs text-center border border-white/30 backdrop-blur-sm">
+                                    <div className="w-full h-12 inline-flex items-center justify-center rounded-[14px] bg-white/20 text-white font-bold text-[13px] text-center border border-white/30 backdrop-blur-sm">
                                         Current Plan
                                     </div>
                                 ) : (
                                     <button
-                                        onClick={() => setSelectedPlanName('PREMIUM')}
-                                        className="w-full py-2.5 rounded-xl bg-white hover:bg-violet-50 text-indigo-900 font-bold text-xs shadow-sm transition-all cursor-pointer flex items-center justify-center gap-1.5"
+                                        onClick={() => (window.matchMedia('(min-width: 1024px)').matches ? navigate('/checkout?plan=premium&back=/plans') : setSelectedPlanName('PREMIUM'))}
+                                        className="w-full h-12 inline-flex items-center justify-center rounded-[14px] bg-lime-200 hover:bg-lime-300 text-night font-extrabold text-xs transition-all cursor-pointer flex items-center justify-center gap-1.5"
                                     >
                                         <span>Upgrade to Premium</span>
                                         <ArrowRight size={14} />
@@ -321,22 +307,22 @@ const PlansPage: React.FC<PlansPageProps> = ({ user, currentPlan, onUpgrade, onB
                             </div>
 
                             <div className="border-t border-white/15 pt-5">
-                                <p className="text-xs font-bold text-violet-200 uppercase tracking-wider mb-3">Included Benefits</p>
-                                <ul className="space-y-3 text-xs text-violet-50">
+                                <p className="text-xs font-bold text-[#C9C3E6] uppercase tracking-wider mb-3">Included Benefits</p>
+                                <ul className="space-y-3 text-xs text-[#E6E1EE]">
                                     <li className="flex items-center gap-2.5">
-                                        <CheckCircle size={16} className="text-amber-300 shrink-0" />
+                                        <CheckCircle size={16} className="text-lime-200 shrink-0" />
                                         <span><strong>Lifetime access</strong> — zero renewals</span>
                                     </li>
                                     <li className="flex items-center gap-2.5">
-                                        <CheckCircle size={16} className="text-amber-300 shrink-0" />
+                                        <CheckCircle size={16} className="text-lime-200 shrink-0" />
                                         <span>All current & future Pro courses</span>
                                     </li>
                                     <li className="flex items-center gap-2.5">
-                                        <CheckCircle size={16} className="text-amber-300 shrink-0" />
+                                        <CheckCircle size={16} className="text-lime-200 shrink-0" />
                                         <span><strong>1-on-1 Mentorship</strong> & Live Q&A</span>
                                     </li>
                                     <li className="flex items-center gap-2.5">
-                                        <CheckCircle size={16} className="text-amber-300 shrink-0" />
+                                        <CheckCircle size={16} className="text-lime-200 shrink-0" />
                                         <span>Portfolio review & career guidance</span>
                                     </li>
                                 </ul>
@@ -345,14 +331,14 @@ const PlansPage: React.FC<PlansPageProps> = ({ user, currentPlan, onUpgrade, onB
                     </div>
 
                     {/* Corporate Plan - Only Benefits & Straight to the Point */}
-                    <div className="p-7 rounded-2xl bg-white dark:bg-slate-900 border border-violet-300/80 dark:border-violet-900/60 shadow-sm hover:border-violet-500 transition-all duration-300 flex flex-col justify-between relative overflow-hidden group">
+                    <div className="p-7 rounded-[26px] bg-white dark:bg-night-2 transition-all duration-300 flex flex-col justify-between relative overflow-hidden group">
                         <div>
                             <div className="flex items-center justify-between mb-4">
                                 <span className="text-xs font-bold tracking-wider uppercase px-3 py-1 rounded-full bg-violet-100 dark:bg-violet-950/70 text-violet-700 dark:text-violet-300 flex items-center gap-1 border border-violet-200 dark:border-violet-900/60">
                                     <Building2 size={12} /> Corporate
                                 </span>
                             </div>
-                            <h3 className="font-serif text-2xl font-semibold text-stone-900 dark:text-white mb-1">Corporate</h3>
+                            <h3 className="tracking-[-0.02em] text-2xl font-semibold text-stone-900 dark:text-white mb-1">Corporate</h3>
                             <div className="flex items-baseline gap-1 mb-2">
                                 <span className="text-xs font-semibold text-stone-500">From</span>
                                 <span className="text-4xl font-bold text-stone-900 dark:text-white">{formatAmount(15)}</span>
@@ -365,7 +351,7 @@ const PlansPage: React.FC<PlansPageProps> = ({ user, currentPlan, onUpgrade, onB
                             <div className="mb-6 space-y-2">
                                 <button
                                     onClick={() => navigate('/corporate/setup')}
-                                    className="w-full py-2.5 rounded-xl bg-violet-700 hover:bg-violet-800 text-white font-bold text-xs shadow-sm transition-all cursor-pointer flex items-center justify-center gap-1.5"
+                                    className="w-full h-12 inline-flex items-center justify-center rounded-[14px] bg-violet-700 hover:bg-brand-mid text-white font-bold text-[13px] shadow-sm transition-all cursor-pointer flex items-center justify-center gap-1.5"
                                 >
                                     <span>Setup Corporate Plan</span>
                                     <ArrowRight size={14} />
@@ -511,48 +497,48 @@ const PaymentModal: React.FC<PaymentModalProps> = ({ isOpen, onClose, planName, 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
             <div className="fixed inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
-            <div className="bg-white dark:bg-slate-900 border border-stone-100 dark:border-slate-800 w-full max-w-lg rounded-2xl p-6 shadow-2xl relative z-10 animate-in zoom-in-95 duration-200 text-stone-900 dark:text-white max-h-[90vh] overflow-y-auto">
+            <div className="bg-white dark:bg-night-2 w-full max-w-lg rounded-[22px] p-6 shadow-2xl relative z-10 animate-in zoom-in-95 duration-200 text-stone-900 dark:text-white max-h-[90vh] overflow-y-auto">
                 <button type="button" onClick={onClose} className="absolute top-4 right-4 text-stone-500 hover:text-stone-900 dark:hover:text-white cursor-pointer">
                     <X size={20} />
                 </button>
 
-                <h3 className="font-serif text-xl font-semibold text-center mb-2">Complete Your Upgrade</h3>
+                <h3 className="tracking-[-0.02em] text-xl font-semibold text-center mb-2">Complete Your Upgrade</h3>
                 <p className="text-center text-sm text-stone-600 dark:text-slate-400 mb-6">
                     You are upgrading to <span className="font-bold text-violet-700">{planName}</span> with a <span className="font-bold text-stone-800 dark:text-slate-200">one-time payment of {amount}</span>.
                 </p>
 
                 <div className="space-y-4">
                     {/* Airtel Money */}
-                    <div className="p-4 bg-red-50 dark:bg-red-950/20 border border-red-100 dark:border-red-900/50 rounded-2xl">
+                    <div className="p-4 bg-red-50 dark:bg-red-950/20 border border-red-100 dark:border-red-900/50 rounded-[22px]">
                         <h4 className="font-bold text-red-600 dark:text-red-400 flex items-center gap-2 mb-2 text-sm">
                             <span className="text-lg"><Smartphone className="inline-block w-4 h-4 mr-1 align-middle" /></span> Airtel Money
                         </h4>
                         <div className="text-xs space-y-1 text-stone-700 dark:text-slate-400">
-                            <p><span className="font-semibold text-stone-900 dark:text-white">Dial:</span> <code className="bg-white dark:bg-slate-800 px-1.5 py-0.5 rounded border dark:border-slate-700 font-mono font-bold">185*9#</code></p>
-                            <p><span className="font-semibold text-stone-900 dark:text-white">Merchant ID:</span> <code className="bg-white dark:bg-slate-800 px-1.5 py-0.5 rounded border dark:border-slate-700 font-mono font-bold">4380664</code></p>
+                            <p><span className="font-semibold text-stone-900 dark:text-white">Dial:</span> <code className="bg-white dark:bg-slate-800 px-1.5 py-0.5 rounded font-mono font-bold">185*9#</code></p>
+                            <p><span className="font-semibold text-stone-900 dark:text-white">Merchant ID:</span> <code className="bg-white dark:bg-slate-800 px-1.5 py-0.5 rounded font-mono font-bold">4380664</code></p>
                         </div>
                     </div>
 
                     {/* MTN MoMo */}
-                    <div className="p-4 bg-yellow-50 dark:bg-yellow-950/20 border border-yellow-100 dark:border-yellow-900/50 rounded-2xl">
+                    <div className="p-4 bg-yellow-50 dark:bg-yellow-950/20 border border-yellow-100 dark:border-yellow-900/50 rounded-[22px]">
                         <h4 className="font-bold text-yellow-600 dark:text-yellow-400 flex items-center gap-2 mb-2 text-sm">
                             <span className="text-lg"><Smartphone className="inline-block w-4 h-4 mr-1 align-middle" /></span> MTN MoMo
                         </h4>
                         <div className="text-xs space-y-1 text-stone-700 dark:text-slate-400">
-                            <p><span className="font-semibold text-stone-900 dark:text-white">Instructions:</span> Use MoMo App or dial <code className="bg-white dark:bg-slate-800 px-1.5 py-0.5 rounded border dark:border-slate-700 font-mono font-bold">165*3#</code></p>
-                            <p><span className="font-semibold text-stone-900 dark:text-white">MoMo Code:</span> <code className="bg-white dark:bg-slate-800 px-1.5 py-0.5 rounded border dark:border-slate-700 font-mono font-bold">090777</code></p>
+                            <p><span className="font-semibold text-stone-900 dark:text-white">Instructions:</span> Use MoMo App or dial <code className="bg-white dark:bg-slate-800 px-1.5 py-0.5 rounded font-mono font-bold">165*3#</code></p>
+                            <p><span className="font-semibold text-stone-900 dark:text-white">MoMo Code:</span> <code className="bg-white dark:bg-slate-800 px-1.5 py-0.5 rounded font-mono font-bold">090777</code></p>
                         </div>
                     </div>
 
                     {/* Bank Transfer */}
-                    <div className="p-4 bg-blue-50 dark:bg-blue-950/20 border border-blue-100 dark:border-blue-900/50 rounded-2xl">
-                        <h4 className="font-bold text-blue-600 dark:text-blue-400 flex items-center gap-2 mb-2 text-sm">
+                    <div className="p-4 bg-brand-soft dark:bg-blue-950/20 border border-brand-soft dark:border-blue-900/50 rounded-[22px]">
+                        <h4 className="font-bold text-brand dark:text-blue-400 flex items-center gap-2 mb-2 text-sm">
                             <span className="text-lg"><Landmark className="inline-block w-4 h-4 mr-1 align-middle" /></span> Bank Transfer (Equity Bank)
                         </h4>
                         <div className="text-xs space-y-1 text-stone-700 dark:text-slate-400">
                             <p><span className="font-semibold text-stone-900 dark:text-white">Account Name:</span> Welile Technologies Limited</p>
-                            <p><span className="font-semibold text-stone-900 dark:text-white">Account Number:</span> <code className="bg-white dark:bg-slate-800 px-1.5 py-0.5 rounded border dark:border-slate-700 font-mono font-bold">1046203375259</code></p>
-                            <p><span className="font-semibold text-stone-900 dark:text-white">Swift Code:</span> <code className="bg-white dark:bg-slate-800 px-1.5 py-0.5 rounded border dark:border-slate-700 font-mono font-bold">EQBLUGKA</code></p>
+                            <p><span className="font-semibold text-stone-900 dark:text-white">Account Number:</span> <code className="bg-white dark:bg-slate-800 px-1.5 py-0.5 rounded font-mono font-bold">1046203375259</code></p>
+                            <p><span className="font-semibold text-stone-900 dark:text-white">Swift Code:</span> <code className="bg-white dark:bg-slate-800 px-1.5 py-0.5 rounded font-mono font-bold">EQBLUGKA</code></p>
                         </div>
                     </div>
                 </div>
@@ -569,13 +555,13 @@ const PaymentModal: React.FC<PaymentModalProps> = ({ isOpen, onClose, planName, 
                                 value={transactionId}
                                 onChange={(e) => setTransactionId(e.target.value)}
                                 placeholder="e.g. MP260713.1200.A12345"
-                                className="w-full p-2.5 bg-stone-50 dark:bg-slate-800 border border-stone-200 dark:border-slate-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-violet-500/20 text-stone-900 dark:text-white placeholder-stone-400 dark:placeholder-slate-500"
+                                className="w-full p-2.5 bg-stone-50 dark:bg-slate-800 border border-stone-200 dark:border-slate-700 rounded-[14px] text-sm outline-none focus:ring-2 focus:ring-violet-500/20 text-stone-900 dark:text-white placeholder-stone-400 dark:placeholder-slate-500"
                             />
                         </div>
 
                         <div className="space-y-1">
                             <label className="text-xs font-bold text-stone-600 dark:text-slate-400">Screenshot / Receipt Image</label>
-                            <div className="border border-dashed border-stone-200 dark:border-slate-700 rounded-xl p-3 text-center hover:bg-stone-50 dark:hover:bg-slate-800/40 relative cursor-pointer flex flex-col items-center justify-center min-h-[46px]">
+                            <div className="border border-dashed border-stone-200 dark:border-slate-700 rounded-[14px] p-3 text-center hover:bg-stone-50 dark:hover:bg-slate-800/40 relative cursor-pointer flex flex-col items-center justify-center min-h-[46px]">
                                 <input 
                                     type="file" 
                                     onChange={handleFileChange}
@@ -585,7 +571,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({ isOpen, onClose, planName, 
                                 {previewUrl ? (
                                     <div className="flex items-center gap-2 max-w-full">
                                         <img src={previewUrl} className="w-6 h-6 rounded object-cover shrink-0" />
-                                        <span className="text-xs text-green-600 dark:text-green-400 font-semibold truncate">{fileName}</span>
+                                        <span className="text-xs text-mint dark:text-green-400 font-semibold truncate">{fileName}</span>
                                     </div>
                                 ) : (
                                     <div className="text-xs text-stone-600 dark:text-slate-400">
@@ -601,7 +587,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({ isOpen, onClose, planName, 
                     <button 
                         type="button" 
                         onClick={onClose}
-                        className="flex-1 py-3 rounded-xl border border-stone-200 dark:border-slate-800 text-stone-700 dark:text-slate-300 font-bold text-sm hover:bg-stone-50 dark:hover:bg-slate-800 transition-colors"
+                        className="flex-1 py-3 rounded-[14px] border border-stone-200 dark:border-slate-800 text-stone-700 dark:text-slate-300 font-bold text-sm hover:bg-stone-50 dark:hover:bg-slate-800 transition-colors"
                     >
                         Cancel
                     </button>
@@ -609,7 +595,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({ isOpen, onClose, planName, 
                         type="button" 
                         onClick={handleConfirm}
                         disabled={isSaving}
-                        className="flex-1 bg-violet-700 text-white py-3 rounded-xl text-sm font-bold hover:bg-violet-800 transition-colors flex items-center justify-center gap-2 shadow-sm shadow-purple-200 dark:shadow-none"
+                        className="flex-1 bg-violet-700 text-white py-3 rounded-[14px] text-sm font-bold hover:bg-brand-mid transition-colors flex items-center justify-center gap-2 shadow-sm shadow-purple-200 dark:shadow-none"
                     >
                         {isSaving ? (
                             <>

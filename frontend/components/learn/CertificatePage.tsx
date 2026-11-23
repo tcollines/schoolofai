@@ -47,9 +47,9 @@ const CertificatePage: React.FC = () => {
 
     if (!cert && !eligible) {
         return (
-            <div className="max-w-xl mx-auto px-4 py-12 text-center">
+            <div className="max-w-xl mx-auto px-4 py-10 my-6 text-center rounded-[24px] bg-white dark:bg-night-2">
                 <Award className="mx-auto text-stone-400" size={44} />
-                <h1 className="font-serif text-2xl font-semibold mt-4">Your certificate is not ready yet</h1>
+                <h1 className="text-2xl font-extrabold tracking-[-0.02em] mt-4">Your certificate is not ready yet</h1>
                 <p className={`mt-2 ${MUTED}`}>Finish every lesson, pass each module quiz and the final assessment to earn it.</p>
                 <Link to={base} className={`${BTN_PRIMARY} mt-6`}>Back to the course</Link>
             </div>
@@ -59,14 +59,14 @@ const CertificatePage: React.FC = () => {
     if (!cert) {
         return (
             <div className="max-w-xl mx-auto px-4 sm:px-6 py-10">
-                <h1 className="font-serif text-3xl font-semibold">Congratulations!</h1>
+                <h1 className="text-3xl font-extrabold tracking-[-0.02em]">Congratulations!</h1>
                 <p className={`mt-2 ${MUTED}`}>You have finished AI Fundamentals. Confirm how your name should appear. Please check the spelling, because it cannot be changed after the certificate is issued.</p>
-                <form onSubmit={issue} className={`${CARD} rounded-2xl p-6 mt-6 space-y-5`}>
+                <form onSubmit={issue} className={`${CARD} p-6 mt-6 space-y-5`}>
                     <div>
                         <label htmlFor="cert-name" className="block text-sm font-semibold mb-1.5">Full name on certificate</label>
                         <input
                             id="cert-name" value={name} onChange={e => setName(e.target.value)} autoComplete="name"
-                            className="w-full rounded-xl border border-stone-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-4 py-3 text-base focus:outline-none focus-visible:ring-2 focus-visible:ring-violet-500"
+                            className="w-full rounded-[14px] border-0 bg-panel dark:bg-night-3 px-4 py-3 text-base focus:outline-none focus-visible:ring-2 focus-visible:ring-brand"
                         />
                     </div>
                     <div>
@@ -74,13 +74,13 @@ const CertificatePage: React.FC = () => {
                         <div className="flex gap-1" role="radiogroup" aria-label="Rating">
                             {[1, 2, 3, 4, 5].map(n => (
                                 <button key={n} type="button" role="radio" aria-checked={rating === n} aria-label={`${n} star${n > 1 ? 's' : ''}`} onClick={() => setRating(n)} className="p-1">
-                                    <Star size={30} className={n <= rating ? 'fill-amber-400 text-amber-400' : 'text-stone-300 dark:text-slate-600'} />
+                                    <Star size={30} className={n <= rating ? 'fill-[#F5B83D] text-[#E0A100]' : 'text-stone-300 dark:text-slate-600'} />
                                 </button>
                             ))}
                         </div>
                         <textarea
                             value={comment} onChange={e => setComment(e.target.value)} rows={3} placeholder="What worked well? What could be better?"
-                            className="mt-3 w-full rounded-xl border border-stone-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-4 py-3 text-[15px] focus:outline-none focus-visible:ring-2 focus-visible:ring-violet-500"
+                            className="mt-3 w-full rounded-[14px] border-0 bg-panel dark:bg-night-3 px-4 py-3 text-[15px] focus:outline-none focus-visible:ring-2 focus-visible:ring-brand"
                         />
                     </div>
                     {error && <p role="alert" className="text-sm text-red-600">{error}</p>}
@@ -106,10 +106,10 @@ const CertificatePage: React.FC = () => {
     return (
         <div className="max-w-4xl mx-auto px-4 sm:px-6 py-8">
             <style>{PRINT_CSS}</style>
-            <h1 className="font-serif text-3xl font-semibold">Your certificate</h1>
+            <h1 className="text-3xl font-extrabold tracking-[-0.02em]">Your certificate</h1>
             <p className={`mt-1 ${MUTED}`}>Well done. Anyone can check it is genuine at the link below.</p>
 
-            <div className="mt-6 rounded-2xl overflow-hidden border border-stone-200 dark:border-slate-800 shadow-lg">
+            <div className="mt-6 rounded-[20px] overflow-hidden border border-stone-200 dark:border-slate-800 shadow-lg">
                 <CertificateDocument name={cert.name} courseTitle={cert.courseTitle} issuedAt={cert.issuedAt} certId={cert.id} />
             </div>
 
@@ -121,8 +121,8 @@ const CertificatePage: React.FC = () => {
             </div>
             <p className={`mt-3 text-sm ${MUTED}`}>Tip: in the print window choose "Save as PDF", landscape, and turn background graphics on.</p>
 
-            <div className={`${CARD} rounded-2xl p-6 mt-10`}>
-                <h2 className="font-serif text-xl font-semibold">What next?</h2>
+            <div className={`${CARD} p-6 mt-10`}>
+                <h2 className="text-xl font-extrabold tracking-[-0.02em]">What next?</h2>
                 <p className={`mt-1 ${MUTED}`}>Keep going with one real task a week, and explore our programmes to go deeper.</p>
                 <div className="mt-4 flex flex-wrap gap-3">
                     <Link to="/discover" className={BTN_PRIMARY}>Explore more courses</Link>

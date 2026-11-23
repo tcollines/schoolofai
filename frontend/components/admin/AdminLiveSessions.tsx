@@ -20,8 +20,8 @@ interface Session {
 
 const COURSE_SLUG = 'ai-fundamentals';
 const EAT = '+03:00'; // East Africa Time has no daylight saving
-const card = 'bg-white dark:bg-slate-900 rounded-2xl border border-gray-100 dark:border-slate-800 shadow-sm';
-const input = 'w-full rounded-lg border border-gray-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500';
+const card = 'bg-white dark:bg-night-2 rounded-[22px]';
+const input = 'w-full rounded-[12px] bg-white dark:bg-night-2 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500';
 
 const toEatParts = (iso: string) => {
     const d = new Date(new Date(iso).getTime() + 3 * 3600 * 1000); // shift to EAT then read as UTC
@@ -135,9 +135,9 @@ const AdminLiveSessions: React.FC = () => {
     const Row = ({ s }: { s: Session }) => (
         <li className="py-3.5 flex flex-wrap items-center gap-3">
             <div className="min-w-0 flex-1">
-                <p className="font-medium flex items-center gap-2">{s.title}{!s.is_published && <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-gray-200 dark:bg-slate-700">Hidden</span>}</p>
-                <p className="text-sm text-gray-500 dark:text-slate-400">{fmt(s.starts_at)} EAT{s.host_name ? ` · ${s.host_name}` : ''}{s.module_id ? ` · ${MODULES.find(m => m.id === s.module_id)?.title || s.module_id}` : ''}</p>
-                <p className="text-xs text-gray-500 dark:text-slate-400 mt-0.5">{(() => {
+                <p className="font-medium flex items-center gap-2">{s.title}{!s.is_published && <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-stone-200 dark:bg-slate-700">Hidden</span>}</p>
+                <p className="text-sm text-stone-500 dark:text-slate-400">{fmt(s.starts_at)} EAT{s.host_name ? ` · ${s.host_name}` : ''}{s.module_id ? ` · ${MODULES.find(m => m.id === s.module_id)?.title || s.module_id}` : ''}</p>
+                <p className="text-xs text-stone-500 dark:text-slate-400 mt-0.5">{(() => {
                     const r = remStatus[s.id];
                     if (!r) return 'Reminders: none sent yet';
                     return `Reminders: ${r.sent} sent (${r.email} email, ${r.whatsapp} WhatsApp)${r.failed ? `, ${r.failed} failed` : ''}`;
@@ -145,13 +145,13 @@ const AdminLiveSessions: React.FC = () => {
             </div>
             <div className="flex items-center gap-1">
                 {s.meet_link && (
-                    <button title="Copy join link" onClick={async () => { await navigator.clipboard.writeText(s.meet_link!); setCopied(s.id); setTimeout(() => setCopied(null), 1500); }} className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-800">
+                    <button title="Copy join link" onClick={async () => { await navigator.clipboard.writeText(s.meet_link!); setCopied(s.id); setTimeout(() => setCopied(null), 1500); }} className="p-2 rounded-[12px] hover:bg-stone-100 dark:hover:bg-slate-800">
                         {copied === s.id ? <Check size={16} /> : <Copy size={16} />}
                     </button>
                 )}
-                <button title={s.is_published ? 'Hide from students' : 'Show to students'} onClick={() => togglePublish(s)} className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-800">{s.is_published ? <Eye size={16} /> : <EyeOff size={16} />}</button>
-                <button title="Edit" onClick={() => startEdit(s)} className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-800"><Edit3 size={16} /></button>
-                <button title="Delete" onClick={() => remove(s)} className="p-2 rounded-lg hover:bg-red-50 dark:hover:bg-red-950/30 text-red-600"><Trash2 size={16} /></button>
+                <button title={s.is_published ? 'Hide from students' : 'Show to students'} onClick={() => togglePublish(s)} className="p-2 rounded-[12px] hover:bg-stone-100 dark:hover:bg-slate-800">{s.is_published ? <Eye size={16} /> : <EyeOff size={16} />}</button>
+                <button title="Edit" onClick={() => startEdit(s)} className="p-2 rounded-[12px] hover:bg-stone-100 dark:hover:bg-slate-800"><Edit3 size={16} /></button>
+                <button title="Delete" onClick={() => remove(s)} className="p-2 rounded-[12px] hover:bg-red-50 dark:hover:bg-red-950/30 text-red-600"><Trash2 size={16} /></button>
             </div>
         </li>
     );
@@ -161,9 +161,9 @@ const AdminLiveSessions: React.FC = () => {
             <div className="flex flex-wrap items-start justify-between gap-3">
                 <div>
                     <h1 className="text-2xl font-bold">Live Classes</h1>
-                    <p className="text-sm text-gray-500 dark:text-slate-400">Schedule live sessions for the free AI Fundamentals course. Times are East Africa Time. Students see them in the course timetable.</p>
+                    <p className="text-sm text-stone-500 dark:text-slate-400">Schedule live sessions for the free AI Fundamentals course. Times are East Africa Time. Students see them in the course timetable.</p>
                 </div>
-                <button onClick={startNew} className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-semibold bg-violet-600 hover:bg-violet-700 text-white"><Plus size={16} /> New session</button>
+                <button onClick={startNew} className="inline-flex items-center gap-2 px-4 py-2.5 rounded-[12px] text-sm font-semibold bg-violet-600 hover:bg-violet-700 text-white"><Plus size={16} /> New session</button>
             </div>
 
             {missingDb && <MissingDbNotice />}
@@ -174,7 +174,7 @@ const AdminLiveSessions: React.FC = () => {
                 <form onSubmit={save} className={`${card} p-5 space-y-4`}>
                     <div className="flex items-center justify-between">
                         <h2 className="font-bold">{editing ? 'Edit session' : 'New session'}</h2>
-                        <button type="button" onClick={() => setOpen(false)} aria-label="Close" className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-800"><X size={18} /></button>
+                        <button type="button" onClick={() => setOpen(false)} aria-label="Close" className="p-2 rounded-[12px] hover:bg-stone-100 dark:hover:bg-slate-800"><X size={18} /></button>
                     </div>
                     <div className="grid md:grid-cols-2 gap-4">
                         <label className="block md:col-span-2"><span className="text-sm font-semibold">Title *</span><input value={form.title} onChange={set('title')} placeholder="Live Clinic: prompting practice" className={`${input} mt-1`} /></label>
@@ -194,35 +194,35 @@ const AdminLiveSessions: React.FC = () => {
                         <label className="block md:col-span-2"><span className="text-sm font-semibold">Meeting link</span>
                             <div className="flex gap-2 mt-1">
                                 <input value={form.meet} onChange={set('meet')} placeholder="https://meet.google.com/abc-defg-hij" className={input} />
-                                <a href="https://meet.google.com/new" target="_blank" rel="noreferrer" className="shrink-0 inline-flex items-center gap-1.5 px-3 rounded-lg border border-gray-300 dark:border-slate-700 text-sm font-medium hover:bg-gray-50 dark:hover:bg-slate-800"><Video size={15} /> Create <ExternalLink size={12} /></a>
+                                <a href="https://meet.google.com/new" target="_blank" rel="noreferrer" className="shrink-0 inline-flex items-center gap-1.5 px-3 rounded-[12px] border border-stone-300 dark:border-slate-700 text-sm font-medium hover:bg-stone-50 dark:hover:bg-slate-800"><Video size={15} /> Create <ExternalLink size={12} /></a>
                             </div>
-                            <span className="text-xs text-gray-500">Students see the Join button 10 minutes before the start.</span>
+                            <span className="text-xs text-stone-500">Students see the Join button 10 minutes before the start.</span>
                         </label>
                         <label className="block md:col-span-2"><span className="text-sm font-semibold">Recording link (add after the class)</span><input value={form.recording} onChange={set('recording')} placeholder="https://" className={`${input} mt-1`} /></label>
                         {!editing && (
                             <label className="block"><span className="text-sm font-semibold">Repeat weekly for</span>
-                                <div className="flex items-center gap-2 mt-1"><input type="number" min={1} max={26} value={form.repeat} onChange={set('repeat')} className={`${input} w-24`} /><span className="text-sm text-gray-500">session(s) in total</span></div>
+                                <div className="flex items-center gap-2 mt-1"><input type="number" min={1} max={26} value={form.repeat} onChange={set('repeat')} className={`${input} w-24`} /><span className="text-sm text-stone-500">session(s) in total</span></div>
                             </label>
                         )}
                         <label className="flex items-center gap-2 md:col-span-2 text-sm font-medium"><input type="checkbox" checked={form.published} onChange={set('published')} className="accent-violet-600 w-4 h-4" /> Visible to students</label>
                     </div>
                     {error && <p role="alert" className="text-sm text-red-600">{error}</p>}
                     <div className="flex gap-2">
-                        <button type="submit" disabled={saving} className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-semibold bg-violet-600 hover:bg-violet-700 text-white disabled:opacity-60">{saving && <Loader2 size={16} className="animate-spin" />} {editing ? 'Save changes' : 'Create session'}</button>
-                        <button type="button" onClick={() => setOpen(false)} className="px-4 py-2.5 rounded-lg text-sm font-medium border border-gray-300 dark:border-slate-700">Cancel</button>
+                        <button type="submit" disabled={saving} className="inline-flex items-center gap-2 px-4 py-2.5 rounded-[12px] text-sm font-semibold bg-violet-600 hover:bg-violet-700 text-white disabled:opacity-60">{saving && <Loader2 size={16} className="animate-spin" />} {editing ? 'Save changes' : 'Create session'}</button>
+                        <button type="button" onClick={() => setOpen(false)} className="px-4 py-2.5 rounded-[12px] text-sm font-medium border border-stone-300 dark:border-slate-700">Cancel</button>
                     </div>
                 </form>
             )}
 
-            {loading ? <div className="flex items-center gap-2 text-gray-500"><Loader2 className="animate-spin" size={18} /> Loading...</div> : (
+            {loading ? <div className="flex items-center gap-2 text-stone-500"><Loader2 className="animate-spin" size={18} /> Loading...</div> : (
                 <>
                     <div className={`${card} p-5`}>
                         <h2 className="font-bold">Upcoming</h2>
-                        {upcoming.length === 0 ? <p className="text-sm text-gray-500 mt-2">No upcoming sessions. Create one above.</p> : <ul className="divide-y divide-gray-100 dark:divide-slate-800 mt-1">{upcoming.map(s => <Row key={s.id} s={s} />)}</ul>}
+                        {upcoming.length === 0 ? <p className="text-sm text-stone-500 mt-2">No upcoming sessions. Create one above.</p> : <ul className="divide-y divide-stone-100 dark:divide-slate-800 mt-1">{upcoming.map(s => <Row key={s.id} s={s} />)}</ul>}
                     </div>
                     <div className={`${card} p-5`}>
                         <h2 className="font-bold">Past sessions</h2>
-                        {past.length === 0 ? <p className="text-sm text-gray-500 mt-2">Nothing yet.</p> : <ul className="divide-y divide-gray-100 dark:divide-slate-800 mt-1">{past.map(s => <Row key={s.id} s={s} />)}</ul>}
+                        {past.length === 0 ? <p className="text-sm text-stone-500 mt-2">Nothing yet.</p> : <ul className="divide-y divide-stone-100 dark:divide-slate-800 mt-1">{past.map(s => <Row key={s.id} s={s} />)}</ul>}
                     </div>
                 </>
             )}

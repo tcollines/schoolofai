@@ -33,7 +33,7 @@ class ErrorBoundary extends React.Component<Props, State> {
     public render() {
         if (this.state.hasError) {
             return (
-                <div className="p-8 max-w-2xl mx-auto mt-10 bg-red-50 border border-red-200 rounded-xl">
+                <div className="p-8 max-w-2xl mx-auto mt-10 bg-red-50 border border-red-200 rounded-[14px]">
                     <h1 className="text-2xl font-bold text-red-800 mb-4">Something went wrong.</h1>
                     <details className="whitespace-pre-wrap text-red-700 bg-red-100 p-4 rounded overflow-auto text-sm">
                         {this.state.error && this.state.error.toString()}

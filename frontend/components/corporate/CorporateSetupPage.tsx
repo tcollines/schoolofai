@@ -296,7 +296,7 @@ export const CorporateSetupPage: React.FC<CorporateSetupPageProps> = ({ user }) 
             <div className="flex items-center justify-between mb-6">
                 <button
                     onClick={() => navigate('/plans')}
-                    className="flex items-center gap-2 text-sm font-semibold text-gray-500 dark:text-slate-400 hover:text-gray-900 dark:hover:text-white transition-colors cursor-pointer"
+                    className="flex items-center gap-2 text-sm font-semibold text-stone-500 dark:text-slate-400 hover:text-stone-900 dark:hover:text-white transition-colors cursor-pointer"
                 >
                     <ArrowLeft size={16} />
                     <span>Back to Plans</span>
@@ -308,62 +308,62 @@ export const CorporateSetupPage: React.FC<CorporateSetupPageProps> = ({ user }) 
             </div>
 
             {/* Stepper Progress Bar */}
-            <div className="mb-10 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-3xl p-6 shadow-sm">
+            <div className="mb-10 bg-white dark:bg-night-2 rounded-[26px] p-6">
                 <div className="flex items-center justify-between max-w-3xl mx-auto">
                     {/* Step 1 Pill */}
                     <div className="flex items-center gap-3">
-                        <div className={`w-10 h-10 rounded-2xl flex items-center justify-center font-black text-sm transition-all ${
+                        <div className={`w-10 h-10 rounded-[22px] flex items-center justify-center font-black text-sm transition-all ${
                             currentStep === 1 
                                 ? 'bg-violet-600 text-white shadow-lg shadow-violet-500/30 ring-4 ring-violet-500/10' 
                                 : currentStep > 1 
                                     ? 'bg-emerald-500 text-white' 
-                                    : 'bg-gray-100 dark:bg-slate-800 text-gray-400'
+                                    : 'bg-stone-100 dark:bg-slate-800 text-stone-400'
                         }`}>
                             {currentStep > 1 ? <Check size={18} /> : '1'}
                         </div>
                         <div className="hidden sm:block">
-                            <p className="text-xs font-bold text-gray-400 dark:text-slate-500 uppercase tracking-wider">Step 1</p>
-                            <p className={`text-sm font-bold ${currentStep === 1 ? 'text-gray-900 dark:text-white' : 'text-gray-500 dark:text-slate-400'}`}>
+                            <p className="text-xs font-bold text-stone-400 dark:text-slate-500 uppercase tracking-wider">Step 1</p>
+                            <p className={`text-sm font-bold ${currentStep === 1 ? 'text-stone-900 dark:text-white' : 'text-stone-500 dark:text-slate-400'}`}>
                                 Plan & Payment
                             </p>
                         </div>
                     </div>
 
-                    <div className={`flex-1 h-1 mx-4 rounded-full transition-all ${currentStep > 1 ? 'bg-emerald-500' : 'bg-gray-200 dark:bg-slate-800'}`} />
+                    <div className={`flex-1 h-1 mx-4 rounded-full transition-all ${currentStep > 1 ? 'bg-emerald-500' : 'bg-stone-200 dark:bg-slate-800'}`} />
 
                     {/* Step 2 Pill */}
                     <div className="flex items-center gap-3">
-                        <div className={`w-10 h-10 rounded-2xl flex items-center justify-center font-black text-sm transition-all ${
+                        <div className={`w-10 h-10 rounded-[22px] flex items-center justify-center font-black text-sm transition-all ${
                             currentStep === 2 
                                 ? 'bg-violet-600 text-white shadow-lg shadow-violet-500/30 ring-4 ring-violet-500/10' 
                                 : currentStep > 2 
                                     ? 'bg-emerald-500 text-white' 
-                                    : 'bg-gray-100 dark:bg-slate-800 text-gray-400'
+                                    : 'bg-stone-100 dark:bg-slate-800 text-stone-400'
                         }`}>
                             {currentStep > 2 ? <Check size={18} /> : '2'}
                         </div>
                         <div className="hidden sm:block">
-                            <p className="text-xs font-bold text-gray-400 dark:text-slate-500 uppercase tracking-wider">Step 2</p>
-                            <p className={`text-sm font-bold ${currentStep === 2 ? 'text-gray-900 dark:text-white' : 'text-gray-500 dark:text-slate-400'}`}>
+                            <p className="text-xs font-bold text-stone-400 dark:text-slate-500 uppercase tracking-wider">Step 2</p>
+                            <p className={`text-sm font-bold ${currentStep === 2 ? 'text-stone-900 dark:text-white' : 'text-stone-500 dark:text-slate-400'}`}>
                                 Organization Setup
                             </p>
                         </div>
                     </div>
 
-                    <div className={`flex-1 h-1 mx-4 rounded-full transition-all ${currentStep > 2 ? 'bg-emerald-500' : 'bg-gray-200 dark:bg-slate-800'}`} />
+                    <div className={`flex-1 h-1 mx-4 rounded-full transition-all ${currentStep > 2 ? 'bg-emerald-500' : 'bg-stone-200 dark:bg-slate-800'}`} />
 
                     {/* Step 3 Pill */}
                     <div className="flex items-center gap-3">
-                        <div className={`w-10 h-10 rounded-2xl flex items-center justify-center font-black text-sm transition-all ${
+                        <div className={`w-10 h-10 rounded-[22px] flex items-center justify-center font-black text-sm transition-all ${
                             currentStep === 3 
                                 ? 'bg-violet-600 text-white shadow-lg shadow-violet-500/30 ring-4 ring-violet-500/10' 
-                                : 'bg-gray-100 dark:bg-slate-800 text-gray-400'
+                                : 'bg-stone-100 dark:bg-slate-800 text-stone-400'
                         }`}>
                             3
                         </div>
                         <div className="hidden sm:block">
-                            <p className="text-xs font-bold text-gray-400 dark:text-slate-500 uppercase tracking-wider">Step 3</p>
-                            <p className={`text-sm font-bold ${currentStep === 3 ? 'text-gray-900 dark:text-white' : 'text-gray-500 dark:text-slate-400'}`}>
+                            <p className="text-xs font-bold text-stone-400 dark:text-slate-500 uppercase tracking-wider">Step 3</p>
+                            <p className={`text-sm font-bold ${currentStep === 3 ? 'text-stone-900 dark:text-white' : 'text-stone-500 dark:text-slate-400'}`}>
                                 Invite Members
                             </p>
                         </div>
@@ -373,21 +373,21 @@ export const CorporateSetupPage: React.FC<CorporateSetupPageProps> = ({ user }) 
 
             {/* STEP 1: PLAN & PAYMENT */}
             {currentStep === 1 && (
-                <div className="bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-3xl p-6 sm:p-10 shadow-xl space-y-8 animate-fadeIn">
+                <div className="bg-white dark:bg-night-2 rounded-[26px] p-6 sm:p-10 shadow-xl space-y-8 animate-fadeIn">
                     <div>
                         <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-violet-100 dark:bg-violet-950/60 text-violet-700 dark:text-violet-300 text-xs font-bold mb-3">
                             <Building2 size={14} /> Step 1: Seat Selection & Payment
                         </div>
-                        <h2 className="text-2xl sm:text-3xl font-black text-gray-900 dark:text-white tracking-tight">
+                        <h2 className="text-2xl sm:text-3xl font-black text-stone-900 dark:text-white tracking-tight">
                             Select Team Seats & Complete Payment
                         </h2>
-                        <p className="text-sm text-gray-500 dark:text-slate-400 mt-1">
+                        <p className="text-sm text-stone-500 dark:text-slate-400 mt-1">
                             Choose how many seats your team requires. $20/seat for 10–49 seats, or $15/seat for 50+ seats.
                         </p>
                     </div>
 
                     {paymentError && (
-                        <div className="p-4 rounded-2xl bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900/60 text-red-600 dark:text-red-400 text-sm">
+                        <div className="p-4 rounded-[22px] bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900/60 text-red-600 dark:text-red-400 text-sm">
                             {paymentError}
                         </div>
                     )}
@@ -395,9 +395,9 @@ export const CorporateSetupPage: React.FC<CorporateSetupPageProps> = ({ user }) 
                     <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
                         {/* Left: Seat Calculator */}
                         <div className="lg:col-span-7 space-y-6">
-                            <div className="p-6 rounded-2xl bg-gray-50 dark:bg-slate-800/70 border border-gray-200 dark:border-slate-700/80 space-y-5">
+                            <div className="p-6 rounded-[22px] bg-stone-50 dark:bg-slate-800/70 border border-stone-200 dark:border-slate-700/80 space-y-5">
                                 <div className="flex items-center justify-between">
-                                    <label className="text-sm font-bold text-gray-800 dark:text-slate-200 flex items-center gap-2">
+                                    <label className="text-sm font-bold text-stone-800 dark:text-slate-200 flex items-center gap-2">
                                         <Users size={18} className="text-violet-600" />
                                         Team Seats (Min. 10):
                                     </label>
@@ -412,7 +412,7 @@ export const CorporateSetupPage: React.FC<CorporateSetupPageProps> = ({ user }) 
                                         type="button"
                                         onClick={() => setSeats(prev => Math.max(10, prev - 5))}
                                         disabled={seats <= 10}
-                                        className="w-10 h-10 rounded-xl bg-white dark:bg-slate-700 text-gray-700 dark:text-white border border-gray-200 dark:border-slate-600 hover:bg-gray-100 flex items-center justify-center disabled:opacity-40 cursor-pointer shadow-sm"
+                                        className="w-10 h-10 rounded-[14px] bg-white dark:bg-slate-700 text-stone-700 dark:text-white hover:bg-stone-100 flex items-center justify-center disabled:opacity-40 cursor-pointer"
                                     >
                                         <Minus size={16} />
                                     </button>
@@ -423,12 +423,12 @@ export const CorporateSetupPage: React.FC<CorporateSetupPageProps> = ({ user }) 
                                         step="5"
                                         value={seats}
                                         onChange={(e) => setSeats(Number(e.target.value))}
-                                        className="flex-1 accent-violet-600 cursor-pointer h-2.5 bg-gray-200 dark:bg-slate-700 rounded-lg"
+                                        className="flex-1 accent-violet-600 cursor-pointer h-2.5 bg-stone-200 dark:bg-slate-700 rounded-[12px]"
                                     />
                                     <button
                                         type="button"
                                         onClick={() => setSeats(prev => prev + 5)}
-                                        className="w-10 h-10 rounded-xl bg-white dark:bg-slate-700 text-gray-700 dark:text-white border border-gray-200 dark:border-slate-600 hover:bg-gray-100 flex items-center justify-center cursor-pointer shadow-sm"
+                                        className="w-10 h-10 rounded-[14px] bg-white dark:bg-slate-700 text-stone-700 dark:text-white hover:bg-stone-100 flex items-center justify-center cursor-pointer"
                                     >
                                         <Plus size={16} />
                                     </button>
@@ -441,10 +441,10 @@ export const CorporateSetupPage: React.FC<CorporateSetupPageProps> = ({ user }) 
                                             key={s}
                                             type="button"
                                             onClick={() => setSeats(s)}
-                                            className={`py-2 text-xs font-bold rounded-xl transition-all cursor-pointer ${
+                                            className={`py-2 text-xs font-bold rounded-[14px] transition-all cursor-pointer ${
                                                 seats === s
                                                     ? 'bg-violet-600 text-white shadow-md shadow-violet-500/25'
-                                                    : 'bg-white dark:bg-slate-700 text-gray-700 dark:text-slate-300 hover:bg-violet-50 dark:hover:bg-slate-600 border border-gray-200 dark:border-slate-600'
+                                                    : 'bg-white dark:bg-slate-700 text-stone-700 dark:text-slate-300 hover:bg-violet-50 dark:hover:bg-slate-600 border border-stone-200 dark:border-slate-600'
                                             }`}
                                         >
                                             {s} Seats {s >= 50 && '⭐'}
@@ -453,12 +453,12 @@ export const CorporateSetupPage: React.FC<CorporateSetupPageProps> = ({ user }) 
                                 </div>
 
                                 {isDiscounted ? (
-                                    <div className="p-3 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-900/60 rounded-xl text-xs font-bold text-emerald-700 dark:text-emerald-300 flex items-center justify-between">
+                                    <div className="p-3 bg-mint-soft dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-900/60 rounded-[14px] text-xs font-bold text-mint dark:text-emerald-300 flex items-center justify-between">
                                         <span>🎉 25% Volume Discount ($15/seat) Applied!</span>
                                         <span>Save ${(20 - 15) * seats} USD</span>
                                     </div>
                                 ) : (
-                                    <div className="text-xs text-gray-500 dark:text-slate-400 flex items-center justify-between">
+                                    <div className="text-xs text-stone-500 dark:text-slate-400 flex items-center justify-between">
                                         <span>Standard Tier: $20 / seat</span>
                                         <span className="text-violet-600 font-semibold cursor-pointer" onClick={() => setSeats(50)}>
                                             Get 50+ seats for $15/seat →
@@ -469,10 +469,10 @@ export const CorporateSetupPage: React.FC<CorporateSetupPageProps> = ({ user }) 
 
                             {/* Benefits Checklist */}
                             <div className="space-y-3">
-                                <h4 className="text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-slate-400">
+                                <h4 className="text-xs font-bold uppercase tracking-wider text-stone-500 dark:text-slate-400">
                                     Corporate Inclusions:
                                 </h4>
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs text-gray-700 dark:text-slate-300">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs text-stone-700 dark:text-slate-300">
                                     <div className="flex items-center gap-2">
                                         <CheckCircle2 size={16} className="text-violet-600 shrink-0" />
                                         <span>{seats} Full-Access Member Seats</span>
@@ -494,17 +494,17 @@ export const CorporateSetupPage: React.FC<CorporateSetupPageProps> = ({ user }) 
                         </div>
 
                         {/* Right: Payment Box */}
-                        <div className="lg:col-span-5 bg-gradient-to-b from-gray-50 to-white dark:from-slate-800/80 dark:to-slate-900 border border-gray-200 dark:border-slate-700 p-6 rounded-3xl shadow-lg space-y-6">
+                        <div className="lg:col-span-5 bg-gradient-to-b from-stone-50 to-white dark:from-slate-800/80 dark:to-slate-900 border border-stone-200 dark:border-slate-700 p-6 rounded-[26px] shadow-lg space-y-6">
                             <div>
-                                <h3 className="text-base font-bold text-gray-900 dark:text-white mb-1">
+                                <h3 className="text-base font-bold text-stone-900 dark:text-white mb-1">
                                     Order Summary
                                 </h3>
-                                <div className="flex items-baseline justify-between border-b border-gray-200 dark:border-slate-700 pb-4">
+                                <div className="flex items-baseline justify-between border-b border-stone-200 dark:border-slate-700 pb-4">
                                     <div>
-                                        <div className="text-3xl font-black text-gray-900 dark:text-white">
+                                        <div className="text-3xl font-black text-stone-900 dark:text-white">
                                             {formatAmount(totalUsd)}
                                         </div>
-                                        <div className="text-xs text-gray-400">
+                                        <div className="text-xs text-stone-400">
                                             ${unitPrice}/seat for {seats} team members
                                         </div>
                                     </div>
@@ -512,24 +512,24 @@ export const CorporateSetupPage: React.FC<CorporateSetupPageProps> = ({ user }) 
                                         <div className="text-sm font-black text-violet-600 dark:text-violet-400">
                                             USh {totalUgx.toLocaleString()}
                                         </div>
-                                        <div className="text-[10px] text-gray-400">Live Rate</div>
+                                        <div className="text-[10px] text-stone-400">Live Rate</div>
                                     </div>
                                 </div>
                             </div>
 
                             {/* Payment Method Selector */}
                             <div className="space-y-3">
-                                <label className="text-xs font-bold text-gray-700 dark:text-slate-300">
+                                <label className="text-xs font-bold text-stone-700 dark:text-slate-300">
                                     Select Payment Method:
                                 </label>
                                 <div className="grid grid-cols-2 gap-2">
                                     <button
                                         type="button"
                                         onClick={() => setPaymentMethod('mobile_money')}
-                                        className={`p-3 rounded-xl border flex flex-col items-center gap-1.5 transition-all cursor-pointer ${
+                                        className={`p-3 rounded-[14px] border flex flex-col items-center gap-1.5 transition-all cursor-pointer ${
                                             paymentMethod === 'mobile_money'
                                                 ? 'border-violet-600 bg-violet-50 dark:bg-violet-950/40 text-violet-700 dark:text-violet-300 font-bold'
-                                                : 'border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-gray-600 dark:text-slate-400'
+                                                : 'border-stone-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-stone-600 dark:text-slate-400'
                                         }`}
                                     >
                                         <Smartphone size={20} />
@@ -538,10 +538,10 @@ export const CorporateSetupPage: React.FC<CorporateSetupPageProps> = ({ user }) 
                                     <button
                                         type="button"
                                         onClick={() => setPaymentMethod('card')}
-                                        className={`p-3 rounded-xl border flex flex-col items-center gap-1.5 transition-all cursor-pointer ${
+                                        className={`p-3 rounded-[14px] border flex flex-col items-center gap-1.5 transition-all cursor-pointer ${
                                             paymentMethod === 'card'
                                                 ? 'border-violet-600 bg-violet-50 dark:bg-violet-950/40 text-violet-700 dark:text-violet-300 font-bold'
-                                                : 'border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-gray-600 dark:text-slate-400'
+                                                : 'border-stone-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-stone-600 dark:text-slate-400'
                                         }`}
                                     >
                                         <CreditCard size={20} />
@@ -553,7 +553,7 @@ export const CorporateSetupPage: React.FC<CorporateSetupPageProps> = ({ user }) 
                             <form onSubmit={handleProcessPayment} className="space-y-4">
                                 {paymentMethod === 'mobile_money' ? (
                                     <div>
-                                        <label className="block text-xs font-bold text-gray-700 dark:text-slate-300 mb-1">
+                                        <label className="block text-xs font-bold text-stone-700 dark:text-slate-300 mb-1">
                                             MTN or Airtel Money Number:
                                         </label>
                                         <input
@@ -562,15 +562,15 @@ export const CorporateSetupPage: React.FC<CorporateSetupPageProps> = ({ user }) 
                                             placeholder="0770 000 000"
                                             value={phoneNumber}
                                             onChange={(e) => setPhoneNumber(e.target.value)}
-                                            className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-gray-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
+                                            className="w-full px-3.5 py-2.5 rounded-[14px] bg-white dark:bg-slate-800 text-stone-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
                                         />
-                                        <p className="text-[11px] text-gray-400 mt-1">
+                                        <p className="text-[11px] text-stone-400 mt-1">
                                             You will receive a prompt on your phone to approve the transaction.
                                         </p>
                                     </div>
                                 ) : (
                                     <div>
-                                        <label className="block text-xs font-bold text-gray-700 dark:text-slate-300 mb-1">
+                                        <label className="block text-xs font-bold text-stone-700 dark:text-slate-300 mb-1">
                                             Cardholder Billing Email:
                                         </label>
                                         <input
@@ -578,7 +578,7 @@ export const CorporateSetupPage: React.FC<CorporateSetupPageProps> = ({ user }) 
                                             required
                                             value={user?.email || 'finance@company.com'}
                                             readOnly
-                                            className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 dark:border-slate-700 bg-gray-100 dark:bg-slate-800 text-gray-700 dark:text-slate-300 text-sm"
+                                            className="w-full px-3.5 py-2.5 rounded-[14px] border border-stone-200 dark:border-slate-700 bg-stone-100 dark:bg-slate-800 text-stone-700 dark:text-slate-300 text-sm"
                                         />
                                     </div>
                                 )}
@@ -586,7 +586,7 @@ export const CorporateSetupPage: React.FC<CorporateSetupPageProps> = ({ user }) 
                                 <button
                                     type="submit"
                                     disabled={isPaying}
-                                    className="w-full py-4 rounded-2xl bg-gradient-to-r from-violet-600 to-indigo-600 hover:opacity-95 text-white font-bold text-sm shadow-xl shadow-violet-500/25 flex items-center justify-center gap-2 cursor-pointer transition-all disabled:opacity-50"
+                                    className="w-full py-4 rounded-[22px] bg-gradient-to-r from-violet-600 to-brand hover:opacity-95 text-white font-bold text-sm shadow-xl shadow-violet-500/25 flex items-center justify-center gap-2 cursor-pointer transition-all disabled:opacity-50"
                                 >
                                     {isPaying ? (
                                         <>
@@ -606,7 +606,7 @@ export const CorporateSetupPage: React.FC<CorporateSetupPageProps> = ({ user }) 
                                     )}
                                 </button>
 
-                                <div className="flex items-center justify-center gap-2 text-[11px] text-gray-400 text-center">
+                                <div className="flex items-center justify-center gap-2 text-[11px] text-stone-400 text-center">
                                     <ShieldCheck size={14} className="text-emerald-500" />
                                     <span>256-Bit Encrypted MarzPay Secure Checkout</span>
                                 </div>
@@ -618,16 +618,16 @@ export const CorporateSetupPage: React.FC<CorporateSetupPageProps> = ({ user }) 
 
             {/* STEP 2: SETUP OF THE ORGANISATION */}
             {currentStep === 2 && (
-                <div className="bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-3xl p-6 sm:p-10 shadow-xl space-y-8 animate-fadeIn">
+                <div className="bg-white dark:bg-night-2 rounded-[26px] p-6 sm:p-10 shadow-xl space-y-8 animate-fadeIn">
                     <div className="flex items-start justify-between">
                         <div>
-                            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 text-xs font-bold mb-3">
+                            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-mint-soft dark:bg-emerald-950/60 text-mint dark:text-emerald-300 text-xs font-bold mb-3">
                                 <CheckCircle2 size={14} /> Step 1 Completed • {seats} Seats Paid
                             </div>
-                            <h2 className="text-2xl sm:text-3xl font-black text-gray-900 dark:text-white tracking-tight">
+                            <h2 className="text-2xl sm:text-3xl font-black text-stone-900 dark:text-white tracking-tight">
                                 Setup Your Organization Branding
                             </h2>
-                            <p className="text-sm text-gray-500 dark:text-slate-400 mt-1">
+                            <p className="text-sm text-stone-500 dark:text-slate-400 mt-1">
                                 Add your company name, logo and representative contacts. This brand identity will appear on learner dashboards and verified certificates.
                             </p>
                         </div>
@@ -636,7 +636,7 @@ export const CorporateSetupPage: React.FC<CorporateSetupPageProps> = ({ user }) 
                     <form onSubmit={handleSaveOrganization} className="space-y-6 max-w-2xl">
                         {/* Company Name */}
                         <div>
-                            <label className="block text-xs font-bold text-gray-700 dark:text-slate-300 uppercase tracking-wider mb-2">
+                            <label className="block text-xs font-bold text-stone-700 dark:text-slate-300 uppercase tracking-wider mb-2">
                                 Company / Organization Name *
                             </label>
                             <input
@@ -645,25 +645,25 @@ export const CorporateSetupPage: React.FC<CorporateSetupPageProps> = ({ user }) 
                                 placeholder="Acme Technologies Ltd"
                                 value={companyName}
                                 onChange={(e) => setCompanyName(e.target.value)}
-                                className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-gray-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
+                                className="w-full px-4 py-3 rounded-[14px] bg-white dark:bg-slate-800 text-stone-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
                             />
                         </div>
 
                         {/* Logo Upload & Preview */}
                         <div>
-                            <label className="block text-xs font-bold text-gray-700 dark:text-slate-300 uppercase tracking-wider mb-2">
+                            <label className="block text-xs font-bold text-stone-700 dark:text-slate-300 uppercase tracking-wider mb-2">
                                 Company Logo
                             </label>
                             <div className="flex items-center gap-4">
-                                <div className="w-16 h-16 rounded-2xl bg-gray-100 dark:bg-slate-800 border border-dashed border-gray-300 dark:border-slate-700 flex items-center justify-center overflow-hidden shrink-0">
+                                <div className="w-16 h-16 rounded-[22px] bg-stone-100 dark:bg-slate-800 border border-dashed border-stone-300 dark:border-slate-700 flex items-center justify-center overflow-hidden shrink-0">
                                     {logoUrl ? (
                                         <img src={logoUrl} alt="Logo" className="w-full h-full object-contain p-1" />
                                     ) : (
-                                        <Building2 size={24} className="text-gray-400" />
+                                        <Building2 size={24} className="text-stone-400" />
                                     )}
                                 </div>
                                 <div className="flex-1 space-y-2">
-                                    <label className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-violet-50 dark:bg-violet-950/40 text-violet-700 dark:text-violet-300 hover:bg-violet-100 border border-violet-200 dark:border-violet-900 text-xs font-bold cursor-pointer transition-colors">
+                                    <label className="inline-flex items-center gap-2 px-4 py-2 rounded-[14px] bg-violet-50 dark:bg-violet-950/40 text-violet-700 dark:text-violet-300 hover:bg-violet-100 border border-violet-200 dark:border-violet-900 text-xs font-bold cursor-pointer transition-colors">
                                         <Upload size={14} />
                                         <span>Upload Logo Image</span>
                                         <input
@@ -673,7 +673,7 @@ export const CorporateSetupPage: React.FC<CorporateSetupPageProps> = ({ user }) 
                                             className="hidden"
                                         />
                                     </label>
-                                    <p className="text-[11px] text-gray-400">PNG, SVG, or JPG recommended (Square or horizontal)</p>
+                                    <p className="text-[11px] text-stone-400">PNG, SVG, or JPG recommended (Square or horizontal)</p>
                                 </div>
                             </div>
                         </div>
@@ -681,7 +681,7 @@ export const CorporateSetupPage: React.FC<CorporateSetupPageProps> = ({ user }) 
                         {/* Contact Person Details */}
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
                             <div>
-                                <label className="block text-xs font-bold text-gray-700 dark:text-slate-300 uppercase tracking-wider mb-1">
+                                <label className="block text-xs font-bold text-stone-700 dark:text-slate-300 uppercase tracking-wider mb-1">
                                     Lead Contact Name
                                 </label>
                                 <input
@@ -689,12 +689,12 @@ export const CorporateSetupPage: React.FC<CorporateSetupPageProps> = ({ user }) 
                                     placeholder="Sarah Jenkins"
                                     value={contactName}
                                     onChange={(e) => setContactName(e.target.value)}
-                                    className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-gray-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
+                                    className="w-full px-3.5 py-2.5 rounded-[14px] bg-white dark:bg-slate-800 text-stone-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
                                 />
                             </div>
 
                             <div>
-                                <label className="block text-xs font-bold text-gray-700 dark:text-slate-300 uppercase tracking-wider mb-1">
+                                <label className="block text-xs font-bold text-stone-700 dark:text-slate-300 uppercase tracking-wider mb-1">
                                     Official Contact Email *
                                 </label>
                                 <input
@@ -703,12 +703,12 @@ export const CorporateSetupPage: React.FC<CorporateSetupPageProps> = ({ user }) 
                                     placeholder="admin@company.com"
                                     value={contactEmail}
                                     onChange={(e) => setContactEmail(e.target.value)}
-                                    className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-gray-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
+                                    className="w-full px-3.5 py-2.5 rounded-[14px] bg-white dark:bg-slate-800 text-stone-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
                                 />
                             </div>
 
                             <div>
-                                <label className="block text-xs font-bold text-gray-700 dark:text-slate-300 uppercase tracking-wider mb-1">
+                                <label className="block text-xs font-bold text-stone-700 dark:text-slate-300 uppercase tracking-wider mb-1">
                                     Phone Number
                                 </label>
                                 <input
@@ -716,12 +716,12 @@ export const CorporateSetupPage: React.FC<CorporateSetupPageProps> = ({ user }) 
                                     placeholder="+256 700 000 000"
                                     value={contactPhone}
                                     onChange={(e) => setContactPhone(e.target.value)}
-                                    className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-gray-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
+                                    className="w-full px-3.5 py-2.5 rounded-[14px] bg-white dark:bg-slate-800 text-stone-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
                                 />
                             </div>
 
                             <div>
-                                <label className="block text-xs font-bold text-gray-700 dark:text-slate-300 uppercase tracking-wider mb-1">
+                                <label className="block text-xs font-bold text-stone-700 dark:text-slate-300 uppercase tracking-wider mb-1">
                                     Website URL
                                 </label>
                                 <input
@@ -729,24 +729,24 @@ export const CorporateSetupPage: React.FC<CorporateSetupPageProps> = ({ user }) 
                                     placeholder="https://company.com"
                                     value={website}
                                     onChange={(e) => setWebsite(e.target.value)}
-                                    className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-gray-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
+                                    className="w-full px-3.5 py-2.5 rounded-[14px] bg-white dark:bg-slate-800 text-stone-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
                                 />
                             </div>
                         </div>
 
                         {/* Continue Button */}
-                        <div className="pt-4 border-t border-gray-100 dark:border-slate-800 flex items-center justify-between">
+                        <div className="pt-4 border-t border-stone-100 dark:border-slate-800 flex items-center justify-between">
                             <button
                                 type="button"
                                 onClick={() => setCurrentStep(1)}
-                                className="text-xs font-bold text-gray-500 dark:text-slate-400 hover:text-gray-900 dark:hover:text-white cursor-pointer"
+                                className="text-xs font-bold text-stone-500 dark:text-slate-400 hover:text-stone-900 dark:hover:text-white cursor-pointer"
                             >
                                 ← Modify Seats
                             </button>
                             <button
                                 type="submit"
                                 disabled={isSavingOrg}
-                                className="px-8 py-3.5 rounded-2xl bg-gradient-to-r from-violet-600 to-indigo-600 hover:opacity-95 text-white font-bold text-sm shadow-xl shadow-violet-500/25 flex items-center gap-2 cursor-pointer transition-all disabled:opacity-50"
+                                className="px-8 py-3.5 rounded-[22px] bg-gradient-to-r from-violet-600 to-brand hover:opacity-95 text-white font-bold text-sm shadow-xl shadow-violet-500/25 flex items-center gap-2 cursor-pointer transition-all disabled:opacity-50"
                             >
                                 {isSavingOrg ? (
                                     <>
@@ -767,37 +767,37 @@ export const CorporateSetupPage: React.FC<CorporateSetupPageProps> = ({ user }) 
 
             {/* STEP 3: ADDING THE MEMBERS */}
             {currentStep === 3 && (
-                <div className="bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-3xl p-6 sm:p-10 shadow-xl space-y-8 animate-fadeIn">
+                <div className="bg-white dark:bg-night-2 rounded-[26px] p-6 sm:p-10 shadow-xl space-y-8 animate-fadeIn">
                     <div>
                         <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-violet-100 dark:bg-violet-950/60 text-violet-700 dark:text-violet-300 text-xs font-bold mb-3">
                             <Users size={14} /> Step 3: Add & Invite Team Members
                         </div>
-                        <h2 className="text-2xl sm:text-3xl font-black text-gray-900 dark:text-white tracking-tight">
+                        <h2 className="text-2xl sm:text-3xl font-black text-stone-900 dark:text-white tracking-tight">
                             Assign Seats to Your Team
                         </h2>
-                        <p className="text-sm text-gray-500 dark:text-slate-400 mt-1">
+                        <p className="text-sm text-stone-500 dark:text-slate-400 mt-1">
                             You have <strong className="text-violet-600 dark:text-violet-400">{seats} corporate seats</strong> available. Add member emails below to send onboarding invites.
                         </p>
                     </div>
 
                     {/* Seat Allocation Meter */}
-                    <div className="p-5 rounded-2xl bg-gray-50 dark:bg-slate-800/60 border border-gray-200 dark:border-slate-700/80 flex flex-col sm:flex-row items-center justify-between gap-4">
+                    <div className="p-5 rounded-[22px] bg-stone-50 dark:bg-slate-800/60 border border-stone-200 dark:border-slate-700/80 flex flex-col sm:flex-row items-center justify-between gap-4">
                         <div className="space-y-1">
-                            <span className="text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-slate-400">
+                            <span className="text-xs font-bold uppercase tracking-wider text-stone-500 dark:text-slate-400">
                                 Seat Utilization
                             </span>
-                            <div className="text-lg font-black text-gray-900 dark:text-white">
+                            <div className="text-lg font-black text-stone-900 dark:text-white">
                                 {invites.length + 1} of {seats} Seats Claimed
                             </div>
                         </div>
                         <div className="w-full sm:w-64 space-y-1.5">
-                            <div className="h-2.5 bg-gray-200 dark:bg-slate-700 rounded-full overflow-hidden">
+                            <div className="h-2.5 bg-stone-200 dark:bg-slate-700 rounded-full overflow-hidden">
                                 <div
                                     className="h-full bg-violet-600 rounded-full transition-all duration-300"
                                     style={{ width: `${Math.min(100, ((invites.length + 1) / seats) * 100)}%` }}
                                 />
                             </div>
-                            <div className="flex justify-between text-[11px] font-semibold text-gray-500 dark:text-slate-400">
+                            <div className="flex justify-between text-[11px] font-semibold text-stone-500 dark:text-slate-400">
                                 <span>{seats - (invites.length + 1)} remaining</span>
                                 <span>{Math.round(((invites.length + 1) / seats) * 100)}%</span>
                             </div>
@@ -806,8 +806,8 @@ export const CorporateSetupPage: React.FC<CorporateSetupPageProps> = ({ user }) 
 
                     {/* Form Toggle: Single vs Bulk */}
                     <div className="space-y-4">
-                        <div className="flex items-center justify-between border-b border-gray-150 dark:border-slate-800 pb-2">
-                            <h3 className="text-sm font-bold text-gray-800 dark:text-slate-200">
+                        <div className="flex items-center justify-between border-b border-stone-150 dark:border-slate-800 pb-2">
+                            <h3 className="text-sm font-bold text-stone-800 dark:text-slate-200">
                                 {isBulkMode ? 'Bulk Paste Member Emails' : 'Add Single Team Member'}
                             </h3>
                             <button
@@ -822,7 +822,7 @@ export const CorporateSetupPage: React.FC<CorporateSetupPageProps> = ({ user }) 
                         {!isBulkMode ? (
                             <form onSubmit={handleAddSingleMember} className="grid grid-cols-1 sm:grid-cols-12 gap-3 items-end">
                                 <div className="sm:col-span-4">
-                                    <label className="block text-xs font-bold text-gray-700 dark:text-slate-300 mb-1">
+                                    <label className="block text-xs font-bold text-stone-700 dark:text-slate-300 mb-1">
                                         Member Name
                                     </label>
                                     <input
@@ -830,11 +830,11 @@ export const CorporateSetupPage: React.FC<CorporateSetupPageProps> = ({ user }) 
                                         placeholder="Alex Mutua"
                                         value={newMemberName}
                                         onChange={(e) => setNewMemberName(e.target.value)}
-                                        className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-gray-900 dark:text-white text-sm"
+                                        className="w-full px-3.5 py-2.5 rounded-[14px] bg-white dark:bg-slate-800 text-stone-900 dark:text-white text-sm"
                                     />
                                 </div>
                                 <div className="sm:col-span-4">
-                                    <label className="block text-xs font-bold text-gray-700 dark:text-slate-300 mb-1">
+                                    <label className="block text-xs font-bold text-stone-700 dark:text-slate-300 mb-1">
                                         Work Email *
                                     </label>
                                     <input
@@ -843,17 +843,17 @@ export const CorporateSetupPage: React.FC<CorporateSetupPageProps> = ({ user }) 
                                         placeholder="alex@company.com"
                                         value={newMemberEmail}
                                         onChange={(e) => setNewMemberEmail(e.target.value)}
-                                        className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-gray-900 dark:text-white text-sm"
+                                        className="w-full px-3.5 py-2.5 rounded-[14px] bg-white dark:bg-slate-800 text-stone-900 dark:text-white text-sm"
                                     />
                                 </div>
                                 <div className="sm:col-span-2">
-                                    <label className="block text-xs font-bold text-gray-700 dark:text-slate-300 mb-1">
+                                    <label className="block text-xs font-bold text-stone-700 dark:text-slate-300 mb-1">
                                         Department
                                     </label>
                                     <select
                                         value={newMemberDept}
                                         onChange={(e) => setNewMemberDept(e.target.value)}
-                                        className="w-full px-3 py-2.5 rounded-xl border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-gray-900 dark:text-white text-sm"
+                                        className="w-full px-3 py-2.5 rounded-[14px] bg-white dark:bg-slate-800 text-stone-900 dark:text-white text-sm"
                                     >
                                         <option value="Engineering">Engineering</option>
                                         <option value="Product">Product</option>
@@ -866,7 +866,7 @@ export const CorporateSetupPage: React.FC<CorporateSetupPageProps> = ({ user }) 
                                 <div className="sm:col-span-2">
                                     <button
                                         type="submit"
-                                        className="w-full py-2.5 rounded-xl bg-violet-600 hover:bg-violet-700 text-white font-bold text-sm shadow-md transition-all cursor-pointer"
+                                        className="w-full py-2.5 rounded-[14px] bg-violet-600 hover:bg-violet-700 text-white font-bold text-sm shadow-md transition-all cursor-pointer"
                                     >
                                         + Add Seat
                                     </button>
@@ -879,13 +879,13 @@ export const CorporateSetupPage: React.FC<CorporateSetupPageProps> = ({ user }) 
                                     placeholder="Paste emails separated by commas or newlines (e.g. dev1@company.com, dev2@company.com)..."
                                     value={bulkEmails}
                                     onChange={(e) => setBulkEmails(e.target.value)}
-                                    className="w-full p-3.5 rounded-xl border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-gray-900 dark:text-white text-sm"
+                                    className="w-full p-3.5 rounded-[14px] bg-white dark:bg-slate-800 text-stone-900 dark:text-white text-sm"
                                 />
                                 <div className="flex justify-end">
                                     <button
                                         type="button"
                                         onClick={handleAddBulkEmails}
-                                        className="px-5 py-2.5 rounded-xl bg-violet-600 hover:bg-violet-700 text-white font-bold text-xs shadow cursor-pointer"
+                                        className="px-5 py-2.5 rounded-[14px] bg-violet-600 hover:bg-violet-700 text-white font-bold text-xs shadow cursor-pointer"
                                     >
                                         Parse & Add to Roster
                                     </button>
@@ -897,12 +897,12 @@ export const CorporateSetupPage: React.FC<CorporateSetupPageProps> = ({ user }) 
                     {/* Staging Roster Table */}
                     <div className="space-y-3">
                         <div className="flex items-center justify-between">
-                            <h4 className="text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-slate-400">
+                            <h4 className="text-xs font-bold uppercase tracking-wider text-stone-500 dark:text-slate-400">
                                 Staged Team Invites ({invites.length + 1} learners)
                             </h4>
                         </div>
 
-                        <div className="border border-gray-200 dark:border-slate-800 rounded-2xl overflow-hidden divide-y divide-gray-100 dark:divide-slate-800">
+                        <div className="border border-stone-200 dark:border-slate-800 rounded-[22px] overflow-hidden divide-y divide-stone-100 dark:divide-slate-800">
                             {/* Primary Account Owner Row */}
                             <div className="p-3.5 bg-violet-50/60 dark:bg-violet-950/20 flex items-center justify-between text-xs">
                                 <div className="flex items-center gap-3">
@@ -910,38 +910,38 @@ export const CorporateSetupPage: React.FC<CorporateSetupPageProps> = ({ user }) 
                                         {contactName?.[0] || 'A'}
                                     </div>
                                     <div>
-                                        <p className="font-bold text-gray-900 dark:text-white flex items-center gap-1.5">
+                                        <p className="font-bold text-stone-900 dark:text-white flex items-center gap-1.5">
                                             {contactName || 'Corporate Admin'}
                                             <span className="px-1.5 py-0.5 rounded text-[10px] bg-violet-200 dark:bg-violet-900/60 text-violet-800 dark:text-violet-200 font-bold">OWNER</span>
                                         </p>
-                                        <p className="text-gray-500 dark:text-slate-400">{contactEmail || user?.email}</p>
+                                        <p className="text-stone-500 dark:text-slate-400">{contactEmail || user?.email}</p>
                                     </div>
                                 </div>
-                                <span className="text-[11px] font-semibold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 px-2 py-0.5 rounded">
+                                <span className="text-[11px] font-semibold text-mint dark:text-emerald-400 bg-mint-soft dark:bg-emerald-950/40 px-2 py-0.5 rounded">
                                     Admin Seat Active
                                 </span>
                             </div>
 
                             {/* Added Invite Members */}
                             {invites.map((member) => (
-                                <div key={member.id} className="p-3.5 bg-white dark:bg-slate-900 flex items-center justify-between text-xs hover:bg-gray-50 dark:hover:bg-slate-800/40 transition-colors">
+                                <div key={member.id} className="p-3.5 bg-white dark:bg-slate-900 flex items-center justify-between text-xs hover:bg-stone-50 dark:hover:bg-slate-800/40 transition-colors">
                                     <div className="flex items-center gap-3">
-                                        <div className="w-8 h-8 rounded-full bg-gray-200 dark:bg-slate-700 text-gray-700 dark:text-slate-300 flex items-center justify-center font-bold">
+                                        <div className="w-8 h-8 rounded-full bg-stone-200 dark:bg-slate-700 text-stone-700 dark:text-slate-300 flex items-center justify-center font-bold">
                                             {member.name?.[0] || member.email[0].toUpperCase()}
                                         </div>
                                         <div>
-                                            <p className="font-bold text-gray-900 dark:text-white">{member.name}</p>
-                                            <p className="text-gray-500 dark:text-slate-400">{member.email}</p>
+                                            <p className="font-bold text-stone-900 dark:text-white">{member.name}</p>
+                                            <p className="text-stone-500 dark:text-slate-400">{member.email}</p>
                                         </div>
                                     </div>
                                     <div className="flex items-center gap-3">
-                                        <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-gray-100 dark:bg-slate-800 text-gray-600 dark:text-slate-300">
+                                        <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-stone-100 dark:bg-slate-800 text-stone-600 dark:text-slate-300">
                                             {member.department}
                                         </span>
                                         <button
                                             type="button"
                                             onClick={() => handleRemoveInvite(member.id)}
-                                            className="p-1 text-gray-400 hover:text-red-500 cursor-pointer transition-colors"
+                                            className="p-1 text-stone-400 hover:text-red-500 cursor-pointer transition-colors"
                                         >
                                             <Trash2 size={15} />
                                         </button>
@@ -952,11 +952,11 @@ export const CorporateSetupPage: React.FC<CorporateSetupPageProps> = ({ user }) 
                     </div>
 
                     {/* Step 3 Footer Actions -> Redirects to Corporate Portal Tab */}
-                    <div className="pt-6 border-t border-gray-100 dark:border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-4">
+                    <div className="pt-6 border-t border-stone-100 dark:border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-4">
                         <button
                             type="button"
                             onClick={() => setCurrentStep(2)}
-                            className="text-xs font-bold text-gray-500 dark:text-slate-400 hover:text-gray-900 dark:hover:text-white cursor-pointer order-2 sm:order-1"
+                            className="text-xs font-bold text-stone-500 dark:text-slate-400 hover:text-stone-900 dark:hover:text-white cursor-pointer order-2 sm:order-1"
                         >
                             ← Edit Organization Details
                         </button>
@@ -966,7 +966,7 @@ export const CorporateSetupPage: React.FC<CorporateSetupPageProps> = ({ user }) 
                                 type="button"
                                 onClick={handleFinalizeAndRedirect}
                                 disabled={isSubmittingInvites}
-                                className="flex-1 sm:flex-initial px-8 py-3.5 rounded-2xl bg-gradient-to-r from-violet-600 to-indigo-600 hover:opacity-95 text-white font-bold text-sm shadow-xl shadow-violet-500/25 flex items-center justify-center gap-2 cursor-pointer transition-all disabled:opacity-50"
+                                className="flex-1 sm:flex-initial px-8 py-3.5 rounded-[22px] bg-gradient-to-r from-violet-600 to-brand hover:opacity-95 text-white font-bold text-sm shadow-xl shadow-violet-500/25 flex items-center justify-center gap-2 cursor-pointer transition-all disabled:opacity-50"
                             >
                                 {isSubmittingInvites ? (
                                     <>

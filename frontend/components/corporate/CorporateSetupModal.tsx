@@ -39,11 +39,11 @@ export const CorporateSetupModal: React.FC<CorporateSetupModalProps> = ({
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-fadeIn">
-            <div className="bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-3xl max-w-xl w-full shadow-2xl overflow-hidden flex flex-col max-h-[92vh]">
+            <div className="bg-white dark:bg-night-2 rounded-[26px] max-w-xl w-full shadow-2xl overflow-hidden flex flex-col max-h-[92vh]">
                 {/* Header */}
-                <div className="p-6 border-b border-gray-100 dark:border-slate-800 flex items-center justify-between bg-gradient-to-r from-violet-600 to-indigo-700 text-white">
+                <div className="p-6 border-b border-stone-100 dark:border-slate-800 flex items-center justify-between bg-gradient-to-r from-violet-600 to-brand text-white">
                     <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center text-white">
+                        <div className="w-10 h-10 rounded-[14px] bg-white/20 backdrop-blur-sm flex items-center justify-center text-white">
                             <Building2 size={22} />
                         </div>
                         <div>
@@ -53,7 +53,7 @@ export const CorporateSetupModal: React.FC<CorporateSetupModalProps> = ({
                     </div>
                     <button
                         onClick={onClose}
-                        className="p-1.5 text-white/80 hover:text-white rounded-lg hover:bg-white/10 transition-colors cursor-pointer"
+                        className="p-1.5 text-white/80 hover:text-white rounded-[12px] hover:bg-white/10 transition-colors cursor-pointer"
                     >
                         <X size={20} />
                     </button>
@@ -62,9 +62,9 @@ export const CorporateSetupModal: React.FC<CorporateSetupModalProps> = ({
                 {/* Body */}
                 <form onSubmit={handleSubmit} className="p-6 overflow-y-auto space-y-6 flex-1">
                     {/* Seat Calculator */}
-                    <div className="p-5 rounded-2xl bg-gray-50 dark:bg-slate-800/70 border border-gray-200 dark:border-slate-700">
+                    <div className="p-5 rounded-[22px] bg-stone-50 dark:bg-slate-800/70 border border-stone-200 dark:border-slate-700">
                         <div className="flex items-center justify-between mb-3">
-                            <label className="text-xs font-bold text-gray-700 dark:text-slate-300 flex items-center gap-1.5">
+                            <label className="text-xs font-bold text-stone-700 dark:text-slate-300 flex items-center gap-1.5">
                                 <Users size={16} className="text-violet-600" />
                                 Select Team Seats (Min 10):
                             </label>
@@ -79,7 +79,7 @@ export const CorporateSetupModal: React.FC<CorporateSetupModalProps> = ({
                                 type="button"
                                 onClick={() => setSeats(prev => Math.max(10, prev - 5))}
                                 disabled={seats <= 10}
-                                className="w-9 h-9 rounded-xl bg-white dark:bg-slate-700 text-gray-700 dark:text-white border border-gray-200 dark:border-slate-600 hover:bg-gray-100 flex items-center justify-center disabled:opacity-40 cursor-pointer shadow-sm"
+                                className="w-9 h-9 rounded-[14px] bg-white dark:bg-slate-700 text-stone-700 dark:text-white hover:bg-stone-100 flex items-center justify-center disabled:opacity-40 cursor-pointer"
                             >
                                 <Minus size={15} />
                             </button>
@@ -90,12 +90,12 @@ export const CorporateSetupModal: React.FC<CorporateSetupModalProps> = ({
                                 step="5"
                                 value={seats}
                                 onChange={(e) => setSeats(Number(e.target.value))}
-                                className="flex-1 accent-violet-600 cursor-pointer h-2 bg-gray-200 dark:bg-slate-700 rounded-lg"
+                                className="flex-1 accent-violet-600 cursor-pointer h-2 bg-stone-200 dark:bg-slate-700 rounded-[12px]"
                             />
                             <button
                                 type="button"
                                 onClick={() => setSeats(prev => prev + 5)}
-                                className="w-9 h-9 rounded-xl bg-white dark:bg-slate-700 text-gray-700 dark:text-white border border-gray-200 dark:border-slate-600 hover:bg-gray-100 flex items-center justify-center cursor-pointer shadow-sm"
+                                className="w-9 h-9 rounded-[14px] bg-white dark:bg-slate-700 text-stone-700 dark:text-white hover:bg-stone-100 flex items-center justify-center cursor-pointer"
                             >
                                 <Plus size={15} />
                             </button>
@@ -108,10 +108,10 @@ export const CorporateSetupModal: React.FC<CorporateSetupModalProps> = ({
                                     key={s}
                                     type="button"
                                     onClick={() => setSeats(s)}
-                                    className={`py-2 text-xs font-bold rounded-xl transition-all cursor-pointer ${
+                                    className={`py-2 text-xs font-bold rounded-[14px] transition-all cursor-pointer ${
                                         seats === s
                                             ? 'bg-violet-600 text-white shadow-md'
-                                            : 'bg-white dark:bg-slate-700 text-gray-700 dark:text-slate-300 hover:bg-violet-50 dark:hover:bg-slate-600 border border-gray-200 dark:border-slate-600'
+                                            : 'bg-white dark:bg-slate-700 text-stone-700 dark:text-slate-300 hover:bg-violet-50 dark:hover:bg-slate-600 border border-stone-200 dark:border-slate-600'
                                     }`}
                                 >
                                     {s} Seats {s >= 50 && '⭐'}
@@ -120,25 +120,25 @@ export const CorporateSetupModal: React.FC<CorporateSetupModalProps> = ({
                         </div>
 
                         {/* Price summary callout */}
-                        <div className="pt-3 border-t border-gray-200/80 dark:border-slate-700 flex items-center justify-between">
+                        <div className="pt-3 border-t border-stone-200/80 dark:border-slate-700 flex items-center justify-between">
                             <div>
-                                <span className="text-xs text-gray-500 dark:text-slate-400">Rate: </span>
-                                <span className="text-xs font-bold text-gray-900 dark:text-white">${unitPrice}/seat</span>
+                                <span className="text-xs text-stone-500 dark:text-slate-400">Rate: </span>
+                                <span className="text-xs font-bold text-stone-900 dark:text-white">${unitPrice}/seat</span>
                                 {isDiscounted ? (
-                                    <span className="ml-2 px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300">
+                                    <span className="ml-2 px-2 py-0.5 rounded text-[10px] font-bold bg-mint-soft dark:bg-emerald-950/60 text-mint dark:text-emerald-300">
                                         25% Volume Discount
                                     </span>
                                 ) : (
-                                    <span className="ml-2 text-[10px] text-gray-400">
+                                    <span className="ml-2 text-[10px] text-stone-400">
                                         (50+ seats: $15/seat)
                                     </span>
                                 )}
                             </div>
                             <div className="text-right">
-                                <div className="text-xl font-black text-gray-900 dark:text-white">
+                                <div className="text-xl font-black text-stone-900 dark:text-white">
                                     {formatAmount(totalUsd)}
                                 </div>
-                                <div className="text-[11px] text-gray-400">
+                                <div className="text-[11px] text-stone-400">
                                     ${totalUsd} USD total
                                 </div>
                             </div>
@@ -147,12 +147,12 @@ export const CorporateSetupModal: React.FC<CorporateSetupModalProps> = ({
 
                     {/* Organization Details */}
                     <div className="space-y-4">
-                        <h4 className="text-xs font-bold text-gray-700 dark:text-slate-300 uppercase tracking-wider">
+                        <h4 className="text-xs font-bold text-stone-700 dark:text-slate-300 uppercase tracking-wider">
                             Organization Details
                         </h4>
 
                         <div>
-                            <label className="block text-xs font-bold text-gray-700 dark:text-slate-300 mb-1">
+                            <label className="block text-xs font-bold text-stone-700 dark:text-slate-300 mb-1">
                                 Company / Organization Name *
                             </label>
                             <input
@@ -161,13 +161,13 @@ export const CorporateSetupModal: React.FC<CorporateSetupModalProps> = ({
                                 placeholder="Acme Technologies Ltd"
                                 value={companyName}
                                 onChange={(e) => setCompanyName(e.target.value)}
-                                className="w-full px-3.5 py-2.5 text-sm rounded-xl border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-violet-500"
+                                className="w-full px-3.5 py-2.5 text-sm rounded-[14px] bg-white dark:bg-slate-800 text-stone-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-violet-500"
                             />
                         </div>
 
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                             <div>
-                                <label className="block text-xs font-bold text-gray-700 dark:text-slate-300 mb-1">
+                                <label className="block text-xs font-bold text-stone-700 dark:text-slate-300 mb-1">
                                     Contact Email *
                                 </label>
                                 <input
@@ -176,12 +176,12 @@ export const CorporateSetupModal: React.FC<CorporateSetupModalProps> = ({
                                     placeholder="admin@company.com"
                                     value={contactEmail}
                                     onChange={(e) => setContactEmail(e.target.value)}
-                                    className="w-full px-3.5 py-2.5 text-sm rounded-xl border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-violet-500"
+                                    className="w-full px-3.5 py-2.5 text-sm rounded-[14px] bg-white dark:bg-slate-800 text-stone-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-violet-500"
                                 />
                             </div>
 
                             <div>
-                                <label className="block text-xs font-bold text-gray-700 dark:text-slate-300 mb-1">
+                                <label className="block text-xs font-bold text-stone-700 dark:text-slate-300 mb-1">
                                     Phone Number
                                 </label>
                                 <input
@@ -189,17 +189,17 @@ export const CorporateSetupModal: React.FC<CorporateSetupModalProps> = ({
                                     placeholder="+256 700 000 000"
                                     value={contactPhone}
                                     onChange={(e) => setContactPhone(e.target.value)}
-                                    className="w-full px-3.5 py-2.5 text-sm rounded-xl border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-violet-500"
+                                    className="w-full px-3.5 py-2.5 text-sm rounded-[14px] bg-white dark:bg-slate-800 text-stone-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-violet-500"
                                 />
                             </div>
                         </div>
                     </div>
 
                     {/* Footer Actions */}
-                    <div className="pt-4 border-t border-gray-100 dark:border-slate-800 space-y-3">
+                    <div className="pt-4 border-t border-stone-100 dark:border-slate-800 space-y-3">
                         <button
                             type="submit"
-                            className="w-full py-3.5 bg-gradient-to-r from-violet-600 to-indigo-600 hover:opacity-95 text-white font-bold text-sm rounded-xl shadow-lg shadow-violet-500/25 flex items-center justify-center gap-2 cursor-pointer transition-all"
+                            className="w-full py-3.5 bg-gradient-to-r from-violet-600 to-brand hover:opacity-95 text-white font-bold text-sm rounded-[14px] shadow-lg shadow-violet-500/25 flex items-center justify-center gap-2 cursor-pointer transition-all"
                         >
                             <span>Proceed to Payment ({formatAmount(totalUsd)})</span>
                             <ArrowRight size={16} />
@@ -211,7 +211,7 @@ export const CorporateSetupModal: React.FC<CorporateSetupModalProps> = ({
                                 onClose();
                                 onOpenDashboard();
                             }}
-                            className="w-full py-2.5 bg-gray-100 hover:bg-gray-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-violet-700 dark:text-violet-300 font-bold text-xs rounded-xl flex items-center justify-center gap-1.5 cursor-pointer transition-colors"
+                            className="w-full py-2.5 bg-stone-100 hover:bg-stone-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-violet-700 dark:text-violet-300 font-bold text-xs rounded-[14px] flex items-center justify-center gap-1.5 cursor-pointer transition-colors"
                         >
                             <Building2 size={14} />
                             <span>Or Open Existing Corporate Dashboard</span>

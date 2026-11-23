@@ -77,16 +77,16 @@ const AccountSetupGate: React.FC<{ session: any }> = ({ session }) => {
 
     return (
         <div className="fixed inset-0 z-[110] flex items-center justify-center bg-black/60 p-4" role="dialog" aria-modal="true" aria-label="Choose your password">
-            <form onSubmit={submit} className="bg-white dark:bg-slate-900 text-[#1c1917] dark:text-slate-100 rounded-2xl shadow-2xl p-6 max-w-sm w-full space-y-4">
-                <div className="w-12 h-12 rounded-xl bg-violet-100 dark:bg-violet-950/60 text-violet-800 dark:text-violet-300 flex items-center justify-center"><ShieldCheck size={24} /></div>
+            <form onSubmit={submit} className="bg-white dark:bg-slate-900 text-ink dark:text-slate-100 rounded-[22px] shadow-2xl p-6 max-w-sm w-full space-y-4">
+                <div className="w-12 h-12 rounded-[14px] bg-violet-100 dark:bg-violet-950/60 text-violet-800 dark:text-violet-300 flex items-center justify-center"><ShieldCheck size={24} /></div>
                 <div><p className="text-lg font-semibold">Choose your own password</p><p className="mt-1 text-[15px] text-stone-600 dark:text-slate-300">Your account was opened for you with a temporary password. Pick a new one that only you know.</p></div>
                 <div className="relative">
-                    <input type={show ? 'text' : 'password'} value={pw} onChange={e => setPw(e.target.value)} autoComplete="new-password" placeholder="New password" aria-label="New password" className="w-full rounded-xl border border-stone-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-4 py-3 pr-12 text-base" />
+                    <input type={show ? 'text' : 'password'} value={pw} onChange={e => setPw(e.target.value)} autoComplete="new-password" placeholder="New password" aria-label="New password" className="w-full rounded-[14px] bg-white dark:bg-slate-950 px-4 py-3 pr-12 text-base" />
                     <button type="button" onClick={() => setShow(s => !s)} aria-label={show ? 'Hide password' : 'Show password'} className="absolute right-2 top-1/2 -translate-y-1/2 p-2 text-stone-500">{show ? <EyeOff size={18} /> : <Eye size={18} />}</button>
                 </div>
-                <input type={show ? 'text' : 'password'} value={pw2} onChange={e => setPw2(e.target.value)} autoComplete="new-password" placeholder="Repeat new password" aria-label="Repeat new password" className="w-full rounded-xl border border-stone-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-4 py-3 text-base" />
+                <input type={show ? 'text' : 'password'} value={pw2} onChange={e => setPw2(e.target.value)} autoComplete="new-password" placeholder="Repeat new password" aria-label="Repeat new password" className="w-full rounded-[14px] bg-white dark:bg-slate-950 px-4 py-3 text-base" />
                 {error && <p role="alert" className="text-sm text-red-600">{error}</p>}
-                <button type="submit" disabled={busy} className="w-full min-h-[48px] rounded-xl bg-violet-700 hover:bg-violet-800 text-white font-semibold disabled:opacity-60 inline-flex items-center justify-center gap-2">{busy && <Loader2 size={16} className="animate-spin" />} Save password</button>
+                <button type="submit" disabled={busy} className="w-full min-h-[48px] rounded-[14px] bg-violet-700 hover:bg-brand-mid text-white font-semibold disabled:opacity-60 inline-flex items-center justify-center gap-2">{busy && <Loader2 size={16} className="animate-spin" />} Save password</button>
             </form>
         </div>
     );

@@ -204,27 +204,27 @@ export default function CohortScheduler() {
     };
 
     if (loading) {
-        return <div className="p-8 text-center text-gray-500"><Loader2 className="animate-spin inline mr-2" /> Loading courses...</div>;
+        return <div className="p-8 text-center text-stone-500"><Loader2 className="animate-spin inline mr-2" /> Loading courses...</div>;
     }
 
     return (
         <div className="max-w-5xl mx-auto">
             <div className="flex items-center justify-between mb-8">
                 <div>
-                    <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Cohort Scheduler</h1>
-                    <p className="text-gray-500 dark:text-slate-400 mt-1">Schedule new cohorts and manage physical sessions.</p>
+                    <h1 className="m-0 text-[28px] font-extrabold tracking-[-0.02em]">Cohort Scheduler</h1>
+                    <p className="text-stone-500 dark:text-slate-400 mt-1">Schedule new cohorts and manage physical sessions.</p>
                 </div>
             </div>
 
-            <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-gray-200 dark:border-slate-800 p-6 mb-8">
-                <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Cohort Details</h2>
+            <div className="bg-white dark:bg-night-2 rounded-[22px] p-6 mb-8">
+                <h2 className="text-[17px] font-extrabold mb-4">Cohort Details</h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">Select Curriculum</label>
+                        <label className="block text-sm font-medium text-stone-700 dark:text-slate-300 mb-1">Select Curriculum</label>
                         <select 
                             value={selectedCourseId}
                             onChange={handleCourseChange}
-                            className="w-full bg-gray-50 dark:bg-slate-950 border border-gray-200 dark:border-slate-700 rounded-xl px-4 py-2 text-gray-900 dark:text-white"
+                            className="w-full bg-stone-50 dark:bg-night border border-stone-200 dark:border-slate-700 rounded-[14px] px-4 py-2 text-stone-900 dark:text-white"
                         >
                             <option value="">-- Choose a Course --</option>
                             {courses.map(c => (
@@ -233,77 +233,77 @@ export default function CohortScheduler() {
                         </select>
                     </div>
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">Cohort Name</label>
+                        <label className="block text-sm font-medium text-stone-700 dark:text-slate-300 mb-1">Cohort Name</label>
                         <input 
                             type="text" 
                             placeholder="e.g. September Intake"
                             value={cohortName}
                             onChange={e => setCohortName(e.target.value)}
-                            className="w-full bg-gray-50 dark:bg-slate-950 border border-gray-200 dark:border-slate-700 rounded-xl px-4 py-2 text-gray-900 dark:text-white"
+                            className="w-full bg-stone-50 dark:bg-night border border-stone-200 dark:border-slate-700 rounded-[14px] px-4 py-2 text-stone-900 dark:text-white"
                         />
                     </div>
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">Start Date</label>
+                        <label className="block text-sm font-medium text-stone-700 dark:text-slate-300 mb-1">Start Date</label>
                         <input 
                             type="date" 
                             value={startDate}
                             onChange={handleStartDateChange}
-                            className="w-full bg-gray-50 dark:bg-slate-950 border border-gray-200 dark:border-slate-700 rounded-xl px-4 py-2 text-gray-900 dark:text-white"
+                            className="w-full bg-stone-50 dark:bg-night border border-stone-200 dark:border-slate-700 rounded-[14px] px-4 py-2 text-stone-900 dark:text-white"
                         />
                     </div>
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">Orientation End Date (Auto +3 Days)</label>
+                        <label className="block text-sm font-medium text-stone-700 dark:text-slate-300 mb-1">Orientation End Date (Auto +3 Days)</label>
                         <input 
                             type="date" 
                             value={orientationEndDate}
                             onChange={e => setOrientationEndDate(e.target.value)}
-                            className="w-full bg-gray-50 dark:bg-slate-950 border border-gray-200 dark:border-slate-700 rounded-xl px-4 py-2 text-gray-900 dark:text-white"
+                            className="w-full bg-stone-50 dark:bg-night border border-stone-200 dark:border-slate-700 rounded-[14px] px-4 py-2 text-stone-900 dark:text-white"
                         />
                     </div>
                 </div>
             </div>
 
             {selectedCourseId && modules.length > 0 && (
-                <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-gray-200 dark:border-slate-800 p-6">
-                    <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Module Sessions & LIVELESSON Codes</h2>
+                <div className="bg-white dark:bg-night-2 rounded-[22px] p-6">
+                    <h2 className="text-[17px] font-extrabold mb-4">Module Sessions & LIVELESSON Codes</h2>
                     <div className="space-y-4">
                         {modules.map((mod, idx) => (
-                            <div key={mod.id} className="p-4 border border-gray-100 dark:border-slate-800 rounded-xl bg-gray-50/50 dark:bg-slate-950/50 flex flex-col md:flex-row gap-4 items-end">
+                            <div key={mod.id} className="p-4 border border-stone-100 dark:border-slate-800 rounded-[14px] bg-stone-50/50 dark:bg-night/50 flex flex-col md:flex-row gap-4 items-end">
                                 <div className="flex-1">
-                                    <p className="text-sm font-bold text-gray-900 dark:text-white mb-2">{idx + 1}. {mod.title}</p>
+                                    <p className="text-sm font-bold text-stone-900 dark:text-white mb-2">{idx + 1}. {mod.title}</p>
                                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                                         <div>
-                                            <label className="block text-xs font-medium text-gray-500 mb-1">Session Date & Time</label>
+                                            <label className="block text-xs font-medium text-stone-500 mb-1">Session Date & Time</label>
                                             <input 
                                                 type="datetime-local" 
                                                 value={sessions[idx]?.session_date || ''}
                                                 onChange={e => updateSession(idx, 'session_date', e.target.value)}
-                                                className="w-full bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-lg px-3 py-1.5 text-sm"
+                                                className="w-full bg-white dark:bg-night-2 rounded-[12px] px-3 py-1.5 text-sm"
                                             />
                                         </div>
                                         <div>
-                                            <label className="block text-xs font-medium text-gray-500 mb-1">Location / Meet Link</label>
+                                            <label className="block text-xs font-medium text-stone-500 mb-1">Location / Meet Link</label>
                                             <input 
                                                 type="text" 
                                                 placeholder="e.g. Room 101 or Zoom Link"
                                                 value={sessions[idx]?.location_link || ''}
                                                 onChange={e => updateSession(idx, 'location_link', e.target.value)}
-                                                className="w-full bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-lg px-3 py-1.5 text-sm"
+                                                className="w-full bg-white dark:bg-night-2 rounded-[12px] px-3 py-1.5 text-sm"
                                             />
                                         </div>
                                         <div>
-                                            <label className="block text-xs font-medium text-gray-500 mb-1">Attendance Code</label>
+                                            <label className="block text-xs font-medium text-stone-500 mb-1">Attendance Code</label>
                                             <div className="flex gap-2">
                                                 <input 
                                                     type="text" 
                                                     value={sessions[idx]?.attendance_code || ''}
                                                     onChange={e => updateSession(idx, 'attendance_code', e.target.value)}
-                                                    className="w-full font-mono font-bold text-violet-600 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-lg px-3 py-1.5 text-sm uppercase"
+                                                    className="w-full font-mono font-bold text-violet-600 bg-white dark:bg-night-2 rounded-[12px] px-3 py-1.5 text-sm uppercase"
                                                     maxLength={6}
                                                 />
                                                 <button 
                                                     onClick={() => updateSession(idx, 'attendance_code', generateCode())}
-                                                    className="px-2 py-1 bg-gray-200 dark:bg-slate-800 hover:bg-gray-300 dark:hover:bg-slate-700 rounded text-xs font-medium transition-colors"
+                                                    className="px-2 py-1 bg-stone-200 dark:bg-slate-800 hover:bg-stone-300 dark:hover:bg-slate-700 rounded text-xs font-medium transition-colors"
                                                 >
                                                     Regen
                                                 </button>
@@ -319,7 +319,7 @@ export default function CohortScheduler() {
                         <button 
                             onClick={handleSave}
                             disabled={saving}
-                            className="flex items-center gap-2 bg-violet-600 hover:bg-violet-700 text-white px-6 py-2.5 rounded-xl font-medium transition-colors disabled:opacity-50"
+                            className="flex items-center gap-2 bg-brand hover:bg-brand-mid text-white px-6 py-2.5 rounded-[14px] font-medium transition-colors disabled:opacity-50"
                         >
                             {saving ? <Loader2 className="animate-spin w-5 h-5" /> : (success ? <CheckCircle2 className="w-5 h-5" /> : <Save className="w-5 h-5" />)}
                             {saving ? 'Saving...' : (success ? 'Saved!' : 'Launch Cohort')}

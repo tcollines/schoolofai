@@ -1,5 +1,5 @@
 import React, { useState, useEffect, Suspense, lazy } from 'react';
-import { BrowserRouter, Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import LandingPage from './components/LandingPage';
 import LoginPage from './components/LoginPage';
 import SignupPage from './components/SignupPage';
@@ -21,6 +21,16 @@ import VerifyEmail from './components/onboarding/VerifyEmail';
 import ProfileSetup from './components/onboarding/ProfileSetup';
 import PaymentPlanSetup from './components/onboarding/PaymentPlanSetup';
 import RecommendedCourses from './components/onboarding/RecommendedCourses';
+import WelcomePage from './components/onboarding/WelcomePage';
+import CheckoutPage from './components/payments/CheckoutPage';
+import { needsWelcome, needsWhatsNew, markWhatsNewSeen } from './src/lib/welcome';
+import WhatsNewTour from './components/onboarding/WhatsNewTour';
+import { PhoneOr, usePhone } from './components/mobile/phoneKit';
+import PhoneHome from './components/mobile/PhoneHome';
+import PhoneLearn from './components/mobile/PhoneLearn';
+import PhoneLive from './components/mobile/PhoneLive';
+import PhoneDiscover from './components/mobile/PhoneDiscover';
+import PhoneMe from './components/mobile/PhoneMe';
 import OutreachRegistration from './components/OutreachRegistration';
 import ReferralRedirect from './components/learn/ReferralRedirect';
 // Free-course screens are loaded on demand so they never slow down the rest of the app
@@ -42,16 +52,16 @@ import { useCourses } from './src/hooks/useCourses';
 import { useProfile } from './src/hooks/useProfile';
 import { UserRole } from './types';
 
-const LandingRoute = ({ isAuthenticated }: { isAuthenticated: boolean }) => {
+const LandingRoute = ({ isAuthenticated, session }: { isAuthenticated: boolean; session: any }) => {
   const navigate = useNavigate();
-  // The public home page stays open to everyone, signed in or not. Signed-in visitors get a
-  // "Go to dashboard" button instead of being sent away from it.
+  // Signed-in students never see the marketing page: new accounts get the Get started screen, everyone else their dashboard.
+  if (isAuthenticated) return <Navigate to={needsWelcome(session) ? '/welcome' : '/dashboard'} replace />;
   return (
     <LandingPage
-      isAuthenticated={isAuthenticated}
-      onGetStarted={() => navigate(isAuthenticated ? '/dashboard' : '/signup')}
-      onLoginClick={() => navigate(isAuthenticated ? '/dashboard' : '/login')}
-      onSignupClick={() => navigate(isAuthenticated ? '/dashboard' : '/signup')}
+      isAuthenticated={false}
+      onGetStarted={() => navigate('/signup')}
+      onLoginClick={() => navigate('/login')}
+      onSignupClick={() => navigate('/signup')}
     />
   );
 };
@@ -75,16 +85,61 @@ const afterAuthPath = () => {
 
 // Landing point after confirming an email or signing up: straight into the free course if that is why they came,
 // otherwise the dashboard with every course.
+
+// First sign-in: show Get started once, then carry on to where the student was going.
+/** Dashboard plus the one-time "new dashboard" tour for students who used the old design. */
+const DashboardWithTour = ({ session, courses, user }: { session: any; courses: any[]; user: any }) => {
+  const [showTour, setShowTour] = React.useState(() => needsWhatsNew(session));
+  const close = () => { markWhatsNewSeen(session); setShowTour(false); };
+  return (
+    <>
+      <PhoneOr phone={<PhoneHome user={user} />}>
+        <DashboardHome courses={courses} userId={session?.user?.id || 'guest'} />
+      </PhoneOr>
+      {showTour && <WhatsNewTour session={session} onClose={close} />}
+    </>
+  );
+};
+
+/** The signed-in student, even before their profile row has loaded (the phone screens need the id). */
+const studentOf = (userProfile: any, session: any) => userProfile || (session?.user ? {
+  id: session.user.id, email: session.user.email,
+  name: session.user.user_metadata?.full_name || session.user.user_metadata?.name || '',
+} : null);
+
+/** Phones get the Me screen; computers (or "Profile details" from Me) get the full profile page. */
+const ProfileRoute = ({ user }: { user: any }) => {
+  const phone = usePhone();
+  const [params] = useSearchParams();
+  if (phone && params.get('view') !== 'details') return <PhoneMe user={user} />;
+  return <Profile user={user || ({} as any)} onUpgradeClick={() => window.location.href = '/plans'} />;
+};
+
+/** Phones get the Live classes screen; "Workshops, webinars and replays" opens the full events page. */
+const EventsRoute = ({ user, courses }: { user: any; courses: any[] }) => {
+  const phone = usePhone();
+  const [params] = useSearchParams();
+  if (phone && params.get('view') !== 'all') return <PhoneLive user={user} />;
+  return <EventsPage courses={courses} />;
+};
+
+const withWelcome = (session: any, dest: string) => (needsWelcome(session) ? `/welcome?next=${encodeURIComponent(dest)}` : dest);
+
+const WelcomeRoute = ({ isAuthenticated, session }: { isAuthenticated: boolean; session: any }) => {
+  if (!isAuthenticated) return <Navigate to="/login" replace />;
+  return <WelcomePage session={session} />;
+};
+
 const ContinueRoute = ({ isAuthenticated, session }: { isAuthenticated: boolean; session: any }) => {
   if (!isAuthenticated) return <Navigate to="/login" replace />;
   const back = getReturnTo();
   const course = session?.user?.user_metadata?.enroll_course || getFreeCourseIntent();
-  return <Navigate to={back || (course ? learnHomePath(course) : '/dashboard')} replace />;
+  return <Navigate to={withWelcome(session, back || (course ? learnHomePath(course) : '/dashboard'))} replace />;
 };
 
-const LoginRoute = ({ isAuthenticated }: { isAuthenticated: boolean }) => {
+const LoginRoute = ({ isAuthenticated, session }: { isAuthenticated: boolean; session?: any }) => {
   const navigate = useNavigate();
-  if (isAuthenticated) return <Navigate to={afterAuthPath()} replace />;
+  if (isAuthenticated) return <Navigate to={withWelcome(session, afterAuthPath())} replace />;
   return (
     <LoginPage
       onLogin={() => navigate(afterAuthPath())}
@@ -94,9 +149,9 @@ const LoginRoute = ({ isAuthenticated }: { isAuthenticated: boolean }) => {
   );
 };
 
-const SignupRoute = ({ isAuthenticated }: { isAuthenticated: boolean }) => {
+const SignupRoute = ({ isAuthenticated, session }: { isAuthenticated: boolean; session?: any }) => {
   const navigate = useNavigate();
-  if (isAuthenticated) return <Navigate to={afterAuthPath()} replace />;
+  if (isAuthenticated) return <Navigate to={withWelcome(session, afterAuthPath())} replace />;
   return (
     <SignupPage 
       onSignup={() => navigate('/dashboard')}
@@ -314,11 +369,13 @@ function App() {
       <AccountSetupGate session={session} />
       <Routes>
         {/* Public Routes */}
-        <Route path="/" element={<LandingRoute isAuthenticated={isAuthenticated} />} />
-        <Route path="/login" element={<LoginRoute isAuthenticated={isAuthenticated} />} />
+        <Route path="/" element={<LandingRoute isAuthenticated={isAuthenticated} session={session} />} />
+        <Route path="/welcome" element={<WelcomeRoute isAuthenticated={isAuthenticated} session={session} />} />
+        <Route path="/checkout" element={<ProtectedRoute isAuthenticated={isAuthenticated} userProfile={userProfile}><CheckoutPage user={userProfile} courses={courses} /></ProtectedRoute>} />
+        <Route path="/login" element={<LoginRoute isAuthenticated={isAuthenticated} session={session} />} />
         <Route path="/reset-password" element={<Suspense fallback={<RouteFallback />}><ResetPasswordPage /></Suspense>} />
         <Route path="/continue" element={<ContinueRoute isAuthenticated={isAuthenticated} session={session} />} />
-        <Route path="/signup" element={<SignupRoute isAuthenticated={isAuthenticated} />} />
+        <Route path="/signup" element={<SignupRoute isAuthenticated={isAuthenticated} session={session} />} />
         <Route path="/register" element={<OutreachRegistration />} />
 
         {/* Free course: public page, staff referral links, tracked live join links, certificate verification, and the learning area */}
@@ -354,10 +411,11 @@ function App() {
 
         {/* Student Routes wrapper */}
         <Route element={<StudentLayout session={session} isAuthenticated={isAuthenticated} isAdminMode={false} courses={courses} />}>
-            <Route path="/dashboard" element={<ProtectedRoute isAuthenticated={isAuthenticated} requireOnboarding={true} userProfile={userProfile}><FreeCourseIntentGate><DashboardHome courses={courses} userId={session?.user?.id || 'guest'} /></FreeCourseIntentGate></ProtectedRoute>} />
+            <Route path="/dashboard" element={<ProtectedRoute isAuthenticated={isAuthenticated} requireOnboarding={true} userProfile={userProfile}><FreeCourseIntentGate>{needsWelcome(session) ? <Navigate to="/welcome" replace /> : <DashboardWithTour session={session} courses={courses} user={studentOf(userProfile, session)} />}</FreeCourseIntentGate></ProtectedRoute>} />
             
             <Route path="/discover" element={
                 <ProtectedRoute isAuthenticated={isAuthenticated} requireOnboarding={true} userProfile={userProfile}>
+                <PhoneOr phone={<PhoneDiscover user={studentOf(userProfile, session)} courses={courses} />}>
                 <DiscoverCourses 
                   courses={courses} 
                   isAuthenticated={isAuthenticated} 
@@ -380,6 +438,7 @@ function App() {
                     window.location.href = '/courses';
                   }}
                 />
+                </PhoneOr>
                 </ProtectedRoute>
             } />
             
@@ -419,16 +478,16 @@ function App() {
                 </ProtectedRoute>
             } />
             
-            <Route path="/courses" element={<ProtectedRoute isAuthenticated={isAuthenticated} requireOnboarding={true} userProfile={userProfile}><MyCourses courses={isAuthenticated ? courses : []} /></ProtectedRoute>} />
+            <Route path="/courses" element={<ProtectedRoute isAuthenticated={isAuthenticated} requireOnboarding={true} userProfile={userProfile}><PhoneOr phone={<PhoneLearn user={studentOf(userProfile, session)} courses={isAuthenticated ? courses : []} />}><MyCourses courses={isAuthenticated ? courses : []} /></PhoneOr></ProtectedRoute>} />
             <Route path="/discussions" element={<ProtectedRoute isAuthenticated={isAuthenticated} requireOnboarding={true} userProfile={userProfile}><DiscussionsPage /></ProtectedRoute>} />
             <Route path="/career" element={<ProtectedRoute isAuthenticated={isAuthenticated} requireOnboarding={true} userProfile={userProfile}><Certificates courses={isAuthenticated ? courses : []} /></ProtectedRoute>} />
-            <Route path="/profile" element={<ProtectedRoute isAuthenticated={isAuthenticated} requireOnboarding={true} userProfile={userProfile}><Profile user={userProfile || ({} as any)} onUpgradeClick={() => window.location.href = '/plans'} /></ProtectedRoute>} />
+            <Route path="/profile" element={<ProtectedRoute isAuthenticated={isAuthenticated} requireOnboarding={true} userProfile={userProfile}><ProfileRoute user={studentOf(userProfile, session)} /></ProtectedRoute>} />
             <Route path="/plans" element={<ProtectedRoute isAuthenticated={isAuthenticated} requireOnboarding={true} userProfile={userProfile}><PlansPage user={userProfile} currentPlan={userProfile?.role || UserRole.INDIVIDUAL} onUpgrade={() => {}} onBack={() => window.location.href = '/profile'} /></ProtectedRoute>} />
             <Route path="/corporate" element={<ProtectedRoute isAuthenticated={isAuthenticated} requireOnboarding={true} userProfile={userProfile}><CorporateDashboard user={userProfile} /></ProtectedRoute>} />
             <Route path="/corporate/setup" element={<ProtectedRoute isAuthenticated={isAuthenticated} requireOnboarding={true} userProfile={userProfile}><CorporateSetupPage user={userProfile} /></ProtectedRoute>} />
             <Route path="/settings" element={<ProtectedRoute isAuthenticated={isAuthenticated} requireOnboarding={true} userProfile={userProfile}><SettingsPage /></ProtectedRoute>} />
             <Route path="/notifications" element={<ProtectedRoute isAuthenticated={isAuthenticated} requireOnboarding={true} userProfile={userProfile}><NotificationsPage /></ProtectedRoute>} />
-            <Route path="/events" element={<ProtectedRoute isAuthenticated={isAuthenticated} requireOnboarding={true} userProfile={userProfile}><EventsPage courses={courses} /></ProtectedRoute>} />
+            <Route path="/events" element={<ProtectedRoute isAuthenticated={isAuthenticated} requireOnboarding={true} userProfile={userProfile}><EventsRoute user={studentOf(userProfile, session)} courses={courses} /></ProtectedRoute>} />
             
             {/* Default fallback route inside Layout */}
             <Route path="*" element={<Navigate to={isAuthenticated ? "/dashboard" : "/"} replace />} />

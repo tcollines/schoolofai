@@ -76,18 +76,18 @@ interface SiteAnalytics {
     }[];
 }
 
-const card = 'bg-white dark:bg-slate-900 rounded-2xl border border-gray-100 dark:border-slate-800 shadow-sm';
+const card = 'bg-white dark:bg-night-2 rounded-[22px]';
 const isMissingFn = (m: string) => /schema cache|does not exist|could not find the function/i.test(m);
 const isAuthError = (m: string) => /row-level security|permission denied|not authorized/i.test(m);
 
 const CATEGORY_BADGES: Record<string, string> = {
     welile_tech: 'bg-violet-100 text-violet-800 dark:bg-violet-950/60 dark:text-violet-300',
-    whatsapp: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300',
+    whatsapp: 'bg-mint-soft text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300',
     live_class: 'bg-sky-100 text-sky-800 dark:bg-sky-950/60 dark:text-sky-300',
-    calendar: 'bg-blue-100 text-blue-800 dark:bg-blue-950/60 dark:text-blue-300',
+    calendar: 'bg-brand-soft text-blue-800 dark:bg-blue-950/60 dark:text-blue-300',
     install: 'bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300',
-    cta: 'bg-indigo-100 text-indigo-800 dark:bg-indigo-950/60 dark:text-indigo-300',
-    external: 'bg-gray-100 text-gray-700 dark:bg-slate-800 dark:text-slate-300',
+    cta: 'bg-brand-soft text-indigo-800 dark:bg-indigo-950/60 dark:text-indigo-300',
+    external: 'bg-stone-100 text-stone-700 dark:bg-slate-800 dark:text-slate-300',
 };
 
 const fmtTime = (iso: string) =>
@@ -189,22 +189,22 @@ const AdminAnalytics: React.FC = () => {
             {/* Header */}
             <div className="flex flex-wrap items-start justify-between gap-3">
                 <div>
-                    <h1 className="text-2xl font-bold flex items-center gap-2">
+                    <h1 className="m-0 text-[28px] font-extrabold tracking-[-0.02em] flex items-center gap-2">
                         <BarChart3 className="text-violet-600" size={24} />
                         Traffic, Repeat Visits &amp; Pitch Traction
                     </h1>
-                    <p className="text-sm text-gray-500 dark:text-slate-400 mt-0.5">
+                    <p className="text-sm text-stone-500 dark:text-slate-400 mt-0.5">
                         Comprehensive traffic including multiple repeat visits per person per day, installed app usage, geographic reach, and Welile Technologies (welile.com) clicks.
                     </p>
                 </div>
                 <div className="flex flex-wrap items-center gap-2 print:hidden">
-                    <div className="inline-flex rounded-lg border border-gray-300 dark:border-slate-700 overflow-hidden text-xs font-semibold" role="group" aria-label="Time window">
+                    <div className="inline-flex rounded-[12px] border border-stone-300 dark:border-slate-700 overflow-hidden text-xs font-semibold" role="group" aria-label="Time window">
                         {([[1, '24h'], [7, '7 days'], [30, '30 days'], [null, 'All time']] as [number | null, string][]).map(([d, label]) => (
                             <button
                                 key={label}
                                 onClick={() => setDays(d)}
                                 aria-pressed={days === d}
-                                className={`px-3 py-2 ${days === d ? 'bg-violet-600 text-white' : 'bg-white dark:bg-slate-900 hover:bg-gray-50 dark:hover:bg-slate-800'}`}
+                                className={`px-3 py-2 ${days === d ? 'bg-brand text-white' : 'bg-white dark:bg-night-2 hover:bg-stone-50 dark:hover:bg-slate-800'}`}
                             >
                                 {label}
                             </button>
@@ -213,27 +213,27 @@ const AdminAnalytics: React.FC = () => {
                     <button
                         onClick={copyPitchSummary}
                         disabled={!data}
-                        className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-semibold border border-violet-300 dark:border-violet-800 bg-violet-50 dark:bg-violet-950/40 text-violet-700 dark:text-violet-300 hover:bg-violet-100 dark:hover:bg-violet-900/40 disabled:opacity-50"
+                        className="inline-flex items-center gap-1.5 px-3 py-2 rounded-[12px] text-sm font-semibold border border-violet-300 dark:border-violet-800 bg-violet-50 dark:bg-violet-950/40 text-violet-700 dark:text-violet-300 hover:bg-violet-100 dark:hover:bg-violet-900/40 disabled:opacity-50"
                     >
                         {copiedPitch ? <><Check size={15} /> Pitch Summary Copied!</> : <><Copy size={15} /> Copy Pitch Summary</>}
                     </button>
                     <button
                         onClick={() => window.print()}
                         disabled={!data}
-                        className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-900 hover:bg-gray-50 dark:hover:bg-slate-800 disabled:opacity-50"
+                        className="inline-flex items-center gap-1.5 px-3 py-2 rounded-[12px] text-sm font-medium bg-white dark:bg-night-2 hover:bg-stone-50 dark:hover:bg-slate-800 disabled:opacity-50"
                     >
                         <Printer size={15} /> Print / PDF
                     </button>
                     <button
                         onClick={exportCsv}
                         disabled={!data}
-                        className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-900 hover:bg-gray-50 dark:hover:bg-slate-800 disabled:opacity-50"
+                        className="inline-flex items-center gap-1.5 px-3 py-2 rounded-[12px] text-sm font-medium bg-white dark:bg-night-2 hover:bg-stone-50 dark:hover:bg-slate-800 disabled:opacity-50"
                     >
                         <Download size={15} /> CSV
                     </button>
                     <button
                         onClick={() => void load()}
-                        className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-semibold bg-violet-600 hover:bg-violet-700 text-white"
+                        className="inline-flex items-center gap-1.5 px-3 py-2 rounded-[12px] text-sm font-semibold bg-brand hover:bg-brand-mid text-white"
                     >
                         <RefreshCw size={15} className={loading ? 'animate-spin' : ''} /> Refresh
                     </button>
@@ -244,7 +244,7 @@ const AdminAnalytics: React.FC = () => {
             {needsAuth && <AdminAuthPrompt onSignedIn={() => { setNeedsAuth(false); setError(null); void load(); }} />}
             {error && !missingDb && <p role="alert" className="text-sm text-red-600">{error}</p>}
             {!data && loading && !error && (
-                <div className="flex items-center gap-2 text-gray-500">
+                <div className="flex items-center gap-2 text-stone-500">
                     <Loader2 className="animate-spin" size={18} /> Loading comprehensive traffic analytics...
                 </div>
             )}
@@ -253,7 +253,7 @@ const AdminAnalytics: React.FC = () => {
                 <>
                     {/* Executive Pitch Highlights Banner */}
                     {pitch && (
-                        <div className="rounded-2xl bg-gradient-to-r from-violet-700 via-purple-700 to-indigo-700 text-white p-5 shadow-md">
+                        <div className="rounded-[22px] bg-gradient-to-r from-violet-700 via-brand to-brand text-white p-5 shadow-md">
                             <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
                                 <div>
                                     <p className="text-xs font-bold uppercase tracking-wider text-violet-200">Welile School of AI · Pitch Traction Highlights ({periodLabel})</p>
@@ -264,32 +264,32 @@ const AdminAnalytics: React.FC = () => {
                                 </span>
                             </div>
                             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-                                <div className="rounded-xl bg-white/10 backdrop-blur p-3">
+                                <div className="rounded-[14px] bg-white/10 backdrop-blur p-3">
                                     <p className="text-[11px] uppercase tracking-wide text-violet-200 font-semibold">Total Visits</p>
                                     <p className="text-2xl font-extrabold mt-1">{ov.total_visits.toLocaleString()}</p>
                                     <p className="text-[11px] text-violet-100 mt-0.5">{ov.avg_visits_per_visitor}x visits/person</p>
                                 </div>
-                                <div className="rounded-xl bg-white/10 backdrop-blur p-3">
+                                <div className="rounded-[14px] bg-white/10 backdrop-blur p-3">
                                     <p className="text-[11px] uppercase tracking-wide text-violet-200 font-semibold">Views &amp; Actions</p>
                                     <p className="text-2xl font-extrabold mt-1">{ov.total_page_views.toLocaleString()}</p>
                                     <p className="text-[11px] text-violet-100 mt-0.5">{ov.avg_views_per_visit} per visit</p>
                                 </div>
-                                <div className="rounded-xl bg-white/10 backdrop-blur p-3">
+                                <div className="rounded-[14px] bg-white/10 backdrop-blur p-3">
                                     <p className="text-[11px] uppercase tracking-wide text-violet-200 font-semibold">Return Rate</p>
                                     <p className="text-2xl font-extrabold mt-1">{ov.returning_rate_pct}%</p>
                                     <p className="text-[11px] text-violet-100 mt-0.5">{ov.returning_visitors} repeat visitors</p>
                                 </div>
-                                <div className="rounded-xl bg-white/10 backdrop-blur p-3">
+                                <div className="rounded-[14px] bg-white/10 backdrop-blur p-3">
                                     <p className="text-[11px] uppercase tracking-wide text-violet-200 font-semibold">Mobile-First</p>
                                     <p className="text-2xl font-extrabold mt-1">{pitch.mobile_share_pct}%</p>
                                     <p className="text-[11px] text-violet-100 mt-0.5">{pitch.total_app_installs} installed app</p>
                                 </div>
-                                <div className="rounded-xl bg-white/10 backdrop-blur p-3">
+                                <div className="rounded-[14px] bg-white/10 backdrop-blur p-3">
                                     <p className="text-[11px] uppercase tracking-wide text-violet-200 font-semibold">Locations</p>
                                     <p className="text-2xl font-extrabold mt-1">{pitch.locations_count}+</p>
                                     <p className="text-[11px] text-violet-100 mt-0.5">towns &amp; districts</p>
                                 </div>
-                                <div className="rounded-xl bg-white/10 backdrop-blur p-3">
+                                <div className="rounded-[14px] bg-white/10 backdrop-blur p-3">
                                     <p className="text-[11px] uppercase tracking-wide text-violet-200 font-semibold">Learners</p>
                                     <p className="text-2xl font-extrabold mt-1">{pitch.total_accounts + pitch.agent_registrations}</p>
                                     <p className="text-[11px] text-violet-100 mt-0.5">{pitch.enrolled_learners} enrolled · {pitch.certificates_issued} cert</p>
@@ -299,7 +299,7 @@ const AdminAnalytics: React.FC = () => {
                     )}
 
                     {/* Transparent Methodology Banner */}
-                    <div className="rounded-xl bg-violet-50/70 dark:bg-violet-950/30 border border-violet-200/80 dark:border-violet-900/60 px-4 py-3 text-xs text-violet-900 dark:text-violet-200 flex items-start gap-2.5">
+                    <div className="rounded-[14px] bg-violet-50/70 dark:bg-violet-950/30 border border-violet-200/80 dark:border-violet-900/60 px-4 py-3 text-xs text-violet-900 dark:text-violet-200 flex items-start gap-2.5">
                         <Info size={16} className="text-violet-600 dark:text-violet-400 shrink-0 mt-0.5" />
                         <p className="leading-relaxed">
                             <strong>Repeat Visits Counted:</strong> Every page load, app reopen, and return visit counts as a visit (if one person opens the site or app 100 times in a day, all 100 visits are recorded). Historical visits, sessions, and mobile/desktop devices span back to <strong>{data.history_since || '27 Oct 2026'}</strong>; live anonymous page views and outbound clicks (including <strong>Welile Technologies / welile.com</strong>) are tracked live from <strong>19 Nov 2026</strong> onward.
@@ -310,26 +310,26 @@ const AdminAnalytics: React.FC = () => {
                     <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
                         <div className={`${card} p-4`}>
                             <div className="flex items-center justify-between">
-                                <span className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-slate-400">Total Visits (Incl. Repeat)</span>
-                                <span className="w-8 h-8 rounded-lg flex items-center justify-center text-violet-600 bg-violet-50 dark:bg-violet-950/40">
+                                <span className="text-xs font-semibold uppercase tracking-wide text-stone-500 dark:text-slate-400">Total Visits (Incl. Repeat)</span>
+                                <span className="w-8 h-8 rounded-[12px] flex items-center justify-center text-violet-600 bg-violet-50 dark:bg-violet-950/40">
                                     <Repeat size={16} />
                                 </span>
                             </div>
                             <p className="text-3xl font-extrabold mt-2">{ov.total_visits.toLocaleString()}</p>
-                            <p className="text-xs text-gray-500 dark:text-slate-400 mt-1">
+                            <p className="text-xs text-stone-500 dark:text-slate-400 mt-1">
                                 <b>{ov.web_visits}</b> web · <b>{ov.app_visits}</b> app · {ov.avg_visits_per_visitor}x / person
                             </p>
                         </div>
 
                         <div className={`${card} p-4`}>
                             <div className="flex items-center justify-between">
-                                <span className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-slate-400">Unique Visitors</span>
-                                <span className="w-8 h-8 rounded-lg flex items-center justify-center text-blue-600 bg-blue-50 dark:bg-blue-950/40">
+                                <span className="text-xs font-semibold uppercase tracking-wide text-stone-500 dark:text-slate-400">Unique Visitors</span>
+                                <span className="w-8 h-8 rounded-[12px] flex items-center justify-center text-brand bg-brand-soft dark:bg-blue-950/40">
                                     <Users size={16} />
                                 </span>
                             </div>
                             <p className="text-3xl font-extrabold mt-2">{ov.unique_visitors.toLocaleString()}</p>
-                            <p className="text-xs text-gray-500 dark:text-slate-400 mt-1">
+                            <p className="text-xs text-stone-500 dark:text-slate-400 mt-1">
                                 <b>{ov.returning_visitors}</b> came back 2+ times ({ov.returning_rate_pct}%)
                             </p>
                         </div>
@@ -337,25 +337,25 @@ const AdminAnalytics: React.FC = () => {
                         <div className={`${card} p-4 ring-1 ring-violet-200 dark:ring-violet-900/60`}>
                             <div className="flex items-center justify-between">
                                 <span className="text-xs font-semibold uppercase tracking-wide text-violet-700 dark:text-violet-300">Welile Tech (welile.com)</span>
-                                <span className="w-8 h-8 rounded-lg flex items-center justify-center text-violet-700 bg-violet-100 dark:bg-violet-950/60">
+                                <span className="w-8 h-8 rounded-[12px] flex items-center justify-center text-violet-700 bg-violet-100 dark:bg-violet-950/60">
                                     <ArrowUpRight size={16} />
                                 </span>
                             </div>
                             <p className="text-3xl font-extrabold mt-2 text-violet-700 dark:text-violet-300">{ov.welile_tech_clicks}</p>
-                            <p className="text-xs text-gray-500 dark:text-slate-400 mt-1">
+                            <p className="text-xs text-stone-500 dark:text-slate-400 mt-1">
                                 <b>{ov.welile_tech_unique}</b> unique {ov.welile_tech_unique === 1 ? 'person' : 'people'} checked out welile.com
                             </p>
                         </div>
 
                         <div className={`${card} p-4`}>
                             <div className="flex items-center justify-between">
-                                <span className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-slate-400">Tracked Clicks &amp; App</span>
-                                <span className="w-8 h-8 rounded-lg flex items-center justify-center text-emerald-600 bg-emerald-50 dark:bg-emerald-950/40">
+                                <span className="text-xs font-semibold uppercase tracking-wide text-stone-500 dark:text-slate-400">Tracked Clicks &amp; App</span>
+                                <span className="w-8 h-8 rounded-[12px] flex items-center justify-center text-mint bg-mint-soft dark:bg-emerald-950/40">
                                     <MousePointerClick size={16} />
                                 </span>
                             </div>
                             <p className="text-3xl font-extrabold mt-2">{ov.total_clicks.toLocaleString()}</p>
-                            <p className="text-xs text-gray-500 dark:text-slate-400 mt-1">
+                            <p className="text-xs text-stone-500 dark:text-slate-400 mt-1">
                                 {ov.live_link_clicks} live · {ov.whatsapp_clicks} WhatsApp · {ov.app_launches} app opens
                             </p>
                         </div>
@@ -366,11 +366,11 @@ const AdminAnalytics: React.FC = () => {
                         <div className={`${card} p-5 xl:col-span-2`}>
                             <div className="flex items-center justify-between gap-2 mb-3">
                                 <div>
-                                    <h2 className="font-bold flex items-center gap-2">
+                                    <h2 className="m-0 text-[16px] font-extrabold flex items-center gap-2">
                                         <TrendingUp size={17} className="text-violet-600" />
                                         Daily Total Visits, Page Views &amp; Unique Visitors
                                     </h2>
-                                    <p className="text-xs text-gray-500 dark:text-slate-400">
+                                    <p className="text-xs text-stone-500 dark:text-slate-400">
                                         Shows repeat visit volume alongside unique daily visitors across website &amp; installed app (EAT).
                                     </p>
                                 </div>
@@ -397,7 +397,7 @@ const AdminAnalytics: React.FC = () => {
                                 <h2 className="font-bold flex items-center gap-1.5">
                                     <Repeat size={16} className="text-violet-600" /> Repeat Visit Depth
                                 </h2>
-                                <p className="text-xs text-gray-500 dark:text-slate-400 mt-0.5">
+                                <p className="text-xs text-stone-500 dark:text-slate-400 mt-0.5">
                                     How frequently visitors return to Welile School of AI.
                                 </p>
                                 <div className="mt-3 space-y-2.5">
@@ -406,10 +406,10 @@ const AdminAnalytics: React.FC = () => {
                                         return (
                                             <div key={b.bucket}>
                                                 <div className="flex justify-between text-xs">
-                                                    <span className="font-medium text-gray-700 dark:text-slate-300">{b.bucket}</span>
+                                                    <span className="font-medium text-stone-700 dark:text-slate-300">{b.bucket}</span>
                                                     <span className="font-bold">{b.people} {b.people === 1 ? 'person' : 'people'}</span>
                                                 </div>
-                                                <div className="h-2 rounded-full bg-gray-100 dark:bg-slate-800 mt-1">
+                                                <div className="h-2 rounded-full bg-stone-100 dark:bg-slate-800 mt-1">
                                                     <div className="h-2 rounded-full bg-violet-500" style={{ width: `${Math.min(100, (b.people / maxB) * 100)}%` }} />
                                                 </div>
                                             </div>
@@ -419,8 +419,8 @@ const AdminAnalytics: React.FC = () => {
                             </div>
 
                             {/* Devices Split */}
-                            <div className="border-t border-gray-100 dark:border-slate-800 pt-4">
-                                <h3 className="text-xs font-bold uppercase tracking-wide text-gray-500 dark:text-slate-400">Device Mix</h3>
+                            <div className="border-t border-stone-100 dark:border-slate-800 pt-4">
+                                <h3 className="text-xs font-bold uppercase tracking-wide text-stone-500 dark:text-slate-400">Device Mix</h3>
                                 <div className="grid grid-cols-3 gap-2 mt-2.5 text-center">
                                     {[
                                         { key: 'mobile', label: 'Mobile', icon: Smartphone },
@@ -430,10 +430,10 @@ const AdminAnalytics: React.FC = () => {
                                         const cnt = data.devices[d.key] || 0;
                                         const pct = totalDevices > 0 ? Math.round((cnt / totalDevices) * 100) : 0;
                                         return (
-                                            <div key={d.key} className="rounded-xl bg-gray-50 dark:bg-slate-800/60 p-2.5">
+                                            <div key={d.key} className="rounded-[14px] bg-stone-50 dark:bg-slate-800/60 p-2.5">
                                                 <d.icon size={15} className="mx-auto text-violet-600" />
                                                 <p className="text-lg font-extrabold mt-1">{cnt}</p>
-                                                <p className="text-[11px] text-gray-500">{d.label} ({pct}%)</p>
+                                                <p className="text-[11px] text-stone-500">{d.label} ({pct}%)</p>
                                             </div>
                                         );
                                     })}
@@ -447,24 +447,24 @@ const AdminAnalytics: React.FC = () => {
                         <div className="grid xl:grid-cols-2 gap-4">
                             <div className={`${card} p-5`}>
                                 <div className="flex items-center justify-between gap-2">
-                                    <h2 className="font-bold flex items-center gap-2">
+                                    <h2 className="m-0 text-[16px] font-extrabold flex items-center gap-2">
                                         <MapPin size={17} className="text-violet-600" />
                                         Geographic Reach ({pitch.locations_count} Towns &amp; Districts)
                                     </h2>
                                 </div>
-                                <p className="text-xs text-gray-500 dark:text-slate-400 mt-0.5">
+                                <p className="text-xs text-stone-500 dark:text-slate-400 mt-0.5">
                                     Where students and registrants are joining Welile School of AI from.
                                 </p>
                                 {(data.top_locations || []).length === 0 ? (
-                                    <p className="mt-4 text-sm text-gray-500">No location records yet.</p>
+                                    <p className="mt-4 text-sm text-stone-500">No location records yet.</p>
                                 ) : (
                                     <div className="mt-3 space-y-2">
                                         {(data.top_locations || []).map(l => {
                                             const maxL = Math.max(1, ...(data.top_locations || []).map(x => x.people));
                                             return (
                                                 <div key={l.location} className="flex items-center gap-3 text-xs">
-                                                    <span className="w-32 truncate font-medium text-gray-700 dark:text-slate-200">{l.location}</span>
-                                                    <div className="flex-1 h-2 rounded-full bg-gray-100 dark:bg-slate-800 overflow-hidden">
+                                                    <span className="w-32 truncate font-medium text-stone-700 dark:text-slate-200">{l.location}</span>
+                                                    <div className="flex-1 h-2 rounded-full bg-stone-100 dark:bg-slate-800 overflow-hidden">
                                                         <div className="h-full rounded-full bg-violet-500" style={{ width: `${Math.min(100, (l.people / maxL) * 100)}%` }} />
                                                     </div>
                                                     <span className="w-8 text-right font-bold">{l.people}</span>
@@ -476,11 +476,11 @@ const AdminAnalytics: React.FC = () => {
                             </div>
 
                             <div className={`${card} p-5`}>
-                                <h2 className="font-bold flex items-center gap-2">
+                                <h2 className="m-0 text-[16px] font-extrabold flex items-center gap-2">
                                     <Award size={17} className="text-violet-600" />
                                     Product &amp; Learning Traction (All-Time Proof Points)
                                 </h2>
-                                <p className="text-xs text-gray-500 dark:text-slate-400 mt-0.5">
+                                <p className="text-xs text-stone-500 dark:text-slate-400 mt-0.5">
                                     Core traction numbers ready for investor decks, grants, and partner proposals.
                                 </p>
                                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mt-4">
@@ -495,9 +495,9 @@ const AdminAnalytics: React.FC = () => {
                                         { label: 'Certificates Issued', value: pitch.certificates_issued },
                                         { label: 'Outreach Invites', value: pitch.outreach_invites },
                                     ].map(item => (
-                                        <div key={item.label} className="rounded-xl bg-gray-50 dark:bg-slate-800/60 p-3">
-                                            <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-500 dark:text-slate-400">{item.label}</p>
-                                            <p className="text-2xl font-extrabold mt-1 text-gray-900 dark:text-white">{item.value}</p>
+                                        <div key={item.label} className="rounded-[14px] bg-stone-50 dark:bg-slate-800/60 p-3">
+                                            <p className="text-[11px] font-semibold uppercase tracking-wide text-stone-500 dark:text-slate-400">{item.label}</p>
+                                            <p className="text-2xl font-extrabold mt-1 text-stone-900 dark:text-white">{item.value}</p>
                                         </div>
                                     ))}
                                 </div>
@@ -508,32 +508,32 @@ const AdminAnalytics: React.FC = () => {
                     {/* Outbound Links (Welile Tech, WhatsApp, Live Meet) + Most Visited Pages */}
                     <div className="grid xl:grid-cols-2 gap-4">
                         <div className={`${card} p-5`}>
-                            <h2 className="font-bold flex items-center gap-2">
+                            <h2 className="m-0 text-[16px] font-extrabold flex items-center gap-2">
                                 <ExternalLink size={17} className="text-violet-600" />
                                 Outbound &amp; External Links Clicked
                             </h2>
-                            <p className="text-xs text-gray-500 dark:text-slate-400 mt-0.5">
+                            <p className="text-xs text-stone-500 dark:text-slate-400 mt-0.5">
                                 Tracks clicks to Welile Technologies (welile.com), WhatsApp, Google Meet live joins, and calendars.
                             </p>
                             {data.outbound_links.length === 0 ? (
-                                <p className="mt-4 text-sm text-gray-500">No external link clicks recorded in this period yet. Live capture is active.</p>
+                                <p className="mt-4 text-sm text-stone-500">No external link clicks recorded in this period yet. Live capture is active.</p>
                             ) : (
                                 <div className="overflow-x-auto mt-3">
                                     <table className="w-full text-sm">
                                         <thead>
-                                            <tr className="text-left text-xs uppercase text-gray-500 border-b border-gray-100 dark:border-slate-800">
+                                            <tr className="text-left text-xs uppercase text-stone-500 border-b border-stone-100 dark:border-slate-800">
                                                 <th className="py-2">Destination</th>
                                                 <th className="py-2">Type</th>
                                                 <th className="py-2 text-right">Clicks</th>
                                                 <th className="py-2 text-right">Unique</th>
                                             </tr>
                                         </thead>
-                                        <tbody className="divide-y divide-gray-100 dark:divide-slate-800">
+                                        <tbody className="divide-y divide-stone-100 dark:divide-slate-800">
                                             {data.outbound_links.map((o, i) => (
                                                 <tr key={`${o.target_url}-${i}`}>
                                                     <td className="py-2.5 pr-2">
                                                         <p className="font-medium truncate max-w-[230px]">{o.label}</p>
-                                                        {o.target_url && <p className="text-[11px] text-gray-400 truncate max-w-[230px]">{o.target_url}</p>}
+                                                        {o.target_url && <p className="text-[11px] text-stone-400 truncate max-w-[230px]">{o.target_url}</p>}
                                                     </td>
                                                     <td className="py-2.5 pr-2">
                                                         <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-full ${CATEGORY_BADGES[o.category] || CATEGORY_BADGES.external}`}>
@@ -541,7 +541,7 @@ const AdminAnalytics: React.FC = () => {
                                                         </span>
                                                     </td>
                                                     <td className="py-2.5 text-right font-bold">{o.clicks}</td>
-                                                    <td className="py-2.5 text-right text-gray-500">{o.unique_visitors}</td>
+                                                    <td className="py-2.5 text-right text-stone-500">{o.unique_visitors}</td>
                                                 </tr>
                                             ))}
                                         </tbody>
@@ -551,29 +551,29 @@ const AdminAnalytics: React.FC = () => {
                         </div>
 
                         <div className={`${card} p-5`}>
-                            <h2 className="font-bold">Most Visited Pages</h2>
-                            <p className="text-xs text-gray-500 dark:text-slate-400 mt-0.5">
+                            <h2 className="m-0 text-[16px] font-extrabold">Most Visited Pages</h2>
+                            <p className="text-xs text-stone-500 dark:text-slate-400 mt-0.5">
                                 Total views (including repeat visits) vs unique visitors per page.
                             </p>
                             {data.top_pages.length === 0 ? (
-                                <p className="mt-4 text-sm text-gray-500">No page views recorded in this period yet.</p>
+                                <p className="mt-4 text-sm text-stone-500">No page views recorded in this period yet.</p>
                             ) : (
                                 <div className="overflow-x-auto mt-3">
                                     <table className="w-full text-sm">
                                         <thead>
-                                            <tr className="text-left text-xs uppercase text-gray-500 border-b border-gray-100 dark:border-slate-800">
+                                            <tr className="text-left text-xs uppercase text-stone-500 border-b border-stone-100 dark:border-slate-800">
                                                 <th className="py-2">Page</th>
                                                 <th className="py-2 text-right">Total Views</th>
                                                 <th className="py-2 text-right">Unique</th>
                                                 <th className="py-2 text-right">Avg / Person</th>
                                             </tr>
                                         </thead>
-                                        <tbody className="divide-y divide-gray-100 dark:divide-slate-800">
+                                        <tbody className="divide-y divide-stone-100 dark:divide-slate-800">
                                             {data.top_pages.map(p => (
                                                 <tr key={p.path}>
                                                     <td className="py-2 pr-2 font-mono text-xs truncate max-w-[220px]">{p.path}</td>
                                                     <td className="py-2 text-right font-bold">{p.views}</td>
-                                                    <td className="py-2 text-right text-gray-500">{p.unique_visitors}</td>
+                                                    <td className="py-2 text-right text-stone-500">{p.unique_visitors}</td>
                                                     <td className="py-2 text-right text-violet-600 font-semibold">
                                                         {p.unique_visitors > 0 ? (p.views / p.unique_visitors).toFixed(1) : '1.0'}x
                                                     </td>
@@ -589,27 +589,27 @@ const AdminAnalytics: React.FC = () => {
                     {/* Top CTAs + Traffic Sources / Referrers */}
                     <div className="grid xl:grid-cols-2 gap-4">
                         <div className={`${card} p-5`}>
-                            <h2 className="font-bold">Top Buttons &amp; CTAs Clicked</h2>
+                            <h2 className="m-0 text-[16px] font-extrabold">Top Buttons &amp; CTAs Clicked</h2>
                             {data.top_ctas.length === 0 ? (
-                                <p className="mt-3 text-sm text-gray-500">No button clicks recorded in this period yet.</p>
+                                <p className="mt-3 text-sm text-stone-500">No button clicks recorded in this period yet.</p>
                             ) : (
                                 <div className="overflow-x-auto mt-3">
                                     <table className="w-full text-sm">
                                         <thead>
-                                            <tr className="text-left text-xs uppercase text-gray-500 border-b border-gray-100 dark:border-slate-800">
+                                            <tr className="text-left text-xs uppercase text-stone-500 border-b border-stone-100 dark:border-slate-800">
                                                 <th className="py-2">Button / Action</th>
                                                 <th className="py-2">On Page</th>
                                                 <th className="py-2 text-right">Clicks</th>
                                                 <th className="py-2 text-right">Unique</th>
                                             </tr>
                                         </thead>
-                                        <tbody className="divide-y divide-gray-100 dark:divide-slate-800">
+                                        <tbody className="divide-y divide-stone-100 dark:divide-slate-800">
                                             {data.top_ctas.map((c, i) => (
                                                 <tr key={`${c.label}-${i}`}>
                                                     <td className="py-2 pr-2 font-medium">{c.label}</td>
-                                                    <td className="py-2 pr-2 font-mono text-xs text-gray-500 truncate max-w-[160px]">{c.path}</td>
+                                                    <td className="py-2 pr-2 font-mono text-xs text-stone-500 truncate max-w-[160px]">{c.path}</td>
                                                     <td className="py-2 text-right font-bold">{c.clicks}</td>
-                                                    <td className="py-2 text-right text-gray-500">{c.unique_visitors}</td>
+                                                    <td className="py-2 text-right text-stone-500">{c.unique_visitors}</td>
                                                 </tr>
                                             ))}
                                         </tbody>
@@ -619,25 +619,25 @@ const AdminAnalytics: React.FC = () => {
                         </div>
 
                         <div className={`${card} p-5`}>
-                            <h2 className="font-bold">Traffic Channels &amp; Referrers</h2>
+                            <h2 className="m-0 text-[16px] font-extrabold">Traffic Channels &amp; Referrers</h2>
                             {data.referrers.length === 0 ? (
-                                <p className="mt-3 text-sm text-gray-500">No referrer data yet.</p>
+                                <p className="mt-3 text-sm text-stone-500">No referrer data yet.</p>
                             ) : (
                                 <div className="overflow-x-auto mt-3">
                                     <table className="w-full text-sm">
                                         <thead>
-                                            <tr className="text-left text-xs uppercase text-gray-500 border-b border-gray-100 dark:border-slate-800">
+                                            <tr className="text-left text-xs uppercase text-stone-500 border-b border-stone-100 dark:border-slate-800">
                                                 <th className="py-2">Channel / Referrer</th>
                                                 <th className="py-2 text-right">Total Visits</th>
                                                 <th className="py-2 text-right">Unique</th>
                                             </tr>
                                         </thead>
-                                        <tbody className="divide-y divide-gray-100 dark:divide-slate-800">
+                                        <tbody className="divide-y divide-stone-100 dark:divide-slate-800">
                                             {data.referrers.map(r => (
                                                 <tr key={r.referrer}>
                                                     <td className="py-2 pr-2 font-medium">{r.referrer}</td>
                                                     <td className="py-2 text-right font-bold">{r.visits}</td>
-                                                    <td className="py-2 text-right text-gray-500">{r.unique_visitors}</td>
+                                                    <td className="py-2 text-right text-stone-500">{r.unique_visitors}</td>
                                                 </tr>
                                             ))}
                                         </tbody>
@@ -649,17 +649,17 @@ const AdminAnalytics: React.FC = () => {
 
                     {/* Recent Notable Clicks & Live Joins Feed */}
                     <div className={`${card} p-5`}>
-                        <h2 className="font-bold flex items-center gap-2">
+                        <h2 className="m-0 text-[16px] font-extrabold flex items-center gap-2">
                             <Clock size={17} className="text-violet-600" />
                             Recent Activity, Welile Tech Clicks &amp; Live Joins
                         </h2>
                         {data.recent_clicks.length === 0 ? (
-                            <p className="mt-3 text-sm text-gray-500">Recent link clicks, app opens, and live joins appear here in real time.</p>
+                            <p className="mt-3 text-sm text-stone-500">Recent link clicks, app opens, and live joins appear here in real time.</p>
                         ) : (
                             <div className="overflow-x-auto mt-3">
                                 <table className="w-full text-xs">
                                     <thead>
-                                        <tr className="text-left uppercase text-gray-500 border-b border-gray-100 dark:border-slate-800">
+                                        <tr className="text-left uppercase text-stone-500 border-b border-stone-100 dark:border-slate-800">
                                             <th className="py-2 pr-3">Time (EAT)</th>
                                             <th className="pr-3">Action / Destination</th>
                                             <th className="pr-3">Type</th>
@@ -668,24 +668,24 @@ const AdminAnalytics: React.FC = () => {
                                             <th>Source</th>
                                         </tr>
                                     </thead>
-                                    <tbody className="divide-y divide-gray-100 dark:divide-slate-800">
+                                    <tbody className="divide-y divide-stone-100 dark:divide-slate-800">
                                         {data.recent_clicks.map(e => (
                                             <tr key={e.id}>
-                                                <td className="py-2 pr-3 whitespace-nowrap text-gray-500 font-mono">{fmtTime(e.created_at)}</td>
+                                                <td className="py-2 pr-3 whitespace-nowrap text-stone-500 font-mono">{fmtTime(e.created_at)}</td>
                                                 <td className="py-2 pr-3">
-                                                    <span className="font-semibold text-gray-800 dark:text-slate-100">{e.label || e.event_type}</span>
-                                                    {e.target_url && <span className="block text-[11px] text-gray-400 truncate max-w-[260px]">{e.target_url}</span>}
+                                                    <span className="font-semibold text-stone-800 dark:text-slate-100">{e.label || e.event_type}</span>
+                                                    {e.target_url && <span className="block text-[11px] text-stone-400 truncate max-w-[260px]">{e.target_url}</span>}
                                                 </td>
                                                 <td className="py-2 pr-3">
                                                     <span className={`px-2 py-0.5 rounded-full font-semibold ${CATEGORY_BADGES[e.category || ''] || CATEGORY_BADGES.external}`}>
                                                         {e.category === 'welile_tech' ? 'Welile Tech' : (e.category || e.event_type).replace('_', ' ')}
                                                     </span>
                                                 </td>
-                                                <td className="py-2 pr-3 text-gray-700 dark:text-slate-300">{e.user_name || 'Guest visitor'}</td>
-                                                <td className="py-2 pr-3 whitespace-nowrap text-gray-500">
+                                                <td className="py-2 pr-3 text-stone-700 dark:text-slate-300">{e.user_name || 'Guest visitor'}</td>
+                                                <td className="py-2 pr-3 whitespace-nowrap text-stone-500">
                                                     {e.is_app ? 'Installed App' : 'Website'} · {e.device_type || 'web'}
                                                 </td>
-                                                <td className="py-2 text-gray-500">{e.source || '—'}</td>
+                                                <td className="py-2 text-stone-500">{e.source || '—'}</td>
                                             </tr>
                                         ))}
                                     </tbody>

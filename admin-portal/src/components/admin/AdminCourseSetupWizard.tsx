@@ -164,7 +164,7 @@ interface RichTextEditorProps {
     accentColorClass?: string;
 }
 
-const RichTextEditor: React.FC<RichTextEditorProps> = ({ value, onChange, placeholder, accentColorClass = "border-gray-200 dark:border-slate-800 focus-within:border-violet-400" }) => {
+const RichTextEditor: React.FC<RichTextEditorProps> = ({ value, onChange, placeholder, accentColorClass = "border-stone-200 dark:border-slate-800 focus-within:border-violet-400" }) => {
     const editorRef = React.useRef<HTMLDivElement>(null);
     const fileInputRef = React.useRef<HTMLInputElement>(null);
     const [showHeadingMenu, setShowHeadingMenu] = useState(false);
@@ -285,35 +285,35 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({ value, onChange, placeh
         <button
             type="button"
             onClick={onClick}
-            className={`p-1 hover:bg-gray-200 dark:hover:bg-slate-800 rounded text-xs w-6 h-6 flex items-center justify-center cursor-pointer transition-colors ${active ? 'bg-violet-100 dark:bg-violet-950 text-violet-700 dark:text-violet-300' : 'text-gray-600 dark:text-slate-400'}`}
+            className={`p-1 hover:bg-stone-200 dark:hover:bg-slate-800 rounded text-xs w-6 h-6 flex items-center justify-center cursor-pointer transition-colors ${active ? 'bg-violet-100 dark:bg-violet-950 text-violet-700 dark:text-violet-300' : 'text-stone-600 dark:text-slate-400'}`}
             title={title}
         >
             {children}
         </button>
     );
 
-    const Divider = () => <div className="w-px h-4 bg-gray-300 dark:bg-slate-700 mx-0.5 shrink-0" />;
+    const Divider = () => <div className="w-px h-4 bg-stone-300 dark:bg-slate-700 mx-0.5 shrink-0" />;
 
     return (
-        <div className={`border rounded-xl overflow-hidden bg-white dark:bg-slate-900 ${accentColorClass}`} onClick={() => closeAllMenus()}>
+        <div className={`rounded-[14px] overflow-hidden bg-white dark:bg-night-2 ${accentColorClass}`} onClick={() => closeAllMenus()}>
             {/* Toolbar */}
-            <div className="bg-gray-50 dark:bg-slate-950 border-b border-gray-150 dark:border-slate-800 p-1.5 flex flex-wrap gap-0.5 items-center relative" onClick={e => e.stopPropagation()}>
+            <div className="bg-stone-50 dark:bg-night border-b border-stone-150 dark:border-slate-800 p-1.5 flex flex-wrap gap-0.5 items-center relative" onClick={e => e.stopPropagation()}>
                 {/* Heading Dropdown */}
                 <div className="relative">
                     <button
                         type="button"
                         onClick={(e) => { e.stopPropagation(); closeAllMenus(); setShowHeadingMenu(!showHeadingMenu); }}
-                        className="px-2 py-1 hover:bg-gray-200 dark:hover:bg-slate-800 rounded text-[10px] text-gray-600 dark:text-slate-400 cursor-pointer font-semibold flex items-center gap-0.5 min-w-[52px]"
+                        className="px-2 py-1 hover:bg-stone-200 dark:hover:bg-slate-800 rounded text-[10px] text-stone-600 dark:text-slate-400 cursor-pointer font-semibold flex items-center gap-0.5 min-w-[52px]"
                         title="Heading"
                     >
                         ¶ Text ▾
                     </button>
                     {showHeadingMenu && (
-                        <div className="absolute top-full left-0 mt-1 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-lg shadow-lg z-50 min-w-[140px] py-1">
-                            <button type="button" onClick={() => insertHeading('p')} className="w-full text-left px-3 py-1.5 text-xs hover:bg-gray-50 dark:hover:bg-slate-800 text-gray-700 dark:text-slate-350 cursor-pointer bg-transparent">Paragraph</button>
-                            <button type="button" onClick={() => insertHeading('h1')} className="w-full text-left px-3 py-1.5 text-lg font-bold hover:bg-gray-50 dark:hover:bg-slate-800 text-gray-900 dark:text-white cursor-pointer bg-transparent">Heading 1</button>
-                            <button type="button" onClick={() => insertHeading('h2')} className="w-full text-left px-3 py-1.5 text-base font-bold hover:bg-gray-50 dark:hover:bg-slate-800 text-gray-800 dark:text-slate-200 cursor-pointer bg-transparent">Heading 2</button>
-                            <button type="button" onClick={() => insertHeading('h3')} className="w-full text-left px-3 py-1.5 text-sm font-bold hover:bg-gray-50 dark:hover:bg-slate-800 text-gray-700 dark:text-slate-300 cursor-pointer bg-transparent">Heading 3</button>
+                        <div className="absolute top-full left-0 mt-1 bg-white dark:bg-night-2 rounded-[12px] z-50 min-w-[140px] py-1">
+                            <button type="button" onClick={() => insertHeading('p')} className="w-full text-left px-3 py-1.5 text-xs hover:bg-stone-50 dark:hover:bg-slate-800 text-stone-700 dark:text-slate-350 cursor-pointer bg-transparent">Paragraph</button>
+                            <button type="button" onClick={() => insertHeading('h1')} className="w-full text-left px-3 py-1.5 text-lg font-bold hover:bg-stone-50 dark:hover:bg-slate-800 text-stone-900 dark:text-white cursor-pointer bg-transparent">Heading 1</button>
+                            <button type="button" onClick={() => insertHeading('h2')} className="w-full text-left px-3 py-1.5 text-base font-bold hover:bg-stone-50 dark:hover:bg-slate-800 text-stone-800 dark:text-slate-200 cursor-pointer bg-transparent">Heading 2</button>
+                            <button type="button" onClick={() => insertHeading('h3')} className="w-full text-left px-3 py-1.5 text-sm font-bold hover:bg-stone-50 dark:hover:bg-slate-800 text-stone-700 dark:text-slate-300 cursor-pointer bg-transparent">Heading 3</button>
                         </div>
                     )}
                 </div>
@@ -331,20 +331,20 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({ value, onChange, placeh
                     <button
                         type="button"
                         onClick={(e) => { e.stopPropagation(); closeAllMenus(); setShowColorMenu(!showColorMenu); }}
-                        className="p-1 hover:bg-gray-200 dark:hover:bg-slate-800 rounded text-xs w-6 h-6 flex items-center justify-center cursor-pointer text-gray-600 dark:text-slate-400"
+                        className="p-1 hover:bg-stone-200 dark:hover:bg-slate-800 rounded text-xs w-6 h-6 flex items-center justify-center cursor-pointer text-stone-600 dark:text-slate-400"
                         title="Text Color"
                     >
                         <span className="font-bold">A</span>
                         <span className="absolute bottom-0.5 left-1 right-1 h-0.5 bg-red-500 rounded" />
                     </button>
                     {showColorMenu && (
-                        <div className="absolute top-full left-0 mt-1 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-lg shadow-lg z-50 p-2 grid grid-cols-5 gap-1" onClick={e => e.stopPropagation()}>
+                        <div className="absolute top-full left-0 mt-1 bg-white dark:bg-night-2 rounded-[12px] z-50 p-2 grid grid-cols-5 gap-1" onClick={e => e.stopPropagation()}>
                             {colors.map(color => (
                                 <button
                                     key={color}
                                     type="button"
                                     onClick={() => { executeCommand('foreColor', color); closeAllMenus(); }}
-                                    className="w-5 h-5 rounded-full border border-gray-200 dark:border-slate-700 cursor-pointer hover:scale-125 transition-transform"
+                                    className="w-5 h-5 rounded-full border border-stone-200 dark:border-slate-700 cursor-pointer hover:scale-125 transition-transform"
                                     style={{ backgroundColor: color }}
                                     title={color}
                                 />
@@ -354,7 +354,7 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({ value, onChange, placeh
                 </div>
 
                 <ToolButton onClick={() => executeCommand('hiliteColor', '#fef08a')} title="Highlight">
-                    <span className="font-bold bg-yellow-200 px-0.5 rounded text-[9px] text-gray-900">H</span>
+                    <span className="font-bold bg-yellow-200 px-0.5 rounded text-[9px] text-stone-900">H</span>
                 </ToolButton>
 
                 <Divider />
@@ -408,36 +408,36 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({ value, onChange, placeh
                     <button
                         type="button"
                         onClick={(e) => { e.stopPropagation(); closeAllMenus(); setShowImageMenu(!showImageMenu); }}
-                        className="px-1.5 py-1 hover:bg-gray-200 dark:hover:bg-slate-800 rounded text-[10px] text-gray-600 dark:text-slate-400 cursor-pointer font-semibold flex items-center gap-0.5"
+                        className="px-1.5 py-1 hover:bg-stone-200 dark:hover:bg-slate-800 rounded text-[10px] text-stone-600 dark:text-slate-400 cursor-pointer font-semibold flex items-center gap-0.5"
                         title="Insert Image"
                     >
                         <Image className="inline-block w-4 h-4 mr-1 align-middle" /> Image
                     </button>
                     {showImageMenu && (
-                        <div className="absolute top-full left-0 mt-1 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-xl shadow-lg z-50 w-64 p-3" onClick={e => e.stopPropagation()}>
-                            <p className="text-[10px] font-bold text-gray-500 dark:text-slate-400 uppercase mb-2">Insert Image</p>
+                        <div className="absolute top-full left-0 mt-1 bg-white dark:bg-night-2 rounded-[14px] z-50 w-64 p-3" onClick={e => e.stopPropagation()}>
+                            <p className="text-[10px] font-bold text-stone-500 dark:text-slate-400 uppercase mb-2">Insert Image</p>
                             <div className="space-y-2">
                                 <input
                                     type="text"
                                     value={imageUrl}
                                     onChange={e => setImageUrl(e.target.value)}
                                     placeholder="Paste image URL..."
-                                    className="w-full border border-gray-200 dark:border-slate-700 bg-transparent rounded-lg px-2 py-1.5 text-xs outline-none focus:border-violet-400 text-gray-900 dark:text-white"
+                                    className="w-full border border-stone-200 dark:border-slate-700 bg-transparent rounded-[12px] px-2 py-1.5 text-xs outline-none focus:border-violet-400 text-stone-900 dark:text-white"
                                     onKeyDown={e => { if (e.key === 'Enter') insertImageFromUrl(); }}
                                 />
                                 <button
                                     type="button"
                                     onClick={insertImageFromUrl}
-                                    className="w-full bg-violet-600 text-white text-xs font-bold py-1.5 rounded-lg hover:bg-violet-700 transition-colors cursor-pointer"
+                                    className="w-full bg-brand text-white text-xs font-bold py-1.5 rounded-[12px] hover:bg-brand-mid transition-colors cursor-pointer"
                                 >
                                     Insert from URL
                                 </button>
                                 <div className="relative">
-                                    <div className="text-center text-[10px] text-gray-400 dark:text-slate-500 font-bold my-1">— OR —</div>
+                                    <div className="text-center text-[10px] text-stone-400 dark:text-slate-500 font-bold my-1">— OR —</div>
                                     <button
                                         type="button"
                                         onClick={() => fileInputRef.current?.click()}
-                                        className="w-full border-2 border-dashed border-gray-300 dark:border-slate-700 rounded-lg py-3 text-xs text-gray-500 dark:text-slate-400 hover:border-violet-400 hover:text-violet-600 transition-colors cursor-pointer font-medium"
+                                        className="w-full border-2 border-dashed border-stone-300 dark:border-slate-700 rounded-[12px] py-3 text-xs text-stone-500 dark:text-slate-400 hover:border-violet-400 hover:text-violet-600 transition-colors cursor-pointer font-medium"
                                     >
                                         <Folder className="inline-block w-4 h-4 mr-1 align-middle" /> Upload from device
                                     </button>
@@ -463,14 +463,14 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({ value, onChange, placeh
                     <button
                         type="button"
                         onClick={(e) => { e.stopPropagation(); closeAllMenus(); setShowTableMenu(!showTableMenu); }}
-                        className="px-1.5 py-1 hover:bg-gray-200 dark:hover:bg-slate-800 rounded text-[10px] text-gray-600 dark:text-slate-400 cursor-pointer font-semibold flex items-center gap-0.5"
+                        className="px-1.5 py-1 hover:bg-stone-200 dark:hover:bg-slate-800 rounded text-[10px] text-stone-600 dark:text-slate-400 cursor-pointer font-semibold flex items-center gap-0.5"
                         title="Insert Table"
                     >
                         ▦ Table
                     </button>
                     {showTableMenu && (
-                        <div className="absolute top-full left-0 mt-1 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-xl shadow-lg z-50 w-48 p-3" onClick={e => e.stopPropagation()}>
-                            <p className="text-[10px] font-bold text-gray-500 dark:text-slate-400 uppercase mb-2">Insert Table</p>
+                        <div className="absolute top-full left-0 mt-1 bg-white dark:bg-night-2 rounded-[14px] z-50 w-48 p-3" onClick={e => e.stopPropagation()}>
+                            <p className="text-[10px] font-bold text-stone-500 dark:text-slate-400 uppercase mb-2">Insert Table</p>
                             <div className="grid grid-cols-6 gap-0.5 mb-2">
                                 {Array.from({ length: 6 }).map((_, r) =>
                                     Array.from({ length: 6 }).map((_, c) => (
@@ -482,13 +482,13 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({ value, onChange, placeh
                                             className={`w-5 h-5 border rounded-sm cursor-pointer transition-colors ${
                                                 hoveredCell && r <= hoveredCell.r && c <= hoveredCell.c
                                                     ? 'bg-violet-400 border-violet-500'
-                                                    : 'bg-gray-100 dark:bg-slate-800 border-gray-200 dark:border-slate-700 hover:bg-violet-100 dark:hover:bg-violet-950/30'
+                                                    : 'bg-stone-100 dark:bg-slate-800 border-stone-200 dark:border-slate-700 hover:bg-violet-100 dark:hover:bg-violet-950/30'
                                             }`}
                                         />
                                     ))
                                 )}
                             </div>
-                            <p className="text-[10px] text-center text-gray-500 dark:text-slate-400 font-medium">
+                            <p className="text-[10px] text-center text-stone-500 dark:text-slate-400 font-medium">
                                 {hoveredCell ? `${hoveredCell.r + 1} × ${hoveredCell.c + 1}` : 'Select size'}
                             </p>
                         </div>
@@ -499,15 +499,15 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({ value, onChange, placeh
                 <div className="relative group/callout">
                     <button
                         type="button"
-                        className="px-1.5 py-1 hover:bg-gray-200 dark:hover:bg-slate-800 rounded text-[10px] text-gray-600 dark:text-slate-400 cursor-pointer font-semibold"
+                        className="px-1.5 py-1 hover:bg-stone-200 dark:hover:bg-slate-800 rounded text-[10px] text-stone-600 dark:text-slate-400 cursor-pointer font-semibold"
                         title="Insert Callout"
                     >
                         <Pin className="inline-block w-4 h-4 mr-1 align-middle" />
                     </button>
-                    <div className="hidden group-hover/callout:block absolute top-full left-0 mt-1 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-lg shadow-lg z-50 py-1 min-w-[110px]">
-                        <button type="button" onClick={() => insertCallout('info')} className="w-full text-left px-3 py-1.5 text-xs hover:bg-blue-50 dark:hover:bg-slate-800 text-blue-700 dark:text-blue-350 cursor-pointer bg-transparent">ℹ️ Info</button>
+                    <div className="hidden group-hover/callout:block absolute top-full left-0 mt-1 bg-white dark:bg-night-2 rounded-[12px] z-50 py-1 min-w-[110px]">
+                        <button type="button" onClick={() => insertCallout('info')} className="w-full text-left px-3 py-1.5 text-xs hover:bg-brand-soft dark:hover:bg-slate-800 text-brand dark:text-blue-350 cursor-pointer bg-transparent">ℹ️ Info</button>
                         <button type="button" onClick={() => insertCallout('warning')} className="w-full text-left px-3 py-1.5 text-xs hover:bg-amber-50 dark:hover:bg-slate-800 text-amber-700 dark:text-amber-350 cursor-pointer bg-transparent"><AlertTriangle className="inline-block w-4 h-4 mr-1 align-middle" />️ Warning</button>
-                        <button type="button" onClick={() => insertCallout('success')} className="w-full text-left px-3 py-1.5 text-xs hover:bg-emerald-50 dark:hover:bg-slate-800 text-emerald-700 dark:text-emerald-350 cursor-pointer bg-transparent"><CheckCircle2 className="inline-block w-4 h-4 mr-1 align-middle" /> Success</button>
+                        <button type="button" onClick={() => insertCallout('success')} className="w-full text-left px-3 py-1.5 text-xs hover:bg-mint-soft dark:hover:bg-slate-800 text-mint dark:text-emerald-350 cursor-pointer bg-transparent"><CheckCircle2 className="inline-block w-4 h-4 mr-1 align-middle" /> Success</button>
                     </div>
                 </div>
 
@@ -523,7 +523,7 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({ value, onChange, placeh
                 <button
                     type="button"
                     onClick={() => executeCommand('removeFormat')}
-                    className="p-1 hover:bg-gray-200 dark:hover:bg-slate-800 rounded text-[10px] text-gray-400 cursor-pointer font-semibold"
+                    className="p-1 hover:bg-stone-200 dark:hover:bg-slate-800 rounded text-[10px] text-stone-400 cursor-pointer font-semibold"
                     title="Clear Formatting"
                 >
                     Clear
@@ -537,7 +537,7 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({ value, onChange, placeh
                 onInput={handleInput}
                 onDrop={handleDrop}
                 onDragOver={handleDragOver}
-                className="p-4 min-h-[150px] max-h-[400px] overflow-y-auto text-sm text-gray-900 dark:text-slate-100 outline-none bg-white dark:bg-slate-900 whitespace-normal prose prose-sm dark:prose-invert max-w-none"
+                className="p-4 min-h-[150px] max-h-[400px] overflow-y-auto text-sm text-stone-900 dark:text-slate-100 outline-none bg-white dark:bg-night-2 whitespace-normal prose prose-sm dark:prose-invert max-w-none"
                 data-placeholder={placeholder}
                 style={{
                     lineHeight: '1.7'
@@ -1267,7 +1267,7 @@ const AdminCourseSetupWizard: React.FC<AdminCourseSetupWizardProps> = ({ isInstr
             <div className="w-full md:w-64 shrink-0 flex flex-col pt-2">
                 <div className="relative flex flex-col">
                     {/* Gray Background Line */}
-                    <div className="absolute left-[15px] top-6 bottom-4 w-0.5 bg-gray-200 dark:bg-slate-800 z-0"></div>
+                    <div className="absolute left-[15px] top-6 bottom-4 w-0.5 bg-stone-200 dark:bg-slate-800 z-0"></div>
                     {/* Green Progress Line */}
                     <div className="absolute left-[15px] top-6 w-0.5 bg-green-500 z-10 transition-all duration-500" style={{ height: `calc(${Math.max(0, step - 1) * 25}% - ${Math.max(0, step - 1) * 4}px)` }}></div>
                     
@@ -1284,13 +1284,13 @@ const AdminCourseSetupWizard: React.FC<AdminCourseSetupWizardProps> = ({ isInstr
                             <div key={s.num} className={`relative z-20 flex items-start gap-4 ${s.num !== 5 ? 'mb-10' : ''}`}>
                                 <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm border-2 shrink-0 transition-colors ${
                                     isCompleted ? 'bg-green-500 border-green-500 text-white' :
-                                    isCurrent ? 'bg-white dark:bg-slate-900 border-green-500 text-green-600 dark:text-green-400' :
-                                    'bg-white dark:bg-slate-900 border-gray-300 dark:border-slate-700 text-gray-400'
+                                    isCurrent ? 'bg-white dark:bg-night-2 border-green-500 text-mint dark:text-green-400' :
+                                    'bg-white dark:bg-night-2 border-stone-300 dark:border-slate-700 text-stone-400'
                                 }`}>
                                     {isCompleted ? <CheckCircle2 size={16} /> : s.num}
                                 </div>
                                 <div className="pt-1">
-                                    <h4 className={`font-semibold text-sm ${isCurrent ? 'text-green-600 dark:text-green-400' : isCompleted ? 'text-gray-900 dark:text-slate-100' : 'text-gray-500'}`}>{s.title}</h4>
+                                    <h4 className={`font-semibold text-sm ${isCurrent ? 'text-mint dark:text-green-400' : isCompleted ? 'text-stone-900 dark:text-slate-100' : 'text-stone-500'}`}>{s.title}</h4>
                                 </div>
                             </div>
                         );
@@ -1303,17 +1303,17 @@ const AdminCourseSetupWizard: React.FC<AdminCourseSetupWizardProps> = ({ isInstr
                 <div className="flex-1">
                     {/* Header */}
                     <div className="flex items-center gap-4 mb-6">
-                        <button onClick={() => navigate(isInstructor ? '/instructor/courses' : '/courses')} className="p-2 hover:bg-gray-150 dark:hover:bg-slate-800 rounded-full transition-colors text-gray-500">
+                        <button onClick={() => navigate(isInstructor ? '/instructor/courses' : '/courses')} className="p-2 hover:bg-stone-150 dark:hover:bg-slate-800 rounded-full transition-colors text-stone-500">
                             <ArrowLeft size={20} />
                         </button>
-                        <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+                        <h2 className="text-2xl font-bold text-stone-900 dark:text-white">
                             {isEditMode ? 'Edit Course Setup' : 'New Course Setup'}
                         </h2>
                     </div>
 
                     {/* Inline Clear Validation Error Banner */}
                     {validationError && (
-                        <div className="mb-6 p-4 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 rounded-2xl flex items-start justify-between gap-3 text-amber-800 dark:text-amber-200 text-sm shadow-sm animate-in fade-in slide-in-from-top-2">
+                        <div className="mb-6 p-4 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 rounded-[22px] flex items-start justify-between gap-3 text-amber-800 dark:text-amber-200 text-sm animate-in fade-in slide-in-from-top-2">
                             <div className="flex items-start gap-2.5">
                                 <AlertTriangle className="text-amber-500 shrink-0 mt-0.5" size={18} />
                                 <span className="font-semibold leading-relaxed">{validationError}</span>
@@ -1330,13 +1330,13 @@ const AdminCourseSetupWizard: React.FC<AdminCourseSetupWizardProps> = ({ isInstr
 
                                                             {step === 1 && (
                         <div className="space-y-5 animate-in fade-in slide-in-from-right-4 duration-300 max-w-2xl mx-auto">
-                            <h3 className="text-lg font-semibold border-b border-gray-100 dark:border-slate-800 pb-2 text-gray-900 dark:text-slate-100">Step 1: Basic Information</h3>
+                            <h3 className="text-lg font-semibold border-b border-stone-100 dark:border-slate-800 pb-2 text-stone-900 dark:text-slate-100">Step 1: Basic Information</h3>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">Course Title</label>
-                                <input value={newCourse.title || ''} onChange={e => setNewCourse({...newCourse, title: e.target.value})} className="w-full p-3 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 text-gray-900 dark:text-white rounded-xl focus:ring-2 focus:ring-violet-500 outline-none transition-all" placeholder="e.g. Advanced AI Integration" />
+                                <label className="block text-sm font-medium text-stone-700 dark:text-slate-300 mb-1">Course Title</label>
+                                <input value={newCourse.title || ''} onChange={e => setNewCourse({...newCourse, title: e.target.value})} className="w-full p-3 bg-stone-50 dark:bg-slate-800 border border-stone-200 dark:border-slate-700 text-stone-900 dark:text-white rounded-[14px] focus:ring-2 focus:ring-brand outline-none transition-all" placeholder="e.g. Advanced AI Integration" />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">Select Instructor</label>
+                                <label className="block text-sm font-medium text-stone-700 dark:text-slate-300 mb-1">Select Instructor</label>
                                 <select 
                                     value={newCourse.tutorId || ''} 
                                     onChange={e => {
@@ -1348,7 +1348,7 @@ const AdminCourseSetupWizard: React.FC<AdminCourseSetupWizardProps> = ({ isInstr
                                             setNewCourse({...newCourse, tutorId: 'new', instructor: '', instructorEmail: '', instructorAvatar: ''});
                                         }
                                     }}
-                                    className="w-full p-3 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 text-gray-900 dark:text-white rounded-xl focus:ring-2 focus:ring-violet-500 outline-none transition-all"
+                                    className="w-full p-3 bg-stone-50 dark:bg-slate-800 border border-stone-200 dark:border-slate-700 text-stone-900 dark:text-white rounded-[14px] focus:ring-2 focus:ring-brand outline-none transition-all"
                                 >
                                     <option value="" disabled>Select an instructor...</option>
                                     <option value="new">+ Add New Instructor</option>
@@ -1359,16 +1359,16 @@ const AdminCourseSetupWizard: React.FC<AdminCourseSetupWizardProps> = ({ isInstr
                             </div>
                             
                             {newCourse.tutorId === 'new' && (
-                                <div className="bg-gray-50 dark:bg-slate-800 p-6 rounded-xl border border-gray-200 dark:border-slate-700 flex flex-col md:flex-row gap-8 items-start">
+                                <div className="bg-stone-50 dark:bg-slate-800 p-6 rounded-[14px] border border-stone-200 dark:border-slate-700 flex flex-col md:flex-row gap-8 items-start">
                                     {/* Left: Avatar Upload */}
                                     <div className="shrink-0 flex flex-col items-center pt-2">
                                         <label className="relative cursor-pointer group">
-                                            <div className="w-28 h-28 rounded-full bg-white dark:bg-slate-900 border-2 border-dashed border-gray-300 dark:border-slate-600 shadow-sm overflow-hidden flex items-center justify-center transition-all group-hover:border-violet-500">
+                                            <div className="w-28 h-28 rounded-full bg-white dark:bg-night-2 border-2 border-dashed border-stone-300 dark:border-slate-600 overflow-hidden flex items-center justify-center transition-all group-hover:border-violet-500">
                                                 {newCourse.instructorAvatar ? (
                                                     <img src={newCourse.instructorAvatar} alt="Preview" className="w-full h-full object-cover" />
                                                 ) : (
-                                                    <div className="flex flex-col items-center text-gray-400 dark:text-slate-500">
-                                                        <Image size={28} className="mb-1 text-gray-400 group-hover:text-violet-500 transition-colors" />
+                                                    <div className="flex flex-col items-center text-stone-400 dark:text-slate-500">
+                                                        <Image size={28} className="mb-1 text-stone-400 group-hover:text-violet-500 transition-colors" />
                                                         <span className="text-[10px] uppercase font-bold tracking-wider">Upload</span>
                                                     </div>
                                                 )}
@@ -1399,31 +1399,31 @@ const AdminCourseSetupWizard: React.FC<AdminCourseSetupWizardProps> = ({ isInstr
                                     {/* Right: Name and Email */}
                                     <div className="flex-1 space-y-4 w-full">
                                         <div>
-                                            <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">New Instructor Name</label>
-                                            <input value={newCourse.instructor || ''} onChange={e => setNewCourse({...newCourse, instructor: e.target.value})} className="w-full p-3 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 text-gray-900 dark:text-white rounded-xl focus:ring-2 focus:ring-violet-500 outline-none transition-all" placeholder="e.g. John Doe" />
+                                            <label className="block text-sm font-medium text-stone-700 dark:text-slate-300 mb-1">New Instructor Name</label>
+                                            <input value={newCourse.instructor || ''} onChange={e => setNewCourse({...newCourse, instructor: e.target.value})} className="w-full p-3 bg-white dark:bg-night-2 text-stone-900 dark:text-white rounded-[14px] focus:ring-2 focus:ring-brand outline-none transition-all" placeholder="e.g. John Doe" />
                                         </div>
                                         <div>
-                                            <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">New Instructor Email</label>
-                                            <input value={newCourse.instructorEmail || ''} onChange={e => setNewCourse({...newCourse, instructorEmail: e.target.value})} className="w-full p-3 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 text-gray-900 dark:text-white rounded-xl focus:ring-2 focus:ring-violet-500 outline-none transition-all" placeholder="e.g. j.doe@schoolofai.edu" />
+                                            <label className="block text-sm font-medium text-stone-700 dark:text-slate-300 mb-1">New Instructor Email</label>
+                                            <input value={newCourse.instructorEmail || ''} onChange={e => setNewCourse({...newCourse, instructorEmail: e.target.value})} className="w-full p-3 bg-white dark:bg-night-2 text-stone-900 dark:text-white rounded-[14px] focus:ring-2 focus:ring-brand outline-none transition-all" placeholder="e.g. j.doe@schoolofai.edu" />
                                         </div>
                                     </div>
                                 </div>
                             )}
                             
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">About the Course</label>
-                                <textarea value={newCourse.description || ''} onChange={e => setNewCourse({...newCourse, description: e.target.value})} className="w-full p-3 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 text-gray-900 dark:text-white rounded-xl focus:ring-2 focus:ring-violet-500 outline-none transition-all resize-none h-24" placeholder="Enter a comprehensive course description..." />
+                                <label className="block text-sm font-medium text-stone-700 dark:text-slate-300 mb-1">About the Course</label>
+                                <textarea value={newCourse.description || ''} onChange={e => setNewCourse({...newCourse, description: e.target.value})} className="w-full p-3 bg-stone-50 dark:bg-slate-800 border border-stone-200 dark:border-slate-700 text-stone-900 dark:text-white rounded-[14px] focus:ring-2 focus:ring-brand outline-none transition-all resize-none h-24" placeholder="Enter a comprehensive course description..." />
                             </div>
                         </div>
                     )}
 
                     {step === 2 && (
                         <div className="space-y-5 animate-in fade-in slide-in-from-right-4 duration-300 max-w-2xl mx-auto">
-                            <h3 className="text-lg font-semibold border-b border-gray-100 dark:border-slate-800 pb-2 text-gray-900 dark:text-slate-100">Step 2: Details & Categorization</h3>
+                            <h3 className="text-lg font-semibold border-b border-stone-100 dark:border-slate-800 pb-2 text-stone-900 dark:text-slate-100">Step 2: Details & Categorization</h3>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">Cover Image (Spans Full Width)</label>
+                                <label className="block text-sm font-medium text-stone-700 dark:text-slate-300 mb-2">Cover Image (Spans Full Width)</label>
                                 <div className="flex flex-col gap-4">
-                                    <div className="w-full h-48 rounded-xl border border-gray-200 dark:border-slate-700 shadow-sm overflow-hidden bg-gray-50 dark:bg-slate-800 relative">
+                                    <div className="w-full h-48 rounded-[14px] border border-stone-200 dark:border-slate-700 overflow-hidden bg-stone-50 dark:bg-slate-800 relative">
                                         {newCourse.image ? (
                                             <img 
                                                 src={newCourse.image} 
@@ -1436,14 +1436,14 @@ const AdminCourseSetupWizard: React.FC<AdminCourseSetupWizardProps> = ({ isInstr
                                                 }}
                                             />
                                         ) : (
-                                            <div className="w-full h-full flex flex-col items-center justify-center text-gray-400 dark:text-slate-500 gap-2">
+                                            <div className="w-full h-full flex flex-col items-center justify-center text-stone-400 dark:text-slate-500 gap-2">
                                                 <Image size={32} />
                                                 <span className="text-sm">No cover image uploaded</span>
                                             </div>
                                         )}
                                     </div>
                                     <div className="flex gap-4 items-center">
-                                        <label className="cursor-pointer bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-800 text-gray-700 dark:text-slate-200 text-sm px-6 py-3 rounded-xl font-medium flex items-center justify-center flex-1 transition-colors">
+                                        <label className="cursor-pointer bg-white dark:bg-slate-800 hover:bg-stone-50 dark:hover:bg-slate-800 text-stone-700 dark:text-slate-200 text-sm px-6 py-3 rounded-[14px] font-medium flex items-center justify-center flex-1 transition-colors">
                                             <Folder size={18} className="mr-2" />
                                             <span>Browse Image File</span>
                                             <input 
@@ -1466,7 +1466,7 @@ const AdminCourseSetupWizard: React.FC<AdminCourseSetupWizardProps> = ({ isInstr
                                             <button 
                                                 type="button"
                                                 onClick={() => setIsAdjustModalOpen(true)}
-                                                className="px-6 py-3 bg-violet-50 text-violet-700 font-bold rounded-xl hover:bg-violet-100 transition-colors"
+                                                className="px-6 py-3 bg-violet-50 text-violet-700 font-bold rounded-[14px] hover:bg-violet-100 transition-colors"
                                             >
                                                 Adjust Image
                                             </button>
@@ -1477,11 +1477,11 @@ const AdminCourseSetupWizard: React.FC<AdminCourseSetupWizardProps> = ({ isInstr
                             
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">Category</label>
+                                    <label className="block text-sm font-medium text-stone-700 dark:text-slate-300 mb-1">Category</label>
                                     <select 
                                         value={newCourse.category || ''} 
                                         onChange={e => setNewCourse({...newCourse, category: e.target.value})} 
-                                        className="w-full p-3 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 text-gray-900 dark:text-white rounded-xl focus:ring-2 focus:ring-violet-500 outline-none transition-all"
+                                        className="w-full p-3 bg-stone-50 dark:bg-slate-800 border border-stone-200 dark:border-slate-700 text-stone-900 dark:text-white rounded-[14px] focus:ring-2 focus:ring-brand outline-none transition-all"
                                     >
                                         <option value="" disabled>Select a Category...</option>
                                         <option value="Technology & AI">Technology & AI</option>
@@ -1493,11 +1493,11 @@ const AdminCourseSetupWizard: React.FC<AdminCourseSetupWizardProps> = ({ isInstr
                                     </select>
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">Level</label>
+                                    <label className="block text-sm font-medium text-stone-700 dark:text-slate-300 mb-1">Level</label>
                                     <select 
                                         value={newCourse.level || ''} 
                                         onChange={e => setNewCourse({...newCourse, level: e.target.value})} 
-                                        className="w-full p-3 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 text-gray-900 dark:text-white rounded-xl focus:ring-2 focus:ring-violet-500 outline-none transition-all"
+                                        className="w-full p-3 bg-stone-50 dark:bg-slate-800 border border-stone-200 dark:border-slate-700 text-stone-900 dark:text-white rounded-[14px] focus:ring-2 focus:ring-brand outline-none transition-all"
                                     >
                                         <option value="" disabled>Select Level...</option>
                                         <option value="Beginner">Beginner</option>
@@ -1507,90 +1507,90 @@ const AdminCourseSetupWizard: React.FC<AdminCourseSetupWizardProps> = ({ isInstr
                                     </select>
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">Course Duration</label>
+                                    <label className="block text-sm font-medium text-stone-700 dark:text-slate-300 mb-1">Course Duration</label>
                                     <input 
                                         type="text"
                                         value={newCourse.duration || ''} 
                                         onChange={e => setNewCourse({...newCourse, duration: e.target.value})} 
-                                        className="w-full p-3 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 text-gray-900 dark:text-white rounded-xl focus:ring-2 focus:ring-violet-500 outline-none transition-all"
+                                        className="w-full p-3 bg-stone-50 dark:bg-slate-800 border border-stone-200 dark:border-slate-700 text-stone-900 dark:text-white rounded-[14px] focus:ring-2 focus:ring-brand outline-none transition-all"
                                         placeholder="e.g. 4 Weeks, 8 Lessons"
                                     />
                                 </div>
                             </div>
                             
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">What You'll Achieve (One per line)</label>
-                                <textarea value={newCourse.outcomes?.join('\n') || ''} onChange={e => setNewCourse({...newCourse, outcomes: e.target.value.split('\n')})} className="w-full p-3 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 text-gray-950 dark:text-white rounded-xl focus:ring-2 focus:ring-violet-500 outline-none transition-all resize-none h-24" placeholder="Master foundational concepts...&#10;Build real-world projects...&#10;Earn a certificate..." />
+                                <label className="block text-sm font-medium text-stone-700 dark:text-slate-300 mb-1">What You'll Achieve (One per line)</label>
+                                <textarea value={newCourse.outcomes?.join('\n') || ''} onChange={e => setNewCourse({...newCourse, outcomes: e.target.value.split('\n')})} className="w-full p-3 bg-stone-50 dark:bg-slate-800 border border-stone-200 dark:border-slate-700 text-stone-950 dark:text-white rounded-[14px] focus:ring-2 focus:ring-brand outline-none transition-all resize-none h-24" placeholder="Master foundational concepts...&#10;Build real-world projects...&#10;Earn a certificate..." />
                             </div>
                         </div>
                     )}
 
                     {step === 3 && (
                         <div className="space-y-5 animate-in fade-in slide-in-from-right-4 duration-300 max-w-2xl mx-auto">
-                            <h3 className="text-lg font-semibold border-b pb-2 text-gray-900 dark:text-slate-100">Step 3: Access, Pricing & Partners</h3>
+                            <h3 className="text-lg font-semibold border-b pb-2 text-stone-900 dark:text-slate-100">Step 3: Access, Pricing & Partners</h3>
                             
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-3">Access Tier</label>
+                                <label className="block text-sm font-medium text-stone-700 dark:text-slate-300 mb-3">Access Tier</label>
                                 <div className="grid grid-cols-3 gap-4">
                                     <button 
                                         type="button"
                                         onClick={() => setNewCourse({...newCourse, accessTier: 'FREE', price: 0})}
-                                        className={`p-4 border-2 rounded-xl text-left transition-all ${
+                                        className={`p-4 border-2 rounded-[14px] text-left transition-all ${
                                             newCourse.accessTier === 'FREE' 
                                                 ? 'border-violet-500 bg-violet-50 dark:bg-violet-950/30 ring-2 ring-violet-200 dark:ring-violet-900/40 text-violet-900 dark:text-violet-200' 
-                                                : 'border-gray-200 dark:border-slate-800 hover:border-violet-300 dark:hover:border-violet-750 bg-transparent text-gray-900 dark:text-slate-200'
+                                                : 'border-stone-200 dark:border-slate-800 hover:border-violet-300 dark:hover:border-violet-750 bg-transparent text-stone-900 dark:text-slate-200'
                                         }`}
                                     >
-                                        <div className={`font-bold mb-1 ${newCourse.accessTier === 'FREE' ? 'text-violet-900 dark:text-violet-200' : 'text-gray-900 dark:text-slate-200'}`}>Free Tier</div>
-                                        <div className={`text-xs ${newCourse.accessTier === 'FREE' ? 'text-violet-700 dark:text-violet-300' : 'text-gray-500 dark:text-slate-400'}`}>Accessible to all users</div>
+                                        <div className={`font-bold mb-1 ${newCourse.accessTier === 'FREE' ? 'text-violet-900 dark:text-violet-200' : 'text-stone-900 dark:text-slate-200'}`}>Free Tier</div>
+                                        <div className={`text-xs ${newCourse.accessTier === 'FREE' ? 'text-violet-700 dark:text-violet-300' : 'text-stone-500 dark:text-slate-400'}`}>Accessible to all users</div>
                                     </button>
                                     <button 
                                         type="button"
                                         onClick={() => setNewCourse({...newCourse, accessTier: 'PAID'})}
-                                        className={`p-4 border-2 rounded-xl text-left transition-all ${
+                                        className={`p-4 border-2 rounded-[14px] text-left transition-all ${
                                             newCourse.accessTier === 'PAID' 
                                                 ? 'border-violet-500 bg-violet-50 dark:bg-violet-950/30 ring-2 ring-violet-200 dark:ring-violet-900/40 text-violet-900 dark:text-violet-200' 
-                                                : 'border-gray-200 dark:border-slate-800 hover:border-violet-300 dark:hover:border-violet-750 bg-transparent text-gray-900 dark:text-slate-200'
+                                                : 'border-stone-200 dark:border-slate-800 hover:border-violet-300 dark:hover:border-violet-750 bg-transparent text-stone-900 dark:text-slate-200'
                                         }`}
                                     >
-                                        <div className={`font-bold mb-1 ${newCourse.accessTier === 'PAID' ? 'text-violet-900 dark:text-violet-200' : 'text-gray-900 dark:text-slate-200'}`}>Premium Tier</div>
-                                        <div className={`text-xs ${newCourse.accessTier === 'PAID' ? 'text-violet-700 dark:text-violet-300' : 'text-gray-500 dark:text-slate-400'}`}>Requires Premium</div>
+                                        <div className={`font-bold mb-1 ${newCourse.accessTier === 'PAID' ? 'text-violet-900 dark:text-violet-200' : 'text-stone-900 dark:text-slate-200'}`}>Premium Tier</div>
+                                        <div className={`text-xs ${newCourse.accessTier === 'PAID' ? 'text-violet-700 dark:text-violet-300' : 'text-stone-500 dark:text-slate-400'}`}>Requires Premium</div>
                                     </button>
                                     <button 
                                         type="button"
                                         onClick={() => setNewCourse({...newCourse, accessTier: 'CUSTOM'})}
-                                        className={`p-4 border-2 rounded-xl text-left transition-all ${
+                                        className={`p-4 border-2 rounded-[14px] text-left transition-all ${
                                             newCourse.accessTier === 'CUSTOM' 
                                                 ? 'border-violet-500 bg-violet-50 dark:bg-violet-950/30 ring-2 ring-violet-200 dark:ring-violet-900/40 text-violet-900 dark:text-violet-200' 
-                                                : 'border-gray-200 dark:border-slate-800 hover:border-violet-300 dark:hover:border-violet-750 bg-transparent text-gray-900 dark:text-slate-200'
+                                                : 'border-stone-200 dark:border-slate-800 hover:border-violet-300 dark:hover:border-violet-750 bg-transparent text-stone-900 dark:text-slate-200'
                                         }`}
                                     >
-                                        <div className={`font-bold mb-1 ${newCourse.accessTier === 'CUSTOM' ? 'text-violet-900 dark:text-violet-200' : 'text-gray-900 dark:text-slate-200'}`}>Custom Price</div>
-                                        <div className={`text-xs ${newCourse.accessTier === 'CUSTOM' ? 'text-violet-700 dark:text-violet-300' : 'text-gray-500 dark:text-slate-400'}`}>Set specific price</div>
+                                        <div className={`font-bold mb-1 ${newCourse.accessTier === 'CUSTOM' ? 'text-violet-900 dark:text-violet-200' : 'text-stone-900 dark:text-slate-200'}`}>Custom Price</div>
+                                        <div className={`text-xs ${newCourse.accessTier === 'CUSTOM' ? 'text-violet-700 dark:text-violet-300' : 'text-stone-500 dark:text-slate-400'}`}>Set specific price</div>
                                     </button>
                                 </div>
                             </div>
                             
                             {newCourse.accessTier === 'CUSTOM' && (
                                 <div className="mt-4 animate-in fade-in slide-in-from-top-2 duration-200">
-                                    <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">Custom Course Price ($)</label>
+                                    <label className="block text-sm font-medium text-stone-700 dark:text-slate-300 mb-1">Custom Course Price ($)</label>
                                     <input 
                                         type="number" 
                                         min="0"
                                         value={newCourse.price ?? 0} 
                                         onChange={e => setNewCourse({...newCourse, price: Math.max(0, Number(e.target.value))})} 
-                                        className="w-full p-3 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 text-gray-900 dark:text-white rounded-xl focus:ring-2 focus:ring-violet-500 outline-none transition-all" 
+                                        className="w-full p-3 bg-stone-50 dark:bg-slate-800 border border-stone-200 dark:border-slate-700 text-stone-900 dark:text-white rounded-[14px] focus:ring-2 focus:ring-brand outline-none transition-all" 
                                         placeholder="e.g. 49" 
                                     />
                                 </div>
                             )}
 
                             <div className="mt-6">
-                                <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">Course Partner</label>
+                                <label className="block text-sm font-medium text-stone-700 dark:text-slate-300 mb-2">Course Partner</label>
                                 <select 
                                     value={newCourse.partnerId || ''} 
                                     onChange={e => setNewCourse({...newCourse, partnerId: e.target.value})} 
-                                    className="w-full p-3 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 text-gray-900 dark:text-white rounded-xl focus:ring-2 focus:ring-violet-500 outline-none transition-all"
+                                    className="w-full p-3 bg-stone-50 dark:bg-slate-800 border border-stone-200 dark:border-slate-700 text-stone-900 dark:text-white rounded-[14px] focus:ring-2 focus:ring-brand outline-none transition-all"
                                 >
                                     <option value="">No Partner</option>
                                     {(partners || []).map(p => (
@@ -1607,38 +1607,38 @@ const AdminCourseSetupWizard: React.FC<AdminCourseSetupWizardProps> = ({ isInstr
                     {/* Step 4: Curriculum, Cohort & Live Schedule */}
                     {step === 4 && (
                         <div className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-300 max-w-4xl mx-auto pb-8">
-                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-gray-200 dark:border-slate-800 pb-4">
+                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-stone-200 dark:border-slate-800 pb-4">
                                 <div>
-                                    <h3 className="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                                    <h3 className="text-xl font-bold text-stone-900 dark:text-white flex items-center gap-2">
                                         <BookOpen className="text-violet-600" size={22} />
                                         Step 4: Curriculum, Cohort & Live Schedule
                                     </h3>
-                                    <p className="text-xs text-gray-500 dark:text-slate-400 mt-1">
+                                    <p className="text-xs text-stone-500 dark:text-slate-400 mt-1">
                                         Configure your introductory video, live Google Meet sessions, topic syllabus, and quiz/exam dates.
                                     </p>
                                 </div>
                                 <button 
                                     onClick={addSection} 
-                                    className="bg-violet-600 hover:bg-violet-700 text-white px-4 py-2 rounded-xl text-sm font-bold flex items-center gap-2 shadow-sm transition-colors self-start cursor-pointer"
+                                    className="bg-brand hover:bg-brand-mid text-white px-4 py-2 rounded-[14px] text-sm font-bold flex items-center gap-2 transition-colors self-start cursor-pointer"
                                 >
                                     <Plus size={16} /> Add Module
                                 </button>
                             </div>
 
                             {/* Section 1: Course Overview & Introduction Video */}
-                            <div className="bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm space-y-4">
+                            <div className="bg-white dark:bg-night-2 rounded-[22px] p-6 space-y-4">
                                 <div className="flex items-center justify-between">
                                     <div className="flex items-center gap-2">
-                                        <div className="p-2 bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 rounded-lg">
+                                        <div className="p-2 bg-brand-soft dark:bg-blue-950/40 text-brand dark:text-blue-400 rounded-[12px]">
                                             <Video size={18} />
                                         </div>
                                         <div>
-                                            <h4 className="font-bold text-gray-900 dark:text-white text-base">Course Introduction Video</h4>
-                                            <p className="text-xs text-gray-500 dark:text-slate-400">Introductory video displayed on the course overview page for prospective students</p>
+                                            <h4 className="font-bold text-stone-900 dark:text-white text-base">Course Introduction Video</h4>
+                                            <p className="text-xs text-stone-500 dark:text-slate-400">Introductory video displayed on the course overview page for prospective students</p>
                                         </div>
                                     </div>
                                     {embedUrl && (
-                                        <span className="text-[11px] font-bold text-blue-600 bg-blue-50 dark:bg-blue-950/40 px-2.5 py-1 rounded-full flex items-center gap-1">
+                                        <span className="text-[11px] font-bold text-brand bg-brand-soft dark:bg-blue-950/40 px-2.5 py-1 rounded-full flex items-center gap-1">
                                             <Play size={10} /> Preview Active
                                         </span>
                                     )}
@@ -1647,28 +1647,28 @@ const AdminCourseSetupWizard: React.FC<AdminCourseSetupWizardProps> = ({ isInstr
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
                                     <div className="space-y-3">
                                         <div>
-                                            <label className="block text-xs font-bold uppercase text-gray-500 mb-1">Introductory Video URL (YouTube, Vimeo, MP4)</label>
+                                            <label className="block text-xs font-bold uppercase text-stone-500 mb-1">Introductory Video URL (YouTube, Vimeo, MP4)</label>
                                             <input 
                                                 value={newCourse.courseIntroVideoUrl || ''} 
                                                 onChange={e => setNewCourse({...newCourse, courseIntroVideoUrl: e.target.value})} 
-                                                className="w-full p-3 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 text-gray-900 dark:text-white rounded-xl focus:ring-2 focus:ring-violet-500 outline-none text-sm" 
+                                                className="w-full p-3 bg-stone-50 dark:bg-slate-800 border border-stone-200 dark:border-slate-700 text-stone-900 dark:text-white rounded-[14px] focus:ring-2 focus:ring-brand outline-none text-sm" 
                                                 placeholder="e.g. https://www.youtube.com/watch?v=dQw4w9WgXcQ" 
                                             />
                                         </div>
 
                                         <div className="pt-2">
-                                            <label className="block text-xs font-bold uppercase text-gray-500 mb-1">Optional: Upload Course Notes / Syllabus (For AI Generation)</label>
+                                            <label className="block text-xs font-bold uppercase text-stone-500 mb-1">Optional: Upload Course Notes / Syllabus (For AI Generation)</label>
                                             <div className="flex gap-2">
                                                 <input 
                                                     type="file" 
                                                     accept=".pdf,text/plain"
                                                     onChange={e => setCourseNotesFile(e.target.files?.[0] || null)}
-                                                    className="flex-1 p-2 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 text-gray-900 dark:text-white rounded-xl text-xs" 
+                                                    className="flex-1 p-2 bg-stone-50 dark:bg-slate-800 border border-stone-200 dark:border-slate-700 text-stone-900 dark:text-white rounded-[14px] text-xs" 
                                                 />
                                                 <button 
                                                     onClick={generateAIModules} 
                                                     disabled={isGeneratingAI || !courseNotesFile}
-                                                    className="bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed text-white px-3 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 whitespace-nowrap cursor-pointer"
+                                                    className="bg-brand hover:bg-brand disabled:opacity-50 disabled:cursor-not-allowed text-white px-3 py-2 rounded-[14px] text-xs font-bold flex items-center gap-1.5 whitespace-nowrap cursor-pointer"
                                                 >
                                                     {isGeneratingAI ? <Loader2 className="animate-spin" size={14} /> : <Sparkles size={14} />} 
                                                     {isGeneratingAI ? 'Generating...' : 'AI Syllabus'}
@@ -1678,7 +1678,7 @@ const AdminCourseSetupWizard: React.FC<AdminCourseSetupWizardProps> = ({ isInstr
                                     </div>
 
                                     {/* Video Preview Frame */}
-                                    <div className="h-44 rounded-xl border border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-slate-800 overflow-hidden flex items-center justify-center relative">
+                                    <div className="h-44 rounded-[14px] border border-stone-200 dark:border-slate-700 bg-stone-50 dark:bg-slate-800 overflow-hidden flex items-center justify-center relative">
                                         {embedUrl ? (
                                             embedUrl.endsWith('.mp4') ? (
                                                 <video src={embedUrl} controls className="w-full h-full object-cover" />
@@ -1692,10 +1692,10 @@ const AdminCourseSetupWizard: React.FC<AdminCourseSetupWizardProps> = ({ isInstr
                                                 />
                                             )
                                         ) : (
-                                            <div className="text-center p-4 text-gray-400">
+                                            <div className="text-center p-4 text-stone-400">
                                                 <Video size={32} className="mx-auto mb-2 opacity-50" />
                                                 <p className="text-xs font-semibold">Enter a video URL above to preview</p>
-                                                <p className="text-[10px] text-gray-400 mt-0.5">Supports YouTube, Vimeo, and raw MP4 links</p>
+                                                <p className="text-[10px] text-stone-400 mt-0.5">Supports YouTube, Vimeo, and raw MP4 links</p>
                                             </div>
                                         )}
                                     </div>
@@ -1703,21 +1703,21 @@ const AdminCourseSetupWizard: React.FC<AdminCourseSetupWizardProps> = ({ isInstr
                             </div>
 
                             {/* Section 2: Live Cohort & Google Meet Class Schedule */}
-                            <div className="bg-white dark:bg-slate-900 border border-violet-100 dark:border-slate-800 rounded-2xl p-6 shadow-sm space-y-6">
-                                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-gray-100 dark:border-slate-800 pb-4">
+                            <div className="bg-white dark:bg-night-2 border-violet-100 rounded-[22px] p-6 space-y-6">
+                                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-stone-100 dark:border-slate-800 pb-4">
                                     <div className="flex items-center gap-2">
-                                        <div className="p-2 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 rounded-lg">
+                                        <div className="p-2 bg-mint-soft dark:bg-emerald-950/40 text-mint dark:text-emerald-400 rounded-[12px]">
                                             <Radio size={18} className="animate-pulse" />
                                         </div>
                                         <div>
-                                            <h4 className="font-bold text-gray-900 dark:text-white text-base">Live Cohort & Class Schedule</h4>
-                                            <p className="text-xs text-gray-500 dark:text-slate-400">All lessons are conducted live via Google Meet. Set cohort periods, meeting link, and attendance PIN.</p>
+                                            <h4 className="font-bold text-stone-900 dark:text-white text-base">Live Cohort & Class Schedule</h4>
+                                            <p className="text-xs text-stone-500 dark:text-slate-400">All lessons are conducted live via Google Meet. Set cohort periods, meeting link, and attendance PIN.</p>
                                         </div>
                                     </div>
                                     <button 
                                         type="button"
                                         onClick={() => setIsBroadcastModalOpen(true)}
-                                        className="px-3.5 py-2 bg-violet-50 hover:bg-violet-100 dark:bg-violet-950/40 dark:hover:bg-violet-900/40 text-violet-700 dark:text-violet-300 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer self-start"
+                                        className="px-3.5 py-2 bg-violet-50 hover:bg-violet-100 dark:bg-violet-950/40 dark:hover:bg-violet-900/40 text-violet-700 dark:text-violet-300 rounded-[14px] text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer self-start"
                                     >
                                         <Bell size={14} /> 📢 Broadcast Lesson Alert
                                     </button>
@@ -1726,18 +1726,18 @@ const AdminCourseSetupWizard: React.FC<AdminCourseSetupWizardProps> = ({ isInstr
                                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                     {/* Cohort Name */}
                                     <div>
-                                        <label className="block text-xs font-bold uppercase text-gray-500 mb-1">Cohort Interval / Name</label>
+                                        <label className="block text-xs font-bold uppercase text-stone-500 mb-1">Cohort Interval / Name</label>
                                         <input 
                                             value={newCourse.cohortName || ''} 
                                             onChange={e => setNewCourse({...newCourse, cohortName: e.target.value})} 
-                                            className="w-full p-2.5 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl text-sm font-semibold text-gray-900 dark:text-white outline-none focus:ring-2 focus:ring-violet-500" 
+                                            className="w-full p-2.5 bg-stone-50 dark:bg-slate-800 border border-stone-200 dark:border-slate-700 rounded-[14px] text-sm font-semibold text-stone-900 dark:text-white outline-none focus:ring-2 focus:ring-brand" 
                                             placeholder="e.g. Cohort 1 (Nov 2026)" 
                                         />
                                     </div>
 
                                     {/* Start Date */}
                                     <div>
-                                        <label className="block text-xs font-bold uppercase text-gray-500 mb-1 flex items-center gap-1">
+                                        <label className="block text-xs font-bold uppercase text-stone-500 mb-1 flex items-center gap-1">
                                             <Calendar size={12} className="text-violet-500" /> Lessons Start Date
                                         </label>
                                         <input 
@@ -1757,13 +1757,13 @@ const AdminCourseSetupWizard: React.FC<AdminCourseSetupWizardProps> = ({ isInstr
                                                     setValidationError(null);
                                                 }
                                             }} 
-                                            className="w-full p-2.5 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl text-sm font-medium text-gray-900 dark:text-white outline-none focus:ring-2 focus:ring-violet-500" 
+                                            className="w-full p-2.5 bg-stone-50 dark:bg-slate-800 border border-stone-200 dark:border-slate-700 rounded-[14px] text-sm font-medium text-stone-900 dark:text-white outline-none focus:ring-2 focus:ring-brand" 
                                         />
                                     </div>
 
                                     {/* End Date */}
                                     <div>
-                                        <label className="block text-xs font-bold uppercase text-gray-500 mb-1 flex items-center gap-1">
+                                        <label className="block text-xs font-bold uppercase text-stone-500 mb-1 flex items-center gap-1">
                                             <Calendar size={12} className="text-emerald-500" /> Lessons End Date
                                         </label>
                                         <input 
@@ -1783,14 +1783,14 @@ const AdminCourseSetupWizard: React.FC<AdminCourseSetupWizardProps> = ({ isInstr
                                                     setValidationError(null);
                                                 }
                                             }} 
-                                            className="w-full p-2.5 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl text-sm font-medium text-gray-900 dark:text-white outline-none focus:ring-2 focus:ring-violet-500" 
+                                            className="w-full p-2.5 bg-stone-50 dark:bg-slate-800 border border-stone-200 dark:border-slate-700 rounded-[14px] text-sm font-medium text-stone-900 dark:text-white outline-none focus:ring-2 focus:ring-brand" 
                                         />
                                     </div>
                                 </div>
 
                                 {/* Cohort Duration & Summary Bar */}
                                 {newCourse.startDate && newCourse.endDate && (
-                                    <div className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-violet-50/70 dark:bg-violet-950/30 border border-violet-100 dark:border-violet-900/40 text-violet-700 dark:text-violet-300 text-xs font-medium">
+                                    <div className="flex items-center gap-2 px-3.5 py-2 rounded-[14px] bg-violet-50/70 dark:bg-violet-950/30 border border-violet-100 dark:border-violet-900/40 text-violet-700 dark:text-violet-300 text-xs font-medium">
                                         <Calendar size={13} className="shrink-0 text-violet-600 dark:text-violet-400" />
                                         <span>
                                             Cohort Live Duration: <strong>{
@@ -1804,8 +1804,8 @@ const AdminCourseSetupWizard: React.FC<AdminCourseSetupWizardProps> = ({ isInstr
                                 <div className="space-y-3">
                                     <div>
                                         <div className="flex items-center justify-between mb-1.5">
-                                            <label className="block text-xs font-bold uppercase text-gray-500">Live Cadence Presets</label>
-                                            <span className="text-[11px] text-gray-400">One-click schedule setup</span>
+                                            <label className="block text-xs font-bold uppercase text-stone-500">Live Cadence Presets</label>
+                                            <span className="text-[11px] text-stone-400">One-click schedule setup</span>
                                         </div>
                                         <div className="flex flex-wrap gap-2">
                                             {CADENCE_PRESETS.map(preset => {
@@ -1816,9 +1816,9 @@ const AdminCourseSetupWizard: React.FC<AdminCourseSetupWizardProps> = ({ isInstr
                                                         key={preset.label}
                                                         type="button"
                                                         onClick={() => setNewCourse(prev => ({ ...prev, lessonDays: [...preset.days] }))}
-                                                        className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                                                        className={`px-3 py-1.5 rounded-[14px] text-xs font-bold transition-all cursor-pointer ${
                                                             isMatch
-                                                                ? 'bg-violet-600 text-white shadow-sm ring-2 ring-violet-400/40'
+                                                                ? 'bg-brand text-white ring-2 ring-violet-400/40'
                                                                 : 'bg-violet-50 dark:bg-violet-950/40 text-violet-700 dark:text-violet-300 hover:bg-violet-100 dark:hover:bg-violet-900/60 border border-violet-100 dark:border-violet-900/40'
                                                         }`}
                                                     >
@@ -1831,8 +1831,8 @@ const AdminCourseSetupWizard: React.FC<AdminCourseSetupWizardProps> = ({ isInstr
 
                                     <div>
                                         <div className="flex items-center justify-between mb-1.5">
-                                            <label className="block text-xs font-bold uppercase text-gray-500">Active Live Days</label>
-                                            <span className="text-[11px] text-gray-400">Toggle custom days</span>
+                                            <label className="block text-xs font-bold uppercase text-stone-500">Active Live Days</label>
+                                            <span className="text-[11px] text-stone-400">Toggle custom days</span>
                                         </div>
                                         <div className="flex flex-wrap gap-2">
                                             {DAYS_OF_WEEK.map(day => {
@@ -1842,10 +1842,10 @@ const AdminCourseSetupWizard: React.FC<AdminCourseSetupWizardProps> = ({ isInstr
                                                         key={day}
                                                         type="button"
                                                         onClick={() => toggleDay(day)}
-                                                        className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                                                        className={`px-3.5 py-1.5 rounded-[14px] text-xs font-bold transition-all cursor-pointer ${
                                                             isSelected 
-                                                                ? 'bg-violet-600 text-white shadow-sm ring-2 ring-violet-400/30' 
-                                                                : 'bg-gray-100 dark:bg-slate-800 text-gray-600 dark:text-slate-300 hover:bg-gray-200 dark:hover:bg-slate-750'
+                                                                ? 'bg-brand text-white ring-2 ring-violet-400/30' 
+                                                                : 'bg-stone-100 dark:bg-slate-800 text-stone-600 dark:text-slate-300 hover:bg-stone-200 dark:hover:bg-slate-750'
                                                         }`}
                                                     >
                                                         {day}
@@ -1857,37 +1857,37 @@ const AdminCourseSetupWizard: React.FC<AdminCourseSetupWizardProps> = ({ isInstr
                                 </div>
 
                                 {/* Lesson Times & Timezone */}
-                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 bg-gray-50 dark:bg-slate-855 p-4 rounded-xl border border-gray-100 dark:border-slate-800">
+                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 bg-stone-50 dark:bg-slate-855 p-4 rounded-[14px] border border-stone-100 dark:border-slate-800">
                                     <div>
-                                        <label className="block text-xs font-bold uppercase text-gray-500 mb-1 flex items-center gap-1">
+                                        <label className="block text-xs font-bold uppercase text-stone-500 mb-1 flex items-center gap-1">
                                             <Clock size={12} /> Class Start Time
                                         </label>
                                         <input 
                                             type="time" 
                                             value={newCourse.lessonStartTime || '18:00'} 
                                             onChange={e => setNewCourse({...newCourse, lessonStartTime: e.target.value})} 
-                                            className="w-full p-2 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-lg text-sm font-semibold outline-none text-gray-900 dark:text-white" 
+                                            className="w-full p-2 bg-white dark:bg-night-2 rounded-[12px] text-sm font-semibold outline-none text-stone-900 dark:text-white" 
                                         />
                                     </div>
                                     <div>
-                                        <label className="block text-xs font-bold uppercase text-gray-500 mb-1 flex items-center gap-1">
+                                        <label className="block text-xs font-bold uppercase text-stone-500 mb-1 flex items-center gap-1">
                                             <Clock size={12} /> Class End Time
                                         </label>
                                         <input 
                                             type="time" 
                                             value={newCourse.lessonEndTime || '20:00'} 
                                             onChange={e => setNewCourse({...newCourse, lessonEndTime: e.target.value})} 
-                                            className="w-full p-2 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-lg text-sm font-semibold outline-none text-gray-900 dark:text-white" 
+                                            className="w-full p-2 bg-white dark:bg-night-2 rounded-[12px] text-sm font-semibold outline-none text-stone-900 dark:text-white" 
                                         />
                                     </div>
                                     <div>
-                                        <label className="block text-xs font-bold uppercase text-gray-500 mb-1 flex items-center gap-1">
+                                        <label className="block text-xs font-bold uppercase text-stone-500 mb-1 flex items-center gap-1">
                                             <Globe size={12} /> Timezone
                                         </label>
                                         <select 
                                             value={newCourse.timezone || 'EAT (UTC+3)'} 
                                             onChange={e => setNewCourse({...newCourse, timezone: e.target.value})} 
-                                            className="w-full p-2 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-lg text-sm font-semibold outline-none text-gray-900 dark:text-white"
+                                            className="w-full p-2 bg-white dark:bg-night-2 rounded-[12px] text-sm font-semibold outline-none text-stone-900 dark:text-white"
                                         >
                                             {TIMEZONES.map(tz => (
                                                 <option key={tz} value={tz}>{tz}</option>
@@ -1902,24 +1902,24 @@ const AdminCourseSetupWizard: React.FC<AdminCourseSetupWizardProps> = ({ isInstr
                                     const activeDuration = newCourse.defaultLessonDuration || calculatedDuration;
 
                                     return (
-                                        <div className="bg-violet-50/50 dark:bg-slate-850 p-4 rounded-xl border border-violet-100 dark:border-slate-800 space-y-2.5">
+                                        <div className="bg-violet-50/50 dark:bg-slate-850 p-4 rounded-[14px] border border-violet-100 dark:border-slate-800 space-y-2.5">
                                             <div className="flex flex-wrap items-center justify-between gap-2">
                                                 <div>
-                                                    <label className="text-xs font-bold uppercase text-gray-700 dark:text-slate-300 flex items-center gap-1.5">
+                                                    <label className="text-xs font-bold uppercase text-stone-700 dark:text-slate-300 flex items-center gap-1.5">
                                                         <Clock size={13} className="text-violet-600 dark:text-violet-400" />
                                                         <span>Cohort Lesson Duration</span>
-                                                        <span className="text-[11px] font-normal text-gray-500">
+                                                        <span className="text-[11px] font-normal text-stone-500">
                                                             (Calculated from times: <strong className="text-violet-700 dark:text-violet-300">{calculatedDuration}</strong>)
                                                         </span>
                                                     </label>
-                                                    <p className="text-[11px] text-gray-500 dark:text-slate-400 mt-0.5">
+                                                    <p className="text-[11px] text-stone-500 dark:text-slate-400 mt-0.5">
                                                         Default duration assigned to live topics and lessons in this cohort.
                                                     </p>
                                                 </div>
                                                 <button
                                                     type="button"
                                                     onClick={() => applyDurationToAllTopics(activeDuration)}
-                                                    className="text-xs font-bold text-violet-700 dark:text-violet-300 hover:text-violet-900 dark:hover:text-violet-100 bg-white dark:bg-slate-800 px-3 py-1.5 rounded-lg border border-violet-200 dark:border-violet-700 hover:bg-violet-50 dark:hover:bg-slate-700 transition-all cursor-pointer shadow-2xs flex items-center gap-1"
+                                                    className="text-xs font-bold text-violet-700 dark:text-violet-300 hover:text-violet-900 dark:hover:text-violet-100 bg-white dark:bg-slate-800 px-3 py-1.5 rounded-[12px] border-violet-200 dark:border-violet-700 hover:bg-violet-50 dark:hover:bg-slate-700 transition-all cursor-pointer shadow-2xs flex items-center gap-1"
                                                     title="Apply this duration to all topics across all modules"
                                                 >
                                                     <span>⚡ Apply "{activeDuration}" to all topics</span>
@@ -1934,23 +1934,23 @@ const AdminCourseSetupWizard: React.FC<AdminCourseSetupWizardProps> = ({ isInstr
                                                         onClick={() => {
                                                             setNewCourse({ ...newCourse, defaultLessonDuration: preset });
                                                         }}
-                                                        className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                                                        className={`px-3 py-1.5 rounded-[12px] text-xs font-bold transition-all cursor-pointer ${
                                                             activeDuration === preset
-                                                                ? 'bg-violet-600 text-white shadow-sm ring-2 ring-violet-400/30'
-                                                                : 'bg-white dark:bg-slate-800 text-gray-700 dark:text-slate-300 border border-gray-200 dark:border-slate-700 hover:border-violet-300'
+                                                                ? 'bg-brand text-white ring-2 ring-violet-400/30'
+                                                                : 'bg-white dark:bg-slate-800 text-stone-700 dark:text-slate-300 border border-stone-200 dark:border-slate-700 hover:border-violet-300'
                                                         }`}
                                                     >
                                                         {preset}
                                                     </button>
                                                 ))}
-                                                <div className="flex items-center gap-1.5 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-lg px-2.5 py-1">
-                                                    <span className="text-gray-400 text-xs font-medium">Custom:</span>
+                                                <div className="flex items-center gap-1.5 bg-white dark:bg-slate-800 rounded-[12px] px-2.5 py-1">
+                                                    <span className="text-stone-400 text-xs font-medium">Custom:</span>
                                                     <input
                                                         type="text"
                                                         value={newCourse.defaultLessonDuration || ''}
                                                         placeholder={calculatedDuration}
                                                         onChange={e => setNewCourse({ ...newCourse, defaultLessonDuration: e.target.value })}
-                                                        className="w-24 text-xs font-semibold text-gray-800 dark:text-white bg-transparent outline-none"
+                                                        className="w-24 text-xs font-semibold text-stone-800 dark:text-white bg-transparent outline-none"
                                                     />
                                                 </div>
                                             </div>
@@ -1962,7 +1962,7 @@ const AdminCourseSetupWizard: React.FC<AdminCourseSetupWizardProps> = ({ isInstr
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     {/* Google Meet Link */}
                                     <div className="space-y-1">
-                                        <label className="block text-xs font-bold uppercase text-gray-500 flex items-center justify-between">
+                                        <label className="block text-xs font-bold uppercase text-stone-500 flex items-center justify-between">
                                             <span>Google Meet Live Link</span>
                                             {newCourse.meetingLink && (
                                                 <a 
@@ -1979,7 +1979,7 @@ const AdminCourseSetupWizard: React.FC<AdminCourseSetupWizardProps> = ({ isInstr
                                             <input 
                                                 value={newCourse.meetingLink || ''} 
                                                 onChange={e => setNewCourse({...newCourse, meetingLink: e.target.value})} 
-                                                className="flex-1 p-2.5 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl text-sm font-medium text-gray-900 dark:text-white outline-none focus:ring-2 focus:ring-violet-500 font-mono" 
+                                                className="flex-1 p-2.5 bg-stone-50 dark:bg-slate-800 border border-stone-200 dark:border-slate-700 rounded-[14px] text-sm font-medium text-stone-900 dark:text-white outline-none focus:ring-2 focus:ring-brand font-mono" 
                                                 placeholder="https://meet.google.com/xxx-yyyy-zzz" 
                                             />
                                             <button 
@@ -1995,7 +1995,7 @@ const AdminCourseSetupWizard: React.FC<AdminCourseSetupWizardProps> = ({ isInstr
                                                         if (val) setNewCourse(prev => ({ ...prev, meetingLink: val.trim() }));
                                                     }
                                                 }}
-                                                className="px-3 bg-violet-50 hover:bg-violet-100 dark:bg-violet-950/60 dark:hover:bg-violet-900/60 text-violet-700 dark:text-violet-300 rounded-xl text-xs font-bold flex items-center gap-1 transition-colors cursor-pointer"
+                                                className="px-3 bg-violet-50 hover:bg-violet-100 dark:bg-violet-950/60 dark:hover:bg-violet-900/60 text-violet-700 dark:text-violet-300 rounded-[14px] text-xs font-bold flex items-center gap-1 transition-colors cursor-pointer"
                                                 title="Paste Google Meet Link from Clipboard"
                                             >
                                                 <Copy size={13} className="rotate-180" /> Paste
@@ -2009,7 +2009,7 @@ const AdminCourseSetupWizard: React.FC<AdminCourseSetupWizardProps> = ({ isInstr
                                                         setTimeout(() => setCopiedMeeting(false), 1500);
                                                     }
                                                 }}
-                                                className="px-3 bg-gray-100 hover:bg-gray-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-gray-700 dark:text-slate-300 rounded-xl text-xs font-bold flex items-center gap-1 transition-colors cursor-pointer"
+                                                className="px-3 bg-stone-100 hover:bg-stone-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-stone-700 dark:text-slate-300 rounded-[14px] text-xs font-bold flex items-center gap-1 transition-colors cursor-pointer"
                                                 title="Copy Google Meet Link"
                                             >
                                                 {copiedMeeting ? <Check size={14} className="text-emerald-500" /> : <Copy size={14} />}
@@ -2024,7 +2024,7 @@ const AdminCourseSetupWizard: React.FC<AdminCourseSetupWizardProps> = ({ isInstr
                                                     setMeetError('');
                                                     setIsMeetHostModalOpen(true);
                                                 }}
-                                                className="text-[11px] font-bold text-violet-600 dark:text-violet-400 hover:text-violet-700 flex items-center gap-1.5 cursor-pointer bg-violet-50 dark:bg-violet-950/40 hover:bg-violet-100 dark:hover:bg-violet-900/40 px-3 py-1.5 rounded-lg transition-colors border border-violet-100 dark:border-violet-900/50 shadow-xs"
+                                                className="text-[11px] font-bold text-violet-600 dark:text-violet-400 hover:text-violet-700 flex items-center gap-1.5 cursor-pointer bg-violet-50 dark:bg-violet-950/40 hover:bg-violet-100 dark:hover:bg-violet-900/40 px-3 py-1.5 rounded-[12px] transition-colors border border-violet-100 dark:border-violet-900/50"
                                             >
                                                 <Sparkles size={11} className="text-violet-600 animate-pulse" /> Generate Real Google Meet with Tutor as Host
                                             </button>
@@ -2034,13 +2034,13 @@ const AdminCourseSetupWizard: React.FC<AdminCourseSetupWizardProps> = ({ isInstr
                                                         href={newCourse.meetingLink} 
                                                         target="_blank" 
                                                         rel="noopener noreferrer"
-                                                        className="text-[10px] text-emerald-600 dark:text-emerald-400 font-bold hover:underline flex items-center gap-1"
+                                                        className="text-[10px] text-mint dark:text-emerald-400 font-bold hover:underline flex items-center gap-1"
                                                     >
                                                         <ExternalLink size={10} /> Test Link ↗
                                                     </a>
                                                 )}
-                                                <span className="text-[10px] text-gray-400">
-                                                    Host: <strong className="text-gray-600 dark:text-slate-300 font-mono">{newCourse.instructorEmail || 'Selected Tutor'}</strong>
+                                                <span className="text-[10px] text-stone-400">
+                                                    Host: <strong className="text-stone-600 dark:text-slate-300 font-mono">{newCourse.instructorEmail || 'Selected Tutor'}</strong>
                                                 </span>
                                             </div>
                                         </div>
@@ -2049,14 +2049,14 @@ const AdminCourseSetupWizard: React.FC<AdminCourseSetupWizardProps> = ({ isInstr
                                     {/* Live Lesson Attendance PINs: Auto-Generated */}
                                     <div className="space-y-1">
                                         <div className="flex items-center justify-between">
-                                            <label className="block text-xs font-bold uppercase text-gray-500">Live Lesson Attendance PINs</label>
-                                            <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-bold flex items-center gap-1">
+                                            <label className="block text-xs font-bold uppercase text-stone-500">Live Lesson Attendance PINs</label>
+                                            <span className="text-[10px] text-mint dark:text-emerald-400 font-bold flex items-center gap-1">
                                                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> Auto-Generated Per Lesson
                                             </span>
                                         </div>
-                                        <div className="p-2.5 bg-gradient-to-r from-violet-50 to-purple-50 dark:from-violet-950/40 dark:to-purple-950/40 border border-violet-200 dark:border-violet-900/50 rounded-xl flex items-center justify-between">
+                                        <div className="p-2.5 bg-gradient-to-r from-violet-50 to-purple-50 dark:from-violet-950/40 dark:to-purple-950/40 border border-violet-200 dark:border-violet-900/50 rounded-[14px] flex items-center justify-between">
                                             <div className="flex items-center gap-2.5">
-                                                <div className="p-1.5 bg-violet-100 dark:bg-violet-900/60 text-violet-600 dark:text-violet-300 rounded-lg">
+                                                <div className="p-1.5 bg-violet-100 dark:bg-violet-900/60 text-violet-600 dark:text-violet-300 rounded-[12px]">
                                                     <Key size={14} />
                                                 </div>
                                                 <div>
@@ -2064,7 +2064,7 @@ const AdminCourseSetupWizard: React.FC<AdminCourseSetupWizardProps> = ({ isInstr
                                                     <p className="text-[11px] text-violet-700 dark:text-violet-300">Each live session automatically receives its own unique attendance PIN under your Tutor Dashboard.</p>
                                                 </div>
                                             </div>
-                                            <span className="hidden sm:inline-flex items-center px-2 py-0.5 bg-white/80 dark:bg-slate-900/80 text-violet-700 dark:text-violet-300 rounded-md font-mono text-[11px] font-bold border border-violet-200 dark:border-violet-800">
+                                            <span className="hidden sm:inline-flex items-center px-2 py-0.5 bg-white/80 dark:bg-night-2/80 text-violet-700 dark:text-violet-300 rounded-md font-mono text-[11px] font-bold border border-violet-200 dark:border-violet-800">
                                                 WEL-XXXX
                                             </span>
                                         </div>
@@ -2076,21 +2076,21 @@ const AdminCourseSetupWizard: React.FC<AdminCourseSetupWizardProps> = ({ isInstr
                             <div className="space-y-4">
                                 <div className="flex items-center justify-between">
                                     <div>
-                                        <h4 className="font-bold text-gray-900 dark:text-white text-lg">Curriculum Modules & Live Topics</h4>
-                                        <p className="text-xs text-gray-500 dark:text-slate-400">
+                                        <h4 className="font-bold text-stone-900 dark:text-white text-lg">Curriculum Modules & Live Topics</h4>
+                                        <p className="text-xs text-stone-500 dark:text-slate-400">
                                             List the modules and specific topics to cover during live Google Meet classes. No video uploading required.
                                         </p>
                                     </div>
                                     <button 
                                         onClick={addSection} 
-                                        className="bg-gray-100 hover:bg-gray-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-gray-800 dark:text-slate-200 px-3.5 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer"
+                                        className="bg-stone-100 hover:bg-stone-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-stone-800 dark:text-slate-200 px-3.5 py-1.5 rounded-[14px] text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer"
                                     >
                                         <Plus size={14} /> Add Module
                                     </button>
                                 </div>
 
                                 {(!newCourse.sections || newCourse.sections.length === 0) && (
-                                    <div className="text-center py-12 bg-white dark:bg-slate-900 rounded-2xl border-2 border-dashed border-gray-200 dark:border-slate-800 text-gray-400">
+                                    <div className="text-center py-12 bg-white dark:bg-night-2 rounded-[22px] border-2 border-dashed border-stone-200 dark:border-slate-800 text-stone-400">
                                         <BookOpen className="mx-auto mb-2 opacity-50" size={32} />
                                         <p className="font-semibold text-sm">Your live curriculum is empty.</p>
                                         <p className="text-xs mt-1">Click "Add Module" to start listing your live lecture topics.</p>
@@ -2126,32 +2126,32 @@ const AdminCourseSetupWizard: React.FC<AdminCourseSetupWizardProps> = ({ isInstr
                                         });
 
                                         return newCourse.sections?.map((section, sIdx) => (
-                                        <div key={section.id} className="bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-2xl shadow-sm overflow-hidden transition-all">
+                                        <div key={section.id} className="bg-white dark:bg-night-2 rounded-[22px] overflow-hidden transition-all">
                                             {/* Module Header */}
-                                            <div className="bg-gray-50 dark:bg-slate-850 p-4 border-b border-gray-200 dark:border-slate-800 space-y-3">
+                                            <div className="bg-stone-50 dark:bg-slate-850 p-4 border-b border-stone-200 dark:border-slate-800 space-y-3">
                                                 <div className="flex items-center justify-between gap-3">
                                                     <div className="flex items-center gap-2 flex-1">
-                                                        <GripVertical className="text-gray-400 cursor-move shrink-0" size={18} />
+                                                        <GripVertical className="text-stone-400 cursor-move shrink-0" size={18} />
                                                         <span className="text-xs font-extrabold uppercase px-2 py-0.5 bg-violet-100 dark:bg-violet-950/60 text-violet-700 dark:text-violet-300 rounded-md">
                                                             Module {sIdx + 1}
                                                         </span>
                                                         <input 
                                                             value={section.title}
                                                             onChange={e => updateSectionTitle(section.id, e.target.value)}
-                                                            className="bg-transparent font-bold text-gray-900 dark:text-white outline-none focus:border-b-2 focus:border-violet-500 py-0.5 flex-1 text-base"
+                                                            className="bg-transparent font-bold text-stone-900 dark:text-white outline-none focus:border-b-2 focus:border-brand py-0.5 flex-1 text-base"
                                                             placeholder="e.g. Module Title & Key Concepts"
                                                         />
                                                     </div>
                                                     <div className="flex items-center gap-2">
                                                         <button 
                                                             onClick={() => addTopic(section.id)} 
-                                                            className="text-xs font-bold bg-violet-600 hover:bg-violet-700 text-white px-3 py-1.5 rounded-lg flex items-center gap-1 transition-colors cursor-pointer"
+                                                            className="text-xs font-bold bg-brand hover:bg-brand-mid text-white px-3 py-1.5 rounded-[12px] flex items-center gap-1 transition-colors cursor-pointer"
                                                         >
                                                             <Plus size={13} /> Add Topic
                                                         </button>
                                                         <button 
                                                             onClick={() => removeSection(section.id)} 
-                                                            className="text-gray-400 hover:text-red-500 p-1.5 rounded-lg hover:bg-red-50 dark:hover:bg-red-955/30 transition-colors cursor-pointer" 
+                                                            className="text-stone-400 hover:text-red-500 p-1.5 rounded-[12px] hover:bg-red-50 dark:hover:bg-red-955/30 transition-colors cursor-pointer" 
                                                             title="Delete Module"
                                                         >
                                                             <Trash2 size={16} />
@@ -2160,8 +2160,8 @@ const AdminCourseSetupWizard: React.FC<AdminCourseSetupWizardProps> = ({ isInstr
                                                 </div>
 
                                                 {/* Module Quiz Date Setting */}
-                                                <div className="flex flex-wrap items-center gap-4 text-xs pt-1 border-t border-gray-200/60 dark:border-slate-800">
-                                                    <div className="flex items-center gap-1.5 text-gray-600 dark:text-slate-300 font-semibold">
+                                                <div className="flex flex-wrap items-center gap-4 text-xs pt-1 border-t border-stone-200/60 dark:border-slate-800">
+                                                    <div className="flex items-center gap-1.5 text-stone-600 dark:text-slate-300 font-semibold">
                                                         <HelpCircle size={14} className="text-purple-500" />
                                                         <span>Module Quiz Date:</span>
                                                         <input 
@@ -2190,11 +2190,11 @@ const AdminCourseSetupWizard: React.FC<AdminCourseSetupWizardProps> = ({ isInstr
                                                                     });
                                                                 }
                                                             }}
-                                                            className="p-1 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded text-xs font-normal" 
+                                                            className="p-1 bg-white dark:bg-night-2 rounded text-xs font-normal" 
                                                         />
                                                     </div>
-                                                    <span className="text-gray-300 dark:text-slate-700">•</span>
-                                                    <span className="text-gray-500 text-[11px]">
+                                                    <span className="text-stone-300 dark:text-slate-700">•</span>
+                                                    <span className="text-stone-500 text-[11px]">
                                                         {section.lessons.filter(l => l.type !== 'quiz').length} Topics to cover in live classes
                                                     </span>
                                                 </div>
@@ -2203,7 +2203,7 @@ const AdminCourseSetupWizard: React.FC<AdminCourseSetupWizardProps> = ({ isInstr
                                             {/* Topics List for this Module */}
                                             <div className="p-4 space-y-3">
                                                 {section.lessons.length === 0 && (
-                                                    <p className="text-xs text-gray-400 text-center py-4">No topics added yet. Click "+ Add Topic" above.</p>
+                                                    <p className="text-xs text-stone-400 text-center py-4">No topics added yet. Click "+ Add Topic" above.</p>
                                                 )}
 
                                                 {section.lessons.map((topic, tIdx) => {
@@ -2219,12 +2219,12 @@ const AdminCourseSetupWizard: React.FC<AdminCourseSetupWizardProps> = ({ isInstr
                                                     return (
                                                         <div 
                                                             key={topic.id} 
-                                                            className={`p-3.5 rounded-2xl border transition-all space-y-2.5 ${
+                                                            className={`p-3.5 rounded-[22px] border transition-all space-y-2.5 ${
                                                                 isQuiz 
-                                                                    ? 'bg-purple-50/40 dark:bg-purple-950/20 border-purple-200 dark:border-purple-900/40' 
+                                                                    ? 'bg-brand-soft/40 dark:bg-purple-950/20 border-purple-200 dark:border-purple-900/40' 
                                                                     : isLive
-                                                                        ? 'bg-violet-50/30 dark:bg-slate-900 border-violet-100 dark:border-slate-800 hover:border-violet-300'
-                                                                        : 'bg-white dark:bg-slate-900 border-gray-150 dark:border-slate-800'
+                                                                        ? 'bg-violet-50/30 dark:bg-night-2 border-violet-100 dark:border-slate-800 hover:border-violet-300'
+                                                                        : 'bg-white dark:bg-night-2 border-stone-150 dark:border-slate-800'
                                                             }`}
                                                         >
                                                             {/* Top Row: Title, Type Selector, Duration, Delete */}
@@ -2232,10 +2232,10 @@ const AdminCourseSetupWizard: React.FC<AdminCourseSetupWizardProps> = ({ isInstr
                                                                 <div className="flex items-center gap-3 flex-1">
                                                                     <span className={`w-6 h-6 rounded-full flex items-center justify-center text-[11px] font-bold shrink-0 ${
                                                                         isQuiz 
-                                                                            ? 'bg-purple-100 dark:bg-purple-900 text-purple-700 dark:text-purple-300' 
+                                                                            ? 'bg-brand-soft dark:bg-purple-900 text-brand dark:text-purple-300' 
                                                                             : isLive
-                                                                                ? 'bg-violet-600 text-white shadow-xs'
-                                                                                : 'bg-gray-100 dark:bg-slate-800 text-gray-600 dark:text-slate-400'
+                                                                                ? 'bg-brand text-white'
+                                                                                : 'bg-stone-100 dark:bg-slate-800 text-stone-600 dark:text-slate-400'
                                                                     }`}>
                                                                         {isQuiz ? 'Q' : sessionNum ? `${sessionNum}` : tIdx + 1}
                                                                     </span>
@@ -2243,7 +2243,7 @@ const AdminCourseSetupWizard: React.FC<AdminCourseSetupWizardProps> = ({ isInstr
                                                                     <input 
                                                                         value={topic.title}
                                                                         onChange={e => updateTopic(section.id, topic.id, { title: e.target.value })}
-                                                                        className="font-semibold text-sm text-gray-900 dark:text-slate-100 bg-transparent flex-1 outline-none border-b border-transparent focus:border-violet-400 py-0.5"
+                                                                        className="font-semibold text-sm text-stone-900 dark:text-slate-100 bg-transparent flex-1 outline-none border-b border-transparent focus:border-violet-400 py-0.5"
                                                                         placeholder={isQuiz ? "Quiz Title" : "Topic title / live lecture subject"}
                                                                     />
                                                                 </div>
@@ -2257,10 +2257,10 @@ const AdminCourseSetupWizard: React.FC<AdminCourseSetupWizardProps> = ({ isInstr
                                                                                 const nextClassType = isLive ? 'none' : 'online';
                                                                                 updateTopic(section.id, topic.id, { type: nextType, classType: nextClassType });
                                                                             }}
-                                                                            className={`px-2.5 py-1 rounded-lg text-[10px] font-extrabold uppercase transition-colors cursor-pointer ${
+                                                                            className={`px-2.5 py-1 rounded-[12px] text-[10px] font-extrabold uppercase transition-colors cursor-pointer ${
                                                                                 isLive 
                                                                                     ? 'bg-violet-100 dark:bg-violet-950/60 text-violet-700 dark:text-violet-300 hover:bg-violet-200' 
-                                                                                    : 'bg-gray-100 dark:bg-slate-800 text-gray-600 dark:text-slate-300 hover:bg-gray-200'
+                                                                                    : 'bg-stone-100 dark:bg-slate-800 text-stone-600 dark:text-slate-300 hover:bg-stone-200'
                                                                             }`}
                                                                             title="Click to toggle between Live Class and Self-Paced"
                                                                         >
@@ -2269,7 +2269,7 @@ const AdminCourseSetupWizard: React.FC<AdminCourseSetupWizardProps> = ({ isInstr
                                                                     )}
 
                                                                     {/* Duration Control: Preset selector + custom text */}
-                                                                    <div className="flex items-center gap-1.5 text-gray-400 text-xs">
+                                                                    <div className="flex items-center gap-1.5 text-stone-400 text-xs">
                                                                         <Clock size={12} className="text-violet-500" />
                                                                         {!isQuiz && (
                                                                             <select
@@ -2280,7 +2280,7 @@ const AdminCourseSetupWizard: React.FC<AdminCourseSetupWizardProps> = ({ isInstr
                                                                                         updateTopic(section.id, topic.id, { duration: val });
                                                                                     }
                                                                                 }}
-                                                                                className="text-[11px] font-medium bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded px-1.5 py-1 text-gray-700 dark:text-slate-300 outline-none cursor-pointer"
+                                                                                className="text-[11px] font-medium bg-stone-50 dark:bg-slate-800 border border-stone-200 dark:border-slate-700 rounded px-1.5 py-1 text-stone-700 dark:text-slate-300 outline-none cursor-pointer"
                                                                                 title="Quick duration preset"
                                                                             >
                                                                                 <option value="30 mins">30m</option>
@@ -2294,7 +2294,7 @@ const AdminCourseSetupWizard: React.FC<AdminCourseSetupWizardProps> = ({ isInstr
                                                                         <input 
                                                                             value={topic.duration || (isQuiz ? '15m' : (newCourse.defaultLessonDuration || '2 hours'))}
                                                                             onChange={e => updateTopic(section.id, topic.id, { duration: e.target.value })}
-                                                                            className="w-16 text-xs p-1 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded text-center text-gray-700 dark:text-slate-300 font-medium outline-none focus:border-violet-500"
+                                                                            className="w-16 text-xs p-1 bg-white dark:bg-slate-800 rounded text-center text-stone-700 dark:text-slate-300 font-medium outline-none focus:border-brand"
                                                                             placeholder="2 hours"
                                                                             title="Topic duration"
                                                                         />
@@ -2302,7 +2302,7 @@ const AdminCourseSetupWizard: React.FC<AdminCourseSetupWizardProps> = ({ isInstr
 
                                                                     <button 
                                                                         onClick={() => removeTopic(section.id, topic.id)} 
-                                                                        className="text-gray-300 hover:text-red-500 transition-colors p-1 cursor-pointer"
+                                                                        className="text-stone-300 hover:text-red-500 transition-colors p-1 cursor-pointer"
                                                                         title="Delete Topic"
                                                                     >
                                                                         <Trash2 size={14} />
@@ -2315,14 +2315,14 @@ const AdminCourseSetupWizard: React.FC<AdminCourseSetupWizardProps> = ({ isInstr
                                                                 <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-violet-100/70 dark:border-slate-800 text-xs">
                                                                     <div className="flex flex-wrap items-center gap-2">
                                                                         {currentSchedule && (
-                                                                            <span className="flex items-center gap-1.5 text-violet-700 dark:text-violet-300 font-semibold bg-violet-50 dark:bg-violet-950/50 px-2.5 py-1 rounded-lg border border-violet-100 dark:border-violet-900/40">
+                                                                            <span className="flex items-center gap-1.5 text-violet-700 dark:text-violet-300 font-semibold bg-violet-50 dark:bg-violet-950/50 px-2.5 py-1 rounded-[12px] border border-violet-100 dark:border-violet-900/40">
                                                                                 <Calendar size={11} />
                                                                                 <span className="font-bold">Session #{sessionNum}:</span>
                                                                                 <span>{currentSchedule.dateStr} @ {currentSchedule.timeStr}</span>
                                                                             </span>
                                                                         )}
 
-                                                                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-mono font-bold bg-white dark:bg-slate-800 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800/60 shadow-2xs">
+                                                                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-[12px] text-[11px] font-mono font-bold bg-white dark:bg-slate-800 text-brand dark:text-purple-300 border-purple-200 dark:border-purple-800/60 shadow-2xs">
                                                                             <Key size={11} /> PIN: {topic.attendanceCode || 'Auto-PIN'}
                                                                         </span>
                                                                     </div>
@@ -2333,15 +2333,15 @@ const AdminCourseSetupWizard: React.FC<AdminCourseSetupWizardProps> = ({ isInstr
                                                                             href={activeMeetUrl}
                                                                             target="_blank" 
                                                                             rel="noopener noreferrer"
-                                                                            className="text-emerald-700 dark:text-emerald-400 font-bold hover:underline flex items-center gap-1.5 text-xs bg-emerald-50 dark:bg-emerald-950/40 px-2.5 py-1 rounded-lg border border-emerald-200 dark:border-emerald-900/50 cursor-pointer"
+                                                                            className="text-mint dark:text-emerald-400 font-bold hover:underline flex items-center gap-1.5 text-xs bg-mint-soft dark:bg-emerald-950/40 px-2.5 py-1 rounded-[12px] border border-emerald-200 dark:border-emerald-900/50 cursor-pointer"
                                                                             title="Follow link to join Google Meet call directly"
                                                                         >
-                                                                            <Radio size={12} className="animate-pulse text-emerald-600" />
+                                                                            <Radio size={12} className="animate-pulse text-mint" />
                                                                             <span>Follow link to join call</span>
                                                                             <ExternalLink size={11} />
                                                                         </a>
                                                                     ) : (
-                                                                        <span className="text-gray-400 text-[11px] italic">Inherits cohort Meet link once set</span>
+                                                                        <span className="text-stone-400 text-[11px] italic">Inherits cohort Meet link once set</span>
                                                                     )}
                                                                 </div>
                                                             )}
@@ -2351,7 +2351,7 @@ const AdminCourseSetupWizard: React.FC<AdminCourseSetupWizardProps> = ({ isInstr
 
                                                 <button 
                                                     onClick={() => addTopic(section.id)} 
-                                                    className="w-full py-2.5 border border-dashed border-gray-200 dark:border-slate-800 rounded-xl text-xs font-bold text-gray-500 dark:text-slate-400 hover:border-violet-400 hover:text-violet-600 dark:hover:text-violet-400 flex items-center justify-center gap-1.5 transition-colors cursor-pointer mt-2"
+                                                    className="w-full py-2.5 border border-dashed border-stone-200 dark:border-slate-800 rounded-[14px] text-xs font-bold text-stone-500 dark:text-slate-400 hover:border-violet-400 hover:text-violet-600 dark:hover:text-violet-400 flex items-center justify-center gap-1.5 transition-colors cursor-pointer mt-2"
                                                 >
                                                     <Plus size={14} /> Add Another Topic
                                                 </button>
@@ -2363,25 +2363,25 @@ const AdminCourseSetupWizard: React.FC<AdminCourseSetupWizardProps> = ({ isInstr
                             </div>
 
                             {/* Section 4: Final Examination Schedule */}
-                            <div className="bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm space-y-4">
-                                <div className="flex items-center justify-between border-b border-gray-100 dark:border-slate-800 pb-3">
+                            <div className="bg-white dark:bg-night-2 rounded-[22px] p-6 space-y-4">
+                                <div className="flex items-center justify-between border-b border-stone-100 dark:border-slate-800 pb-3">
                                     <div className="flex items-center gap-2">
-                                        <div className="p-2 bg-purple-50 dark:bg-purple-950/40 text-purple-600 dark:text-purple-400 rounded-lg">
+                                        <div className="p-2 bg-brand-soft dark:bg-purple-950/40 text-brand dark:text-purple-400 rounded-[12px]">
                                             <FileText size={18} />
                                         </div>
                                         <div>
-                                            <h4 className="font-bold text-gray-900 dark:text-white text-base">Final Examination Schedule</h4>
-                                            <p className="text-xs text-gray-500 dark:text-slate-400">Scheduled date and timer for the comprehensive final exam</p>
+                                            <h4 className="font-bold text-stone-900 dark:text-white text-base">Final Examination Schedule</h4>
+                                            <p className="text-xs text-stone-500 dark:text-slate-400">Scheduled date and timer for the comprehensive final exam</p>
                                         </div>
                                     </div>
-                                    <span className="text-xs font-bold px-2.5 py-1 bg-purple-100 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 rounded-full">
+                                    <span className="text-xs font-bold px-2.5 py-1 bg-brand-soft dark:bg-purple-950/60 text-brand dark:text-purple-300 rounded-full">
                                         Official Assessment
                                     </span>
                                 </div>
 
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                     <div>
-                                        <label className="block text-xs font-bold uppercase text-gray-500 mb-1 flex items-center gap-1">
+                                        <label className="block text-xs font-bold uppercase text-stone-500 mb-1 flex items-center gap-1">
                                             <Calendar size={12} className="text-purple-500" /> Final Exam Date
                                         </label>
                                         <input 
@@ -2389,17 +2389,17 @@ const AdminCourseSetupWizard: React.FC<AdminCourseSetupWizardProps> = ({ isInstr
                                             value={newCourse.examDate || ''} 
                                             min={newCourse.startDate || undefined}
                                             onChange={e => setNewCourse({...newCourse, examDate: e.target.value})} 
-                                            className="w-full p-2.5 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl text-sm font-semibold text-gray-900 dark:text-white outline-none focus:ring-2 focus:ring-purple-500" 
+                                            className="w-full p-2.5 bg-stone-50 dark:bg-slate-800 border border-stone-200 dark:border-slate-700 rounded-[14px] text-sm font-semibold text-stone-900 dark:text-white outline-none focus:ring-2 focus:ring-purple-500" 
                                         />
                                     </div>
                                     <div>
-                                        <label className="block text-xs font-bold uppercase text-gray-500 mb-1 flex items-center gap-1">
+                                        <label className="block text-xs font-bold uppercase text-stone-500 mb-1 flex items-center gap-1">
                                             <Clock size={12} className="text-purple-500" /> Exam Duration
                                         </label>
                                         <input 
                                             type="text" 
                                             defaultValue="60 mins (50 Questions)"
-                                            className="w-full p-2.5 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl text-sm font-medium text-gray-900 dark:text-white outline-none" 
+                                            className="w-full p-2.5 bg-stone-50 dark:bg-slate-800 border border-stone-200 dark:border-slate-700 rounded-[14px] text-sm font-medium text-stone-900 dark:text-white outline-none" 
                                             placeholder="e.g. 60 mins" 
                                         />
                                     </div>
@@ -2411,46 +2411,46 @@ const AdminCourseSetupWizard: React.FC<AdminCourseSetupWizardProps> = ({ isInstr
                     {/* Step 5: Course Overview */}
                     {step === 5 && (
                         <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300 max-w-3xl mx-auto pb-10">
-                            <h3 className="text-2xl font-bold text-gray-900 dark:text-white border-b border-gray-200 dark:border-slate-800 pb-4">
+                            <h3 className="text-2xl font-bold text-stone-900 dark:text-white border-b border-stone-200 dark:border-slate-800 pb-4">
                                 Step 5: Course Overview & Confirmation
                             </h3>
                             
-                            <div className="bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-900/40 rounded-2xl p-4 flex items-start gap-3">
-                                <CheckCircle2 className="text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" size={24} />
+                            <div className="bg-mint-soft dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-900/40 rounded-[22px] p-4 flex items-start gap-3">
+                                <CheckCircle2 className="text-mint dark:text-emerald-400 shrink-0 mt-0.5" size={24} />
                                 <div>
                                     <h4 className="font-bold text-emerald-900 dark:text-emerald-300 text-sm">Ready to Publish Live Cohort Course!</h4>
-                                    <p className="text-emerald-700 dark:text-emerald-400 text-xs mt-0.5">
+                                    <p className="text-mint dark:text-emerald-400 text-xs mt-0.5">
                                         Review the live class schedule, meeting links, attendance code, and syllabus topics below before publishing.
                                     </p>
                                 </div>
                             </div>
 
                             {/* Basic Info Card */}
-                            <div className="bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm space-y-3">
-                                <h4 className="text-xs font-bold uppercase text-gray-400 tracking-wider">Basic Information</h4>
+                            <div className="bg-white dark:bg-night-2 rounded-[22px] p-5 space-y-3">
+                                <h4 className="text-xs font-bold uppercase text-stone-400 tracking-wider">Basic Information</h4>
                                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                                     <div>
-                                        <p className="text-[11px] text-gray-400">Course Title</p>
-                                        <p className="font-bold text-gray-900 dark:text-white text-sm line-clamp-1">{newCourse.title || 'Untitled'}</p>
+                                        <p className="text-[11px] text-stone-400">Course Title</p>
+                                        <p className="font-bold text-stone-900 dark:text-white text-sm line-clamp-1">{newCourse.title || 'Untitled'}</p>
                                     </div>
                                     <div>
-                                        <p className="text-[11px] text-gray-400">Instructor</p>
-                                        <p className="font-semibold text-gray-900 dark:text-white text-sm">{newCourse.instructor || 'Unassigned'}</p>
+                                        <p className="text-[11px] text-stone-400">Instructor</p>
+                                        <p className="font-semibold text-stone-900 dark:text-white text-sm">{newCourse.instructor || 'Unassigned'}</p>
                                     </div>
                                     <div>
-                                        <p className="text-[11px] text-gray-400">Category & Level</p>
-                                        <p className="font-semibold text-gray-900 dark:text-white text-sm">{newCourse.category} • {newCourse.level || 'Beginner'}</p>
+                                        <p className="text-[11px] text-stone-400">Category & Level</p>
+                                        <p className="font-semibold text-stone-900 dark:text-white text-sm">{newCourse.category} • {newCourse.level || 'Beginner'}</p>
                                     </div>
                                     <div>
-                                        <p className="text-[11px] text-gray-400">Duration</p>
-                                        <p className="font-semibold text-gray-900 dark:text-white text-sm">{newCourse.duration}</p>
+                                        <p className="text-[11px] text-stone-400">Duration</p>
+                                        <p className="font-semibold text-stone-900 dark:text-white text-sm">{newCourse.duration}</p>
                                     </div>
                                 </div>
                             </div>
 
                             {/* Live Cohort & Schedule Card */}
-                            <div className="bg-white dark:bg-slate-900 border border-violet-100 dark:border-slate-800 rounded-2xl p-5 shadow-sm space-y-4">
-                                <div className="flex items-center justify-between border-b border-gray-100 dark:border-slate-800 pb-2">
+                            <div className="bg-white dark:bg-night-2 border-violet-100 rounded-[22px] p-5 space-y-4">
+                                <div className="flex items-center justify-between border-b border-stone-100 dark:border-slate-800 pb-2">
                                     <h4 className="text-xs font-bold uppercase text-violet-600 dark:text-violet-400 tracking-wider flex items-center gap-1.5">
                                         <Radio size={14} className="animate-pulse" /> Live Cohort & Google Meet Schedule
                                     </h4>
@@ -2462,62 +2462,62 @@ const AdminCourseSetupWizard: React.FC<AdminCourseSetupWizardProps> = ({ isInstr
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
                                     <div className="space-y-2">
                                         <div>
-                                            <span className="text-gray-400 block text-[11px]">Period of Lessons</span>
-                                            <span className="font-bold text-gray-800 dark:text-slate-200">
+                                            <span className="text-stone-400 block text-[11px]">Period of Lessons</span>
+                                            <span className="font-bold text-stone-800 dark:text-slate-200">
                                                 {newCourse.startDate || '15 Nov 2026'} till {newCourse.endDate || '01 Dec 2026'}
                                             </span>
                                         </div>
                                         <div>
-                                            <span className="text-gray-400 block text-[11px]">Weekly Lesson Days</span>
+                                            <span className="text-stone-400 block text-[11px]">Weekly Lesson Days</span>
                                             <span className="font-bold text-violet-600 dark:text-violet-400">
                                                 {(newCourse.lessonDays || []).join(', ') || 'Monday, Wednesday, Friday'}
                                             </span>
                                         </div>
                                         <div>
-                                            <span className="text-gray-400 block text-[11px]">Lesson Timing & Timezone</span>
-                                            <span className="font-bold text-gray-800 dark:text-slate-200">
+                                            <span className="text-stone-400 block text-[11px]">Lesson Timing & Timezone</span>
+                                            <span className="font-bold text-stone-800 dark:text-slate-200">
                                                 {newCourse.lessonStartTime || '18:00'} - {newCourse.lessonEndTime || '20:00'} ({newCourse.timezone || 'EAT'})
                                             </span>
                                         </div>
                                     </div>
 
-                                    <div className="space-y-2 bg-gray-50 dark:bg-slate-850 p-3 rounded-xl border border-gray-100 dark:border-slate-800">
+                                    <div className="space-y-2 bg-stone-50 dark:bg-slate-850 p-3 rounded-[14px] border border-stone-100 dark:border-slate-800">
                                         <div>
-                                            <span className="text-gray-400 block text-[10px] uppercase font-bold">Google Meet Link</span>
-                                            <span className="font-mono text-xs text-blue-600 dark:text-blue-400 break-all select-all">
+                                            <span className="text-stone-400 block text-[10px] uppercase font-bold">Google Meet Link</span>
+                                            <span className="font-mono text-xs text-brand dark:text-blue-400 break-all select-all">
                                                 {newCourse.meetingLink || 'To be shared with students'}
                                             </span>
                                         </div>
                                         <div>
-                                            <span className="text-gray-400 block text-[10px] uppercase font-bold">Attendance PIN</span>
-                                            <span className="font-mono text-sm font-bold text-purple-600 dark:text-purple-400 tracking-wider">
+                                            <span className="text-stone-400 block text-[10px] uppercase font-bold">Attendance PIN</span>
+                                            <span className="font-mono text-sm font-bold text-brand dark:text-purple-400 tracking-wider">
                                                 {newCourse.attendanceCode || 'WEL-8492'}
                                             </span>
                                         </div>
                                         <div className="pt-1 flex gap-2 text-[11px]">
-                                            <span className="text-gray-400">Final Exam:</span>
-                                            <span className="font-semibold text-gray-700 dark:text-slate-300">{newCourse.examDate || '01 Dec 2026'}</span>
+                                            <span className="text-stone-400">Final Exam:</span>
+                                            <span className="font-semibold text-stone-700 dark:text-slate-300">{newCourse.examDate || '01 Dec 2026'}</span>
                                         </div>
                                     </div>
                                 </div>
                             </div>
 
                             {/* Curriculum Summary */}
-                            <div className="bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm space-y-3">
+                            <div className="bg-white dark:bg-night-2 rounded-[22px] p-5 space-y-3">
                                 <div className="flex items-center justify-between">
-                                    <h4 className="text-xs font-bold uppercase text-gray-400 tracking-wider">Curriculum Summary</h4>
-                                    <span className="text-xs font-bold text-gray-600 dark:text-slate-300">
+                                    <h4 className="text-xs font-bold uppercase text-stone-400 tracking-wider">Curriculum Summary</h4>
+                                    <span className="text-xs font-bold text-stone-600 dark:text-slate-300">
                                         {(newCourse.sections || []).length} Modules • {(newCourse.sections || []).reduce((acc, s) => acc + (s.lessons?.length || 0), 0)} Topics
                                     </span>
                                 </div>
                                 <div className="space-y-2 max-h-56 overflow-y-auto pr-1">
                                     {(newCourse.sections || []).map((sec, i) => (
-                                        <div key={i} className="bg-gray-50 dark:bg-slate-800 p-3 rounded-xl text-xs space-y-1">
-                                            <div className="flex justify-between font-bold text-gray-800 dark:text-slate-200">
+                                        <div key={i} className="bg-stone-50 dark:bg-slate-800 p-3 rounded-[14px] text-xs space-y-1">
+                                            <div className="flex justify-between font-bold text-stone-800 dark:text-slate-200">
                                                 <span>{sec.title}</span>
-                                                <span className="text-[10px] text-gray-400">{sec.lessons.length} topics</span>
+                                                <span className="text-[10px] text-stone-400">{sec.lessons.length} topics</span>
                                             </div>
-                                            <p className="text-[11px] text-gray-500 line-clamp-1">
+                                            <p className="text-[11px] text-stone-500 line-clamp-1">
                                                 {sec.lessons.map(l => l.title).join(' • ')}
                                             </p>
                                         </div>
@@ -2526,14 +2526,14 @@ const AdminCourseSetupWizard: React.FC<AdminCourseSetupWizardProps> = ({ isInstr
                             </div>
 
                             {/* Pricing */}
-                            <div className="bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm flex items-center justify-between">
+                            <div className="bg-white dark:bg-night-2 rounded-[22px] p-5 flex items-center justify-between">
                                 <div>
-                                    <h4 className="text-xs font-bold uppercase text-gray-400 tracking-wider">Access Tier & Pricing</h4>
-                                    <p className="font-bold text-gray-900 dark:text-white text-lg mt-0.5">
+                                    <h4 className="text-xs font-bold uppercase text-stone-400 tracking-wider">Access Tier & Pricing</h4>
+                                    <p className="font-bold text-stone-900 dark:text-white text-lg mt-0.5">
                                         {newCourse.accessTier === 'FREE' ? 'Free Course' : `${formatAmount(newCourse.price || 0, currency.symbol, currency.rate)} ${currency.code}`}
                                     </p>
                                 </div>
-                                <span className={`px-3 py-1 rounded-full text-xs font-bold ${newCourse.accessTier === 'FREE' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'}`}>
+                                <span className={`px-3 py-1 rounded-full text-xs font-bold ${newCourse.accessTier === 'FREE' ? 'bg-mint-soft text-emerald-800' : 'bg-amber-100 text-amber-800'}`}>
                                     {newCourse.accessTier || 'FREE'}
                                 </span>
                             </div>
@@ -2542,11 +2542,11 @@ const AdminCourseSetupWizard: React.FC<AdminCourseSetupWizardProps> = ({ isInstr
                 </div>
 
                 {/* Footer Navigation Buttons */}
-                <div className="pt-6 mt-8 border-t border-gray-200 dark:border-slate-800 flex justify-between max-w-2xl mx-auto w-full">
+                <div className="pt-6 mt-8 border-t border-stone-200 dark:border-slate-800 flex justify-between max-w-2xl mx-auto w-full">
                     <button 
                         onClick={handlePrev}
                         disabled={step === 1}
-                        className={`px-6 py-2.5 rounded-xl font-medium flex items-center gap-2 transition-colors ${step === 1 ? 'opacity-0 cursor-default' : 'bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 text-gray-700 dark:text-slate-200 hover:bg-gray-50 dark:hover:bg-slate-700 cursor-pointer'}`}
+                        className={`px-6 py-2.5 rounded-[14px] font-medium flex items-center gap-2 transition-colors ${step === 1 ? 'opacity-0 cursor-default' : 'bg-white dark:bg-slate-800 border border-stone-200 dark:border-slate-700 text-stone-700 dark:text-slate-200 hover:bg-stone-50 dark:hover:bg-slate-700 cursor-pointer'}`}
                     >
                         <ArrowLeft size={18} /> Back
                     </button>
@@ -2554,7 +2554,7 @@ const AdminCourseSetupWizard: React.FC<AdminCourseSetupWizardProps> = ({ isInstr
                     <div className="flex gap-3">
                         <button 
                             onClick={() => handleSave(false)}
-                            className="px-6 py-2.5 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 text-gray-700 dark:text-slate-200 hover:bg-gray-50 dark:hover:bg-slate-700 rounded-xl font-medium flex items-center gap-2 transition-colors cursor-pointer"
+                            className="px-6 py-2.5 bg-white dark:bg-slate-800 text-stone-700 dark:text-slate-200 hover:bg-stone-50 dark:hover:bg-slate-700 rounded-[14px] font-medium flex items-center gap-2 transition-colors cursor-pointer"
                         >
                             <Save size={18} /> {isEditMode ? 'Save Changes' : 'Save as Draft'}
                         </button>
@@ -2562,7 +2562,7 @@ const AdminCourseSetupWizard: React.FC<AdminCourseSetupWizardProps> = ({ isInstr
                         {step < 5 ? (
                             <button 
                                 onClick={handleNext}
-                                className="px-6 py-2.5 bg-violet-600 hover:bg-violet-700 text-white rounded-xl font-medium flex items-center gap-2 shadow-md shadow-violet-200 dark:shadow-none transition-colors cursor-pointer"
+                                className="px-6 py-2.5 bg-brand hover:bg-brand-mid text-white rounded-[14px] font-medium flex items-center gap-2 shadow-md shadow-violet-200 dark:shadow-none transition-colors cursor-pointer"
                             >
                                 Next Step <ArrowRight size={18} />
                             </button>
@@ -2570,7 +2570,7 @@ const AdminCourseSetupWizard: React.FC<AdminCourseSetupWizardProps> = ({ isInstr
                             <button 
                                 onClick={() => handleSave(true)}
                                 disabled={isSaving}
-                                className={`px-6 py-2.5 rounded-xl font-bold flex items-center gap-2 transition-colors ${isSaving ? 'bg-gray-400 text-gray-200 cursor-not-allowed' : 'bg-emerald-600 text-white hover:bg-emerald-700 shadow-md shadow-emerald-200 dark:shadow-none cursor-pointer'}`}
+                                className={`px-6 py-2.5 rounded-[14px] font-bold flex items-center gap-2 transition-colors ${isSaving ? 'bg-stone-400 text-stone-200 cursor-not-allowed' : 'bg-mint text-white hover:bg-mint shadow-md shadow-emerald-200 dark:shadow-none cursor-pointer'}`}
                             >
                                 {isSaving ? <Loader2 size={18} className="animate-spin" /> : <Save size={18} />} 
                                 {isSaving ? 'Publishing Course...' : 'Finish & Publish Live Course'}
@@ -2583,39 +2583,39 @@ const AdminCourseSetupWizard: React.FC<AdminCourseSetupWizardProps> = ({ isInstr
             {/* Modal: Google Meet Host Configuration */}
             {isMeetHostModalOpen && (
                 <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[150] flex items-center justify-center p-4">
-                    <div className="bg-white dark:bg-slate-900 rounded-3xl w-full max-w-xl overflow-hidden shadow-2xl p-6 border border-gray-150 dark:border-slate-800 space-y-4 animate-in fade-in zoom-in duration-200">
-                        <div className="flex justify-between items-center pb-2 border-b border-gray-100 dark:border-slate-800">
+                    <div className="bg-white dark:bg-night-2 rounded-[26px] w-full max-w-xl overflow-hidden shadow-2xl p-6 space-y-4 animate-in fade-in zoom-in duration-200">
+                        <div className="flex justify-between items-center pb-2 border-b border-stone-100 dark:border-slate-800">
                             <div className="flex items-center gap-2">
                                 <Video className="text-violet-600" size={20} />
-                                <h3 className="font-bold text-gray-900 dark:text-white text-base">Generate Real Google Meet (Tutor as Host)</h3>
+                                <h3 className="font-bold text-stone-900 dark:text-white text-base">Generate Real Google Meet (Tutor as Host)</h3>
                             </div>
-                            <button onClick={() => setIsMeetHostModalOpen(false)} className="text-gray-400 hover:text-gray-600 p-1 cursor-pointer">
+                            <button onClick={() => setIsMeetHostModalOpen(false)} className="text-stone-400 hover:text-stone-600 p-1 cursor-pointer">
                                 <X size={18} />
                             </button>
                         </div>
 
                         <div className="space-y-4">
                             {/* Host Account Indicator */}
-                            <div className="p-3.5 bg-violet-50/80 dark:bg-violet-950/40 border border-violet-200/80 dark:border-violet-900/50 rounded-xl space-y-1">
+                            <div className="p-3.5 bg-violet-50/80 dark:bg-violet-950/40 border border-violet-200/80 dark:border-violet-900/50 rounded-[14px] space-y-1">
                                 <span className="text-[10px] uppercase font-bold text-violet-600 dark:text-violet-400 tracking-wider">Designated Meet Host</span>
                                 <div className="flex items-center justify-between">
                                     <div className="flex items-center gap-2">
-                                        <div className="w-8 h-8 rounded-full bg-violet-600 text-white font-bold text-xs flex items-center justify-center shadow-xs">
+                                        <div className="w-8 h-8 rounded-full bg-brand text-white font-bold text-xs flex items-center justify-center">
                                             {(newCourse.instructor || 'T')[0].toUpperCase()}
                                         </div>
                                         <div>
-                                            <p className="text-xs font-bold text-gray-900 dark:text-white">{newCourse.instructor || 'Primary Instructor'}</p>
-                                            <p className="text-[11px] font-mono text-gray-500 dark:text-slate-400">{newCourse.instructorEmail || 'tutor@welile.com'}</p>
+                                            <p className="text-xs font-bold text-stone-900 dark:text-white">{newCourse.instructor || 'Primary Instructor'}</p>
+                                            <p className="text-[11px] font-mono text-stone-500 dark:text-slate-400">{newCourse.instructorEmail || 'tutor@welile.com'}</p>
                                         </div>
                                     </div>
-                                    <span className="px-2.5 py-1 bg-emerald-100 dark:bg-emerald-950/70 text-emerald-700 dark:text-emerald-300 font-bold text-[10px] rounded-lg flex items-center gap-1 border border-emerald-200/60 dark:border-emerald-800/50">
+                                    <span className="px-2.5 py-1 bg-mint-soft dark:bg-emerald-950/70 text-mint dark:text-emerald-300 font-bold text-[10px] rounded-[12px] flex items-center gap-1 border border-emerald-200/60 dark:border-emerald-800/50">
                                         <CheckCircle2 size={11} /> Host Email Assigned
                                     </span>
                                 </div>
                             </div>
 
                             {/* Why Google Server Creation is Required Alert */}
-                            <div className="p-3 bg-amber-50 dark:bg-amber-950/40 border border-amber-200/80 dark:border-amber-800/60 rounded-xl text-xs text-amber-800 dark:text-amber-200 leading-relaxed">
+                            <div className="p-3 bg-amber-50 dark:bg-amber-950/40 border border-amber-200/80 dark:border-amber-800/60 rounded-[14px] text-xs text-amber-800 dark:text-amber-200 leading-relaxed">
                                 <p className="font-bold flex items-center gap-1.5 mb-0.5">
                                     <AlertTriangle size={14} className="text-amber-600 shrink-0" /> Real Google Meet Links Require Google Server Registration
                                 </p>
@@ -2625,14 +2625,14 @@ const AdminCourseSetupWizard: React.FC<AdminCourseSetupWizardProps> = ({ isInstr
                             </div>
 
                             {/* Option 1: Instant Real Meet Room (Recommended) */}
-                            <div className="p-4 bg-gray-50 dark:bg-slate-850 rounded-2xl border border-gray-200 dark:border-slate-750 space-y-3">
+                            <div className="p-4 bg-stone-50 dark:bg-slate-850 rounded-[22px] border border-stone-200 dark:border-slate-750 space-y-3">
                                 <div className="flex items-start justify-between gap-3">
                                     <div>
-                                        <span className="inline-block px-2 py-0.5 bg-violet-100 dark:bg-violet-950 text-violet-700 dark:text-violet-300 text-[10px] font-black uppercase rounded mb-1">Method 1 (Instant & Recommended)</span>
-                                        <h4 className="text-xs font-bold text-gray-900 dark:text-white flex items-center gap-1.5">
+                                        <span className="inline-block px-2 py-0.5 bg-violet-100 dark:bg-violet-950 text-violet-700 dark:text-violet-300 text-[10px] font-extrabold uppercase rounded mb-1">Method 1 (Instant & Recommended)</span>
+                                        <h4 className="text-xs font-bold text-stone-900 dark:text-white flex items-center gap-1.5">
                                             Launch Real Meet Room as Tutor
                                         </h4>
-                                        <p className="text-[11px] text-gray-500 dark:text-slate-400 mt-0.5">
+                                        <p className="text-[11px] text-stone-500 dark:text-slate-400 mt-0.5">
                                             Opens Google Meet in a new tab. When signed in with the tutor's Google account, Google provisions a genuine meeting room where the tutor is the official Host.
                                         </p>
                                     </div>
@@ -2640,14 +2640,14 @@ const AdminCourseSetupWizard: React.FC<AdminCourseSetupWizardProps> = ({ isInstr
                                         href="https://meet.google.com/new"
                                         target="_blank"
                                         rel="noopener noreferrer"
-                                        className="px-3.5 py-2 bg-violet-600 hover:bg-violet-700 text-white text-xs font-bold rounded-xl shrink-0 flex items-center gap-1.5 shadow-sm transition-all"
+                                        className="px-3.5 py-2 bg-brand hover:bg-brand-mid text-white text-xs font-bold rounded-[14px] shrink-0 flex items-center gap-1.5 transition-all"
                                     >
                                         <ExternalLink size={13} /> Launch Meet ↗
                                     </a>
                                 </div>
 
-                                <div className="pt-2 border-t border-gray-200 dark:border-slate-750">
-                                    <label className="block text-[11px] font-bold text-gray-600 dark:text-slate-300 mb-1">
+                                <div className="pt-2 border-t border-stone-200 dark:border-slate-750">
+                                    <label className="block text-[11px] font-bold text-stone-600 dark:text-slate-300 mb-1">
                                         Copy the link from the browser URL bar and paste here:
                                     </label>
                                     <div className="flex gap-2">
@@ -2658,7 +2658,7 @@ const AdminCourseSetupWizard: React.FC<AdminCourseSetupWizardProps> = ({ isInstr
                                                 setMeetError('');
                                             }}
                                             placeholder="https://meet.google.com/abc-defg-hij"
-                                            className="flex-1 px-3 py-2 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-xl text-xs font-mono text-gray-900 dark:text-white outline-none focus:ring-2 focus:ring-violet-500"
+                                            className="flex-1 px-3 py-2 bg-white dark:bg-night-2 rounded-[14px] text-xs font-mono text-stone-900 dark:text-white outline-none focus:ring-2 focus:ring-brand"
                                         />
                                         <button
                                             type="button"
@@ -2674,7 +2674,7 @@ const AdminCourseSetupWizard: React.FC<AdminCourseSetupWizardProps> = ({ isInstr
                                                     if (text) setTempMeetInput(text.trim());
                                                 }
                                             }}
-                                            className="px-3 py-2 bg-gray-100 hover:bg-gray-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-gray-700 dark:text-slate-300 text-xs font-bold rounded-xl flex items-center gap-1 transition-colors cursor-pointer"
+                                            className="px-3 py-2 bg-stone-100 hover:bg-stone-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-stone-700 dark:text-slate-300 text-xs font-bold rounded-[14px] flex items-center gap-1 transition-colors cursor-pointer"
                                         >
                                             <Copy size={12} /> Paste
                                         </button>
@@ -2692,7 +2692,7 @@ const AdminCourseSetupWizard: React.FC<AdminCourseSetupWizardProps> = ({ isInstr
                                                 setNewCourse(prev => ({ ...prev, meetingLink: tempMeetInput.trim() }));
                                                 setIsMeetHostModalOpen(false);
                                             }}
-                                            className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl flex items-center gap-1 shadow-sm transition-colors cursor-pointer"
+                                            className="px-4 py-2 bg-mint hover:bg-mint text-white text-xs font-bold rounded-[14px] flex items-center gap-1 transition-colors cursor-pointer"
                                         >
                                             <Check size={13} /> Apply Link
                                         </button>
@@ -2704,13 +2704,13 @@ const AdminCourseSetupWizard: React.FC<AdminCourseSetupWizardProps> = ({ isInstr
                             </div>
 
                             {/* Option 2: Google Calendar Event (For Recurring Cohorts) */}
-                            <div className="p-4 bg-gray-50 dark:bg-slate-850 rounded-2xl border border-gray-200 dark:border-slate-750 flex items-start justify-between gap-3">
+                            <div className="p-4 bg-stone-50 dark:bg-slate-850 rounded-[22px] border border-stone-200 dark:border-slate-750 flex items-start justify-between gap-3">
                                 <div>
-                                    <span className="inline-block px-2 py-0.5 bg-blue-100 dark:bg-blue-950 text-blue-700 dark:text-blue-300 text-[10px] font-black uppercase rounded mb-1">Method 2 (Recurring Cohort Schedule)</span>
-                                    <h4 className="text-xs font-bold text-gray-900 dark:text-white flex items-center gap-1.5">
-                                        <Calendar size={13} className="text-blue-600" /> Schedule in Google Calendar
+                                    <span className="inline-block px-2 py-0.5 bg-brand-soft dark:bg-blue-950 text-brand dark:text-blue-300 text-[10px] font-extrabold uppercase rounded mb-1">Method 2 (Recurring Cohort Schedule)</span>
+                                    <h4 className="text-xs font-bold text-stone-900 dark:text-white flex items-center gap-1.5">
+                                        <Calendar size={13} className="text-brand" /> Schedule in Google Calendar
                                     </h4>
-                                    <p className="text-[11px] text-gray-500 dark:text-slate-400 mt-0.5 leading-relaxed">
+                                    <p className="text-[11px] text-stone-500 dark:text-slate-400 mt-0.5 leading-relaxed">
                                         Pre-fills a calendar invite for <strong>{newCourse.title || 'Course'}</strong> with the tutor as organizer. Click <em>"Add Google Meet video conferencing"</em> in Google Calendar to generate a permanent link valid for every cohort lesson.
                                     </p>
                                 </div>
@@ -2718,15 +2718,15 @@ const AdminCourseSetupWizard: React.FC<AdminCourseSetupWizardProps> = ({ isInstr
                                     href={`https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent((newCourse.title || 'Live Cohort Class') + ' - Welile School')}&details=${encodeURIComponent('Live Welile School Cohort Lesson\nInstructor: ' + (newCourse.instructorEmail || 'Tutor') + '\nVideo Conferencing: Google Meet')}&location=Google%20Meet&add=${encodeURIComponent(newCourse.instructorEmail || '')}`}
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="px-3.5 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl shrink-0 flex items-center gap-1.5 shadow-sm transition-all"
+                                    className="px-3.5 py-2 bg-brand hover:bg-brand text-white text-xs font-bold rounded-[14px] shrink-0 flex items-center gap-1.5 transition-all"
                                 >
                                     <Calendar size={13} /> Open Calendar ↗
                                 </a>
                             </div>
 
                             {/* Option 3: Backend API Service Account info */}
-                            <div className="p-3 bg-gray-100/70 dark:bg-slate-850/60 rounded-xl border border-gray-200 dark:border-slate-800 text-[11px] text-gray-600 dark:text-slate-400 space-y-1">
-                                <p className="font-bold text-gray-800 dark:text-slate-200 flex items-center gap-1">
+                            <div className="p-3 bg-stone-100/70 dark:bg-slate-850/60 rounded-[14px] border border-stone-200 dark:border-slate-800 text-[11px] text-stone-600 dark:text-slate-400 space-y-1">
+                                <p className="font-bold text-stone-800 dark:text-slate-200 flex items-center gap-1">
                                     <Key size={12} className="text-violet-600" /> Automated API Setup (Google Workspace):
                                 </p>
                                 <p>
@@ -2735,11 +2735,11 @@ const AdminCourseSetupWizard: React.FC<AdminCourseSetupWizardProps> = ({ isInstr
                             </div>
                         </div>
 
-                        <div className="flex justify-end pt-2 border-t border-gray-100 dark:border-slate-800">
+                        <div className="flex justify-end pt-2 border-t border-stone-100 dark:border-slate-800">
                             <button
                                 type="button"
                                 onClick={() => setIsMeetHostModalOpen(false)}
-                                className="px-4 py-2 text-xs font-semibold text-gray-600 dark:text-slate-300 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-xl cursor-pointer"
+                                className="px-4 py-2 text-xs font-semibold text-stone-600 dark:text-slate-300 hover:bg-stone-100 dark:hover:bg-slate-800 rounded-[14px] cursor-pointer"
                             >
                                 Close
                             </button>
@@ -2751,13 +2751,13 @@ const AdminCourseSetupWizard: React.FC<AdminCourseSetupWizardProps> = ({ isInstr
             {/* Broadcast Lesson Alert Modal */}
             {isBroadcastModalOpen && (
                 <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[150] flex items-center justify-center p-4">
-                    <div className="bg-white dark:bg-slate-900 rounded-3xl w-full max-w-lg overflow-hidden shadow-2xl p-6 border border-gray-100 dark:border-slate-800 space-y-4 animate-in fade-in zoom-in duration-200">
-                        <div className="flex justify-between items-center pb-2 border-b border-gray-100 dark:border-slate-800">
+                    <div className="bg-white dark:bg-night-2 rounded-[26px] w-full max-w-lg overflow-hidden shadow-2xl p-6 space-y-4 animate-in fade-in zoom-in duration-200">
+                        <div className="flex justify-between items-center pb-2 border-b border-stone-100 dark:border-slate-800">
                             <div className="flex items-center gap-2">
                                 <Bell className="text-violet-600" size={20} />
-                                <h3 className="font-bold text-gray-900 dark:text-white text-base">Broadcast Live Lesson Notification</h3>
+                                <h3 className="font-bold text-stone-900 dark:text-white text-base">Broadcast Live Lesson Notification</h3>
                             </div>
-                            <button onClick={() => setIsBroadcastModalOpen(false)} className="text-gray-400 hover:text-gray-600 p-1 cursor-pointer">
+                            <button onClick={() => setIsBroadcastModalOpen(false)} className="text-stone-400 hover:text-stone-600 p-1 cursor-pointer">
                                 <X size={18} />
                             </button>
                         </div>
@@ -2766,16 +2766,16 @@ const AdminCourseSetupWizard: React.FC<AdminCourseSetupWizardProps> = ({ isInstr
                             <div className="py-8 text-center space-y-2">
                                 <CheckCircle2 className="mx-auto text-emerald-500 w-12 h-12" />
                                 <h4 className="font-bold text-emerald-800 dark:text-emerald-400 text-base">Lesson Notification Sent!</h4>
-                                <p className="text-xs text-gray-500">Google Meet link and attendance PIN broadcasted to student notification feeds.</p>
+                                <p className="text-xs text-stone-500">Google Meet link and attendance PIN broadcasted to student notification feeds.</p>
                             </div>
                         ) : (
                             <div className="space-y-4">
-                                <div className="bg-gray-50 dark:bg-slate-850 p-4 rounded-xl border border-gray-100 dark:border-slate-800 text-xs space-y-2">
-                                    <div className="flex justify-between font-bold text-gray-800 dark:text-slate-200">
+                                <div className="bg-stone-50 dark:bg-slate-850 p-4 rounded-[14px] border border-stone-100 dark:border-slate-800 text-xs space-y-2">
+                                    <div className="flex justify-between font-bold text-stone-800 dark:text-slate-200">
                                         <span>{newCourse.title || 'Course Title'}</span>
                                         <span className="text-violet-600">{newCourse.cohortName || 'Cohort 1'}</span>
                                     </div>
-                                    <div className="text-gray-600 dark:text-slate-400 font-mono text-[11px] bg-white dark:bg-slate-900 p-2 rounded border border-gray-100 dark:border-slate-800">
+                                    <div className="text-stone-600 dark:text-slate-400 font-mono text-[11px] bg-white dark:bg-night-2 p-2 rounded">
                                         <p><strong>🔗 Meet Link:</strong> {newCourse.meetingLink || 'None provided'}</p>
                                         <p><strong>🔑 Attendance PIN:</strong> {newCourse.attendanceCode || 'None'}</p>
                                         <p><strong>⏰ Schedule:</strong> {(newCourse.lessonDays || []).join(', ')} @ {newCourse.lessonStartTime} ({newCourse.timezone})</p>
@@ -2783,28 +2783,28 @@ const AdminCourseSetupWizard: React.FC<AdminCourseSetupWizardProps> = ({ isInstr
                                 </div>
 
                                 <div>
-                                    <label className="block text-xs font-bold uppercase text-gray-500 mb-1">Optional Tutor Message to Students</label>
+                                    <label className="block text-xs font-bold uppercase text-stone-500 mb-1">Optional Tutor Message to Students</label>
                                     <textarea 
                                         value={broadcastNote}
                                         onChange={e => setBroadcastNote(e.target.value)}
                                         rows={3}
-                                        className="w-full p-2.5 text-xs bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl text-gray-900 dark:text-white outline-none focus:ring-2 focus:ring-violet-500"
+                                        className="w-full p-2.5 text-xs bg-stone-50 dark:bg-slate-800 border border-stone-200 dark:border-slate-700 rounded-[14px] text-stone-900 dark:text-white outline-none focus:ring-2 focus:ring-brand"
                                         placeholder="e.g. Please be on time today with your notebooks ready. We are covering practical prompt engineering!"
                                     />
                                 </div>
 
-                                <div className="flex justify-end gap-2 pt-2 border-t border-gray-100 dark:border-slate-800">
+                                <div className="flex justify-end gap-2 pt-2 border-t border-stone-100 dark:border-slate-800">
                                     <button 
                                         type="button"
                                         onClick={() => setIsBroadcastModalOpen(false)}
-                                        className="px-4 py-2 text-xs font-semibold text-gray-600 dark:text-slate-300 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-xl cursor-pointer"
+                                        className="px-4 py-2 text-xs font-semibold text-stone-600 dark:text-slate-300 hover:bg-stone-100 dark:hover:bg-slate-800 rounded-[14px] cursor-pointer"
                                     >
                                         Cancel
                                     </button>
                                     <button 
                                         type="button"
                                         onClick={handleBroadcastAlert}
-                                        className="px-5 py-2 bg-violet-600 hover:bg-violet-700 text-white text-xs font-bold rounded-xl flex items-center gap-1.5 shadow-sm cursor-pointer"
+                                        className="px-5 py-2 bg-brand hover:bg-brand-mid text-white text-xs font-bold rounded-[14px] flex items-center gap-1.5 cursor-pointer"
                                     >
                                         <Send size={13} /> Confirm & Broadcast
                                     </button>
@@ -2818,18 +2818,18 @@ const AdminCourseSetupWizard: React.FC<AdminCourseSetupWizardProps> = ({ isInstr
             {/* Image Adjustment Modal */}
             {isAdjustModalOpen && (
                 <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[110] flex items-center justify-center p-4">
-                    <div className="bg-white dark:bg-slate-900 rounded-3xl w-full max-w-md overflow-hidden shadow-2xl p-6 border border-gray-100 dark:border-slate-800 space-y-4">
-                        <div className="flex justify-between items-center pb-2 border-b border-gray-100 dark:border-slate-800">
-                            <h3 className="font-bold text-gray-900 dark:text-white">Adjust Cover Image</h3>
-                            <button onClick={() => setIsAdjustModalOpen(false)} className="text-gray-400 hover:text-gray-650 p-1 cursor-pointer">
+                    <div className="bg-white dark:bg-night-2 rounded-[26px] w-full max-w-md overflow-hidden shadow-2xl p-6 space-y-4">
+                        <div className="flex justify-between items-center pb-2 border-b border-stone-100 dark:border-slate-800">
+                            <h3 className="font-bold text-stone-900 dark:text-white">Adjust Cover Image</h3>
+                            <button onClick={() => setIsAdjustModalOpen(false)} className="text-stone-400 hover:text-stone-650 p-1 cursor-pointer">
                                 <X size={18} />
                             </button>
                         </div>
 
                         {/* Live Crop Card Preview */}
                         <div className="space-y-1">
-                            <label className="text-xs font-bold text-gray-500">Live Card Preview</label>
-                            <div className="h-40 rounded-2xl overflow-hidden border border-gray-200 dark:border-slate-700 bg-gray-100 relative">
+                            <label className="text-xs font-bold text-stone-500">Live Card Preview</label>
+                            <div className="h-40 rounded-[22px] overflow-hidden border border-stone-200 dark:border-slate-700 bg-stone-100 relative">
                                 <img 
                                     src={newCourse.image} 
                                     alt="Live Preview" 
@@ -2846,7 +2846,7 @@ const AdminCourseSetupWizard: React.FC<AdminCourseSetupWizardProps> = ({ isInstr
                         {/* Adjustments Sliders */}
                         <div className="space-y-3 pt-2">
                             <div className="space-y-1">
-                                <div className="flex justify-between text-xs font-semibold text-gray-600 dark:text-slate-300">
+                                <div className="flex justify-between text-xs font-semibold text-stone-600 dark:text-slate-300">
                                     <span>Zoom / Scale</span>
                                     <span>{Math.round((newCourse.imageScale ?? 1) * 100)}%</span>
                                 </div>
@@ -2862,7 +2862,7 @@ const AdminCourseSetupWizard: React.FC<AdminCourseSetupWizardProps> = ({ isInstr
                             </div>
 
                             <div className="space-y-1">
-                                <div className="flex justify-between text-xs font-semibold text-gray-600 dark:text-slate-300">
+                                <div className="flex justify-between text-xs font-semibold text-stone-600 dark:text-slate-300">
                                     <span>Horizontal Position (X)</span>
                                     <span>{newCourse.imagePositionX ?? 50}%</span>
                                 </div>
@@ -2877,7 +2877,7 @@ const AdminCourseSetupWizard: React.FC<AdminCourseSetupWizardProps> = ({ isInstr
                             </div>
 
                             <div className="space-y-1">
-                                <div className="flex justify-between text-xs font-semibold text-gray-600 dark:text-slate-300">
+                                <div className="flex justify-between text-xs font-semibold text-stone-600 dark:text-slate-300">
                                     <span>Vertical Position (Y)</span>
                                     <span>{newCourse.imagePositionY ?? 50}%</span>
                                 </div>
@@ -2892,18 +2892,18 @@ const AdminCourseSetupWizard: React.FC<AdminCourseSetupWizardProps> = ({ isInstr
                             </div>
                         </div>
 
-                        <div className="pt-4 border-t border-gray-100 dark:border-slate-800 flex justify-end gap-2">
+                        <div className="pt-4 border-t border-stone-100 dark:border-slate-800 flex justify-end gap-2">
                             <button 
                                 onClick={() => {
                                     setNewCourse({...newCourse, imageScale: 1, imagePositionX: 50, imagePositionY: 50});
                                 }}
-                                className="px-4 py-2 border border-gray-250 dark:border-slate-700 text-xs font-semibold text-gray-700 dark:text-slate-300 rounded-xl hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+                                className="px-4 py-2 border border-stone-250 dark:border-slate-700 text-xs font-semibold text-stone-700 dark:text-slate-300 rounded-[14px] hover:bg-stone-50 dark:hover:bg-slate-800 transition-colors cursor-pointer"
                             >
                                 Reset Settings
                             </button>
                             <button 
                                 onClick={() => setIsAdjustModalOpen(false)}
-                                className="px-5 py-2 bg-violet-600 text-xs font-bold text-white rounded-xl hover:bg-violet-750 transition-colors cursor-pointer"
+                                className="px-5 py-2 bg-brand text-xs font-bold text-white rounded-[14px] hover:bg-violet-750 transition-colors cursor-pointer"
                             >
                                 Apply Changes
                             </button>
@@ -2915,10 +2915,10 @@ const AdminCourseSetupWizard: React.FC<AdminCourseSetupWizardProps> = ({ isInstr
             {/* Publishing Overlay */}
             {isSaving && (
                 <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[200] flex items-center justify-center p-4">
-                    <div className="bg-white dark:bg-slate-900 rounded-3xl p-8 flex flex-col items-center shadow-2xl max-w-sm w-full animate-in fade-in zoom-in duration-300">
+                    <div className="bg-white dark:bg-night-2 rounded-[26px] p-8 flex flex-col items-center shadow-2xl max-w-sm w-full animate-in fade-in zoom-in duration-300">
                         <div className="w-16 h-16 border-4 border-violet-100 border-t-violet-600 rounded-full animate-spin mb-6"></div>
-                        <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Publishing Course</h3>
-                        <p className="text-gray-500 dark:text-slate-400 text-center text-sm">Please wait while we configure the live Google Meet cohort, modules syllabus, and save the course...</p>
+                        <h3 className="text-xl font-bold text-stone-900 dark:text-white mb-2">Publishing Course</h3>
+                        <p className="text-stone-500 dark:text-slate-400 text-center text-sm">Please wait while we configure the live Google Meet cohort, modules syllabus, and save the course...</p>
                     </div>
                 </div>
             )}
@@ -2926,31 +2926,31 @@ const AdminCourseSetupWizard: React.FC<AdminCourseSetupWizardProps> = ({ isInstr
             {/* Beautiful Success Toast / Modal with Automated Course Opening */}
             {successModal && successModal.isOpen && (
                 <div className="fixed inset-0 bg-black/75 backdrop-blur-md z-[200] flex items-center justify-center p-4 animate-in fade-in duration-200">
-                    <div className="bg-white dark:bg-slate-900 border border-emerald-500/30 dark:border-emerald-600/40 rounded-3xl w-full max-w-lg overflow-hidden shadow-2xl animate-in fade-in zoom-in-95 duration-300 relative">
+                    <div className="bg-white dark:bg-night-2 border-emerald-500/30 dark:border-mint/40 rounded-[26px] w-full max-w-lg overflow-hidden shadow-2xl animate-in fade-in zoom-in-95 duration-300 relative">
                         {/* Top Accent Gradient Bar */}
                         <div className="h-2.5 bg-gradient-to-r from-emerald-500 via-teal-500 to-violet-600"></div>
 
                         <div className="p-6 md:p-8 space-y-5">
                             {/* Header Section */}
                             <div className="flex items-start gap-4">
-                                <div className="w-12 h-12 rounded-2xl bg-emerald-100 dark:bg-emerald-950/60 border border-emerald-300 dark:border-emerald-700/50 flex items-center justify-center text-emerald-600 dark:text-emerald-400 shrink-0 shadow-md shadow-emerald-500/10">
+                                <div className="w-12 h-12 rounded-[22px] bg-mint-soft dark:bg-emerald-950/60 border border-emerald-300 dark:border-mint/50 flex items-center justify-center text-mint dark:text-emerald-400 shrink-0 shadow-md shadow-emerald-500/10">
                                     <CheckCircle2 size={28} className="animate-bounce" />
                                 </div>
                                 <div className="flex-1 min-w-0">
                                     <div className="flex items-center gap-2">
-                                        <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold tracking-wide uppercase bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800">
+                                        <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold tracking-wide uppercase bg-mint-soft dark:bg-emerald-950/60 text-mint dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800">
                                             {successModal.isDraft ? 'Draft Saved' : (successModal.isEdit ? 'Course Updated' : 'Success')}
                                         </span>
                                         <span className="text-xs text-amber-600 dark:text-amber-400 font-semibold flex items-center gap-1">
                                             <Sparkles size={12} /> Cohort Initialized
                                         </span>
                                     </div>
-                                    <h2 className="text-xl font-bold text-gray-900 dark:text-white mt-1">
+                                    <h2 className="text-xl font-bold text-stone-900 dark:text-white mt-1">
                                         {successModal.isDraft
                                             ? 'Draft Saved Successfully!' 
                                             : (successModal.isEdit ? 'Course Updated Successfully!' : 'Course Created & Published!')}
                                     </h2>
-                                    <p className="text-xs text-gray-500 dark:text-slate-400 mt-0.5">
+                                    <p className="text-xs text-stone-500 dark:text-slate-400 mt-0.5">
                                         {successModal.isDraft 
                                             ? 'Course draft has been recorded in database.' 
                                             : 'Modules, attendance PINs, and relational cohort sessions are synchronized.'}
@@ -2959,21 +2959,21 @@ const AdminCourseSetupWizard: React.FC<AdminCourseSetupWizardProps> = ({ isInstr
                             </div>
 
                             {/* Course Snapshot Card */}
-                            <div className="bg-gray-50 dark:bg-slate-850 rounded-2xl p-4 border border-gray-150 dark:border-slate-800 space-y-3">
+                            <div className="bg-stone-50 dark:bg-slate-850 rounded-[22px] p-4 border border-stone-150 dark:border-slate-800 space-y-3">
                                 <div className="flex items-center gap-3">
                                     {successModal.image ? (
-                                        <img src={successModal.image} alt="Course cover" className="w-14 h-14 rounded-xl object-cover shrink-0 border border-gray-200 dark:border-slate-700 shadow-sm" />
+                                        <img src={successModal.image} alt="Course cover" className="w-14 h-14 rounded-[14px] object-cover shrink-0 border border-stone-200 dark:border-slate-700" />
                                     ) : (
-                                        <div className="w-14 h-14 rounded-xl bg-violet-100 dark:bg-violet-950/60 text-violet-600 dark:text-violet-400 flex items-center justify-center shrink-0">
+                                        <div className="w-14 h-14 rounded-[14px] bg-violet-100 dark:bg-violet-950/60 text-violet-600 dark:text-violet-400 flex items-center justify-center shrink-0">
                                             <BookOpen size={24} />
                                         </div>
                                     )}
                                     <div className="min-w-0 flex-1">
-                                        <h4 className="text-sm font-bold text-gray-900 dark:text-white truncate">
+                                        <h4 className="text-sm font-bold text-stone-900 dark:text-white truncate">
                                             {successModal.courseTitle}
                                         </h4>
-                                        <div className="flex flex-wrap items-center gap-2 mt-1 text-[11px] text-gray-500 dark:text-slate-400">
-                                            <span className="px-2 py-0.5 rounded bg-gray-200 dark:bg-slate-750 text-gray-700 dark:text-slate-300 font-medium">
+                                        <div className="flex flex-wrap items-center gap-2 mt-1 text-[11px] text-stone-500 dark:text-slate-400">
+                                            <span className="px-2 py-0.5 rounded bg-stone-200 dark:bg-slate-750 text-stone-700 dark:text-slate-300 font-medium">
                                                 {successModal.category || 'General'}
                                             </span>
                                             <span>•</span>
@@ -2986,15 +2986,15 @@ const AdminCourseSetupWizard: React.FC<AdminCourseSetupWizardProps> = ({ isInstr
                                     </div>
                                 </div>
 
-                                <div className="grid grid-cols-2 gap-2 pt-2 border-t border-gray-200/60 dark:border-slate-750 text-xs">
-                                    <div className="bg-white dark:bg-slate-900 p-2.5 rounded-xl border border-gray-100 dark:border-slate-800">
-                                        <span className="text-[10px] uppercase font-bold text-gray-400 block mb-0.5">Live Cohort</span>
-                                        <span className="font-semibold text-gray-800 dark:text-slate-200 truncate block">
+                                <div className="grid grid-cols-2 gap-2 pt-2 border-t border-stone-200/60 dark:border-slate-750 text-xs">
+                                    <div className="bg-white dark:bg-night-2 p-2.5 rounded-[14px]">
+                                        <span className="text-[10px] uppercase font-bold text-stone-400 block mb-0.5">Live Cohort</span>
+                                        <span className="font-semibold text-stone-800 dark:text-slate-200 truncate block">
                                             {successModal.cohortName || 'Cohort 1'}
                                         </span>
                                     </div>
-                                    <div className="bg-white dark:bg-slate-900 p-2.5 rounded-xl border border-gray-100 dark:border-slate-800">
-                                        <span className="text-[10px] uppercase font-bold text-gray-400 block mb-0.5">Attendance PIN</span>
+                                    <div className="bg-white dark:bg-night-2 p-2.5 rounded-[14px]">
+                                        <span className="text-[10px] uppercase font-bold text-stone-400 block mb-0.5">Attendance PIN</span>
                                         <div className="flex items-center justify-between">
                                             <span className="font-mono font-bold text-violet-600 dark:text-violet-400">
                                                 {successModal.attendanceCode}
@@ -3006,7 +3006,7 @@ const AdminCourseSetupWizard: React.FC<AdminCourseSetupWizardProps> = ({ isInstr
                                                     setCopiedSuccessPin(true);
                                                     setTimeout(() => setCopiedSuccessPin(false), 1500);
                                                 }}
-                                                className="p-1 hover:bg-gray-100 dark:hover:bg-slate-800 rounded text-gray-400 hover:text-gray-600 cursor-pointer"
+                                                className="p-1 hover:bg-stone-100 dark:hover:bg-slate-800 rounded text-stone-400 hover:text-stone-600 cursor-pointer"
                                                 title="Copy Attendance PIN"
                                             >
                                                 {copiedSuccessPin ? <Check size={12} className="text-emerald-500" /> : <Copy size={12} />}
@@ -3016,7 +3016,7 @@ const AdminCourseSetupWizard: React.FC<AdminCourseSetupWizardProps> = ({ isInstr
                                 </div>
 
                                 {successModal.startDate && (
-                                    <div className="text-[11px] text-gray-500 dark:text-slate-400 flex items-center gap-1.5 px-1 pt-0.5">
+                                    <div className="text-[11px] text-stone-500 dark:text-slate-400 flex items-center gap-1.5 px-1 pt-0.5">
                                         <Calendar size={12} className="text-violet-500 shrink-0" />
                                         <span>Cohort Dates: <strong>{successModal.startDate}</strong> {successModal.endDate ? `till ${successModal.endDate}` : ''}</span>
                                     </div>
@@ -3024,13 +3024,13 @@ const AdminCourseSetupWizard: React.FC<AdminCourseSetupWizardProps> = ({ isInstr
                             </div>
 
                             {/* Auto-Open Countdown Progress Banner */}
-                            <div className="space-y-2 bg-emerald-50/70 dark:bg-emerald-950/25 p-3.5 rounded-2xl border border-emerald-100 dark:border-emerald-900/40">
+                            <div className="space-y-2 bg-mint-soft/70 dark:bg-emerald-950/25 p-3.5 rounded-[22px] border border-mint-soft dark:border-emerald-900/40">
                                 <div className="flex items-center justify-between text-xs">
                                     <span className="text-emerald-800 dark:text-emerald-300 font-semibold flex items-center gap-1.5">
-                                        <Loader2 size={13} className="animate-spin text-emerald-600" />
+                                        <Loader2 size={13} className="animate-spin text-mint" />
                                         Automatically opening course overview...
                                     </span>
-                                    <span className="font-bold text-emerald-700 dark:text-emerald-400 font-mono text-xs">
+                                    <span className="font-bold text-mint dark:text-emerald-400 font-mono text-xs">
                                         {successModal.countdown}s
                                     </span>
                                 </div>
@@ -3047,7 +3047,7 @@ const AdminCourseSetupWizard: React.FC<AdminCourseSetupWizardProps> = ({ isInstr
                                 <button
                                     type="button"
                                     onClick={handleTriggerImmediateOpen}
-                                    className="flex-1 py-3 px-4 bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 text-white font-bold rounded-2xl shadow-lg shadow-violet-500/25 flex items-center justify-center gap-2 text-sm transition-all transform active:scale-95 cursor-pointer"
+                                    className="flex-1 py-3 px-4 bg-gradient-to-r from-violet-600 to-brand hover:from-violet-700 hover:to-brand text-white font-bold rounded-[22px] shadow-lg shadow-violet-500/25 flex items-center justify-center gap-2 text-sm transition-all transform active:scale-95 cursor-pointer"
                                 >
                                     <span>Open Course Now</span>
                                     <ArrowRight size={15} />
@@ -3055,7 +3055,7 @@ const AdminCourseSetupWizard: React.FC<AdminCourseSetupWizardProps> = ({ isInstr
                                 <button
                                     type="button"
                                     onClick={handleTriggerCatalog}
-                                    className="py-3 px-4 bg-gray-100 dark:bg-slate-800 hover:bg-gray-200 dark:hover:bg-slate-750 text-gray-700 dark:text-slate-300 font-semibold rounded-2xl text-xs transition-colors cursor-pointer"
+                                    className="py-3 px-4 bg-stone-100 dark:bg-slate-800 hover:bg-stone-200 dark:hover:bg-slate-750 text-stone-700 dark:text-slate-300 font-semibold rounded-[22px] text-xs transition-colors cursor-pointer"
                                 >
                                     Courses Catalog
                                 </button>

@@ -131,33 +131,54 @@ function getWalletLedger() {
  * Records a manual deposit or withdrawal entry to the ledger.
  */
 function recordManualTransaction({
+    reference: customRef,
     type = 'deposit', // 'deposit' or 'withdrawal'
+    paymentType,
+    plan,
+    itemTitle,
+    companyName,
+    seats,
+    userId = '',
+    userEmail = '',
+    userName = '',
+    phoneNumber = '',
+    promoCode = '',
     amount,
     usdAmount,
     description,
-    method = 'manual',
+    method = 'mobile_money',
     category = 'General',
     recipient = '',
     sender = '',
     status = 'completed',
     notes = ''
 }) {
-    const reference = crypto.randomUUID();
-    const isDebit = type === 'withdrawal';
+    const reference = customRef || crypto.randomUUID();
+    const isDebit = type === 'withdrawal' || type === 'debit';
     const numAmount = Number(amount);
 
     const record = {
         uuid: reference,
         reference,
         type: isDebit ? 'withdrawal' : 'deposit',
+        paymentType: paymentType || (isDebit ? 'payout' : (plan === 'course' ? 'course' : 'package')),
+        plan: plan || (isDebit ? 'withdrawal' : 'pro'),
+        itemTitle: itemTitle || description || undefined,
+        companyName: companyName || undefined,
+        seats: seats ? Number(seats) : 1,
+        userId,
+        userEmail,
+        userName: userName || sender || '',
+        phoneNumber,
+        promoCode: promoCode || undefined,
         amount: numAmount,
-        usdAmount: Number(usdAmount) || Math.round(numAmount / 4600),
+        usdAmount: Number(usdAmount) || (numAmount === 1000 ? 1 : Math.max(1, Math.round(numAmount / 4000))),
         currency: 'UGX',
-        description: description || (isDebit ? 'Admin Withdrawal' : 'Admin Deposit'),
+        description: description || itemTitle || (isDebit ? 'Admin Withdrawal' : 'Student Payment'),
         method,
         category,
         recipient: isDebit ? recipient : 'School Wallet',
-        sender: isDebit ? 'School Wallet' : sender,
+        sender: isDebit ? 'School Wallet' : (sender || userName || userEmail),
         status,
         isSandbox: isSandboxMode(),
         isManual: true,
@@ -538,7 +559,12 @@ async function checkStatus(referenceOrUuid) {
         });
 
         const data = response.data;
-        const currentStatus = data.data?.transaction?.status || data.status;
+        const currentStatus =
+            data.data?.transaction?.status ||
+            data.transaction?.status ||
+            (data.event_type === 'collection.completed' ? 'completed' : null) ||
+            (data.event_type === 'collection.failed' || data.event_type === 'collection.cancelled' ? 'failed' : null) ||
+            (data.status !== 'success' ? data.status : null);
         const isCompleted = ['completed', 'successful', 'sandbox'].includes(currentStatus?.toLowerCase());
         const isFailed = ['failed', 'cancelled', 'rejected'].includes(currentStatus?.toLowerCase());
 
@@ -572,6 +598,140 @@ async function checkStatus(referenceOrUuid) {
     }
 }
 
+async function syncFromSupabase(adminSb, profiles = [], enrollments = [], courses = []) {
+    try {
+        const store = getStoredTransactions();
+        let changed = false;
+
+        // 1. Pull live transactions from MarzPay API if server IP is whitelisted
+        if (hasLocalCredentials()) {
+            try {
+                const res = await axios.get(`${API_BASE}/transactions`, {
+                    headers: { Authorization: getAuthHeader(), Accept: 'application/json' },
+                    timeout: 8000
+                });
+                const txList = res.data?.data?.transactions || res.data?.data || res.data?.transactions || [];
+                if (Array.isArray(txList)) {
+                    for (const item of txList) {
+                        const tx = item.transaction || item;
+                        const col = item.collection || {};
+                        const ref = tx.reference || tx.uuid;
+                        if (!ref) continue;
+                        const rawAmt = Number(col.amount?.raw ?? tx.amount?.raw ?? tx.amount) || 0;
+                        if (rawAmt <= 0) continue;
+                        if (!store[ref] || store[ref].status !== 'completed') {
+                            store[ref] = {
+                                ...(store[ref] || {}),
+                                uuid: tx.uuid || ref,
+                                reference: ref,
+                                type: item.disbursement ? 'withdrawal' : 'deposit',
+                                paymentType: item.disbursement ? 'payout' : (store[ref]?.paymentType || 'package'),
+                                plan: store[ref]?.plan || 'pro',
+                                amount: rawAmt,
+                                usdAmount: store[ref]?.usdAmount || (rawAmt === 1000 ? 1 : Math.max(1, Math.round(rawAmt / 4000))),
+                                currency: col.amount?.currency || tx.amount?.currency || 'UGX',
+                                method: 'mobile_money',
+                                phoneNumber: col.phone_number || tx.phone_number || store[ref]?.phoneNumber || '',
+                                description: tx.description || store[ref]?.description || 'MarzPay Payment',
+                                status: tx.status || 'completed',
+                                createdAt: tx.created_at || store[ref]?.createdAt || new Date().toISOString(),
+                                updatedAt: new Date().toISOString()
+                            };
+                            changed = true;
+                        }
+                    }
+                }
+            } catch (_) {
+                // IP whitelist may be required for GET /transactions; continue with Supabase sync
+            }
+        }
+
+        // 2. Check __OUTREACH_CONFIG__ in courses for persisted cloud wallet_transactions
+        let cloudTxs = null;
+        if (Array.isArray(courses) && courses.length > 0) {
+            const cfg = courses.find(c => c.category === '__OUTREACH_CONFIG__');
+            cloudTxs = cfg?.sections?.wallet_transactions;
+        }
+        if (!cloudTxs && adminSb) {
+            const { data: cfgRows } = await adminSb
+                .from('courses')
+                .select('id, sections')
+                .eq('category', '__OUTREACH_CONFIG__')
+                .limit(1);
+            cloudTxs = cfgRows?.[0]?.sections?.wallet_transactions;
+        }
+        if (cloudTxs && typeof cloudTxs === 'object') {
+            for (const [k, v] of Object.entries(cloudTxs)) {
+                if (v && typeof v === 'object' && !store[k]) {
+                    store[k] = v;
+                    changed = true;
+                }
+            }
+        }
+
+        // 3. Reconcile profiles that have pending_txid or a paid role (PRO, PREMIUM, SPONSORED)
+        for (const p of profiles) {
+            const role = String(p.role || '').toUpperCase();
+            const txRef = String(p.pending_txid || '').trim();
+            const isPaidRole = ['PRO', 'PREMIUM', 'SPONSORED', 'PLUS'].includes(role);
+            if (!txRef && !isPaidRole) continue;
+            if (txRef === 'Corporate Request' || txRef === 'Uploaded Screenshot') continue;
+
+            // Check if already in store by reference/uuid or userId
+            const existingKey = Object.keys(store).find(k => {
+                const item = store[k];
+                if (txRef && (item.reference === txRef || item.uuid === txRef || k === txRef)) return true;
+                if (p.id && item.userId === p.id && ['completed', 'successful', 'sandbox'].includes(String(item.status || '').toLowerCase())) return true;
+                return false;
+            });
+            if (existingKey) continue;
+
+            // If txRef looks like a UUID, try querying MarzPay collect-money/{uuid}
+            let marzData = null;
+            if (txRef && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(txRef) && hasLocalCredentials()) {
+                try {
+                    const res = await axios.get(`${API_BASE}/collect-money/${txRef}`, {
+                        headers: { Authorization: getAuthHeader(), Accept: 'application/json' },
+                        timeout: 8000
+                    });
+                    marzData = res.data?.data || res.data;
+                } catch (_) {}
+            }
+
+            const key = txRef || `supa-${p.id}`;
+            const plan = role === 'SPONSORED' ? 'corporate' : (role === 'PREMIUM' ? 'premium' : 'pro');
+            const rawAmt = Number(marzData?.collection?.amount?.raw || marzData?.transaction?.amount?.raw) || 1000;
+            store[key] = {
+                uuid: marzData?.transaction?.uuid || key,
+                reference: marzData?.transaction?.reference || key,
+                type: 'deposit',
+                paymentType: 'package',
+                plan,
+                userId: p.id,
+                userEmail: p.email || '',
+                userName: p.full_name || p.fullName || p.name || 'Learner',
+                phoneNumber: marzData?.collection?.phone_number || p.phone || '',
+                amount: rawAmt,
+                usdAmount: plan === 'premium' ? 150 : (plan === 'corporate' ? 200 : (rawAmt === 1000 ? 1 : 25)),
+                currency: 'UGX',
+                country: 'UG',
+                method: 'mobile_money',
+                status: 'completed',
+                description: `Welile School - ${plan.toUpperCase()} Plan`,
+                createdAt: p.updated_at || p.created_at || new Date().toISOString(),
+                updatedAt: new Date().toISOString()
+            };
+            changed = true;
+        }
+
+        if (changed) {
+            fs.writeFileSync(TRANSACTIONS_FILE, JSON.stringify(store, null, 2), 'utf-8');
+        }
+    } catch (e) {
+        console.warn('[MarzPay] syncFromSupabase error:', e.message);
+    }
+}
+
 module.exports = {
     initiateCollection,
     checkStatus,
@@ -583,5 +743,6 @@ module.exports = {
     setSandboxMode,
     isSandboxMode,
     getConfig,
+    syncFromSupabase,
     currencyService
 };

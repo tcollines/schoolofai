@@ -53,7 +53,7 @@ server.on('upgrade', (req, socket, head) => {
   }
 });
 
-const PORT = 4002;
+const PORT = 4000;
 server.listen(PORT, () => {
   console.log(`=======================================================`);
   console.log(`Dev proxy listening on port ${PORT}`);

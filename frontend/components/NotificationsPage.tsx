@@ -99,9 +99,9 @@ const NotificationsPage: React.FC = () => {
             case 'assignment':
                 return <FileText className="w-5 h-5 text-violet-700 dark:text-violet-400" />;
             case 'profile':
-                return <Camera className="w-5 h-5 text-blue-600 dark:text-blue-400" />;
+                return <Camera className="w-5 h-5 text-brand dark:text-blue-400" />;
             case 'course':
-                return <CheckCircle2 className="w-5 h-5 text-green-600 dark:text-green-400" />;
+                return <CheckCircle2 className="w-5 h-5 text-mint dark:text-green-400" />;
             default:
                 return <Shield className="w-5 h-5 text-amber-600 dark:text-amber-400" />;
         }
@@ -153,7 +153,7 @@ const NotificationsPage: React.FC = () => {
             {/* Header section */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
-                    <h2 className="text-2xl font-semibold text-stone-900 dark:text-white flex items-center gap-2 font-serif">
+                    <h2 className="m-0 text-[26px] sm:text-[30px] font-extrabold text-ink dark:text-white flex items-center gap-2 tracking-[-0.02em]">
                         <Bell className="text-violet-700" /> {t('notifications')}
                     </h2>
                     <p className="text-stone-600 dark:text-slate-400 text-sm mt-1">
@@ -165,14 +165,14 @@ const NotificationsPage: React.FC = () => {
                     <button 
                         onClick={markAllRead}
                         disabled={notifications.every(n => n.read)}
-                        className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold border border-stone-200 dark:border-slate-800 text-stone-700 dark:text-slate-300 bg-white dark:bg-slate-900 hover:bg-stone-50 dark:hover:bg-slate-800 disabled:opacity-50 transition-colors cursor-pointer"
+                        className="flex items-center gap-1.5 px-4 py-2 rounded-[14px] text-xs font-bold text-stone-700 dark:text-slate-300 bg-white dark:bg-night-2 hover:bg-stone-50 dark:hover:bg-slate-800 disabled:opacity-50 transition-colors cursor-pointer"
                     >
                         <CheckSquare size={14} /> Mark all Read
                     </button>
                     <button 
                         onClick={clearAll}
                         disabled={notifications.length === 0}
-                        className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold border border-red-200 dark:border-red-950 text-red-600 dark:text-red-400 bg-red-50/50 dark:bg-red-950/20 hover:bg-red-50 dark:hover:bg-red-950/45 disabled:opacity-50 transition-colors cursor-pointer"
+                        className="flex items-center gap-1.5 px-4 py-2 rounded-[14px] text-xs font-bold border border-red-200 dark:border-red-950 text-red-600 dark:text-red-400 bg-red-50/50 dark:bg-red-950/20 hover:bg-red-50 dark:hover:bg-red-950/45 disabled:opacity-50 transition-colors cursor-pointer"
                     >
                         <Trash2 size={14} /> Clear All
                     </button>
@@ -184,7 +184,7 @@ const NotificationsPage: React.FC = () => {
                 <div className="flex items-center gap-2">
                     <button 
                         onClick={() => setFilter('all')}
-                        className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                        className={`px-3 py-1.5 rounded-[12px] text-xs font-bold transition-all cursor-pointer ${
                             filter === 'all' 
                                 ? 'bg-violet-700 text-white shadow-sm' 
                                 : 'text-stone-600 hover:text-stone-900 dark:hover:text-white'
@@ -194,7 +194,7 @@ const NotificationsPage: React.FC = () => {
                     </button>
                     <button 
                         onClick={() => setFilter('unread')}
-                        className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all relative cursor-pointer ${
+                        className={`px-3 py-1.5 rounded-[12px] text-xs font-bold transition-all relative cursor-pointer ${
                             filter === 'unread' 
                                 ? 'bg-violet-700 text-white shadow-sm' 
                                 : 'text-stone-600 hover:text-stone-900 dark:hover:text-white'
@@ -215,7 +215,7 @@ const NotificationsPage: React.FC = () => {
 
             {/* List */}
             {filteredNotifications.length === 0 ? (
-                <div className="bg-white dark:bg-slate-900 p-12 rounded-2xl border border-stone-100 dark:border-slate-800 text-center">
+                <div className="bg-white dark:bg-night-2 p-12 rounded-[22px] text-center">
                     <Bell className="mx-auto w-12 h-12 text-stone-400 dark:text-slate-700 mb-4 animate-none" />
                     <p className="text-stone-600 dark:text-slate-400 font-semibold mb-1">No notifications found</p>
                     <p className="text-xs text-stone-500 dark:text-slate-500">You are all caught up for now!</p>
@@ -230,7 +230,7 @@ const NotificationsPage: React.FC = () => {
                             <div 
                                 key={item.id}
                                 onClick={() => handleNotificationClick(item)}
-                                className={`p-5 rounded-2xl border transition-all duration-300 cursor-pointer flex flex-col gap-3 shadow-sm ${
+                                className={`p-5 rounded-[22px] border transition-all duration-300 cursor-pointer flex flex-col gap-3 shadow-sm ${
                                     item.read 
                                         ? 'bg-white dark:bg-slate-900 border-stone-100 dark:border-slate-800/80 opacity-80' 
                                         : 'bg-violet-50/15 dark:bg-violet-950/5 border-violet-100 dark:border-violet-950/60 ring-1 ring-violet-500/5'
@@ -238,7 +238,7 @@ const NotificationsPage: React.FC = () => {
                             >
                                 <div className="flex gap-4 items-start w-full">
                                     {/* Icon Container */}
-                                    <div className={`p-2.5 rounded-2xl shrink-0 ${
+                                    <div className={`p-2.5 rounded-[22px] shrink-0 ${
                                         item.read 
                                             ? 'bg-stone-50 dark:bg-slate-800' 
                                             : 'bg-violet-50 dark:bg-violet-950/40'
@@ -274,14 +274,14 @@ const NotificationsPage: React.FC = () => {
                                     <div className="flex items-center gap-1.5 shrink-0 self-start">
                                         <button 
                                             type="button"
-                                            className="p-1.5 text-stone-500 hover:text-stone-600 dark:hover:text-slate-200 hover:bg-stone-50 dark:hover:bg-slate-800 rounded-lg transition-colors cursor-pointer"
+                                            className="p-1.5 text-stone-500 hover:text-stone-600 dark:hover:text-slate-200 hover:bg-stone-50 dark:hover:bg-slate-800 rounded-[12px] transition-colors cursor-pointer"
                                             title={isExpanded ? 'Collapse' : 'Expand'}
                                         >
                                             {isExpanded ? <ChevronUp size={15} /> : <ChevronDown size={15} />}
                                         </button>
                                         <button 
                                             onClick={(e) => deleteNotification(e, item.id)}
-                                            className="p-1.5 text-stone-500 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-lg transition-colors cursor-pointer animate-none"
+                                            className="p-1.5 text-stone-500 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-[12px] transition-colors cursor-pointer animate-none"
                                             title="Delete"
                                         >
                                             <Trash2 size={15} />
@@ -310,7 +310,7 @@ const NotificationsPage: React.FC = () => {
                                                 e.stopPropagation();
                                                 navigate(action.path);
                                             }}
-                                            className="flex items-center gap-1.5 px-3 py-1.5 bg-violet-700 hover:bg-violet-800 text-white rounded-xl text-xs font-bold cursor-pointer transition-colors shadow-sm self-end"
+                                            className="flex items-center gap-1.5 px-3 py-1.5 bg-violet-700 hover:bg-brand-mid text-white rounded-[14px] text-xs font-bold cursor-pointer transition-colors shadow-sm self-end"
                                         >
                                             <span>{action.label}</span>
                                             <ExternalLink size={12} />

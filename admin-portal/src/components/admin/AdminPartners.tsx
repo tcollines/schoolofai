@@ -158,26 +158,26 @@ const AdminPartners = () => {
         <div className="p-8">
             <div className="flex justify-between items-center mb-8">
                 <div>
-                    <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Partners</h1>
-                    <p className="text-gray-500 dark:text-slate-400 mt-2">Manage University and Company course partners</p>
+                    <h1 className="m-0 text-[28px] font-extrabold tracking-[-0.02em]">Partners</h1>
+                    <p className="text-stone-500 dark:text-slate-400 mt-2">Manage University and Company course partners</p>
                 </div>
                 <button 
                     onClick={() => setShowAddModal(true)}
-                    className="bg-violet-600 text-white px-6 py-3 rounded-xl font-bold hover:bg-violet-700 shadow-lg shadow-violet-200 flex items-center gap-2"
+                    className="bg-brand text-white px-6 py-3 rounded-[14px] font-bold hover:bg-brand-mid shadow-lg shadow-violet-200 flex items-center gap-2"
                 >
                     <Plus size={20} /> Add Partner
                 </button>
             </div>
 
-            <div className="bg-white dark:bg-slate-900 p-6 rounded-3xl shadow-sm border border-gray-100 dark:border-slate-800 mb-8">
+            <div className="bg-white dark:bg-night-2 p-6 rounded-[26px] mb-8">
                 <div className="relative">
-                    <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+                    <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-stone-400" size={20} />
                     <input
                         type="text"
                         placeholder="Search partners..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
-                        className="w-full pl-12 pr-4 py-3 bg-gray-50 dark:bg-slate-800 border-none rounded-xl text-gray-900 dark:text-white outline-none focus:ring-2 focus:ring-violet-500"
+                        className="w-full pl-12 pr-4 py-3 bg-stone-50 dark:bg-slate-800 border-none rounded-[14px] text-stone-900 dark:text-white outline-none focus:ring-2 focus:ring-brand"
                     />
                 </div>
             </div>
@@ -189,47 +189,47 @@ const AdminPartners = () => {
             ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
                     {filteredPartners.map(partner => (
-                        <div key={partner.id} className="bg-white dark:bg-slate-900 rounded-3xl border border-gray-100 dark:border-slate-800 p-6 shadow-sm flex flex-col relative overflow-hidden">
-                            <div className="absolute top-0 left-0 w-full h-2 bg-violet-600"></div>
+                        <div key={partner.id} className="bg-white dark:bg-night-2 rounded-[26px] p-6 flex flex-col relative overflow-hidden">
+                            <div className="absolute top-0 left-0 w-full h-2 bg-brand"></div>
                             <div className="flex items-start justify-between mb-4 mt-2">
                                 <div className="flex items-center gap-4">
                                     {partner.logo ? (
-                                        <img src={partner.logo} alt={partner.name} className="w-12 h-12 rounded-xl object-cover bg-gray-50 border border-gray-100" />
+                                        <img src={partner.logo} alt={partner.name} className="w-12 h-12 rounded-[14px] object-cover bg-stone-50 border border-stone-100" />
                                     ) : (
-                                        <div className="w-12 h-12 rounded-xl bg-violet-100 text-violet-600 flex items-center justify-center shrink-0">
+                                        <div className="w-12 h-12 rounded-[14px] bg-violet-100 text-violet-600 flex items-center justify-center shrink-0">
                                             <Building2 size={24} />
                                         </div>
                                     )}
                                     <div>
-                                        <h3 className="font-bold text-gray-900 dark:text-white text-lg">{partner.name}</h3>
-                                        <span className="inline-block px-2 py-0.5 bg-gray-100 text-gray-600 text-xs font-bold rounded mt-1">{partner.type}</span>
+                                        <h3 className="font-bold text-stone-900 dark:text-white text-lg">{partner.name}</h3>
+                                        <span className="inline-block px-2 py-0.5 bg-stone-100 text-stone-600 text-xs font-bold rounded mt-1">{partner.type}</span>
                                     </div>
                                 </div>
                             </div>
                             
                             <div className="space-y-3 mt-4 flex-1">
-                                <div className="flex items-center gap-3 text-sm text-gray-600 dark:text-slate-400">
-                                    <div className="w-8 h-8 rounded-full bg-gray-50 flex items-center justify-center shrink-0"><Search size={14} className="text-gray-400"/></div>
+                                <div className="flex items-center gap-3 text-sm text-stone-600 dark:text-slate-400">
+                                    <div className="w-8 h-8 rounded-full bg-stone-50 flex items-center justify-center shrink-0"><Search size={14} className="text-stone-400"/></div>
                                     <span className="font-medium">{partner.contact_name || 'No contact name'}</span>
                                 </div>
-                                <div className="flex items-center gap-3 text-sm text-gray-600 dark:text-slate-400">
-                                    <div className="w-8 h-8 rounded-full bg-gray-50 flex items-center justify-center shrink-0"><Mail size={14} className="text-gray-400"/></div>
+                                <div className="flex items-center gap-3 text-sm text-stone-600 dark:text-slate-400">
+                                    <div className="w-8 h-8 rounded-full bg-stone-50 flex items-center justify-center shrink-0"><Mail size={14} className="text-stone-400"/></div>
                                     <a href={`mailto:${partner.contact_email}`} className="text-violet-600 hover:underline">{partner.contact_email || 'N/A'}</a>
                                 </div>
-                                <div className="flex items-center gap-3 text-sm text-gray-600 dark:text-slate-400">
-                                    <div className="w-8 h-8 rounded-full bg-gray-50 flex items-center justify-center shrink-0"><Phone size={14} className="text-gray-400"/></div>
+                                <div className="flex items-center gap-3 text-sm text-stone-600 dark:text-slate-400">
+                                    <div className="w-8 h-8 rounded-full bg-stone-50 flex items-center justify-center shrink-0"><Phone size={14} className="text-stone-400"/></div>
                                     <span>{partner.contact_phone || 'N/A'}</span>
                                 </div>
-                                <div className="flex items-center gap-3 text-sm text-gray-600 dark:text-slate-400">
-                                    <div className="w-8 h-8 rounded-full bg-gray-50 flex items-center justify-center shrink-0"><MapPin size={14} className="text-gray-400"/></div>
+                                <div className="flex items-center gap-3 text-sm text-stone-600 dark:text-slate-400">
+                                    <div className="w-8 h-8 rounded-full bg-stone-50 flex items-center justify-center shrink-0"><MapPin size={14} className="text-stone-400"/></div>
                                     <span className="truncate">{partner.address || 'N/A'}</span>
                                 </div>
                             </div>
                             
-                            <div className="mt-6 pt-4 border-t border-gray-100 flex gap-2">
+                            <div className="mt-6 pt-4 border-t border-stone-100 flex gap-2">
                                 <button 
                                     onClick={() => handlePrintCertificate(partner)}
-                                    className="flex-1 bg-gray-50 hover:bg-gray-100 text-gray-700 py-2.5 rounded-xl text-sm font-bold transition-colors flex justify-center items-center gap-2"
+                                    className="flex-1 bg-stone-50 hover:bg-stone-100 text-stone-700 py-2.5 rounded-[14px] text-sm font-bold transition-colors flex justify-center items-center gap-2"
                                 >
                                     <Printer size={16} /> Print Certificate
                                 </button>
@@ -238,7 +238,7 @@ const AdminPartners = () => {
                     ))}
                     
                     {filteredPartners.length === 0 && (
-                        <div className="col-span-full py-12 text-center text-gray-500">
+                        <div className="col-span-full py-12 text-center text-stone-500">
                             <Handshake size={48} className="mx-auto mb-4 opacity-20" />
                             <p>No partners found. Add a new partner to get started.</p>
                         </div>
@@ -248,12 +248,12 @@ const AdminPartners = () => {
 
             {showAddModal && (
                 <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-                    <div className="bg-white dark:bg-slate-900 rounded-3xl w-full max-w-2xl overflow-hidden shadow-2xl flex flex-col max-h-[90vh]">
-                        <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50">
+                    <div className="bg-white dark:bg-night-2 rounded-[26px] w-full max-w-2xl overflow-hidden shadow-2xl flex flex-col max-h-[90vh]">
+                        <div className="p-6 border-b border-stone-100 flex justify-between items-center bg-stone-50">
                             <h3 className="font-bold text-xl flex items-center gap-2">
                                 <Handshake className="text-violet-600" /> Register New Partner
                             </h3>
-                            <button onClick={() => setShowAddModal(false)} className="w-8 h-8 flex items-center justify-center rounded-full bg-gray-200 text-gray-600 hover:bg-gray-300">
+                            <button onClick={() => setShowAddModal(false)} className="w-8 h-8 flex items-center justify-center rounded-full bg-stone-200 text-stone-600 hover:bg-stone-300">
                                 <Plus className="rotate-45" size={20} />
                             </button>
                         </div>
@@ -261,21 +261,21 @@ const AdminPartners = () => {
                             <div className="space-y-6">
                                 <div className="grid grid-cols-2 gap-6">
                                     <div>
-                                        <label className="block text-sm font-bold text-gray-700 mb-2">Organisation Name *</label>
+                                        <label className="block text-sm font-bold text-stone-700 mb-2">Organisation Name *</label>
                                         <input
                                             type="text"
                                             value={newPartner.name}
                                             onChange={(e) => setNewPartner({...newPartner, name: e.target.value})}
-                                            className="w-full px-4 py-3 bg-gray-50 border-none rounded-xl focus:ring-2 focus:ring-violet-500 outline-none"
+                                            className="w-full px-4 py-3 bg-stone-50 border-none rounded-[14px] focus:ring-2 focus:ring-brand outline-none"
                                             placeholder="e.g. Makerere University"
                                         />
                                     </div>
                                     <div>
-                                        <label className="block text-sm font-bold text-gray-700 mb-2">Type of Organisation *</label>
+                                        <label className="block text-sm font-bold text-stone-700 mb-2">Type of Organisation *</label>
                                         <select
                                             value={newPartner.type}
                                             onChange={(e) => setNewPartner({...newPartner, type: e.target.value})}
-                                            className="w-full px-4 py-3 bg-gray-50 border-none rounded-xl focus:ring-2 focus:ring-violet-500 outline-none"
+                                            className="w-full px-4 py-3 bg-stone-50 border-none rounded-[14px] focus:ring-2 focus:ring-brand outline-none"
                                         >
                                             <option value="University">University</option>
                                             <option value="Company">Company</option>
@@ -285,10 +285,10 @@ const AdminPartners = () => {
                                 </div>
                                 
                                 <div>
-                                    <label className="block text-sm font-bold text-gray-700 mb-2">Organisation Logo</label>
+                                    <label className="block text-sm font-bold text-stone-700 mb-2">Organisation Logo</label>
                                     <div className="flex items-center gap-4">
                                         {newPartner.logo && (
-                                            <img src={newPartner.logo} alt="Preview" className="w-16 h-16 rounded-xl object-cover bg-gray-100 border border-gray-200" />
+                                            <img src={newPartner.logo} alt="Preview" className="w-16 h-16 rounded-[14px] object-cover bg-stone-100 border border-stone-200" />
                                         )}
                                         <div className="flex-1 relative">
                                             <input 
@@ -297,53 +297,53 @@ const AdminPartners = () => {
                                                 onChange={handleLogoUpload}
                                                 className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                                             />
-                                            <div className="w-full px-4 py-3 bg-gray-50 border-2 border-dashed border-gray-200 rounded-xl text-center text-gray-500 hover:bg-gray-100 transition-colors">
+                                            <div className="w-full px-4 py-3 bg-stone-50 border-2 border-dashed border-stone-200 rounded-[14px] text-center text-stone-500 hover:bg-stone-100 transition-colors">
                                                 Click to upload logo (PNG, JPG)
                                             </div>
                                         </div>
                                     </div>
                                 </div>
                                 
-                                <div className="border-t border-gray-100 pt-6">
-                                    <h4 className="font-bold text-gray-800 mb-4">Contact Information</h4>
+                                <div className="border-t border-stone-100 pt-6">
+                                    <h4 className="font-bold text-stone-800 mb-4">Contact Information</h4>
                                     <div className="grid grid-cols-2 gap-6">
                                         <div>
-                                            <label className="block text-sm font-bold text-gray-700 mb-2">Responsible Person's Name</label>
+                                            <label className="block text-sm font-bold text-stone-700 mb-2">Responsible Person's Name</label>
                                             <input
                                                 type="text"
                                                 value={newPartner.contact_name}
                                                 onChange={(e) => setNewPartner({...newPartner, contact_name: e.target.value})}
-                                                className="w-full px-4 py-3 bg-gray-50 border-none rounded-xl focus:ring-2 focus:ring-violet-500 outline-none"
+                                                className="w-full px-4 py-3 bg-stone-50 border-none rounded-[14px] focus:ring-2 focus:ring-brand outline-none"
                                                 placeholder="e.g. Dr. Jane Doe"
                                             />
                                         </div>
                                         <div>
-                                            <label className="block text-sm font-bold text-gray-700 mb-2">Email Address</label>
+                                            <label className="block text-sm font-bold text-stone-700 mb-2">Email Address</label>
                                             <input
                                                 type="email"
                                                 value={newPartner.contact_email}
                                                 onChange={(e) => setNewPartner({...newPartner, contact_email: e.target.value})}
-                                                className="w-full px-4 py-3 bg-gray-50 border-none rounded-xl focus:ring-2 focus:ring-violet-500 outline-none"
+                                                className="w-full px-4 py-3 bg-stone-50 border-none rounded-[14px] focus:ring-2 focus:ring-brand outline-none"
                                                 placeholder="jane@university.edu"
                                             />
                                         </div>
                                         <div>
-                                            <label className="block text-sm font-bold text-gray-700 mb-2">Contact Number</label>
+                                            <label className="block text-sm font-bold text-stone-700 mb-2">Contact Number</label>
                                             <input
                                                 type="tel"
                                                 value={newPartner.contact_phone}
                                                 onChange={(e) => setNewPartner({...newPartner, contact_phone: e.target.value})}
-                                                className="w-full px-4 py-3 bg-gray-50 border-none rounded-xl focus:ring-2 focus:ring-violet-500 outline-none"
+                                                className="w-full px-4 py-3 bg-stone-50 border-none rounded-[14px] focus:ring-2 focus:ring-brand outline-none"
                                                 placeholder="+256 700 000000"
                                             />
                                         </div>
                                         <div>
-                                            <label className="block text-sm font-bold text-gray-700 mb-2">Organisation Address</label>
+                                            <label className="block text-sm font-bold text-stone-700 mb-2">Organisation Address</label>
                                             <input
                                                 type="text"
                                                 value={newPartner.address}
                                                 onChange={(e) => setNewPartner({...newPartner, address: e.target.value})}
-                                                className="w-full px-4 py-3 bg-gray-50 border-none rounded-xl focus:ring-2 focus:ring-violet-500 outline-none"
+                                                className="w-full px-4 py-3 bg-stone-50 border-none rounded-[14px] focus:ring-2 focus:ring-brand outline-none"
                                                 placeholder="Plot 1, University Road..."
                                             />
                                         </div>
@@ -351,14 +351,14 @@ const AdminPartners = () => {
                                 </div>
                             </div>
                         </div>
-                        <div className="p-6 border-t border-gray-100 bg-gray-50 flex justify-end gap-3">
-                            <button onClick={() => setShowAddModal(false)} className="px-6 py-2.5 rounded-xl font-bold text-gray-600 hover:bg-gray-200">
+                        <div className="p-6 border-t border-stone-100 bg-stone-50 flex justify-end gap-3">
+                            <button onClick={() => setShowAddModal(false)} className="px-6 py-2.5 rounded-[14px] font-bold text-stone-600 hover:bg-stone-200">
                                 Cancel
                             </button>
                             <button 
                                 onClick={handleSavePartner} 
                                 disabled={isSaving || !newPartner.name}
-                                className="px-6 py-2.5 rounded-xl font-bold bg-violet-600 text-white hover:bg-violet-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                                className="px-6 py-2.5 rounded-[14px] font-bold bg-brand text-white hover:bg-brand-mid disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                             >
                                 {isSaving && <Loader2 size={16} className="animate-spin" />}
                                 {isSaving ? 'Saving...' : 'Register Partner'}

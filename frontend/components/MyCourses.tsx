@@ -336,7 +336,7 @@ const MyCourses: React.FC<MyCoursesProps> = ({ courses }) => {
                 >
                     <ArrowLeft size={18} /> {t('back_to_profile')}
                 </button>
-                <div className="bg-white dark:bg-slate-900 rounded-2xl overflow-hidden shadow-sm border border-stone-100 dark:border-slate-800 md:flex mb-8">
+                <div className="bg-white dark:bg-night-2 rounded-[22px] overflow-hidden md:flex mb-8">
                     <div className="md:w-1/3 min-h-[250px] relative bg-stone-900 overflow-hidden">
                         <img
                             src={selectedCourse.image}
@@ -351,7 +351,7 @@ const MyCourses: React.FC<MyCoursesProps> = ({ courses }) => {
                         <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent flex items-end p-6">
                             <div className="text-white">
                                 <span className="text-xs font-bold bg-violet-700 px-2 py-1 rounded-md mb-2 inline-block">MY COURSE</span>
-                                <h3 className="font-serif text-2xl font-semibold mb-1">{selectedCourse.title}</h3>
+                                <h3 className="tracking-[-0.02em] text-2xl font-semibold mb-1">{selectedCourse.title}</h3>
                                 <div className="flex items-center gap-3 mt-2">
                                     <div className="w-8 h-8 rounded-full border border-white/20 overflow-hidden flex items-center justify-center bg-white/10 shrink-0">
                                         {selectedCourse.instructorAvatar ? (
@@ -397,7 +397,7 @@ const MyCourses: React.FC<MyCoursesProps> = ({ courses }) => {
                                     href={selectedCourse.meetingLink.startsWith('http') ? selectedCourse.meetingLink : `https://${selectedCourse.meetingLink}`}
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="inline-flex items-center gap-1.5 text-xs font-bold bg-red-600 hover:bg-red-700 text-white px-3.5 py-1.5 rounded-xl shadow-sm transition-colors"
+                                    className="inline-flex items-center gap-1.5 text-xs font-bold bg-red-600 hover:bg-red-700 text-white px-3.5 py-1.5 rounded-[14px] shadow-sm transition-colors"
                                 >
                                     <Video size={14} /> Join Live Class Meet <ExternalLink size={12} />
                                 </a>
@@ -430,12 +430,12 @@ const MyCourses: React.FC<MyCoursesProps> = ({ courses }) => {
                         </div>
 
                         {selectedCourse.quiz && !selectedCourse.quiz.isDraft && (selectedCourse.status === CourseStatus.COMPLETED || (selectedCourse.lessonsTotal > 0 && selectedCourse.lessonsCompleted >= selectedCourse.lessonsTotal)) && (
-                            <div className="mt-4 p-4 bg-indigo-50 dark:bg-indigo-950/20 border border-indigo-100 dark:border-indigo-900/50 rounded-xl flex items-center justify-between">
+                            <div className="mt-4 p-4 bg-brand-soft dark:bg-indigo-950/20 border border-brand-soft dark:border-indigo-900/50 rounded-[14px] flex items-center justify-between">
                                 <div>
                                     <h4 className="font-bold text-indigo-900 dark:text-indigo-200">Final Exam</h4>
                                     {selectedCourse.examCompleted ? (
                                         selectedCourse.examMarksReleased ? (
-                                            <p className="text-xs text-green-700 dark:text-green-400">
+                                            <p className="text-xs text-mint dark:text-green-400">
                                                 Exam Completed! Your Score: <span className="font-bold">{selectedCourse.examScore}%</span>
                                             </p>
                                         ) : (
@@ -444,7 +444,7 @@ const MyCourses: React.FC<MyCoursesProps> = ({ courses }) => {
                                             </p>
                                         )
                                     ) : (
-                                        <p className="text-xs text-indigo-700 dark:text-indigo-300">Test your knowledge to earn your certificate.</p>
+                                        <p className="text-xs text-brand dark:text-indigo-300">Test your knowledge to earn your certificate.</p>
                                     )}
                                 </div>
                                 {!selectedCourse.examCompleted && (
@@ -457,7 +457,7 @@ const MyCourses: React.FC<MyCoursesProps> = ({ courses }) => {
                                             );
                                             setTakingExam(true);
                                         }}
-                                        className="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-indigo-700"
+                                        className="bg-brand text-white px-4 py-2 rounded-[12px] text-sm font-bold hover:bg-brand"
                                     >
                                         {t('start_exam')}
                                     </button>
@@ -467,7 +467,7 @@ const MyCourses: React.FC<MyCoursesProps> = ({ courses }) => {
 
                         {/* Rating Prompt - Show if completed or near completion */}
                         {((selectedCourse.status === CourseStatus.COMPLETED) || (selectedCourse.lessonsTotal > 0 && selectedCourse.lessonsCompleted >= selectedCourse.lessonsTotal)) && !hasRated && (
-                            <div className="mt-4 p-4 bg-yellow-50 dark:bg-yellow-950/20 border border-yellow-100 dark:border-yellow-900/50 rounded-xl flex items-center justify-between">
+                            <div className="mt-4 p-4 bg-yellow-50 dark:bg-yellow-950/20 border border-yellow-100 dark:border-yellow-900/50 rounded-[14px] flex items-center justify-between">
                                 <div>
                                     <h4 className="font-bold text-yellow-900 dark:text-yellow-200 flex items-center gap-2">
                                         <Star size={18} className="text-yellow-500 fill-yellow-500" />
@@ -477,20 +477,20 @@ const MyCourses: React.FC<MyCoursesProps> = ({ courses }) => {
                                 </div>
                                 <button 
                                     onClick={() => setIsRatingModalOpen(true)}
-                                    className="bg-yellow-500 text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-yellow-600 shadow-sm"
+                                    className="bg-yellow-500 text-white px-4 py-2 rounded-[12px] text-sm font-bold hover:bg-yellow-600 shadow-sm"
                                 >
                                     Leave Review
                                 </button>
                             </div>
                         )}
                         {hasRated && (
-                            <div className="mt-4 p-4 bg-green-50 dark:bg-green-950/20 border border-green-100 dark:border-green-900/50 rounded-xl flex items-center justify-between">
+                            <div className="mt-4 p-4 bg-mint-soft dark:bg-green-950/20 border border-mint-soft dark:border-green-900/50 rounded-[14px] flex items-center justify-between">
                                 <div>
                                     <h4 className="font-bold text-green-900 dark:text-green-200 flex items-center gap-2">
                                         <Star size={18} className="text-green-500 fill-green-500" />
                                         Thank you for your review!
                                     </h4>
-                                    <p className="text-xs text-green-700 dark:text-green-300 mt-1">Your feedback helps us improve.</p>
+                                    <p className="text-xs text-mint dark:text-green-300 mt-1">Your feedback helps us improve.</p>
                                 </div>
                             </div>
                         )}
@@ -499,11 +499,11 @@ const MyCourses: React.FC<MyCoursesProps> = ({ courses }) => {
 
                 <div className="space-y-4 max-w-3xl">
                     <div className="flex justify-between items-center">
-                        <h3 className="font-serif text-xl font-semibold text-stone-900 dark:text-white">Course Content</h3>
-                        <div className="flex bg-stone-100 dark:bg-slate-800 p-1 rounded-xl border border-stone-200/50 dark:border-slate-700">
+                        <h3 className="tracking-[-0.02em] text-xl font-semibold text-stone-900 dark:text-white">Course Content</h3>
+                        <div className="flex bg-stone-100 dark:bg-slate-800 p-1 rounded-[14px] border border-stone-200/50 dark:border-slate-700">
                             <button
                                 onClick={() => setViewMode('list')}
-                                className={`flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                                className={`flex items-center gap-1 px-3 py-1.5 rounded-[12px] text-xs font-bold transition-all cursor-pointer ${
                                     viewMode === 'list'
                                         ? 'bg-white dark:bg-slate-900 text-violet-700 dark:text-white shadow-sm'
                                         : 'text-stone-600 hover:text-stone-950 dark:text-slate-400 dark:hover:text-slate-200'
@@ -514,7 +514,7 @@ const MyCourses: React.FC<MyCoursesProps> = ({ courses }) => {
                             </button>
                             <button
                                 onClick={() => setViewMode('grid')}
-                                className={`flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                                className={`flex items-center gap-1 px-3 py-1.5 rounded-[12px] text-xs font-bold transition-all cursor-pointer ${
                                     viewMode === 'grid'
                                         ? 'bg-white dark:bg-slate-900 text-violet-700 dark:text-white shadow-sm'
                                         : 'text-stone-600 hover:text-stone-950 dark:text-slate-400 dark:hover:text-slate-200'
@@ -533,7 +533,7 @@ const MyCourses: React.FC<MyCoursesProps> = ({ courses }) => {
                                     {selectedCourse.sections.map((section: CourseSection) => {
                                         const isLocked = isSectionLocked(section.id);
                                         return (
-                                            <div key={section.id} className={`bg-white dark:bg-slate-900 rounded-2xl border border-stone-200 dark:border-slate-800 overflow-hidden shadow-sm ${isLocked ? 'opacity-60' : ''}`}>
+                                            <div key={section.id} className={`bg-white dark:bg-night-2 rounded-[22px] overflow-hidden ${isLocked ? 'opacity-60' : ''}`}>
                                                 <div 
                                                     onClick={() => {
                                                         if (isLocked) {
@@ -549,11 +549,11 @@ const MyCourses: React.FC<MyCoursesProps> = ({ courses }) => {
                                                         {section.title}
                                                     </h4>
                                                     <div className="flex items-center gap-3">
-                                                        <span className="text-xs text-stone-600 dark:text-slate-400 font-medium bg-white dark:bg-slate-900 px-2 py-1 rounded border border-stone-200 dark:border-slate-800">{section.lessons.length} Lessons</span>
+                                                        <span className="text-xs text-stone-600 dark:text-slate-400 font-medium bg-white dark:bg-night-2 px-2 py-1 rounded">{section.lessons.length} Lessons</span>
                                                         
                                                         {!isLocked && (
                                                             /* Small List/Grid Toggle inside module */
-                                                            <div className="flex bg-stone-100 dark:bg-slate-800 p-0.5 rounded-lg border border-stone-200/50 dark:border-slate-700 items-center">
+                                                            <div className="flex bg-stone-100 dark:bg-slate-800 p-0.5 rounded-[12px] border border-stone-200/50 dark:border-slate-700 items-center">
                                                                 <button
                                                                     onClick={(e) => {
                                                                         e.stopPropagation();
@@ -596,13 +596,13 @@ const MyCourses: React.FC<MyCoursesProps> = ({ courses }) => {
                                                                 <div className="text-center py-4 text-sm text-stone-500 dark:text-slate-500">No content available.</div>
                                                             )}
                                                             {section.lessons.map((lesson: CourseModule) => (
-                                                                <div key={lesson.id} onClick={() => setActiveModule(lesson)} className="p-4 rounded-xl border border-stone-100 dark:border-slate-800 hover:border-violet-300 dark:hover:border-violet-800 hover:bg-violet-50 dark:hover:bg-violet-950 transition-colors cursor-pointer flex gap-4 items-start group">
-                                                                     <div className={`p-3 rounded-xl shrink-0 ${
-                                                                         lesson.type === 'video' ? 'bg-blue-100 dark:bg-blue-950/20 text-blue-600 dark:text-blue-400' : 
+                                                                <div key={lesson.id} onClick={() => setActiveModule(lesson)} className="p-4 rounded-[14px] border border-stone-100 dark:border-slate-800 hover:border-violet-300 dark:hover:border-violet-800 hover:bg-violet-50 dark:hover:bg-violet-950 transition-colors cursor-pointer flex gap-4 items-start group">
+                                                                     <div className={`p-3 rounded-[14px] shrink-0 ${
+                                                                         lesson.type === 'video' ? 'bg-brand-soft dark:bg-blue-950/20 text-brand dark:text-blue-400' : 
                                                                          lesson.type === 'audio' ? 'bg-amber-100 dark:bg-amber-950/20 text-amber-600 dark:text-amber-400' : 
-                                                                         lesson.type === 'document' ? 'bg-indigo-100 dark:bg-indigo-950/20 text-indigo-600 dark:text-indigo-500' : 
+                                                                         lesson.type === 'document' ? 'bg-brand-soft dark:bg-indigo-950/20 text-brand dark:text-indigo-500' : 
                                                                          lesson.type === 'quiz' ? 'bg-violet-100 dark:bg-violet-950/20 text-violet-700 dark:text-violet-400' :
-                                                                         'bg-emerald-100 dark:bg-emerald-950/20 text-emerald-600 dark:text-emerald-400'
+                                                                         'bg-mint-soft dark:bg-emerald-950/20 text-mint dark:text-emerald-400'
                                                                      }`}>
                                                                          {lesson.type === 'video' ? <Youtube size={24} /> : 
                                                                           lesson.type === 'audio' ? <Headphones size={24} /> : 
@@ -655,15 +655,15 @@ const MyCourses: React.FC<MyCoursesProps> = ({ courses }) => {
                                                                 <div className="text-center py-4 text-sm text-stone-500 dark:text-slate-500 col-span-full">No content available.</div>
                                                             )}
                                                             {section.lessons.map((lesson: CourseModule) => (
-                                                                <div key={lesson.id} onClick={() => setActiveModule(lesson)} className="p-4 rounded-xl border border-stone-100 dark:border-slate-800 hover:border-violet-300 dark:hover:border-violet-800 hover:bg-violet-50 dark:hover:bg-violet-950 transition-colors cursor-pointer flex flex-col justify-between group">
+                                                                <div key={lesson.id} onClick={() => setActiveModule(lesson)} className="p-4 rounded-[14px] border border-stone-100 dark:border-slate-800 hover:border-violet-300 dark:hover:border-violet-800 hover:bg-violet-50 dark:hover:bg-violet-950 transition-colors cursor-pointer flex flex-col justify-between group">
                                                                     <div>
                                                                         <div className="flex justify-between items-start mb-3">
-                                                                            <div className={`p-2 rounded-lg ${
-                                                                                lesson.type === 'video' ? 'bg-blue-100 dark:bg-blue-950/20 text-blue-600 dark:text-blue-400' : 
+                                                                            <div className={`p-2 rounded-[12px] ${
+                                                                                lesson.type === 'video' ? 'bg-brand-soft dark:bg-blue-950/20 text-brand dark:text-blue-400' : 
                                                                                 lesson.type === 'audio' ? 'bg-amber-100 dark:bg-amber-950/20 text-amber-600 dark:text-amber-400' : 
-                                                                                lesson.type === 'document' ? 'bg-indigo-100 dark:bg-indigo-950/20 text-indigo-600 dark:text-indigo-400' : 
+                                                                                lesson.type === 'document' ? 'bg-brand-soft dark:bg-indigo-950/20 text-brand dark:text-indigo-400' : 
                                                                                 lesson.type === 'quiz' ? 'bg-violet-100 dark:bg-violet-950/20 text-violet-700 dark:text-violet-400' :
-                                                                                'bg-emerald-100 dark:bg-emerald-950/20 text-emerald-600 dark:text-emerald-400'
+                                                                                'bg-mint-soft dark:bg-emerald-950/20 text-mint dark:text-emerald-400'
                                                                             }`}>
                                                                                 {lesson.type === 'video' ? <Youtube size={16} /> : 
                                                                                  lesson.type === 'audio' ? <Headphones size={16} /> : 
@@ -694,7 +694,7 @@ const MyCourses: React.FC<MyCoursesProps> = ({ courses }) => {
                                     {selectedCourse.sections.map((section: CourseSection) => {
                                         const isLocked = isSectionLocked(section.id);
                                         return (
-                                            <div key={section.id} className="bg-white dark:bg-slate-900 rounded-2xl border border-stone-200 dark:border-slate-800 p-5 shadow-sm flex flex-col justify-between transition-shadow relative overflow-hidden">
+                                            <div key={section.id} className="bg-white dark:bg-night-2 rounded-[22px] p-5 flex flex-col justify-between transition-shadow relative overflow-hidden">
                                                 {isLocked && (
                                                     <div className="absolute inset-0 bg-white/80 dark:bg-slate-950/80 backdrop-blur-[1.5px] flex flex-col items-center justify-center z-10 p-4 text-center">
                                                         <div className="bg-stone-100 dark:bg-slate-800 p-3 rounded-full mb-2">
@@ -711,7 +711,7 @@ const MyCourses: React.FC<MyCoursesProps> = ({ courses }) => {
                                                         
                                                         {/* Small List/Grid Toggle inside grid module */}
                                                         {!isLocked && (
-                                                            <div className="flex bg-stone-100 dark:bg-slate-800 p-0.5 rounded-lg border border-stone-200/50 dark:border-slate-700 items-center shrink-0">
+                                                            <div className="flex bg-stone-100 dark:bg-slate-800 p-0.5 rounded-[12px] border border-stone-200/50 dark:border-slate-700 items-center shrink-0">
                                                                 <button
                                                                     onClick={() => setLessonsViewMode(prev => ({...prev, [section.id]: 'list'}))}
                                                                     className={`p-1 rounded-md text-xs transition-all cursor-pointer ${
@@ -747,16 +747,16 @@ const MyCourses: React.FC<MyCoursesProps> = ({ courses }) => {
                                                                     key={lesson.id}
                                                                     disabled={isLocked}
                                                                     onClick={() => setActiveModule(lesson)}
-                                                                    className={`w-full flex items-center gap-2.5 p-2 rounded-xl border border-stone-50 dark:border-slate-800 hover:bg-violet-50 dark:hover:bg-violet-950/20 text-left transition-colors cursor-pointer group ${
+                                                                    className={`w-full flex items-center gap-2.5 p-2 rounded-[14px] border border-stone-50 dark:border-slate-800 hover:bg-violet-50 dark:hover:bg-violet-950/20 text-left transition-colors cursor-pointer group ${
                                                                         ((lessonsViewMode[section.id] || 'list') === 'grid') ? "flex-col items-start" : ""
                                                                     }`}
                                                                 >
-                                                                    <div className={`p-1.5 rounded-lg shrink-0 ${
-                                                                        lesson.type === 'video' ? 'bg-blue-100 dark:bg-blue-950/20 text-blue-600 dark:text-blue-400' : 
+                                                                    <div className={`p-1.5 rounded-[12px] shrink-0 ${
+                                                                        lesson.type === 'video' ? 'bg-brand-soft dark:bg-blue-950/20 text-brand dark:text-blue-400' : 
                                                                         lesson.type === 'audio' ? 'bg-amber-100 dark:bg-amber-950/20 text-amber-600 dark:text-amber-400' : 
-                                                                        lesson.type === 'document' ? 'bg-indigo-100 dark:bg-indigo-950/20 text-indigo-600 dark:text-indigo-400' : 
+                                                                        lesson.type === 'document' ? 'bg-brand-soft dark:bg-indigo-950/20 text-brand dark:text-indigo-400' : 
                                                                         lesson.type === 'quiz' ? 'bg-violet-100 dark:bg-violet-950/20 text-violet-700 dark:text-violet-400' :
-                                                                        'bg-emerald-100 dark:bg-emerald-950/20 text-emerald-600 dark:text-emerald-400'
+                                                                        'bg-mint-soft dark:bg-emerald-950/20 text-mint dark:text-emerald-400'
                                                                     }`}>
                                                                         {lesson.type === 'video' ? <Youtube size={14} /> : 
                                                                          lesson.type === 'audio' ? <Headphones size={14} /> : 
@@ -782,8 +782,8 @@ const MyCourses: React.FC<MyCoursesProps> = ({ courses }) => {
                             viewMode === 'list' ? (
                                 <div className="grid gap-4">
                                     {selectedCourse.modules.map((module: any, idx: number) => (
-                                        <div key={idx} className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-stone-100 dark:border-slate-800 transition-shadow flex flex-col sm:flex-row gap-4 items-start sm:items-center">
-                                            <div className="w-24 h-16 rounded-lg bg-stone-100 dark:bg-slate-800 shrink-0 overflow-hidden relative group cursor-pointer border border-stone-200 dark:border-slate-700" onClick={() => setActiveModule(module)}>
+                                        <div key={idx} className="bg-white dark:bg-night-2 p-5 rounded-[22px] transition-shadow flex flex-col sm:flex-row gap-4 items-start sm:items-center">
+                                            <div className="w-24 h-16 rounded-[12px] bg-stone-100 dark:bg-slate-800 shrink-0 overflow-hidden relative group cursor-pointer border border-stone-200 dark:border-slate-700" onClick={() => setActiveModule(module)}>
                                                 {module.thumbnail ? (
                                                     <img src={module.thumbnail} alt={module.title} className="w-full h-full object-cover" />
                                                 ) : (
@@ -803,7 +803,7 @@ const MyCourses: React.FC<MyCoursesProps> = ({ courses }) => {
                                             </div>
                                             <button
                                                 onClick={() => setActiveModule(module)}
-                                                className="shrink-0 flex items-center gap-2 bg-violet-700 text-white px-4 py-2 rounded-full text-xs font-bold hover:bg-violet-800 transition-colors shadow-sm cursor-pointer"
+                                                className="shrink-0 flex items-center gap-2 bg-violet-700 text-white px-4 py-2 rounded-full text-xs font-bold hover:bg-brand-mid transition-colors shadow-sm cursor-pointer"
                                             >
                                                 <PlayCircle size={16} /> Play
                                             </button>
@@ -813,7 +813,7 @@ const MyCourses: React.FC<MyCoursesProps> = ({ courses }) => {
                             ) : (
                                 <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-6">
                                     {selectedCourse.modules.map((module: any, idx: number) => (
-                                        <div key={idx} className="bg-white dark:bg-slate-900 rounded-2xl border border-stone-200 dark:border-slate-800 overflow-hidden shadow-sm flex flex-col transition-shadow">
+                                        <div key={idx} className="bg-white dark:bg-night-2 rounded-[22px] overflow-hidden flex flex-col transition-shadow">
                                             <div className="h-32 bg-stone-100 dark:bg-slate-800 relative group cursor-pointer border-b border-stone-100 dark:border-slate-800/80" onClick={() => setActiveModule(module)}>
                                                 {module.thumbnail ? (
                                                     <img src={module.thumbnail} alt={module.title} className="w-full h-full object-cover" />
@@ -833,7 +833,7 @@ const MyCourses: React.FC<MyCoursesProps> = ({ courses }) => {
                                                 </div>
                                                 <button
                                                     onClick={() => setActiveModule(module)}
-                                                    className="w-full flex items-center justify-center gap-2 bg-violet-700 text-white py-2 rounded-xl text-xs font-bold hover:bg-violet-800 transition-colors shadow-sm cursor-pointer"
+                                                    className="w-full flex items-center justify-center gap-2 bg-violet-700 text-white py-2 rounded-[14px] text-xs font-bold hover:bg-brand-mid transition-colors shadow-sm cursor-pointer"
                                                 >
                                                     <PlayCircle size={14} /> Play
                                                 </button>
@@ -851,10 +851,10 @@ const MyCourses: React.FC<MyCoursesProps> = ({ courses }) => {
                 </div>
 
                 {/* Student Reviews Section */}
-                <div className="mt-8 bg-white dark:bg-slate-900 rounded-2xl border border-stone-100 dark:border-slate-800 shadow-sm overflow-hidden p-6 md:p-8">
+                <div className="mt-8 bg-white dark:bg-night-2 rounded-[22px] overflow-hidden p-6 md:p-8">
                     <div className="flex items-center justify-between border-b border-stone-50 dark:border-slate-800/80 pb-6 mb-6">
                         <div>
-                            <h3 className="font-serif text-xl font-semibold text-stone-900 dark:text-white">Student Reviews & Feedback</h3>
+                            <h3 className="tracking-[-0.02em] text-xl font-semibold text-stone-900 dark:text-white">Student Reviews & Feedback</h3>
                             <p className="text-xs text-stone-600 dark:text-slate-400 mt-1">Read reviews from other students enrolled in this course.</p>
                         </div>
                         <div className="flex items-center gap-2">
@@ -876,7 +876,7 @@ const MyCourses: React.FC<MyCoursesProps> = ({ courses }) => {
                             <p className="text-sm text-stone-600 text-center py-6">No reviews posted yet. Be the first to share your experience!</p>
                         ) : (
                             getReviews(selectedCourse.id).map((r: any) => (
-                                <div key={r.id} className="flex gap-4 p-4 rounded-2xl bg-stone-50 dark:bg-slate-800/40 border border-stone-100 dark:border-slate-800/60">
+                                <div key={r.id} className="flex gap-4 p-4 rounded-[22px] bg-stone-50 dark:bg-slate-800/40 border border-stone-100 dark:border-slate-800/60">
                                     <div className="w-10 h-10 rounded-full overflow-hidden shrink-0 border border-stone-100 dark:border-slate-800">
                                         <img 
                                             src={r.userAvatar} 
@@ -974,16 +974,16 @@ const MyCourses: React.FC<MyCoursesProps> = ({ courses }) => {
             {/* Header and Filters */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
-                    <h2 className="text-2xl font-semibold text-stone-900 dark:text-white font-serif">{t('my_learning')}</h2>
+                    <h2 className="m-0 text-[26px] sm:text-[30px] font-extrabold text-ink dark:text-white tracking-[-0.02em]">{t('my_learning')}</h2>
                     <p className="text-stone-600 dark:text-slate-400">{t('ongoing_courses')}</p>
                 </div>
 
-                <div className="flex items-center gap-3 bg-white dark:bg-slate-900 p-1 rounded-xl border border-stone-200 dark:border-slate-800 shadow-sm overflow-hidden">
+                <div className="flex items-center gap-3 bg-white dark:bg-night-2 p-1 rounded-[14px] overflow-hidden">
                     {['ALL', 'IN_PROGRESS', 'COMPLETED'].map((tab) => (
                         <button
                             key={tab}
                             onClick={() => setFilter(tab)}
-                            className={`px-4 py-2 rounded-lg text-xs font-bold transition-colors ${filter === tab
+                            className={`px-4 py-2 rounded-[12px] text-xs font-bold transition-colors ${filter === tab
                                 ? 'bg-violet-700 text-white shadow-sm'
                                 : 'text-stone-600 dark:text-slate-400 hover:bg-stone-50 dark:hover:bg-slate-800'
                                 }`}
@@ -1003,8 +1003,8 @@ const MyCourses: React.FC<MyCoursesProps> = ({ courses }) => {
 
             {/* Stats Overview */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <div className="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-stone-100 dark:border-slate-800 flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-full bg-blue-50 dark:bg-blue-950/30 text-blue-600 dark:text-blue-400 flex items-center justify-center font-bold text-lg">
+                <div className="bg-white dark:bg-night-2 p-4 rounded-[22px] flex items-center gap-4">
+                    <div className="w-12 h-12 rounded-full bg-brand-soft dark:bg-blue-950/30 text-brand dark:text-blue-400 flex items-center justify-center font-bold text-lg">
                         {myCourses.length}
                     </div>
                     <div>
@@ -1012,7 +1012,7 @@ const MyCourses: React.FC<MyCoursesProps> = ({ courses }) => {
                         <p className="font-bold text-stone-900 dark:text-white">Courses</p>
                     </div>
                 </div>
-                <div className="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-stone-100 dark:border-slate-800 flex items-center gap-4">
+                <div className="bg-white dark:bg-night-2 p-4 rounded-[22px] flex items-center gap-4">
                     <div className="w-12 h-12 rounded-full bg-violet-50 dark:bg-violet-950/30 text-violet-700 dark:text-violet-400 flex items-center justify-center font-bold text-lg">
                         {inProgressCount}
                     </div>
@@ -1021,8 +1021,8 @@ const MyCourses: React.FC<MyCoursesProps> = ({ courses }) => {
                         <p className="font-bold text-stone-900 dark:text-white">In Progress</p>
                     </div>
                 </div>
-                <div className="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-stone-100 dark:border-slate-800 flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-full bg-green-50 dark:bg-green-950/30 text-green-600 dark:text-green-400 flex items-center justify-center font-bold text-lg">
+                <div className="bg-white dark:bg-night-2 p-4 rounded-[22px] flex items-center gap-4">
+                    <div className="w-12 h-12 rounded-full bg-mint-soft dark:bg-green-950/30 text-mint dark:text-green-400 flex items-center justify-center font-bold text-lg">
                         {completedCount}
                     </div>
                     <div>
@@ -1047,7 +1047,7 @@ const MyCourses: React.FC<MyCoursesProps> = ({ courses }) => {
                     ))}
                 </div>
             ) : (
-                <div className="text-center py-20 bg-white dark:bg-slate-900 rounded-2xl border border-dashed border-stone-200 dark:border-slate-800">
+                <div className="text-center py-20 bg-white dark:bg-night-2 rounded-[22px] border-dashed">
                     <div className="w-16 h-16 bg-stone-50 dark:bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-4 text-stone-500 dark:text-slate-500">
                         <Search size={24} />
                     </div>

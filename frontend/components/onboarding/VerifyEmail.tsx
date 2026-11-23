@@ -72,26 +72,26 @@ const VerifyEmail: React.FC = () => {
 
     return (
         <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col items-center justify-center p-4">
-            <div className="w-full max-w-md bg-white dark:bg-slate-900 rounded-3xl p-8 shadow-xl border border-gray-100 dark:border-slate-800 text-center">
+            <div className="w-full max-w-md bg-white dark:bg-night-2 rounded-[26px] p-8 shadow-xl text-center">
                 
                 {status === 'waiting' ? (
                     <>
                         <div className="w-16 h-16 rounded-full bg-violet-100 dark:bg-violet-900/30 flex items-center justify-center mx-auto mb-6">
                             <Mail className="w-8 h-8 text-violet-600 dark:text-violet-400" />
                         </div>
-                        <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">Check your email</h2>
-                        <p className="text-sm text-gray-500 dark:text-slate-400 mb-6">
+                        <h2 className="text-2xl font-bold text-stone-900 dark:text-white mb-4">Check your email</h2>
+                        <p className="text-sm text-stone-500 dark:text-slate-400 mb-6">
                             We've sent a verification link to <br/>
-                            <span className="font-semibold text-gray-900 dark:text-white mt-1 block text-base">{email || 'your email address'}</span>
+                            <span className="font-semibold text-stone-900 dark:text-white mt-1 block text-base">{email || 'your email address'}</span>
                         </p>
-                        <div className="p-4 bg-slate-50 dark:bg-slate-800 rounded-xl mb-6 text-left text-xs text-gray-600 dark:text-slate-300 space-y-2">
+                        <div className="p-4 bg-slate-50 dark:bg-slate-800 rounded-[14px] mb-6 text-left text-xs text-stone-600 dark:text-slate-300 space-y-2">
                             <p>• Click the link in your email to verify and unlock your account.</p>
                             <p>• If you don't see it in 1-2 minutes, check your <strong>Spam / Junk</strong> folder.</p>
                             <p>• If you already created an account previously, you can log in directly.</p>
                         </div>
 
                         {resendMessage && (
-                            <div className="mb-4 p-3 rounded-lg text-xs bg-violet-50 dark:bg-violet-900/30 text-violet-700 dark:text-violet-300 border border-violet-200 dark:border-violet-800">
+                            <div className="mb-4 p-3 rounded-[12px] text-xs bg-violet-50 dark:bg-violet-900/30 text-violet-700 dark:text-violet-300 border border-violet-200 dark:border-violet-800">
                                 {resendMessage}
                             </div>
                         )}
@@ -101,14 +101,14 @@ const VerifyEmail: React.FC = () => {
                                 type="button"
                                 onClick={handleResendEmail}
                                 disabled={resending || resendCooldown > 0 || !email}
-                                className="w-full py-2.5 px-4 bg-violet-600 hover:bg-violet-700 text-white rounded-xl text-sm font-semibold transition disabled:opacity-50 disabled:cursor-not-allowed"
+                                className="w-full py-2.5 px-4 bg-violet-600 hover:bg-violet-700 text-white rounded-[14px] text-sm font-semibold transition disabled:opacity-50 disabled:cursor-not-allowed"
                             >
                                 {resending ? 'Sending...' : resendCooldown > 0 ? `Resend email in ${resendCooldown}s` : 'Resend verification email'}
                             </button>
 
                             <Link
                                 to="/login"
-                                className="w-full py-2.5 px-4 border border-gray-200 dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-800 text-gray-700 dark:text-slate-200 rounded-xl text-sm font-medium transition"
+                                className="w-full py-2.5 px-4 border border-stone-200 dark:border-slate-700 hover:bg-stone-50 dark:hover:bg-slate-800 text-stone-700 dark:text-slate-200 rounded-[14px] text-sm font-medium transition"
                             >
                                 Already verified? Log In
                             </Link>
@@ -116,17 +116,17 @@ const VerifyEmail: React.FC = () => {
                     </>
                 ) : (
                     <>
-                        <div className="w-16 h-16 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center mx-auto mb-6">
-                            <CheckCircle className="w-8 h-8 text-green-600 dark:text-green-400" />
+                        <div className="w-16 h-16 rounded-full bg-mint-soft dark:bg-green-900/30 flex items-center justify-center mx-auto mb-6">
+                            <CheckCircle className="w-8 h-8 text-mint dark:text-green-400" />
                         </div>
-                        <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">Email Verified!</h2>
-                        <p className="text-sm text-gray-500 dark:text-slate-400 mb-8">
+                        <h2 className="text-2xl font-bold text-stone-900 dark:text-white mb-4">Email Verified!</h2>
+                        <p className="text-sm text-stone-500 dark:text-slate-400 mb-8">
                             Taking you to the next step...
                         </p>
                     </>
                 )}
 
-                <p className="text-xs text-center text-gray-500 mt-6">
+                <p className="text-xs text-center text-stone-500 mt-6">
                     Wrong email or want to use another account? <Link to="/signup" className="text-violet-600 font-bold hover:underline">Sign up again</Link>
                 </p>
             </div>

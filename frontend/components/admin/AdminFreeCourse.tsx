@@ -27,7 +27,7 @@ interface Learner { user_id: string; name: string; email: string; enrolled_at: s
 
 interface StaffRow { id: string; display_name: string; staff_code: string; slug: string; role: string | null; active: boolean }
 
-const card = 'bg-white dark:bg-slate-900 rounded-2xl border border-gray-100 dark:border-slate-800 shadow-sm';
+const card = 'bg-white dark:bg-night-2 rounded-[22px]';
 const pct = (n: number, d: number) => (d > 0 ? Math.round((n / d) * 100) : 0);
 
 const itemTitle = (id: string) => ALL_ITEMS.find(i => i.id === id)?.title || id;
@@ -137,20 +137,20 @@ const AdminFreeCourse: React.FC = () => {
             <div className="flex flex-wrap items-start justify-between gap-3">
                 <div>
                     <h1 className="text-2xl font-bold">Free Course: AI Fundamentals</h1>
-                    <p className="text-sm text-gray-500 dark:text-slate-400">Registration, progress, completion and staff results. Updates every minute.</p>
+                    <p className="text-sm text-stone-500 dark:text-slate-400">Registration, progress, completion and staff results. Updates every minute.</p>
                 </div>
                 <div className="flex gap-2">
-                    <button onClick={exportCsv} disabled={!stats} className="inline-flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium border border-gray-200 dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-800 disabled:opacity-50"><Download size={16} /> Export funnel</button>
-                    <button onClick={() => void load()} className="inline-flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium bg-violet-600 hover:bg-violet-700 text-white"><RefreshCw size={16} className={loading ? 'animate-spin' : ''} /> Refresh</button>
+                    <button onClick={exportCsv} disabled={!stats} className="inline-flex items-center gap-2 px-3 py-2 rounded-[12px] text-sm font-medium border border-stone-200 dark:border-slate-700 hover:bg-stone-50 dark:hover:bg-slate-800 disabled:opacity-50"><Download size={16} /> Export funnel</button>
+                    <button onClick={() => void load()} className="inline-flex items-center gap-2 px-3 py-2 rounded-[12px] text-sm font-medium bg-violet-600 hover:bg-violet-700 text-white"><RefreshCw size={16} className={loading ? 'animate-spin' : ''} /> Refresh</button>
                 </div>
             </div>
 
-            {loading && !stats && <div className="flex items-center gap-2 text-gray-500"><Loader2 className="animate-spin" size={18} /> Loading statistics...</div>}
+            {loading && !stats && <div className="flex items-center gap-2 text-stone-500"><Loader2 className="animate-spin" size={18} /> Loading statistics...</div>}
 
             {error?.kind === 'auth' && <AdminAuthPrompt onSignedIn={() => void load()} />}
 
             {error && error.kind !== 'auth' && (
-                <div className="rounded-2xl border border-amber-300 bg-amber-50 dark:bg-amber-950/30 dark:border-amber-900 p-5 flex gap-3">
+                <div className="rounded-[22px] border border-amber-300 bg-amber-50 dark:bg-amber-950/30 dark:border-amber-900 p-5 flex gap-3">
                     <AlertTriangle className="text-amber-600 shrink-0" />
                     <div className="text-sm">
                         {error.kind === 'missing' && <><p className="font-semibold">The free-course database objects are not installed yet</p><p className="mt-1">Run <code>20261111000000_free_course_foundation.sql</code> and then <code>20261111010000_staff_portal_live_admin_server_grading.sql</code> from <code>supabase/migrations</code> in the Supabase SQL Editor (both only add new objects), then refresh.</p></>}
@@ -172,9 +172,9 @@ const AdminFreeCourse: React.FC = () => {
                             { label: 'Avg rating', value: stats.avg_rating ?? '-', icon: Star, sub: `${stats.ratings} ratings` }
                         ].map(k => (
                             <div key={k.label} className={`${card} p-4`}>
-                                <div className="flex items-center justify-between text-gray-500 dark:text-slate-400"><span className="text-xs font-semibold uppercase tracking-wide">{k.label}</span><k.icon size={16} /></div>
+                                <div className="flex items-center justify-between text-stone-500 dark:text-slate-400"><span className="text-xs font-semibold uppercase tracking-wide">{k.label}</span><k.icon size={16} /></div>
                                 <p className="text-3xl font-extrabold mt-2">{k.value}</p>
-                                <p className="text-xs text-gray-500 dark:text-slate-400 mt-1">{k.sub}</p>
+                                <p className="text-xs text-stone-500 dark:text-slate-400 mt-1">{k.sub}</p>
                             </div>
                         ))}
                     </div>
@@ -185,7 +185,7 @@ const AdminFreeCourse: React.FC = () => {
                     <div className="grid xl:grid-cols-2 gap-6">
                         <div className={`${card} p-5`}>
                             <h2 className="font-bold">Learner funnel</h2>
-                            <p className="text-xs text-gray-500 dark:text-slate-400 mb-3">A learner counts at a module once they have completed at least one item in it.</p>
+                            <p className="text-xs text-stone-500 dark:text-slate-400 mb-3">A learner counts at a module once they have completed at least one item in it.</p>
                             <div className="h-80">
                                 <ResponsiveContainer width="100%" height="100%">
                                     <BarChart data={funnel} layout="vertical" margin={{ left: 10, right: 20 }}>
@@ -219,16 +219,16 @@ const AdminFreeCourse: React.FC = () => {
                     <div className="grid xl:grid-cols-2 gap-6">
                         <div className={`${card} p-5`}>
                             <h2 className="font-bold flex items-center gap-2"><Trophy size={18} className="text-amber-500" /> Staff leaderboard</h2>
-                            <p className="text-xs text-gray-500 dark:text-slate-400 mb-3">Points: registered 1, started 2, completed 5. First referral wins; staff-registered students count for the registrar.</p>
-                            {stats.leaderboard.length === 0 ? <p className="text-sm text-gray-500">No attributed registrations yet. Share the staff links below.</p> : (
+                            <p className="text-xs text-stone-500 dark:text-slate-400 mb-3">Points: registered 1, started 2, completed 5. First referral wins; staff-registered students count for the registrar.</p>
+                            {stats.leaderboard.length === 0 ? <p className="text-sm text-stone-500">No attributed registrations yet. Share the staff links below.</p> : (
                                 <div className="overflow-x-auto">
                                     <table className="w-full text-sm">
-                                        <thead><tr className="text-left text-xs uppercase text-gray-500"><th className="py-2">#</th><th>Staff</th><th className="text-right">Clicks</th><th className="text-right">Reg.</th><th className="text-right">Started</th><th className="text-right">Done</th><th className="text-right">Pts</th></tr></thead>
+                                        <thead><tr className="text-left text-xs uppercase text-stone-500"><th className="py-2">#</th><th>Staff</th><th className="text-right">Clicks</th><th className="text-right">Reg.</th><th className="text-right">Started</th><th className="text-right">Done</th><th className="text-right">Pts</th></tr></thead>
                                         <tbody>
                                             {stats.leaderboard.map((l, i) => (
-                                                <tr key={l.id} className="border-t border-gray-100 dark:border-slate-800">
+                                                <tr key={l.id} className="border-t border-stone-100 dark:border-slate-800">
                                                     <td className="py-2 font-semibold">{i + 1}</td>
-                                                    <td><span className="font-medium">{l.display_name}</span><span className="block text-xs text-gray-500">{l.staff_code}</span></td>
+                                                    <td><span className="font-medium">{l.display_name}</span><span className="block text-xs text-stone-500">{l.staff_code}</span></td>
                                                     <td className="text-right">{l.clicks}</td><td className="text-right">{l.signups}</td><td className="text-right">{l.started}</td><td className="text-right">{l.completed}</td>
                                                     <td className="text-right font-bold text-violet-600">{l.points}</td>
                                                 </tr>
@@ -241,23 +241,23 @@ const AdminFreeCourse: React.FC = () => {
 
                         <div className={`${card} p-5`}>
                             <h2 className="font-bold">Staff referral links</h2>
-                            <p className="text-xs text-gray-500 dark:text-slate-400 mb-3">Each link leads to the free course. Students never see the staff code.</p>
-                            <ul className="divide-y divide-gray-100 dark:divide-slate-800 max-h-72 overflow-y-auto">
+                            <p className="text-xs text-stone-500 dark:text-slate-400 mb-3">Each link leads to the free course. Students never see the staff code.</p>
+                            <ul className="divide-y divide-stone-100 dark:divide-slate-800 max-h-72 overflow-y-auto">
                                 {staff.filter(s => s.active).map(s => {
                                     const link = `${origin}/r/${s.slug}`;
                                     return (
                                         <li key={s.id} className="py-2.5 flex items-center gap-3">
                                             <div className="min-w-0 flex-1">
                                                 <p className="text-sm font-medium truncate">{s.display_name}</p>
-                                                <p className="text-xs text-gray-500 truncate">{link}</p>
+                                                <p className="text-xs text-stone-500 truncate">{link}</p>
                                             </div>
-                                            <button onClick={() => copy(link, s.id)} className="shrink-0 inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium border border-gray-200 dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-800">
+                                            <button onClick={() => copy(link, s.id)} className="shrink-0 inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-[12px] text-xs font-medium border border-stone-200 dark:border-slate-700 hover:bg-stone-50 dark:hover:bg-slate-800">
                                                 {copied === s.id ? <><Check size={14} /> Copied</> : <><Copy size={14} /> Copy</>}
                                             </button>
                                         </li>
                                     );
                                 })}
-                                {staff.length === 0 && <li className="py-3 text-sm text-gray-500">No staff members found.</li>}
+                                {staff.length === 0 && <li className="py-3 text-sm text-stone-500">No staff members found.</li>}
                             </ul>
                         </div>
                     </div>
@@ -269,33 +269,33 @@ const AdminFreeCourse: React.FC = () => {
                             <table className="w-full text-sm mt-3">
                                 <tbody>
                                     {stats.by_source.map(s => (
-                                        <tr key={s.source} className="border-t border-gray-100 dark:border-slate-800">
+                                        <tr key={s.source} className="border-t border-stone-100 dark:border-slate-800">
                                             <td className="py-2 capitalize">{s.source.replace('_', ' ')}</td>
                                             <td className="text-right font-semibold">{s.learners}</td>
-                                            <td className="text-right text-gray-500 w-16">{pct(s.learners, stats.enrolled)}%</td>
+                                            <td className="text-right text-stone-500 w-16">{pct(s.learners, stats.enrolled)}%</td>
                                         </tr>
                                     ))}
-                                    {stats.by_source.length === 0 && <tr><td className="py-3 text-gray-500">No registrations yet.</td></tr>}
+                                    {stats.by_source.length === 0 && <tr><td className="py-3 text-stone-500">No registrations yet.</td></tr>}
                                 </tbody>
                             </table>
                         </div>
 
                         <div className={`${card} p-5`}>
                             <h2 className="font-bold">Quiz performance</h2>
-                            <p className="text-xs text-gray-500 dark:text-slate-400 mb-3">A pass rate under 50% can mean a confusing lesson or a badly worded question.</p>
+                            <p className="text-xs text-stone-500 dark:text-slate-400 mb-3">A pass rate under 50% can mean a confusing lesson or a badly worded question.</p>
                             <div className="overflow-x-auto">
                                 <table className="w-full text-sm">
-                                    <thead><tr className="text-left text-xs uppercase text-gray-500"><th className="py-2">Quiz</th><th className="text-right">Learners</th><th className="text-right">Attempts</th><th className="text-right">Pass</th><th className="text-right">Avg</th></tr></thead>
+                                    <thead><tr className="text-left text-xs uppercase text-stone-500"><th className="py-2">Quiz</th><th className="text-right">Learners</th><th className="text-right">Attempts</th><th className="text-right">Pass</th><th className="text-right">Avg</th></tr></thead>
                                     <tbody>
                                         {stats.quizzes.map(q => (
-                                            <tr key={q.quiz} className="border-t border-gray-100 dark:border-slate-800">
+                                            <tr key={q.quiz} className="border-t border-stone-100 dark:border-slate-800">
                                                 <td className="py-2">{quizTitle(q.quiz)}</td>
                                                 <td className="text-right">{q.learners}</td><td className="text-right">{q.attempts}</td>
                                                 <td className={`text-right font-semibold ${q.pass_rate < 50 ? 'text-red-600' : ''}`}>{q.pass_rate}%</td>
                                                 <td className="text-right">{q.avg_score}%</td>
                                             </tr>
                                         ))}
-                                        {stats.quizzes.length === 0 && <tr><td colSpan={5} className="py-3 text-gray-500">No quiz attempts yet.</td></tr>}
+                                        {stats.quizzes.length === 0 && <tr><td colSpan={5} className="py-3 text-stone-500">No quiz attempts yet.</td></tr>}
                                     </tbody>
                                 </table>
                             </div>
@@ -307,26 +307,26 @@ const AdminFreeCourse: React.FC = () => {
                         <div className="flex flex-wrap items-center justify-between gap-3">
                             <h2 className="font-bold">Learners ({learners.length})</h2>
                             <div className="flex gap-2">
-                                <div className="relative"><Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" /><input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search name, email, staff" className="pl-8 pr-3 py-2 rounded-lg border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm" /></div>
-                                <button onClick={exportLearners} className="inline-flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium border border-gray-200 dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-800"><Download size={14} /> CSV</button>
+                                <div className="relative"><Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-stone-400" /><input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search name, email, staff" className="pl-8 pr-3 py-2 rounded-[12px] bg-white dark:bg-night-2 text-sm" /></div>
+                                <button onClick={exportLearners} className="inline-flex items-center gap-2 px-3 py-2 rounded-[12px] text-sm font-medium border border-stone-200 dark:border-slate-700 hover:bg-stone-50 dark:hover:bg-slate-800"><Download size={14} /> CSV</button>
                             </div>
                         </div>
                         <div className="overflow-x-auto mt-3 max-h-96 overflow-y-auto">
                             <table className="w-full text-sm">
-                                <thead className="sticky top-0 bg-white dark:bg-slate-900"><tr className="text-left text-xs uppercase text-gray-500"><th className="py-2">Learner</th><th>Joined</th><th>Source</th><th>Staff</th><th className="text-right">Progress</th><th>Last active</th><th>Status</th></tr></thead>
+                                <thead className="sticky top-0 bg-white dark:bg-slate-900"><tr className="text-left text-xs uppercase text-stone-500"><th className="py-2">Learner</th><th>Joined</th><th>Source</th><th>Staff</th><th className="text-right">Progress</th><th>Last active</th><th>Status</th></tr></thead>
                                 <tbody>
                                     {filteredLearners.map(l => (
-                                        <tr key={l.user_id} className="border-t border-gray-100 dark:border-slate-800">
-                                            <td className="py-2"><span className="font-medium">{l.name || 'Unnamed'}</span><span className="block text-xs text-gray-500">{l.email}</span></td>
+                                        <tr key={l.user_id} className="border-t border-stone-100 dark:border-slate-800">
+                                            <td className="py-2"><span className="font-medium">{l.name || 'Unnamed'}</span><span className="block text-xs text-stone-500">{l.email}</span></td>
                                             <td className="whitespace-nowrap">{new Date(l.enrolled_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}</td>
                                             <td className="capitalize">{l.source.replace('_', ' ')}</td>
                                             <td>{l.staff || '-'}</td>
                                             <td className="text-right">{Math.round((l.items_done / ALL_ITEMS.length) * 100)}%</td>
                                             <td className="whitespace-nowrap">{l.last_active ? new Date(l.last_active).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) : '-'}</td>
-                                            <td>{l.certificate_id ? <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800">Certified</span> : l.final_passed ? <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-violet-100 text-violet-800">Passed final</span> : l.items_done > 0 ? <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-amber-100 text-amber-800">Learning</span> : <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-gray-200 text-gray-700">Not started</span>}</td>
+                                            <td>{l.certificate_id ? <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-mint-soft text-emerald-800">Certified</span> : l.final_passed ? <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-violet-100 text-violet-800">Passed final</span> : l.items_done > 0 ? <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-amber-100 text-amber-800">Learning</span> : <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-stone-200 text-stone-700">Not started</span>}</td>
                                         </tr>
                                     ))}
-                                    {filteredLearners.length === 0 && <tr><td colSpan={7} className="py-4 text-gray-500">No learners match.</td></tr>}
+                                    {filteredLearners.length === 0 && <tr><td colSpan={7} className="py-4 text-stone-500">No learners match.</td></tr>}
                                 </tbody>
                             </table>
                         </div>
@@ -338,13 +338,13 @@ const AdminFreeCourse: React.FC = () => {
                         <div className="mt-3 space-y-1.5">
                             {MODULES.map(m => (
                                 <div key={m.id}>
-                                    <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 mt-3 mb-1">{m.number === 0 ? 'Welcome' : `Module ${m.number}: ${m.title}`}</p>
+                                    <p className="text-xs font-semibold uppercase tracking-wide text-stone-500 mt-3 mb-1">{m.number === 0 ? 'Welcome' : `Module ${m.number}: ${m.title}`}</p>
                                     {m.items.map(i => {
                                         const n = itemCounts[i.id] || 0;
                                         return (
                                             <div key={i.id} className="flex items-center gap-3 text-sm">
                                                 <span className="w-56 sm:w-72 truncate shrink-0">{i.title}</span>
-                                                <div className="flex-1 h-2.5 rounded-full bg-gray-100 dark:bg-slate-800 overflow-hidden"><div className="h-full bg-violet-500 rounded-full" style={{ width: `${(n / maxItem) * 100}%` }} /></div>
+                                                <div className="flex-1 h-2.5 rounded-full bg-stone-100 dark:bg-slate-800 overflow-hidden"><div className="h-full bg-violet-500 rounded-full" style={{ width: `${(n / maxItem) * 100}%` }} /></div>
                                                 <span className="w-10 text-right font-semibold">{n}</span>
                                             </div>
                                         );

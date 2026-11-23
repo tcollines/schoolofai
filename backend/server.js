@@ -613,8 +613,27 @@ app.post('/api/payments/marzpay/webhook', async (req, res) => {
 // ----------------------------------------------------
 // Admin Wallet & Ledger Routes (/api/admin/wallet/*)
 // ----------------------------------------------------
-app.get('/api/admin/wallet/ledger', (req, res) => {
+app.get('/api/admin/wallet/ledger', async (req, res) => {
     try {
+        const authHeader = req.headers.authorization;
+        if (authHeader && supabase) {
+            try {
+                const { createClient } = require('@supabase/supabase-js');
+                const supabaseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
+                const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY;
+                const adminSb = createClient(supabaseUrl, supabaseKey, {
+                    global: { headers: { Authorization: authHeader } }
+                });
+                const [profRes, enrRes, crsRes] = await Promise.all([
+                    adminSb.from('profiles').select('*'),
+                    adminSb.from('enrollments').select('*'),
+                    adminSb.from('courses').select('id, title, category, sections')
+                ]);
+                await marzpayService.syncFromSupabase(adminSb, profRes.data || [], enrRes.data || [], crsRes.data || []);
+            } catch (syncErr) {
+                console.warn('[Admin Wallet] Supabase sync warning:', syncErr.message);
+            }
+        }
         const data = marzpayService.getWalletLedger();
         res.json({
             success: true,
@@ -626,15 +645,36 @@ app.get('/api/admin/wallet/ledger', (req, res) => {
     }
 });
 
+app.post('/api/admin/wallet/sync', async (req, res) => {
+    try {
+        const { profiles = [], enrollments = [], courses = [] } = req.body || {};
+        await marzpayService.syncFromSupabase(null, profiles, enrollments, courses);
+        const data = marzpayService.getWalletLedger();
+        res.json({
+            success: true,
+            ...data
+        });
+    } catch (err) {
+        console.error('[Admin Wallet] Error syncing ledger:', err.message);
+        res.status(500).json({ error: err.message });
+    }
+});
+
 app.post('/api/admin/wallet/transaction', (req, res) => {
     try {
-        const { type, amount, usdAmount, description, method, category, recipient, sender, notes } = req.body;
-        if (!amount || isNaN(Number(amount))) {
-            return res.status(400).json({ error: 'Valid amount is required.' });
-        }
-
-        const entry = marzpayService.recordManualTransaction({
+        const {
+            reference,
             type,
+            paymentType,
+            plan,
+            itemTitle,
+            companyName,
+            seats,
+            userId,
+            userEmail,
+            userName,
+            phoneNumber,
+            promoCode,
             amount,
             usdAmount,
             description,
@@ -642,6 +682,34 @@ app.post('/api/admin/wallet/transaction', (req, res) => {
             category,
             recipient,
             sender,
+            status,
+            notes
+        } = req.body;
+        if (!amount || isNaN(Number(amount))) {
+            return res.status(400).json({ error: 'Valid amount is required.' });
+        }
+
+        const entry = marzpayService.recordManualTransaction({
+            reference,
+            type,
+            paymentType,
+            plan,
+            itemTitle,
+            companyName,
+            seats,
+            userId,
+            userEmail,
+            userName,
+            phoneNumber,
+            promoCode,
+            amount,
+            usdAmount,
+            description,
+            method,
+            category,
+            recipient,
+            sender,
+            status,
             notes
         });
 
@@ -790,7 +858,11 @@ app.post('/api/corporate/provision', async (req, res) => {
 });
 
 if (require.main === module) {
-    app.listen(port, () => {
+    app.listen(port, (err) => {
+        if (err) {
+            console.error(`Failed to start Backend API server on port ${port}:`, err.message);
+            process.exit(1);
+        }
         console.log(`Backend API server running on http://localhost:${port}`);
     });
 }

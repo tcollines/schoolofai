@@ -16,11 +16,11 @@ const CourseCard: React.FC<CourseCardProps> = ({ course, onClick }) => {
   const getStatusColor = (status: CourseStatus) => {
     switch (status) {
       case CourseStatus.COMPLETED:
-        return 'bg-green-100 dark:bg-green-950/30 text-green-700 dark:text-green-400';
+        return 'bg-mint-soft dark:bg-green-950/30 text-mint dark:text-green-400';
       case CourseStatus.IN_PROGRESS:
-        return 'bg-purple-100 dark:bg-purple-950/30 text-purple-700 dark:text-purple-400';
+        return 'bg-brand-soft dark:bg-purple-950/30 text-brand dark:text-purple-400';
       default:
-        return 'bg-gray-100 dark:bg-slate-800 text-gray-700 dark:text-slate-300';
+        return 'bg-stone-100 dark:bg-slate-800 text-stone-700 dark:text-slate-300';
     }
   };
 
@@ -38,7 +38,7 @@ const CourseCard: React.FC<CourseCardProps> = ({ course, onClick }) => {
   return (
     <div
       onClick={onClick}
-      className="bg-white dark:bg-slate-900 rounded-3xl border border-gray-100 dark:border-slate-800 overflow-hidden hover:shadow-xl hover:transform hover:-translate-y-1 hover:border-welile-purple dark:hover:border-purple-600 transition-all duration-300 group flex flex-col h-full cursor-pointer"
+      className="bg-white dark:bg-night-2 rounded-[26px] overflow-hidden hover:shadow-xl hover:transform hover:-translate-y-1 hover:border-welile-purple dark:hover:border-brand transition-all duration-300 group flex flex-col h-full cursor-pointer"
     >
       {/* Course Image */}
       <div className="relative h-48 overflow-hidden">
@@ -54,7 +54,7 @@ const CourseCard: React.FC<CourseCardProps> = ({ course, onClick }) => {
             }}
           />
         ) : (
-          <div className="w-full h-full bg-gradient-to-br from-violet-500 to-purple-700 flex items-center justify-center">
+          <div className="w-full h-full bg-gradient-to-br from-violet-500 to-brand flex items-center justify-center">
             <span className="text-white/80 font-bold text-5xl">{course.title.charAt(0).toUpperCase()}</span>
           </div>
         )}
@@ -76,15 +76,15 @@ const CourseCard: React.FC<CourseCardProps> = ({ course, onClick }) => {
       {/* Content */}
       <div className="p-5 flex flex-col flex-grow">
         <div className="flex justify-between items-start mb-2">
-          <span className="text-xs font-bold text-gray-500 dark:text-slate-400 uppercase tracking-wider">{course.category}</span>
+          <span className="text-xs font-bold text-stone-500 dark:text-slate-400 uppercase tracking-wider">{course.category}</span>
           <div className="flex items-center gap-1 text-amber-400 text-xs font-bold">
             <span><Star className="inline-block w-4 h-4 mr-1 align-middle" /></span> <span>{course.rating}</span>
           </div>
         </div>
 
-        <h3 className="font-bold text-lg text-gray-900 dark:text-white mb-1 line-clamp-2">{course.title}</h3>
+        <h3 className="font-bold text-lg text-stone-900 dark:text-white mb-1 line-clamp-2">{course.title}</h3>
         <div className="flex items-center gap-2 mb-4">
-          <div className="w-6 h-6 rounded-full border border-gray-100 dark:border-slate-800 overflow-hidden flex items-center justify-center bg-gray-50 dark:bg-slate-850 shrink-0">
+          <div className="w-6 h-6 rounded-full border border-stone-100 dark:border-slate-800 overflow-hidden flex items-center justify-center bg-stone-50 dark:bg-slate-850 shrink-0">
             {course.instructorAvatar ? (
               (course.instructorAvatar.startsWith('http') || course.instructorAvatar.startsWith('data:image')) ? (
                 <img src={course.instructorAvatar} alt={course.instructor} className="w-full h-full object-cover" />
@@ -95,19 +95,19 @@ const CourseCard: React.FC<CourseCardProps> = ({ course, onClick }) => {
               <img src={`https://api.dicebear.com/7.x/initials/svg?seed=${course.instructor}`} alt={course.instructor} className="w-full h-full object-cover" />
             )}
           </div>
-          <span className="text-sm text-gray-700 dark:text-slate-300 font-medium">{course.instructor}</span>
+          <span className="text-sm text-stone-700 dark:text-slate-300 font-medium">{course.instructor}</span>
         </div>
 
         <div className="mt-auto">
           {/* Progress Section */}
           <div className="mb-4">
             <div className="flex justify-between text-xs mb-1.5">
-              <span className="font-medium text-gray-600 dark:text-slate-300">
+              <span className="font-medium text-stone-600 dark:text-slate-300">
                 {course.lessonsCompleted} / {course.lessonsTotal} Lessons
               </span>
               <span className="font-bold text-welile-purple">{progress}%</span>
             </div>
-            <div className="w-full bg-gray-100 dark:bg-slate-800 rounded-full h-2">
+            <div className="w-full bg-stone-100 dark:bg-slate-800 rounded-full h-2">
               <div
                 className={`h-2 rounded-full transition-all duration-1000 ${course.status === CourseStatus.COMPLETED ? 'bg-green-500' : 'bg-welile-purple'}`}
                 style={{ width: `${progress}%` }}
@@ -116,8 +116,8 @@ const CourseCard: React.FC<CourseCardProps> = ({ course, onClick }) => {
           </div>
 
           {/* Footer Action */}
-          <div className="pt-4 border-t border-gray-50 dark:border-slate-800 flex items-center justify-end">
-            <button className={`text-sm font-bold flex items-center gap-2 ${course.status === CourseStatus.COMPLETED ? 'text-green-600' : 'text-welile-purple hover:text-purple-700'}`}>
+          <div className="pt-4 border-t border-stone-50 dark:border-slate-800 flex items-center justify-end">
+            <button className={`text-sm font-bold flex items-center gap-2 ${course.status === CourseStatus.COMPLETED ? 'text-mint' : 'text-welile-purple hover:text-brand'}`}>
               {course.status === CourseStatus.COMPLETED ? (
                 <> <Award size={16} /> Certificate </>
               ) : course.status === CourseStatus.IN_PROGRESS ? (

@@ -41,12 +41,12 @@ interface StudentRow {
 
 const STAGES: { id: Stage; tab: string; help: string; badge: string }[] = [
     { id: 'Registered', tab: 'Registered, no account', help: 'Registered by an agent, lead form, or outreach — no login account yet. Follow up to help them open their account.', badge: 'bg-amber-100 text-amber-800 dark:bg-amber-950/50 dark:text-amber-300' },
-    { id: 'Account opened', tab: 'Account opened', help: 'Created an account but has not opened the free AI Fundamentals course yet.', badge: 'bg-blue-100 text-blue-800 dark:bg-blue-950/50 dark:text-blue-300' },
-    { id: 'In course', tab: 'In course (not started)', help: 'Enrolled in AI Fundamentals, 0 lessons completed so far.', badge: 'bg-indigo-100 text-indigo-800 dark:bg-indigo-950/50 dark:text-indigo-300' },
+    { id: 'Account opened', tab: 'Account opened', help: 'Created an account but has not opened the free AI Fundamentals course yet.', badge: 'bg-brand-soft text-blue-800 dark:bg-blue-950/50 dark:text-blue-300' },
+    { id: 'In course', tab: 'In course (not started)', help: 'Enrolled in AI Fundamentals, 0 lessons completed so far.', badge: 'bg-brand-soft text-indigo-800 dark:bg-indigo-950/50 dark:text-indigo-300' },
     { id: 'Studying', tab: 'Studying', help: 'Actively progressing through lessons and module quizzes.', badge: 'bg-violet-100 text-violet-800 dark:bg-violet-950/50 dark:text-violet-300' },
     { id: 'Joined live', tab: 'Joined live', help: 'Attended at least one live class session (via app, email link, WhatsApp, or admin check-in).', badge: 'bg-sky-100 text-sky-800 dark:bg-sky-950/50 dark:text-sky-300' },
     { id: 'Passed final', tab: 'Passed final', help: 'Passed the final assessment (80%+) and ready to claim their certificate.', badge: 'bg-teal-100 text-teal-800 dark:bg-teal-950/50 dark:text-teal-300' },
-    { id: 'Completed', tab: 'Completed & Certified', help: 'Finished the course, passed the final exam, and issued a verified Welile certificate.', badge: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/50 dark:text-emerald-300' },
+    { id: 'Completed', tab: 'Completed & Certified', help: 'Finished the course, passed the final exam, and issued a verified Welile certificate.', badge: 'bg-mint-soft text-emerald-800 dark:bg-emerald-950/50 dark:text-emerald-300' },
 ];
 
 const MODULE_LABELS: Record<string, string> = {
@@ -70,8 +70,8 @@ const FOLLOW = [
 const wa = (p: string) => (p.startsWith('0') ? '256' + p.slice(1) : p);
 const fmtDay = (iso?: string | null) =>
     iso ? new Date(iso).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', timeZone: 'Africa/Kampala' }) : '—';
-const card = 'bg-white dark:bg-slate-900 rounded-2xl border border-gray-100 dark:border-slate-800 shadow-sm';
-const field = 'rounded-lg border border-gray-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-2.5 py-2 text-sm';
+const card = 'bg-white dark:bg-night-2 rounded-[22px]';
+const field = 'rounded-[12px] bg-white dark:bg-night-2 px-2.5 py-2 text-sm';
 
 const VALID_STAGE_IDS = new Set<string>(['all', ...STAGES.map(s => s.id)]);
 
@@ -224,13 +224,13 @@ const AdminRegistrationPipeline: React.FC<{ course: string }> = ({ course }) => 
                         role="tab"
                         aria-selected={tab === 'all'}
                         onClick={() => selectTab('all')}
-                        className={`px-3 py-2 rounded-lg text-xs sm:text-sm font-semibold border transition-colors ${
+                        className={`px-3 py-2 rounded-[12px] text-xs sm:text-sm font-semibold border transition-colors ${
                             tab === 'all'
-                                ? 'bg-violet-600 border-violet-600 text-white'
-                                : 'border-gray-200 dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-800'
+                                ? 'bg-brand border-violet-600 text-white'
+                                : 'border-stone-200 dark:border-slate-700 hover:bg-stone-50 dark:hover:bg-slate-800'
                         }`}
                     >
-                        All <span className={tab === 'all' ? 'opacity-90' : 'text-gray-500'}>{counts.all ?? 0}</span>
+                        All <span className={tab === 'all' ? 'opacity-90' : 'text-stone-500'}>{counts.all ?? 0}</span>
                     </button>
                     {STAGES.map(s => {
                         const cnt = s.id === 'Joined live' ? counts.live_any : s.id === 'Completed' ? counts.certified : counts[s.id];
@@ -240,13 +240,13 @@ const AdminRegistrationPipeline: React.FC<{ course: string }> = ({ course }) => 
                                 role="tab"
                                 aria-selected={tab === s.id}
                                 onClick={() => selectTab(s.id)}
-                                className={`px-3 py-2 rounded-lg text-xs sm:text-sm font-semibold border transition-colors ${
+                                className={`px-3 py-2 rounded-[12px] text-xs sm:text-sm font-semibold border transition-colors ${
                                     tab === s.id
-                                        ? 'bg-violet-600 border-violet-600 text-white'
-                                        : 'border-gray-200 dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-800'
+                                        ? 'bg-brand border-violet-600 text-white'
+                                        : 'border-stone-200 dark:border-slate-700 hover:bg-stone-50 dark:hover:bg-slate-800'
                                 }`}
                             >
-                                {s.tab} <span className={tab === s.id ? 'opacity-90' : 'text-gray-500'}>{cnt ?? 0}</span>
+                                {s.tab} <span className={tab === s.id ? 'opacity-90' : 'text-stone-500'}>{cnt ?? 0}</span>
                             </button>
                         );
                     })}
@@ -255,26 +255,26 @@ const AdminRegistrationPipeline: React.FC<{ course: string }> = ({ course }) => 
                     <button
                         onClick={exportCsv}
                         disabled={!rows || shown.length === 0}
-                        className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium border border-gray-200 dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-800 disabled:opacity-50"
+                        className="inline-flex items-center gap-1.5 px-3 py-2 rounded-[12px] text-sm font-medium border border-stone-200 dark:border-slate-700 hover:bg-stone-50 dark:hover:bg-slate-800 disabled:opacity-50"
                     >
                         <Download size={15} /> Export ({shown.length})
                     </button>
                     <button
                         onClick={() => void load()}
                         aria-label="Refresh"
-                        className="inline-flex items-center px-3 py-2 rounded-lg text-sm border border-gray-200 dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-800"
+                        className="inline-flex items-center px-3 py-2 rounded-[12px] text-sm border border-stone-200 dark:border-slate-700 hover:bg-stone-50 dark:hover:bg-slate-800"
                     >
                         <RefreshCw size={15} className={loading ? 'animate-spin' : ''} />
                     </button>
                 </div>
             </div>
 
-            <p className="text-sm text-gray-500 dark:text-slate-400">{help}</p>
+            <p className="text-sm text-stone-500 dark:text-slate-400">{help}</p>
 
             {/* Secondary Filter Bar: Search, Module, Agent, Installed App */}
             <div className="flex flex-wrap items-center gap-2.5">
                 <div className="relative flex-1 min-w-[200px] max-w-sm">
-                    <Search size={14} className="absolute left-2.5 top-3 text-gray-400" />
+                    <Search size={14} className="absolute left-2.5 top-3 text-stone-400" />
                     <input
                         value={q}
                         onChange={e => { setQ(e.target.value); setLimit(50); }}
@@ -284,7 +284,7 @@ const AdminRegistrationPipeline: React.FC<{ course: string }> = ({ course }) => 
                 </div>
 
                 <div className="flex items-center gap-1.5 text-xs">
-                    <Filter size={14} className="text-gray-400" />
+                    <Filter size={14} className="text-stone-400" />
                     <select
                         value={moduleFilter}
                         onChange={e => { setModuleFilter(e.target.value); setLimit(50); }}
@@ -311,7 +311,7 @@ const AdminRegistrationPipeline: React.FC<{ course: string }> = ({ course }) => 
                     </select>
                 )}
 
-                <label className="inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-2 rounded-lg border border-gray-200 dark:border-slate-700 cursor-pointer select-none">
+                <label className="inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-2 rounded-[12px] border border-stone-200 dark:border-slate-700 cursor-pointer select-none">
                     <input
                         type="checkbox"
                         checked={onlyAppInstalled}
@@ -324,13 +324,13 @@ const AdminRegistrationPipeline: React.FC<{ course: string }> = ({ course }) => 
             </div>
 
             {error && <p role="alert" className="text-sm text-red-600">{error}</p>}
-            {!rows && !error && <div className="flex items-center gap-2 text-gray-500"><Loader2 className="animate-spin" size={18} /> Loading learners...</div>}
+            {!rows && !error && <div className="flex items-center gap-2 text-stone-500"><Loader2 className="animate-spin" size={18} /> Loading learners...</div>}
 
             {rows && (
                 <div className="overflow-x-auto">
                     <table className="w-full text-sm min-w-[860px]">
                         <thead>
-                            <tr className="text-left text-xs uppercase text-gray-500 dark:text-slate-400 border-b border-gray-100 dark:border-slate-800">
+                            <tr className="text-left text-xs uppercase text-stone-500 dark:text-slate-400 border-b border-stone-100 dark:border-slate-800">
                                 <th className="py-2.5 pr-3">Student</th>
                                 <th className="pr-3">Contact</th>
                                 <th className="pr-3">Stage & Progress</th>
@@ -347,32 +347,32 @@ const AdminRegistrationPipeline: React.FC<{ course: string }> = ({ course }) => 
                                 const itemsDone = r.items_done ?? 0;
                                 const totalItems = r.total_items ?? 38;
                                 return (
-                                    <tr key={r.key} className="border-t border-gray-100 dark:border-slate-800 align-top hover:bg-gray-50/50 dark:hover:bg-slate-800/30">
+                                    <tr key={r.key} className="border-t border-stone-100 dark:border-slate-800 align-top hover:bg-stone-50/50 dark:hover:bg-slate-800/30">
                                         <td className="py-3 pr-3">
                                             <div className="flex items-center gap-1.5 flex-wrap">
-                                                <span className="font-semibold text-gray-900 dark:text-white">{r.name || '(no name)'}</span>
+                                                <span className="font-semibold text-stone-900 dark:text-white">{r.name || '(no name)'}</span>
                                                 {r.app_installed && (
                                                     <span title="Installed Welile app" className="inline-flex items-center gap-0.5 text-[10px] font-bold px-1.5 py-0.5 rounded bg-violet-100 text-violet-700 dark:bg-violet-950/60 dark:text-violet-300">
                                                         <Smartphone size={10} /> App
                                                     </span>
                                                 )}
                                             </div>
-                                            {r.location && <span className="block text-xs text-gray-500 dark:text-slate-400">{r.location}</span>}
+                                            {r.location && <span className="block text-xs text-stone-500 dark:text-slate-400">{r.location}</span>}
                                         </td>
 
                                         <td className="py-3 pr-3">
                                             <div className="flex items-center gap-1.5">
-                                                {r.phone && <a href={`tel:+${wa(r.phone)}`} aria-label="Call" className="p-1.5 rounded-md border border-gray-200 dark:border-slate-700 hover:bg-gray-100 dark:hover:bg-slate-800"><Phone size={13} /></a>}
-                                                {r.phone && <a href={`https://wa.me/${wa(r.phone)}?text=${encodeURIComponent(`Hello ${(r.name || '').split(' ')[0]}, this is Welile School of AI. You registered for our free AI Fundamentals course. Can we help you get started?`)}`} target="_blank" rel="noreferrer" aria-label="WhatsApp" className="p-1.5 rounded-md border border-gray-200 dark:border-slate-700 hover:bg-gray-100 dark:hover:bg-slate-800"><MessageCircle size={13} /></a>}
-                                                {r.email && <a href={`mailto:${r.email}`} aria-label="Email" className="p-1.5 rounded-md border border-gray-200 dark:border-slate-700 hover:bg-gray-100 dark:hover:bg-slate-800"><Mail size={13} /></a>}
+                                                {r.phone && <a href={`tel:+${wa(r.phone)}`} aria-label="Call" className="p-1.5 rounded-md border border-stone-200 dark:border-slate-700 hover:bg-stone-100 dark:hover:bg-slate-800"><Phone size={13} /></a>}
+                                                {r.phone && <a href={`https://wa.me/${wa(r.phone)}?text=${encodeURIComponent(`Hello ${(r.name || '').split(' ')[0]}, this is Welile School of AI. You registered for our free AI Fundamentals course. Can we help you get started?`)}`} target="_blank" rel="noreferrer" aria-label="WhatsApp" className="p-1.5 rounded-md border border-stone-200 dark:border-slate-700 hover:bg-stone-100 dark:hover:bg-slate-800"><MessageCircle size={13} /></a>}
+                                                {r.email && <a href={`mailto:${r.email}`} aria-label="Email" className="p-1.5 rounded-md border border-stone-200 dark:border-slate-700 hover:bg-stone-100 dark:hover:bg-slate-800"><Mail size={13} /></a>}
                                             </div>
-                                            {r.phone && <span className="block text-xs font-mono text-gray-600 dark:text-slate-300 mt-1">+{r.phone}</span>}
-                                            {r.email && <span className="block text-xs text-gray-500 dark:text-slate-400 break-all max-w-[200px]">{r.email}</span>}
+                                            {r.phone && <span className="block text-xs font-mono text-stone-600 dark:text-slate-300 mt-1">+{r.phone}</span>}
+                                            {r.email && <span className="block text-xs text-stone-500 dark:text-slate-400 break-all max-w-[200px]">{r.email}</span>}
                                         </td>
 
                                         <td className="py-3 pr-3 min-w-[210px]">
                                             <div className="flex flex-wrap items-center gap-1.5">
-                                                <span className={`text-xs font-semibold px-2 py-0.5 rounded-full whitespace-nowrap ${stageMeta?.badge || 'bg-gray-100 text-gray-700'}`}>
+                                                <span className={`text-xs font-semibold px-2 py-0.5 rounded-full whitespace-nowrap ${stageMeta?.badge || 'bg-stone-100 text-stone-700'}`}>
                                                     {r.stage === 'Registered' ? 'No account yet' : r.stage}
                                                 </span>
                                                 {(r.live_count || 0) > 0 && (
@@ -385,21 +385,21 @@ const AdminRegistrationPipeline: React.FC<{ course: string }> = ({ course }) => 
                                             {r.has_account && (
                                                 <div className="mt-1.5 space-y-1">
                                                     <div className="flex items-center gap-2">
-                                                        <div className="flex-1 h-1.5 rounded-full bg-gray-100 dark:bg-slate-800 overflow-hidden max-w-[120px]">
+                                                        <div className="flex-1 h-1.5 rounded-full bg-stone-100 dark:bg-slate-800 overflow-hidden max-w-[120px]">
                                                             <div
                                                                 className={`h-full rounded-full ${r.certificate_id ? 'bg-emerald-500' : 'bg-violet-500'}`}
                                                                 style={{ width: `${pct}%` }}
                                                             />
                                                         </div>
-                                                        <span className="text-[11px] font-semibold text-gray-600 dark:text-slate-300">
+                                                        <span className="text-[11px] font-semibold text-stone-600 dark:text-slate-300">
                                                             {itemsDone}/{totalItems} ({pct}%)
                                                         </span>
                                                     </div>
-                                                    <div className="flex flex-wrap gap-x-2 gap-y-0.5 text-[11px] text-gray-500 dark:text-slate-400">
+                                                    <div className="flex flex-wrap gap-x-2 gap-y-0.5 text-[11px] text-stone-500 dark:text-slate-400">
                                                         {r.highest_module && <span>At {MODULE_LABELS[r.highest_module] || r.highest_module}</span>}
                                                         {(r.quizzes_passed || 0) > 0 && <span>· {r.quizzes_passed}/6 quizzes</span>}
                                                         {r.final_score != null && (
-                                                            <span className={r.final_passed ? 'text-emerald-700 dark:text-emerald-400 font-semibold' : ''}>
+                                                            <span className={r.final_passed ? 'text-mint dark:text-emerald-400 font-semibold' : ''}>
                                                                 · Final {r.final_score}%
                                                             </span>
                                                         )}
@@ -408,8 +408,8 @@ const AdminRegistrationPipeline: React.FC<{ course: string }> = ({ course }) => 
                                             )}
 
                                             {r.certificate_id && (
-                                                <div className="mt-1.5 inline-flex items-center gap-1.5 px-2 py-1 rounded-lg bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-900 text-xs">
-                                                    <Award size={13} className="text-emerald-600 shrink-0" />
+                                                <div className="mt-1.5 inline-flex items-center gap-1.5 px-2 py-1 rounded-[12px] bg-mint-soft dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-900 text-xs">
+                                                    <Award size={13} className="text-mint shrink-0" />
                                                     <a
                                                         href={`${origin}/verify/${encodeURIComponent(r.certificate_id)}`}
                                                         target="_blank"
@@ -420,7 +420,7 @@ const AdminRegistrationPipeline: React.FC<{ course: string }> = ({ course }) => 
                                                         <ExternalLink size={10} />
                                                     </a>
                                                     {r.certificate_issued_at && (
-                                                        <span className="text-[10px] text-emerald-700/80 dark:text-emerald-400/80">
+                                                        <span className="text-[10px] text-mint/80 dark:text-emerald-400/80">
                                                             ({fmtDay(r.certificate_issued_at)})
                                                         </span>
                                                     )}
@@ -429,13 +429,13 @@ const AdminRegistrationPipeline: React.FC<{ course: string }> = ({ course }) => 
                                         </td>
 
                                         <td className="py-3 pr-3 text-xs">
-                                            <span className="text-gray-700 dark:text-slate-300">{r.sources.join(', ')}</span>
+                                            <span className="text-stone-700 dark:text-slate-300">{r.sources.join(', ')}</span>
                                             {r.agent && <span className="block font-semibold text-violet-700 dark:text-violet-300 mt-0.5">{r.agent}</span>}
                                         </td>
 
                                         <td className="py-3 pr-3 whitespace-nowrap text-xs">
-                                            <span className="block text-gray-700 dark:text-slate-300">Reg: {fmtDay(r.registered_at)}</span>
-                                            {r.last_active && <span className="block text-gray-500 dark:text-slate-400 mt-0.5">Active: {fmtDay(r.last_active)}</span>}
+                                            <span className="block text-stone-700 dark:text-slate-300">Reg: {fmtDay(r.registered_at)}</span>
+                                            {r.last_active && <span className="block text-stone-500 dark:text-slate-400 mt-0.5">Active: {fmtDay(r.last_active)}</span>}
                                         </td>
 
                                         <td className="py-3 pr-3">
@@ -467,7 +467,7 @@ const AdminRegistrationPipeline: React.FC<{ course: string }> = ({ course }) => 
                             })}
                             {shown.length === 0 && (
                                 <tr>
-                                    <td colSpan={7} className="py-8 text-center text-gray-500">
+                                    <td colSpan={7} className="py-8 text-center text-stone-500">
                                         No students match this stage or filter.
                                     </td>
                                 </tr>

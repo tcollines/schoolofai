@@ -8,7 +8,7 @@ import { supabaseClient } from '../../lib/supabaseClient';
 interface Ev { user_id: string; event_type: string; item_id: string | null; payload: any; device: string | null; created_at: string }
 interface Learner { user_id: string; name: string; email: string }
 
-const card = 'bg-white dark:bg-slate-900 rounded-2xl border border-gray-100 dark:border-slate-800 shadow-sm';
+const card = 'bg-white dark:bg-night-2 rounded-[22px]';
 const LECTURES: Record<string, string> = { 'lecture-1': 'Lecture 1 (Modules 1 and 2)', 'lecture-2': 'Lecture 2 (Modules 3 and 4)', 'lecture-3': 'Lecture 3 (Modules 5 and 6)' };
 const TYPES = ['live_joined', 'app_install_available', 'app_install_clicked', 'app_installed', 'app_install_dismissed', 'app_opened'];
 
@@ -73,27 +73,27 @@ const AdminLiveInstallStats: React.FC<{ course: string; learners: Learner[]; enr
             <div className="flex items-center justify-between gap-3 flex-wrap">
                 <h3 className="font-bold text-lg flex items-center gap-2"><Video size={18} /> Live attendance and app installs</h3>
                 <div className="flex gap-2">
-                    <button onClick={exportAttendance} disabled={!events} className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium border border-gray-200 dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-800 disabled:opacity-50"><Download size={15} /> Export attendance</button>
-                    <button onClick={load} className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium border border-gray-200 dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-800"><RefreshCw size={15} className={loading ? 'animate-spin' : ''} /> Refresh</button>
+                    <button onClick={exportAttendance} disabled={!events} className="inline-flex items-center gap-2 px-3 py-1.5 rounded-[12px] text-sm font-medium border border-stone-200 dark:border-slate-700 hover:bg-stone-50 dark:hover:bg-slate-800 disabled:opacity-50"><Download size={15} /> Export attendance</button>
+                    <button onClick={load} className="inline-flex items-center gap-2 px-3 py-1.5 rounded-[12px] text-sm font-medium border border-stone-200 dark:border-slate-700 hover:bg-stone-50 dark:hover:bg-slate-800"><RefreshCw size={15} className={loading ? 'animate-spin' : ''} /> Refresh</button>
                 </div>
             </div>
             {err && <p className="mt-3 text-sm text-red-600">Could not read events: {err}</p>}
-            {!events && !err && <p className="mt-3 text-sm text-gray-500 flex items-center gap-2"><Loader2 className="animate-spin" size={16} /> Loading...</p>}
+            {!events && !err && <p className="mt-3 text-sm text-stone-500 flex items-center gap-2"><Loader2 className="animate-spin" size={16} /> Loading...</p>}
             {events && (
                 <>
                     <div className="mt-4 grid grid-cols-2 lg:grid-cols-4 gap-4">
-                        <div className="rounded-xl bg-gray-50 dark:bg-slate-800/60 p-4"><p className="text-xs font-semibold uppercase tracking-wide text-gray-500 flex items-center gap-1"><Smartphone size={14} /> App installed</p><p className="text-3xl font-extrabold mt-1">{m.installed}</p><p className="text-xs text-gray-500">{pct(m.installed, enrolled)}% of registered</p></div>
-                        <div className="rounded-xl bg-gray-50 dark:bg-slate-800/60 p-4"><p className="text-xs font-semibold uppercase tracking-wide text-gray-500">Opened from the app</p><p className="text-3xl font-extrabold mt-1">{m.opened}</p><p className="text-xs text-gray-500">people</p></div>
-                        <div className="rounded-xl bg-gray-50 dark:bg-slate-800/60 p-4"><p className="text-xs font-semibold uppercase tracking-wide text-gray-500">Saw the install option</p><p className="text-3xl font-extrabold mt-1">{m.available}</p><p className="text-xs text-gray-500">{m.clicked} tapped Install</p></div>
-                        <div className="rounded-xl bg-gray-50 dark:bg-slate-800/60 p-4"><p className="text-xs font-semibold uppercase tracking-wide text-gray-500">Attended a live class</p><p className="text-3xl font-extrabold mt-1">{m.attendees}</p><p className="text-xs text-gray-500">{pct(m.attendees, enrolled)}% of registered</p></div>
+                        <div className="rounded-[14px] bg-stone-50 dark:bg-slate-800/60 p-4"><p className="text-xs font-semibold uppercase tracking-wide text-stone-500 flex items-center gap-1"><Smartphone size={14} /> App installed</p><p className="text-3xl font-extrabold mt-1">{m.installed}</p><p className="text-xs text-stone-500">{pct(m.installed, enrolled)}% of registered</p></div>
+                        <div className="rounded-[14px] bg-stone-50 dark:bg-slate-800/60 p-4"><p className="text-xs font-semibold uppercase tracking-wide text-stone-500">Opened from the app</p><p className="text-3xl font-extrabold mt-1">{m.opened}</p><p className="text-xs text-stone-500">people</p></div>
+                        <div className="rounded-[14px] bg-stone-50 dark:bg-slate-800/60 p-4"><p className="text-xs font-semibold uppercase tracking-wide text-stone-500">Saw the install option</p><p className="text-3xl font-extrabold mt-1">{m.available}</p><p className="text-xs text-stone-500">{m.clicked} tapped Install</p></div>
+                        <div className="rounded-[14px] bg-stone-50 dark:bg-slate-800/60 p-4"><p className="text-xs font-semibold uppercase tracking-wide text-stone-500">Attended a live class</p><p className="text-3xl font-extrabold mt-1">{m.attendees}</p><p className="text-xs text-stone-500">{pct(m.attendees, enrolled)}% of registered</p></div>
                     </div>
                     <table className="mt-5 w-full text-sm">
-                        <thead><tr className="text-left text-gray-500 text-xs uppercase tracking-wide"><th className="py-2">Live lecture</th><th className="text-right">Attended</th><th className="text-right">Joined by link</th><th className="text-right">Confirmed after</th></tr></thead>
+                        <thead><tr className="text-left text-[10px] font-extrabold tracking-[0.08em] uppercase text-[#6B6680] bg-[#FAF9FE] dark:bg-night-3/40"><th className="py-2">Live lecture</th><th className="text-right">Attended</th><th className="text-right">Joined by link</th><th className="text-right">Confirmed after</th></tr></thead>
                         <tbody>{m.byLecture.map(l => (
-                            <tr key={l.id} className="border-t border-gray-100 dark:border-slate-800"><td className="py-2">{l.label}</td><td className="text-right font-semibold">{l.attended}</td><td className="text-right text-gray-500">{l.joined}</td><td className="text-right text-gray-500">{l.confirmed}</td></tr>
+                            <tr key={l.id} className="border-t border-stone-100 dark:border-slate-800"><td className="py-2">{l.label}</td><td className="text-right font-semibold">{l.attended}</td><td className="text-right text-stone-500">{l.joined}</td><td className="text-right text-stone-500">{l.confirmed}</td></tr>
                         ))}</tbody>
                     </table>
-                    <p className="mt-3 text-xs text-gray-500">People who attend a lecture only need to take the quizzes for its modules. "Joined by link" means they pressed Join in the course; "Confirmed after" means they confirmed on the Live page after the class.</p>
+                    <p className="mt-3 text-xs text-stone-500">People who attend a lecture only need to take the quizzes for its modules. "Joined by link" means they pressed Join in the course; "Confirmed after" means they confirmed on the Live page after the class.</p>
                 </>
             )}
         </div>

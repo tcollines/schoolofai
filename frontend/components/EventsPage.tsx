@@ -276,14 +276,14 @@ const EventsPage: React.FC<EventsPageProps> = ({ courses = [] }) => {
     return (
         <div className="max-w-5xl mx-auto space-y-8 animate-in fade-in duration-300">
             {/* Header Banner */}
-            <div className="relative overflow-hidden bg-violet-900 text-white rounded-2xl p-6 lg:p-8 shadow-sm">
+            <div className="relative overflow-hidden bg-violet-900 text-white rounded-[22px] p-6 lg:p-8 shadow-sm">
 
                 <div className="relative z-10 grid md:grid-cols-3 gap-6 items-center">
                     <div className="md:col-span-2 space-y-3 text-left">
                         <span className="text-xs font-bold bg-white/15 text-white px-3 py-1 rounded-full uppercase tracking-wider">
                             {imminentEvent ? 'Imminent Live Session' : 'Live Masterclass'}
                         </span>
-                        <h2 className="text-2xl lg:text-3xl font-semibold tracking-tight font-serif">
+                        <h2 className="text-2xl lg:text-3xl font-extrabold tracking-tight tracking-[-0.02em]">
                             {imminentEvent ? imminentEvent.title : 'No Live Sessions Scheduled'}
                         </h2>
                         <p className="text-sm text-slate-300 max-w-lg">
@@ -292,7 +292,7 @@ const EventsPage: React.FC<EventsPageProps> = ({ courses = [] }) => {
                     </div>
 
                     {imminentEvent ? (
-                        <div className="bg-white/10 backdrop-blur-md rounded-2xl p-4 border border-white/15 text-center space-y-2">
+                        <div className="bg-white/10 backdrop-blur-md rounded-[22px] p-4 border border-white/15 text-center space-y-2">
                             <p className="text-xs uppercase font-bold text-slate-200 tracking-wider line-clamp-2 max-w-[200px] mx-auto">
                                 {imminentEvent.title} starts in
                             </p>
@@ -325,7 +325,7 @@ const EventsPage: React.FC<EventsPageProps> = ({ courses = [] }) => {
                             </div>
                         </div>
                     ) : (
-                        <div className="bg-white/10 backdrop-blur-md rounded-2xl p-4 border border-white/15 text-center space-y-2 flex flex-col justify-center items-center h-full min-h-[96px]">
+                        <div className="bg-white/10 backdrop-blur-md rounded-[22px] p-4 border border-white/15 text-center space-y-2 flex flex-col justify-center items-center h-full min-h-[96px]">
                             <Calendar size={20} className="text-slate-300 mb-1" />
                             <p className="text-xs font-semibold text-slate-200">No Imminent Sessions</p>
                             <p className="text-[11px] text-slate-400 max-w-[170px] leading-tight">Live session countdown activates 30m prior to start</p>
@@ -337,7 +337,7 @@ const EventsPage: React.FC<EventsPageProps> = ({ courses = [] }) => {
             {/* List & Filters Header */}
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-stone-100 dark:border-slate-800 pb-4">
                 <div>
-                    <h3 className="font-serif text-2xl font-semibold text-stone-900 dark:text-white">{t('events') || 'Upcoming Classes'}</h3>
+                    <h3 className="tracking-[-0.02em] text-2xl font-semibold text-stone-900 dark:text-white">{t('events') || 'Upcoming Classes'}</h3>
                     <p className="text-xs text-stone-600 dark:text-slate-400 mt-1">
                         Dynamic scheduling synced to your enrolled courses and announcements published by WSAI Admin.
                     </p>
@@ -349,7 +349,7 @@ const EventsPage: React.FC<EventsPageProps> = ({ courses = [] }) => {
                     <select
                         value={planFilter}
                         onChange={(e) => setPlanFilter(e.target.value as any)}
-                        className="px-3 py-1.5 bg-white dark:bg-slate-900 text-stone-800 dark:text-white border border-stone-200 dark:border-slate-800 rounded-xl text-xs font-bold shadow-sm outline-none cursor-pointer"
+                        className="px-3 py-1.5 bg-white dark:bg-night-2 text-stone-800 dark:text-white rounded-[14px] text-xs font-bold outline-none cursor-pointer"
                     >
                         <option value="all">All Plans</option>
                         <option value="basic">Basic Plan Classes</option>
@@ -357,12 +357,12 @@ const EventsPage: React.FC<EventsPageProps> = ({ courses = [] }) => {
                     </select>
 
                     {/* Filter Tabs */}
-                    <div className="flex max-w-full overflow-x-auto bg-stone-100 dark:bg-slate-800 p-1 rounded-xl gap-1">
+                    <div className="flex max-w-full overflow-x-auto bg-stone-100 dark:bg-slate-800 p-1 rounded-[14px] gap-1">
                         {(['All', 'Workshop', 'Webinar', 'Panel', 'Lesson'] as const).map((tab) => (
                             <button
                                 key={tab}
                                 onClick={() => setFilter(tab)}
-                                className={`px-3 py-2 rounded-lg text-sm font-semibold whitespace-nowrap transition-all ${
+                                className={`px-3 py-2 rounded-[12px] text-sm font-semibold whitespace-nowrap transition-all ${
                                     (filter === tab)
                                         ? 'bg-white dark:bg-slate-900 text-violet-700 dark:text-white shadow-sm'
                                         : 'text-stone-600 dark:text-slate-400 hover:text-stone-900 dark:hover:text-white'
@@ -377,7 +377,7 @@ const EventsPage: React.FC<EventsPageProps> = ({ courses = [] }) => {
 
             {/* Enrolled Courses Status Callout (If none) */}
             {enrolledCourses.length === 0 && (
-                <div className="bg-violet-50 dark:bg-slate-900 p-6 rounded-2xl border border-violet-100/80 dark:border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-4">
+                <div className="bg-violet-50 dark:bg-slate-900 p-6 rounded-[22px] border border-violet-100/80 dark:border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-4">
                     <div>
                         <h4 className="font-bold text-sm text-violet-900 dark:text-violet-400">No Course Meetings Scheduled</h4>
                         <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
@@ -386,7 +386,7 @@ const EventsPage: React.FC<EventsPageProps> = ({ courses = [] }) => {
                     </div>
                     <button 
                         onClick={() => window.location.href = '/discover'}
-                        className="px-5 py-2 bg-violet-700 text-white text-xs font-bold rounded-xl hover:bg-violet-800 transition-colors shadow-sm cursor-pointer shrink-0"
+                        className="px-5 py-2 bg-violet-700 text-white text-xs font-bold rounded-[14px] hover:bg-brand-mid transition-colors shadow-sm cursor-pointer shrink-0"
                     >
                         Browse Courses
                     </button>
@@ -395,7 +395,7 @@ const EventsPage: React.FC<EventsPageProps> = ({ courses = [] }) => {
 
             {/* Events Grid */}
             {filteredEvents.length === 0 ? (
-                <div className="text-center py-12 bg-white dark:bg-slate-900 rounded-2xl border border-stone-100 dark:border-slate-800/80">
+                <div className="text-center py-12 bg-white dark:bg-night-2 rounded-[22px]">
                     <p className="text-sm text-stone-600 dark:text-slate-400 font-medium">No upcoming classes found under this category.</p>
                 </div>
             ) : (
@@ -408,11 +408,11 @@ const EventsPage: React.FC<EventsPageProps> = ({ courses = [] }) => {
 
                         // Colors based on event type
                         const typeStyles = {
-                            Workshop: { border: 'border-l-violet-400', bg: 'bg-emerald-50 dark:bg-emerald-950/20 text-emerald-700 dark:text-emerald-400' },
+                            Workshop: { border: 'border-l-violet-400', bg: 'bg-mint-soft dark:bg-emerald-950/20 text-mint dark:text-emerald-400' },
                             Webinar: { border: 'border-l-violet-700', bg: 'bg-violet-50 dark:bg-violet-950/20 text-violet-700 dark:text-violet-400' },
                             Panel: { border: 'border-l-pink-500', bg: 'bg-pink-50 dark:bg-pink-950/20 text-pink-700 dark:text-pink-400' },
-                            Lesson: { border: 'border-l-indigo-500', bg: 'bg-indigo-50 dark:bg-indigo-950/20 text-indigo-700 dark:text-indigo-400' }
-                        }[event.type as 'Workshop' | 'Webinar' | 'Panel' | 'Lesson'] || { border: 'border-l-indigo-500', bg: 'bg-indigo-50 dark:bg-indigo-950/20 text-indigo-700 dark:text-indigo-400' };
+                            Lesson: { border: 'border-l-indigo-500', bg: 'bg-brand-soft dark:bg-indigo-950/20 text-brand dark:text-indigo-400' }
+                        }[event.type as 'Workshop' | 'Webinar' | 'Panel' | 'Lesson'] || { border: 'border-l-indigo-500', bg: 'bg-brand-soft dark:bg-indigo-950/20 text-brand dark:text-indigo-400' };
 
                         const isCourseSpecific = event.courseId && event.courseId !== 'global';
                         const courseList = courses || [];
@@ -432,8 +432,8 @@ const EventsPage: React.FC<EventsPageProps> = ({ courses = [] }) => {
                                             {event.medium && (
                                                 <span className={`text-xs font-bold uppercase tracking-wider px-2.5 py-1 rounded-full ${
                                                     event.medium === 'Physical'
-                                                        ? 'bg-blue-50 dark:bg-blue-950/20 text-blue-700 dark:text-blue-400'
-                                                        : 'bg-emerald-50 dark:bg-emerald-950/20 text-emerald-700 dark:text-emerald-400'
+                                                        ? 'bg-brand-soft dark:bg-blue-950/20 text-brand dark:text-blue-400'
+                                                        : 'bg-mint-soft dark:bg-emerald-950/20 text-mint dark:text-emerald-400'
                                                 }`}>
                                                     {event.medium}
                                                 </span>
@@ -474,7 +474,7 @@ const EventsPage: React.FC<EventsPageProps> = ({ courses = [] }) => {
                                             </p>
                                         )}
                                         {event.type === 'Lesson' && (
-                                            <div className="text-xs bg-slate-50 dark:bg-slate-800/60 p-2.5 rounded-xl border border-stone-100 dark:border-slate-800 space-y-1 mt-2 text-left">
+                                            <div className="text-xs bg-slate-50 dark:bg-slate-800/60 p-2.5 rounded-[14px] border border-stone-100 dark:border-slate-800 space-y-1 mt-2 text-left">
                                                 <p><GraduationCap className="inline-block w-4 h-4 mr-1 align-middle" /> <strong className="text-stone-700 dark:text-slate-200">Course:</strong> {courseList.find(c => c.id === event.courseId)?.title || 'Unknown Course'}</p>
                                                 <p><BookOpen className="inline-block w-4 h-4 mr-1 align-middle" /> <strong className="text-stone-700 dark:text-slate-200">Unit:</strong> {courseList.find(c => c.id === event.courseId)?.sections?.find(s => s.id === event.sectionId)?.title || 'Unknown Unit'}</p>
                                                 <p><FileText className="inline-block w-4 h-4 mr-1 align-middle" /> <strong className="text-stone-700 dark:text-slate-200">Module:</strong> {courseList.find(c => c.id === event.courseId)?.sections?.find(s => s.id === event.sectionId)?.lessons?.find(l => l.id === event.moduleId)?.title || 'Unknown Module'}</p>
@@ -544,7 +544,7 @@ const EventsPage: React.FC<EventsPageProps> = ({ courses = [] }) => {
                                         {event.meetLink ? (
                                             <button 
                                                 onClick={() => window.open(event.meetLink, '_blank')}
-                                                className="flex-1 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer bg-violet-700 hover:bg-violet-800 text-white shadow-sm shadow-violet-200 dark:shadow-none"
+                                                className="flex-1 py-2.5 rounded-[14px] text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer bg-violet-700 hover:bg-brand-mid text-white shadow-sm shadow-violet-200 dark:shadow-none"
                                             >
                                                 <Video size={12} />
                                                 GO LIVE
@@ -552,7 +552,7 @@ const EventsPage: React.FC<EventsPageProps> = ({ courses = [] }) => {
                                         ) : (
                                             <button 
                                                 onClick={() => setSelectedEvent(event)}
-                                                className="flex-1 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer bg-violet-700 dark:bg-slate-800 hover:bg-stone-800 dark:hover:bg-slate-700 text-white"
+                                                className="flex-1 py-2.5 rounded-[14px] text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer bg-violet-700 dark:bg-slate-800 hover:bg-stone-800 dark:hover:bg-slate-700 text-white"
                                             >
                                                 <Eye size={12} />
                                                 READ
@@ -561,7 +561,7 @@ const EventsPage: React.FC<EventsPageProps> = ({ courses = [] }) => {
                                         {event.meetLink && (
                                             <button 
                                                 onClick={() => setSelectedEvent(event)}
-                                                className="px-3 bg-stone-50 dark:bg-slate-800 hover:bg-stone-100 dark:hover:bg-slate-700 border border-stone-200 dark:border-slate-800 rounded-xl flex items-center justify-center text-stone-600 dark:text-slate-300 transition-colors cursor-pointer"
+                                                className="px-3 bg-stone-50 dark:bg-slate-800 hover:bg-stone-100 dark:hover:bg-slate-700 border border-stone-200 dark:border-slate-800 rounded-[14px] flex items-center justify-center text-stone-600 dark:text-slate-300 transition-colors cursor-pointer"
                                                 title="Read Details / Info"
                                             >
                                                 <Eye size={14} />
@@ -578,7 +578,7 @@ const EventsPage: React.FC<EventsPageProps> = ({ courses = [] }) => {
                                                     alert(`"${event.title}" invitation details copied to clipboard!`);
                                                 }
                                             }}
-                                            className="px-3 bg-stone-50 dark:bg-slate-800 hover:bg-stone-100 dark:hover:bg-slate-700 border border-stone-200 dark:border-slate-800 rounded-xl flex items-center justify-center text-stone-600 dark:text-slate-300 transition-colors cursor-pointer"
+                                            className="px-3 bg-stone-50 dark:bg-slate-800 hover:bg-stone-100 dark:hover:bg-slate-700 border border-stone-200 dark:border-slate-800 rounded-[14px] flex items-center justify-center text-stone-600 dark:text-slate-300 transition-colors cursor-pointer"
                                             title="Copy Link / Details"
                                         >
                                             <ExternalLink size={14} />
@@ -594,7 +594,7 @@ const EventsPage: React.FC<EventsPageProps> = ({ courses = [] }) => {
             {/* Event Details Modal (Read Mode) */}
             {selectedEvent && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
-                    <div className="bg-white dark:bg-slate-900 rounded-2xl w-full max-w-lg p-8 relative animate-in zoom-in-95 duration-200 border border-stone-100 dark:border-slate-800 text-left">
+                    <div className="bg-white dark:bg-night-2 rounded-[22px] w-full max-w-lg p-8 relative animate-in zoom-in-95 duration-200 text-left">
                         <button
                             onClick={() => setSelectedEvent(null)}
                             className="absolute top-5 right-5 text-stone-500 hover:text-stone-600 dark:hover:text-slate-200 cursor-pointer border-0 bg-transparent"
@@ -608,14 +608,14 @@ const EventsPage: React.FC<EventsPageProps> = ({ courses = [] }) => {
                             </span>
                             <span className={`px-2.5 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${
                                 selectedEvent.medium === 'Online' 
-                                    ? 'bg-green-50 dark:bg-green-950/30 text-green-600 dark:text-green-400' 
-                                    : 'bg-blue-50 dark:bg-blue-950/30 text-blue-600 dark:text-blue-400'
+                                    ? 'bg-mint-soft dark:bg-green-950/30 text-mint dark:text-green-400' 
+                                    : 'bg-brand-soft dark:bg-blue-950/30 text-brand dark:text-blue-400'
                             }`}>
                                 {selectedEvent.medium || 'Online'}
                             </span>
                         </div>
 
-                        <h3 className="font-serif text-2xl font-semibold text-stone-900 dark:text-white mb-4">
+                        <h3 className="tracking-[-0.02em] text-2xl font-semibold text-stone-900 dark:text-white mb-4">
                             {selectedEvent.title}
                         </h3>
 
@@ -636,7 +636,7 @@ const EventsPage: React.FC<EventsPageProps> = ({ courses = [] }) => {
                                 {selectedEvent.medium === 'Online' ? (
                                     <>
                                         <Video size={16} className="text-green-500 shrink-0" />
-                                        <a href={selectedEvent.meetLink} target="_blank" rel="noopener noreferrer" className="text-green-600 dark:text-green-400 hover:underline">
+                                        <a href={selectedEvent.meetLink} target="_blank" rel="noopener noreferrer" className="text-mint dark:text-green-400 hover:underline">
                                             {selectedEvent.meetLink}
                                         </a>
                                     </>
@@ -652,14 +652,14 @@ const EventsPage: React.FC<EventsPageProps> = ({ courses = [] }) => {
                         <div className="mt-8 flex gap-3">
                             <button
                                 onClick={() => setSelectedEvent(null)}
-                                className="flex-1 py-3 border border-stone-200 dark:border-slate-700 text-stone-700 dark:text-slate-300 rounded-xl text-sm font-medium hover:bg-stone-50 dark:hover:bg-slate-800 transition-colors cursor-pointer bg-transparent"
+                                className="flex-1 py-3 border border-stone-200 dark:border-slate-700 text-stone-700 dark:text-slate-300 rounded-[14px] text-sm font-medium hover:bg-stone-50 dark:hover:bg-slate-800 transition-colors cursor-pointer bg-transparent"
                             >
                                 Close Details
                             </button>
                             {selectedEvent.meetLink && (
                                 <button
                                     onClick={() => window.open(selectedEvent.meetLink, '_blank')}
-                                    className="flex-1 py-3 bg-violet-700 hover:bg-violet-800 text-white rounded-xl text-sm font-semibold transition-colors flex items-center justify-center gap-2 cursor-pointer shadow-sm shadow-violet-200 dark:shadow-none"
+                                    className="flex-1 py-3 bg-violet-700 hover:bg-brand-mid text-white rounded-[14px] text-sm font-semibold transition-colors flex items-center justify-center gap-2 cursor-pointer shadow-sm shadow-violet-200 dark:shadow-none"
                                 >
                                     <Video size={16} /> GO LIVE
                                 </button>

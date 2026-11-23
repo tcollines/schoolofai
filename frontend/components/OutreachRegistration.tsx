@@ -457,7 +457,7 @@ const SearchableComboField: React.FC<SearchableComboFieldProps> = ({
                         if (!isOpen) setIsOpen(true);
                     }}
                     placeholder={value || placeholder}
-                    className={`w-full pl-3.5 pr-9 py-3 rounded-xl bg-slate-50 dark:bg-slate-950 border ${
+                    className={`w-full pl-3.5 pr-9 py-3 rounded-[14px] bg-slate-50 dark:bg-slate-950 border ${
                         error
                             ? 'border-red-500 focus:ring-red-500/20'
                             : 'border-slate-200 dark:border-slate-800 focus:border-violet-500'
@@ -483,7 +483,7 @@ const SearchableComboField: React.FC<SearchableComboFieldProps> = ({
             </div>
 
             {isOpen && (
-                <div className="absolute left-0 right-0 z-30 mt-1.5 max-h-60 overflow-y-auto rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xl divide-y divide-slate-100 dark:divide-slate-800/70">
+                <div className="absolute left-0 right-0 z-30 mt-1.5 max-h-60 overflow-y-auto rounded-[22px] bg-white dark:bg-night-2 shadow-xl divide-y divide-slate-100 dark:divide-slate-800/70">
                     {searchQuery.trim() && !exactMatchExists && (
                         <button
                             type="button"
@@ -1333,9 +1333,9 @@ const OutreachRegistration: React.FC = () => {
                        DIGITAL PROVISIONAL PASS (LUMA / STRIPE SUCCESS SCREEN)
                        ========================================================= */
                     <div className="max-w-xl mx-auto animate-in fade-in zoom-in-95 duration-300 w-full">
-                        <div className="bg-white dark:bg-slate-900 rounded-2xl sm:rounded-3xl border border-slate-200/90 dark:border-slate-800 shadow-xl overflow-hidden">
+                        <div className="bg-white dark:bg-night-2 rounded-[22px] sm:rounded-3xl shadow-xl overflow-hidden">
                             {/* Top Status Banner */}
-                            <div className="bg-gradient-to-r from-violet-600 to-purple-600 px-4 sm:px-6 py-5 sm:py-6 text-white">
+                            <div className="bg-gradient-to-r from-violet-600 to-brand px-4 sm:px-6 py-5 sm:py-6 text-white">
                                 <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
                                     <span className="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1 rounded-full bg-white/15 backdrop-blur-sm text-[10px] sm:text-[11px] font-bold uppercase tracking-wider">
                                         {submittedMode === 'online' ? (
@@ -1364,7 +1364,7 @@ const OutreachRegistration: React.FC = () => {
 
                             <div className="p-4 sm:p-6 space-y-4 sm:space-y-5">
                                 {/* Follow-up Context Callout */}
-                                <div className="p-3.5 sm:p-4 rounded-2xl bg-amber-50/90 dark:bg-amber-950/30 border border-amber-200/80 dark:border-amber-800/50 flex items-start gap-2.5 sm:gap-3">
+                                <div className="p-3.5 sm:p-4 rounded-[22px] bg-amber-50/90 dark:bg-amber-950/30 border border-amber-200/80 dark:border-amber-800/50 flex items-start gap-2.5 sm:gap-3">
                                     <Info size={18} className="text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
                                     <div className="text-xs text-amber-900 dark:text-amber-200 leading-relaxed min-w-0">
                                         <span className="font-bold block mb-0.5">What happens next? (Confirmation Follow-Up)</span>
@@ -1373,7 +1373,7 @@ const OutreachRegistration: React.FC = () => {
                                 </div>
 
                                 {/* Summary Grid */}
-                                <div className="rounded-2xl bg-slate-50 dark:bg-slate-950/60 border border-slate-200/80 dark:border-slate-800 p-3.5 sm:p-4 space-y-3 text-xs">
+                                <div className="rounded-[22px] bg-slate-50 dark:bg-slate-950/60 border border-slate-200/80 dark:border-slate-800 p-3.5 sm:p-4 space-y-3 text-xs">
                                     <div className="flex items-start justify-between gap-3 pb-2.5 border-b border-slate-200/70 dark:border-slate-800">
                                         <span className="text-slate-500 dark:text-slate-400 shrink-0">Selected Programme</span>
                                         <span className="font-bold text-violet-600 dark:text-violet-400 text-right break-words">
@@ -1401,7 +1401,7 @@ const OutreachRegistration: React.FC = () => {
                                     {isOutreachMode && (
                                         <div className="flex items-start justify-between gap-3">
                                             <span className="text-slate-500 dark:text-slate-400 shrink-0">Recorded By (Audit)</span>
-                                            <span className="font-semibold text-emerald-600 dark:text-emerald-400 text-right break-words">
+                                            <span className="font-semibold text-mint dark:text-emerald-400 text-right break-words">
                                                 {submittedRecord.registered_by_staff} ({submittedRecord.registered_by_role})
                                             </span>
                                         </div>
@@ -1413,14 +1413,14 @@ const OutreachRegistration: React.FC = () => {
                                     <button
                                         type="button"
                                         onClick={handleRegisterAnother}
-                                        className="flex-1 py-3.5 px-5 rounded-xl bg-violet-600 hover:bg-violet-700 text-white font-bold text-sm shadow-lg shadow-violet-600/20 flex items-center justify-center gap-2 transition-all cursor-pointer"
+                                        className="flex-1 py-3.5 px-5 rounded-[14px] bg-violet-600 hover:bg-violet-700 text-white font-bold text-sm shadow-lg shadow-violet-600/20 flex items-center justify-center gap-2 transition-all cursor-pointer"
                                     >
                                         <RotateCcw size={16} />
                                         Register Another Student
                                     </button>
                                     <Link
                                         to="/"
-                                        className="py-3.5 px-5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-semibold text-sm text-center transition-colors"
+                                        className="py-3.5 px-5 rounded-[14px] bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-semibold text-sm text-center transition-colors"
                                     >
                                         Back to Home
                                     </Link>
@@ -1434,7 +1434,7 @@ const OutreachRegistration: React.FC = () => {
                        ========================================================= */
                     <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 sm:gap-6 lg:gap-8 items-start w-full">
                         {/* MOBILE & TABLET COMPACT HERO + LIVE COURSE STRIP (Hidden on Desktop lg:) */}
-                        <div className="lg:hidden min-w-0 w-full bg-white dark:bg-slate-900 rounded-2xl sm:rounded-3xl border border-slate-200/90 dark:border-slate-800 p-4 sm:p-5 shadow-sm space-y-3.5">
+                        <div className="lg:hidden min-w-0 w-full bg-white dark:bg-night-2 rounded-[22px] sm:rounded-3xl p-4 sm:p-5 space-y-3.5">
                             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
                                 <div className="min-w-0">
                                     <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-violet-50 dark:bg-violet-950/60 border border-violet-200/70 dark:border-violet-800/60 text-violet-700 dark:text-violet-300 text-[10px] sm:text-[11px] font-bold mb-1.5">
@@ -1450,7 +1450,7 @@ const OutreachRegistration: React.FC = () => {
                                 </div>
 
                                 {/* Compact Live Selected Programme Pill on Mobile/Tablet */}
-                                <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-950/70 border border-slate-200/80 dark:border-slate-800 flex items-center justify-between sm:flex-col sm:items-end gap-2 shrink-0">
+                                <div className="p-3 rounded-[14px] bg-slate-50 dark:bg-slate-950/70 border border-slate-200/80 dark:border-slate-800 flex items-center justify-between sm:flex-col sm:items-end gap-2 shrink-0">
                                     <div className="min-w-0 sm:text-right">
                                         <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">
                                             Selected Programme
@@ -1459,9 +1459,9 @@ const OutreachRegistration: React.FC = () => {
                                             {courseInterest}
                                         </span>
                                     </div>
-                                    <span className={`px-2.5 py-1 rounded-lg text-[11px] font-extrabold shrink-0 ${
+                                    <span className={`px-2.5 py-1 rounded-[12px] text-[11px] font-extrabold shrink-0 ${
                                         activeCoursePricing.usdPerMonth === 0
-                                            ? 'bg-emerald-100 dark:bg-emerald-950/80 text-emerald-700 dark:text-emerald-300'
+                                            ? 'bg-mint-soft dark:bg-emerald-950/80 text-mint dark:text-emerald-300'
                                             : 'bg-violet-100 dark:bg-violet-950/80 text-violet-700 dark:text-violet-300'
                                     }`}>
                                         {activeCoursePricing.usdPerMonth === 0
@@ -1474,7 +1474,7 @@ const OutreachRegistration: React.FC = () => {
 
                         {/* LEFT COLUMN: STICKY PROGRAMME SUMMARY & CONTEXT (Desktop lg: unchanged, responsive below form on mobile/tablet) */}
                         <aside className="min-w-0 w-full lg:col-span-5 lg:sticky lg:top-24 space-y-5 order-2 lg:order-1">
-                            <div className="bg-white dark:bg-slate-900 rounded-2xl sm:rounded-3xl border border-slate-200/90 dark:border-slate-800 p-4 sm:p-6 shadow-sm space-y-4 sm:space-y-5">
+                            <div className="bg-white dark:bg-night-2 rounded-[22px] sm:rounded-3xl p-4 sm:p-6 space-y-4 sm:space-y-5">
                                 <div className="hidden lg:block">
                                     <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-violet-50 dark:bg-violet-950/60 border border-violet-200/70 dark:border-violet-800/60 text-violet-700 dark:text-violet-300 text-[11px] font-bold mb-3">
                                         <Sparkles size={12} />
@@ -1490,7 +1490,7 @@ const OutreachRegistration: React.FC = () => {
 
                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-1 gap-4 sm:gap-5 items-start">
                                     {/* Live Selected Course Card */}
-                                    <div className="p-3.5 sm:p-4 rounded-2xl bg-slate-50 dark:bg-slate-950/70 border border-slate-200/80 dark:border-slate-800 space-y-3 min-w-0">
+                                    <div className="p-3.5 sm:p-4 rounded-[22px] bg-slate-50 dark:bg-slate-950/70 border border-slate-200/80 dark:border-slate-800 space-y-3 min-w-0">
                                         <div className="flex items-start justify-between gap-2">
                                             <div className="min-w-0">
                                                 <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">
@@ -1500,9 +1500,9 @@ const OutreachRegistration: React.FC = () => {
                                                     {courseInterest}
                                                 </h3>
                                             </div>
-                                            <span className={`px-2.5 py-1 rounded-lg text-xs font-extrabold shrink-0 ${
+                                            <span className={`px-2.5 py-1 rounded-[12px] text-xs font-extrabold shrink-0 ${
                                                 activeCoursePricing.usdPerMonth === 0
-                                                    ? 'bg-emerald-100 dark:bg-emerald-950/80 text-emerald-700 dark:text-emerald-300'
+                                                    ? 'bg-mint-soft dark:bg-emerald-950/80 text-mint dark:text-emerald-300'
                                                     : 'bg-violet-100 dark:bg-violet-950/80 text-violet-700 dark:text-violet-300'
                                             }`}>
                                                 {activeCoursePricing.usdPerMonth === 0 ? 'FREE' : `$${activeCoursePricing.usdPerMonth}/mo`}
@@ -1513,7 +1513,7 @@ const OutreachRegistration: React.FC = () => {
                                             <span className="text-xs text-slate-500 dark:text-slate-400 shrink-0">Monthly Tuition</span>
                                             <span className="text-sm font-black text-slate-900 dark:text-white text-right">
                                                 {activeCoursePricing.ugxPerMonth === 0 ? (
-                                                    <span className="text-emerald-600 dark:text-emerald-400">Free (UGX 0)</span>
+                                                    <span className="text-mint dark:text-emerald-400">Free (UGX 0)</span>
                                                 ) : (
                                                     <>
                                                         UGX {formatUgx(activeCoursePricing.ugxPerMonth)} <span className="text-xs font-normal text-slate-400">/ month</span>
@@ -1523,11 +1523,11 @@ const OutreachRegistration: React.FC = () => {
                                         </div>
 
                                         <div className="grid grid-cols-2 gap-2 pt-1 text-[11px]">
-                                            <div className="p-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200/60 dark:border-slate-800 min-w-0">
+                                            <div className="p-2 rounded-[14px] bg-white dark:bg-night-2 min-w-0">
                                                 <span className="text-slate-400 block text-[10px]">Study Mode</span>
                                                 <span className="font-bold text-slate-700 dark:text-slate-200 truncate block">{modePreference} ({level})</span>
                                             </div>
-                                            <div className="p-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200/60 dark:border-slate-800 min-w-0">
+                                            <div className="p-2 rounded-[14px] bg-white dark:bg-night-2 min-w-0">
                                                 <span className="text-slate-400 block text-[10px]">Preferred Days</span>
                                                 <span className="font-bold text-slate-700 dark:text-slate-200 truncate block">
                                                     {preferredStudyDays.join(', ') || 'Flexible'}
@@ -1549,7 +1549,7 @@ const OutreachRegistration: React.FC = () => {
                                                         key={c.title}
                                                         type="button"
                                                         onClick={() => handleCourseSelect(c.title)}
-                                                        className={`w-full py-2.5 px-2.5 flex items-center justify-between gap-2 text-left rounded-xl transition-colors cursor-pointer min-w-0 ${
+                                                        className={`w-full py-2.5 px-2.5 flex items-center justify-between gap-2 text-left rounded-[14px] transition-colors cursor-pointer min-w-0 ${
                                                             active
                                                                 ? 'bg-violet-50/80 dark:bg-violet-950/40 font-bold text-violet-700 dark:text-violet-300'
                                                                 : 'hover:bg-slate-50 dark:hover:bg-slate-800/40 text-slate-600 dark:text-slate-400'
@@ -1559,7 +1559,7 @@ const OutreachRegistration: React.FC = () => {
                                                             {i + 1}. {c.title}
                                                         </span>
                                                         <span className={`font-mono text-[11px] font-semibold shrink-0 ${
-                                                            c.usdPerMonth === 0 ? 'text-emerald-600 dark:text-emerald-400 font-bold' : ''
+                                                            c.usdPerMonth === 0 ? 'text-mint dark:text-emerald-400 font-bold' : ''
                                                         }`}>
                                                             {c.usdPerMonth === 0 ? 'Free (0 UGX)' : `$${c.usdPerMonth} | ${formatUgx(c.ugxPerMonth)} UGX`}
                                                         </span>
@@ -1587,7 +1587,7 @@ const OutreachRegistration: React.FC = () => {
 
                         {/* RIGHT COLUMN: FOCUSED 3-STEP FORM CARD */}
                         <div className="min-w-0 w-full lg:col-span-7 order-1 lg:order-2">
-                            <div className="bg-white dark:bg-slate-900 rounded-2xl sm:rounded-3xl border border-slate-200/90 dark:border-slate-800 shadow-sm overflow-hidden">
+                            <div className="bg-white dark:bg-night-2 rounded-[22px] sm:rounded-3xl overflow-hidden">
                                 {/* Clean Step Header & Linear Progress Bar */}
                                 <div className="px-3.5 sm:px-6 pt-4 sm:pt-6 pb-3.5 sm:pb-4 border-b border-slate-100 dark:border-slate-800/80">
                                     <div className="flex items-center justify-between gap-2 mb-3">
@@ -1608,11 +1608,11 @@ const OutreachRegistration: React.FC = () => {
                                                             else if (s.num === 2 && validateStep1()) setStep(2);
                                                             else if (s.num === 3 && validateStep1() && validateStep2()) setStep(3);
                                                         }}
-                                                        className={`px-2 sm:px-3 py-1.5 rounded-xl sm:rounded-full text-[11px] sm:text-xs font-bold transition-all flex items-center justify-center sm:justify-start gap-1 sm:gap-1.5 cursor-pointer min-w-0 ${
+                                                        className={`px-2 sm:px-3 py-1.5 rounded-[14px] sm:rounded-full text-[11px] sm:text-xs font-bold transition-all flex items-center justify-center sm:justify-start gap-1 sm:gap-1.5 cursor-pointer min-w-0 ${
                                                             isCurrent
                                                                 ? 'bg-violet-600 text-white shadow-sm'
                                                                 : isDone
-                                                                ? 'bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/50'
+                                                                ? 'bg-mint-soft dark:bg-emerald-950/50 text-mint dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/50'
                                                                 : 'bg-slate-100 dark:bg-slate-800/70 text-slate-500 dark:text-slate-400'
                                                         }`}
                                                     >
@@ -1679,7 +1679,7 @@ const OutreachRegistration: React.FC = () => {
                                                         if (fullName.trim()) setFullName(cleanPersonName(fullName));
                                                     }}
                                                     placeholder="e.g. Muganyizi Hosea"
-                                                    className={`w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-950 border ${
+                                                    className={`w-full px-4 py-3 rounded-[14px] bg-slate-50 dark:bg-slate-950 border ${
                                                         errors.fullName
                                                             ? 'border-red-500 focus:ring-red-500/20'
                                                             : 'border-slate-200 dark:border-slate-800 focus:border-violet-500'
@@ -1699,7 +1699,7 @@ const OutreachRegistration: React.FC = () => {
                                                         </label>
                                                         <span className={`text-[10px] font-mono font-semibold truncate max-w-full ${
                                                             phoneValidation.valid
-                                                                ? 'text-emerald-600 dark:text-emerald-400'
+                                                                ? 'text-mint dark:text-emerald-400'
                                                                 : 'text-slate-400'
                                                         }`}>
                                                             {phoneValidation.formatLabel} {phoneValidation.valid ? '✓' : ''}
@@ -1715,7 +1715,7 @@ const OutreachRegistration: React.FC = () => {
                                                             if (errors.phone) setErrors(prev => ({ ...prev, phone: '' }));
                                                         }}
                                                         placeholder="0772123456"
-                                                        className={`w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-950 border ${
+                                                        className={`w-full px-4 py-3 rounded-[14px] bg-slate-50 dark:bg-slate-950 border ${
                                                             errors.phone
                                                                 ? 'border-red-500'
                                                                 : phoneValidation.valid
@@ -1740,7 +1740,7 @@ const OutreachRegistration: React.FC = () => {
                                                             if (errors.email) setErrors(prev => ({ ...prev, email: '' }));
                                                         }}
                                                         placeholder="you@example.com"
-                                                        className={`w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-950 border ${
+                                                        className={`w-full px-4 py-3 rounded-[14px] bg-slate-50 dark:bg-slate-950 border ${
                                                             errors.email
                                                                 ? 'border-red-500'
                                                                 : 'border-slate-200 dark:border-slate-800 focus:border-violet-500'
@@ -1766,7 +1766,7 @@ const OutreachRegistration: React.FC = () => {
                                                                 setErrors(prev => ({ ...prev, universityOrInstitute: '' }));
                                                             }
                                                         }}
-                                                        className="w-full max-w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-sm font-medium focus:outline-none focus:border-violet-500"
+                                                        className="w-full max-w-full px-4 py-3 rounded-[14px] bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-sm font-medium focus:outline-none focus:border-violet-500"
                                                     >
                                                         {CLASS_LEVEL_OPTIONS.map(opt => (
                                                             <option key={opt} value={opt}>{opt}</option>
@@ -1784,7 +1784,7 @@ const OutreachRegistration: React.FC = () => {
                                                                 key={age}
                                                                 type="button"
                                                                 onClick={() => setAgeRange(age)}
-                                                                className={`py-2.5 px-1.5 sm:px-2 rounded-xl text-[11px] sm:text-xs font-bold border transition-all cursor-pointer whitespace-nowrap min-w-0 ${
+                                                                className={`py-2.5 px-1.5 sm:px-2 rounded-[14px] text-[11px] sm:text-xs font-bold border transition-all cursor-pointer whitespace-nowrap min-w-0 ${
                                                                     ageRange === age
                                                                         ? 'bg-violet-600 text-white border-violet-600'
                                                                         : 'bg-slate-50 dark:bg-slate-950 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-800 hover:border-violet-400'
@@ -1799,7 +1799,7 @@ const OutreachRegistration: React.FC = () => {
 
                                             {/* Conditional University / Institute Field — ONLY shown when student is in a University or Institute */}
                                             {isUniversityOrInstituteStudent && (
-                                                <div className="p-3.5 sm:p-4 rounded-2xl bg-violet-50/50 dark:bg-violet-950/20 border border-violet-200/70 dark:border-violet-800/50 animate-in fade-in duration-200">
+                                                <div className="p-3.5 sm:p-4 rounded-[22px] bg-violet-50/50 dark:bg-violet-950/20 border border-violet-200/70 dark:border-violet-800/50 animate-in fade-in duration-200">
                                                     <SearchableComboField
                                                         label={
                                                             <span className="inline-flex items-center gap-1.5">
@@ -1866,7 +1866,7 @@ const OutreachRegistration: React.FC = () => {
                                                                 if (errors.guardianName) setErrors(prev => ({ ...prev, guardianName: '' }));
                                                             }}
                                                             placeholder={isGuardianRequired ? 'Guardian Full Name *' : 'Guardian / Next of Kin Name (Optional)'}
-                                                            className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-xs font-medium focus:outline-none focus:border-violet-500"
+                                                            className="w-full px-4 py-2.5 rounded-[14px] bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-xs font-medium focus:outline-none focus:border-violet-500"
                                                         />
                                                         {errors.guardianName && (
                                                             <p className="text-xs text-red-500 mt-1">{errors.guardianName}</p>
@@ -1883,7 +1883,7 @@ const OutreachRegistration: React.FC = () => {
                                                                 if (errors.guardianPhone) setErrors(prev => ({ ...prev, guardianPhone: '' }));
                                                             }}
                                                             placeholder={isGuardianRequired ? 'Guardian Phone (07XXXXXXXX) *' : 'Guardian Phone (Optional)'}
-                                                            className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-xs font-medium focus:outline-none focus:border-violet-500"
+                                                            className="w-full px-4 py-2.5 rounded-[14px] bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-xs font-medium focus:outline-none focus:border-violet-500"
                                                         />
                                                         {errors.guardianPhone && (
                                                             <p className="text-xs text-red-500 mt-1">{errors.guardianPhone}</p>
@@ -1896,7 +1896,7 @@ const OutreachRegistration: React.FC = () => {
                                                 <button
                                                     type="button"
                                                     onClick={handleNext}
-                                                    className="w-full sm:w-auto px-5 sm:px-7 py-3.5 rounded-xl bg-violet-600 hover:bg-violet-700 text-white font-bold text-sm shadow-lg shadow-violet-600/20 flex items-center justify-center gap-2 transition-all cursor-pointer"
+                                                    className="w-full sm:w-auto px-5 sm:px-7 py-3.5 rounded-[14px] bg-violet-600 hover:bg-violet-700 text-white font-bold text-sm shadow-lg shadow-violet-600/20 flex items-center justify-center gap-2 transition-all cursor-pointer"
                                                 >
                                                     Continue to Course & Schedule
                                                     <ArrowRight size={16} />
@@ -1932,7 +1932,7 @@ const OutreachRegistration: React.FC = () => {
                                                                 key={c.title}
                                                                 type="button"
                                                                 onClick={() => handleCourseSelect(c.title)}
-                                                                className={`p-3.5 sm:p-4 rounded-2xl border text-left transition-all cursor-pointer relative min-w-0 ${
+                                                                className={`p-3.5 sm:p-4 rounded-[22px] border text-left transition-all cursor-pointer relative min-w-0 ${
                                                                     isSelected
                                                                         ? 'bg-violet-50/90 dark:bg-violet-950/50 border-violet-600 ring-2 ring-violet-500/20'
                                                                         : 'bg-slate-50/70 dark:bg-slate-950 border-slate-200 dark:border-slate-800 hover:border-violet-400'
@@ -1953,9 +1953,9 @@ const OutreachRegistration: React.FC = () => {
                                                                 <p className="text-[11px] text-slate-500 dark:text-slate-400 line-clamp-2 mb-2.5">
                                                                     {c.shortDescription}
                                                                 </p>
-                                                                <div className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 text-[11px] font-extrabold max-w-full ${
+                                                                <div className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-[12px] bg-white dark:bg-night-2 text-[11px] font-extrabold max-w-full ${
                                                                     c.usdPerMonth === 0
-                                                                        ? 'text-emerald-600 dark:text-emerald-400'
+                                                                        ? 'text-mint dark:text-emerald-400'
                                                                         : 'text-violet-700 dark:text-violet-300'
                                                                 }`}>
                                                                     {c.usdPerMonth === 0 ? 'FREE • 0 UGX' : `$${c.usdPerMonth} | ${formatUgx(c.ugxPerMonth)} UGX / mo`}
@@ -1978,7 +1978,7 @@ const OutreachRegistration: React.FC = () => {
                                                                 key={l.value}
                                                                 type="button"
                                                                 onClick={() => setLevel(l.value)}
-                                                                className={`py-2.5 px-1.5 sm:px-2 rounded-xl text-[11px] sm:text-xs font-bold border transition-all cursor-pointer truncate min-w-0 ${
+                                                                className={`py-2.5 px-1.5 sm:px-2 rounded-[14px] text-[11px] sm:text-xs font-bold border transition-all cursor-pointer truncate min-w-0 ${
                                                                     level === l.value
                                                                         ? 'bg-violet-600 text-white border-violet-600'
                                                                         : 'bg-slate-50 dark:bg-slate-950 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-800'
@@ -2000,7 +2000,7 @@ const OutreachRegistration: React.FC = () => {
                                                                 key={m.value}
                                                                 type="button"
                                                                 onClick={() => setModePreference(m.value)}
-                                                                className={`py-2.5 px-1.5 sm:px-2 rounded-xl text-[11px] sm:text-xs font-bold border transition-all cursor-pointer truncate min-w-0 ${
+                                                                className={`py-2.5 px-1.5 sm:px-2 rounded-[14px] text-[11px] sm:text-xs font-bold border transition-all cursor-pointer truncate min-w-0 ${
                                                                     modePreference === m.value
                                                                         ? 'bg-violet-600 text-white border-violet-600'
                                                                         : 'bg-slate-50 dark:bg-slate-950 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-800'
@@ -2053,7 +2053,7 @@ const OutreachRegistration: React.FC = () => {
                                                                 key={day}
                                                                 type="button"
                                                                 onClick={() => toggleStudyDay(day)}
-                                                                className={`py-2 sm:py-2.5 px-0.5 rounded-lg sm:rounded-xl text-[11px] sm:text-xs font-bold border transition-all cursor-pointer min-w-0 text-center ${
+                                                                className={`py-2 sm:py-2.5 px-0.5 rounded-[12px] sm:rounded-xl text-[11px] sm:text-xs font-bold border transition-all cursor-pointer min-w-0 text-center ${
                                                                     active
                                                                         ? 'bg-violet-600 text-white border-violet-600 shadow-sm'
                                                                         : 'bg-slate-50 dark:bg-slate-950 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-800'
@@ -2080,7 +2080,7 @@ const OutreachRegistration: React.FC = () => {
                                                             key={slot.value}
                                                             type="button"
                                                             onClick={() => setChosenStudyTime(slot.value)}
-                                                            className={`py-2.5 px-3 sm:px-3.5 rounded-xl text-xs font-semibold border text-left flex items-center justify-between gap-2 transition-all cursor-pointer min-w-0 ${
+                                                            className={`py-2.5 px-3 sm:px-3.5 rounded-[14px] text-xs font-semibold border text-left flex items-center justify-between gap-2 transition-all cursor-pointer min-w-0 ${
                                                                 chosenStudyTime === slot.value
                                                                     ? 'bg-violet-50 dark:bg-violet-950/60 border-violet-600 text-violet-700 dark:text-violet-300 font-bold'
                                                                     : 'bg-slate-50 dark:bg-slate-950 border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-300'
@@ -2105,7 +2105,7 @@ const OutreachRegistration: React.FC = () => {
                                                 </button>
 
                                                 {showScheduleExtras && (
-                                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 sm:gap-4 mt-3 p-3.5 sm:p-4 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200/80 dark:border-slate-800">
+                                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 sm:gap-4 mt-3 p-3.5 sm:p-4 rounded-[22px] bg-slate-50 dark:bg-slate-950 border border-slate-200/80 dark:border-slate-800">
                                                         <div className="min-w-0">
                                                             <label className="block text-[11px] font-semibold text-slate-500 mb-1">
                                                                 Tentative Start Date
@@ -2114,7 +2114,7 @@ const OutreachRegistration: React.FC = () => {
                                                                 type="date"
                                                                 value={expectedStartDate}
                                                                 onChange={(e) => setExpectedStartDate(e.target.value)}
-                                                                className="w-full max-w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-xs font-medium"
+                                                                className="w-full max-w-full px-3 py-2 rounded-[14px] bg-white dark:bg-night-2 text-xs font-medium"
                                                             />
                                                         </div>
                                                         <div className="min-w-0">
@@ -2124,7 +2124,7 @@ const OutreachRegistration: React.FC = () => {
                                                             <select
                                                                 value={alternativeStudyTime}
                                                                 onChange={(e) => setAlternativeStudyTime(e.target.value)}
-                                                                className="w-full max-w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-xs font-medium"
+                                                                className="w-full max-w-full px-3 py-2 rounded-[14px] bg-white dark:bg-night-2 text-xs font-medium"
                                                             >
                                                                 {TIME_SLOTS.map(s => (
                                                                     <option key={s.value} value={s.value}>{s.label}</option>
@@ -2138,7 +2138,7 @@ const OutreachRegistration: React.FC = () => {
                                                             <select
                                                                 value={studyHoursPerSession}
                                                                 onChange={(e) => setStudyHoursPerSession(e.target.value)}
-                                                                className="w-full max-w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-xs font-medium"
+                                                                className="w-full max-w-full px-3 py-2 rounded-[14px] bg-white dark:bg-night-2 text-xs font-medium"
                                                             >
                                                                 {SESSION_HOURS_OPTIONS.map(h => (
                                                                     <option key={h} value={h}>{h}</option>
@@ -2152,7 +2152,7 @@ const OutreachRegistration: React.FC = () => {
                                                             <select
                                                                 value={sessionsPerWeek}
                                                                 onChange={(e) => setSessionsPerWeek(e.target.value)}
-                                                                className="w-full max-w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-xs font-medium"
+                                                                className="w-full max-w-full px-3 py-2 rounded-[14px] bg-white dark:bg-night-2 text-xs font-medium"
                                                             >
                                                                 {SESSIONS_PER_WEEK_OPTIONS.map(spw => (
                                                                     <option key={spw} value={spw}>{spw}</option>
@@ -2167,7 +2167,7 @@ const OutreachRegistration: React.FC = () => {
                                                 <button
                                                     type="button"
                                                     onClick={handleBack}
-                                                    className="px-4 sm:px-5 py-3 sm:py-3.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-semibold text-xs sm:text-sm flex items-center gap-1.5 sm:gap-2 transition-colors cursor-pointer shrink-0"
+                                                    className="px-4 sm:px-5 py-3 sm:py-3.5 rounded-[14px] bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-semibold text-xs sm:text-sm flex items-center gap-1.5 sm:gap-2 transition-colors cursor-pointer shrink-0"
                                                 >
                                                     <ArrowLeft size={16} />
                                                     Back
@@ -2175,7 +2175,7 @@ const OutreachRegistration: React.FC = () => {
                                                 <button
                                                     type="button"
                                                     onClick={handleNext}
-                                                    className="flex-1 sm:flex-initial px-4 sm:px-7 py-3 sm:py-3.5 rounded-xl bg-violet-600 hover:bg-violet-700 text-white font-bold text-xs sm:text-sm shadow-lg shadow-violet-600/20 flex items-center justify-center gap-1.5 sm:gap-2 transition-all cursor-pointer min-w-0"
+                                                    className="flex-1 sm:flex-initial px-4 sm:px-7 py-3 sm:py-3.5 rounded-[14px] bg-violet-600 hover:bg-violet-700 text-white font-bold text-xs sm:text-sm shadow-lg shadow-violet-600/20 flex items-center justify-center gap-1.5 sm:gap-2 transition-all cursor-pointer min-w-0"
                                                 >
                                                     <span className="truncate">Continue to Final Step</span>
                                                     <ArrowRight size={16} className="shrink-0" />
@@ -2199,14 +2199,14 @@ const OutreachRegistration: React.FC = () => {
                                             </div>
 
                                             {/* Clean Provisional Tuition Summary Box */}
-                                            <div className="p-3.5 sm:p-4 rounded-2xl bg-violet-50/70 dark:bg-violet-950/30 border border-violet-200/80 dark:border-violet-800/60 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-3 min-w-0">
+                                            <div className="p-3.5 sm:p-4 rounded-[22px] bg-violet-50/70 dark:bg-violet-950/30 border border-violet-200/80 dark:border-violet-800/60 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-3 min-w-0">
                                                 <div className="min-w-0">
                                                     <span className="text-[10px] font-bold uppercase tracking-wider text-violet-600 dark:text-violet-400 block break-words">
                                                         {courseInterest} — Standard Tuition
                                                     </span>
                                                     <div className="text-base sm:text-lg font-black text-slate-900 dark:text-white mt-0.5">
                                                         {activeCoursePricing.ugxPerMonth === 0 ? (
-                                                            <span className="text-emerald-600 dark:text-emerald-400">
+                                                            <span className="text-mint dark:text-emerald-400">
                                                                 FREE (UGX 0)
                                                             </span>
                                                         ) : (
@@ -2217,7 +2217,7 @@ const OutreachRegistration: React.FC = () => {
                                                         )}
                                                     </div>
                                                 </div>
-                                                <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white dark:bg-slate-900 border border-violet-200 dark:border-violet-800 text-[11px] sm:text-xs font-bold text-emerald-600 dark:text-emerald-400 shrink-0 self-start sm:self-auto">
+                                                <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[14px] bg-white dark:bg-night-2 border-violet-200 dark:border-violet-800 text-[11px] sm:text-xs font-bold text-mint dark:text-emerald-400 shrink-0 self-start sm:self-auto">
                                                     <CheckCircle2 size={14} className="shrink-0" />
                                                     <span>{activeCoursePricing.ugxPerMonth === 0 ? '100% Free Course' : 'UGX 0 Due Today (Pay on Confirmation)'}</span>
                                                 </span>
@@ -2237,7 +2237,7 @@ const OutreachRegistration: React.FC = () => {
                                                                 key={p.value}
                                                                 type="button"
                                                                 onClick={() => handlePaymentPlanChange(p.value)}
-                                                                className={`p-2.5 rounded-xl border text-left transition-all cursor-pointer min-w-0 ${
+                                                                className={`p-2.5 rounded-[14px] border text-left transition-all cursor-pointer min-w-0 ${
                                                                     paymentPlan === p.value
                                                                         ? 'bg-violet-600 text-white border-violet-600'
                                                                         : 'bg-slate-50 dark:bg-slate-950 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-800'
@@ -2259,7 +2259,7 @@ const OutreachRegistration: React.FC = () => {
                                                                 key={m}
                                                                 type="button"
                                                                 onClick={() => setPaymentMethod(m)}
-                                                                className={`p-2.5 rounded-xl border text-xs font-bold transition-all cursor-pointer truncate min-w-0 ${
+                                                                className={`p-2.5 rounded-[14px] border text-xs font-bold transition-all cursor-pointer truncate min-w-0 ${
                                                                     paymentMethod === m
                                                                         ? 'bg-violet-600 text-white border-violet-600'
                                                                         : 'bg-slate-50 dark:bg-slate-950 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-800'
@@ -2284,7 +2284,7 @@ const OutreachRegistration: React.FC = () => {
                                                 </button>
 
                                                 {showInitialDepositBox && (
-                                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 sm:gap-4 mt-3 p-3.5 sm:p-4 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800">
+                                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 sm:gap-4 mt-3 p-3.5 sm:p-4 rounded-[22px] bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800">
                                                         <div className="min-w-0">
                                                             <label className="block text-[11px] font-semibold text-slate-500 mb-1">
                                                                 Amount Paid Today (UGX)
@@ -2298,7 +2298,7 @@ const OutreachRegistration: React.FC = () => {
                                                                         const val = sanitizeMoneyInput(e.target.value, totalCourseFee);
                                                                         setAmountPaid(val);
                                                                     }}
-                                                                    className="w-full px-3.5 py-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-xs font-bold"
+                                                                    className="w-full px-3.5 py-2.5 rounded-[14px] bg-white dark:bg-night-2 text-xs font-bold"
                                                                 />
                                                                 <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] font-mono text-slate-400">
                                                                     {formatEquivalentUsd(amountPaid)}
@@ -2314,7 +2314,7 @@ const OutreachRegistration: React.FC = () => {
                                                                 value={paymentReference}
                                                                 onChange={(e) => setPaymentReference(e.target.value)}
                                                                 placeholder="e.g. MP261106..."
-                                                                className="w-full px-3.5 py-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-xs font-medium"
+                                                                className="w-full px-3.5 py-2.5 rounded-[14px] bg-white dark:bg-night-2 text-xs font-medium"
                                                             />
                                                         </div>
                                                     </div>
@@ -2324,7 +2324,7 @@ const OutreachRegistration: React.FC = () => {
                                             )}
 
                                             {/* Digital Signature & Programme Commitments Accordion */}
-                                            <div className="p-3.5 sm:p-4 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200/80 dark:border-slate-800 space-y-3">
+                                            <div className="p-3.5 sm:p-4 rounded-[22px] bg-slate-50 dark:bg-slate-950 border border-slate-200/80 dark:border-slate-800 space-y-3">
                                                 <div className="flex flex-wrap items-center justify-between gap-1.5">
                                                     <span className="text-xs font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
                                                         <PenTool size={14} className="text-violet-600 shrink-0" />
@@ -2356,7 +2356,7 @@ const OutreachRegistration: React.FC = () => {
                                                         value={studentSignature}
                                                         onChange={(e) => setStudentSignature(e.target.value.replace(/[0-9]/g, ''))}
                                                         placeholder={fullName || 'Type your full name'}
-                                                        className="w-full px-3.5 py-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-xs font-serif italic font-semibold text-violet-700 dark:text-violet-300"
+                                                        className="w-full px-3.5 py-2.5 rounded-[14px] bg-white dark:bg-night-2 text-xs tracking-[-0.02em] italic font-semibold text-violet-700 dark:text-violet-300"
                                                     />
                                                 </div>
 
@@ -2383,7 +2383,7 @@ const OutreachRegistration: React.FC = () => {
                                                 <button
                                                     type="button"
                                                     onClick={handleBack}
-                                                    className="px-4 sm:px-5 py-3 sm:py-3.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-semibold text-xs sm:text-sm flex items-center gap-1.5 sm:gap-2 transition-colors cursor-pointer shrink-0"
+                                                    className="px-4 sm:px-5 py-3 sm:py-3.5 rounded-[14px] bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-semibold text-xs sm:text-sm flex items-center gap-1.5 sm:gap-2 transition-colors cursor-pointer shrink-0"
                                                 >
                                                     <ArrowLeft size={16} />
                                                     Back
@@ -2391,7 +2391,7 @@ const OutreachRegistration: React.FC = () => {
                                                 <button
                                                     type="submit"
                                                     disabled={isSubmitting}
-                                                    className="flex-1 py-3 sm:py-3.5 px-4 sm:px-6 rounded-xl bg-violet-600 hover:bg-violet-700 text-white font-bold text-xs sm:text-sm shadow-lg shadow-violet-600/25 flex items-center justify-center gap-1.5 sm:gap-2 transition-all cursor-pointer disabled:opacity-60 min-w-0"
+                                                    className="flex-1 py-3 sm:py-3.5 px-4 sm:px-6 rounded-[14px] bg-violet-600 hover:bg-violet-700 text-white font-bold text-xs sm:text-sm shadow-lg shadow-violet-600/25 flex items-center justify-center gap-1.5 sm:gap-2 transition-all cursor-pointer disabled:opacity-60 min-w-0"
                                                 >
                                                     {isSubmitting ? (
                                                         <>
@@ -2432,10 +2432,10 @@ const OutreachRegistration: React.FC = () => {
                         className="fixed inset-0 bg-black/60 backdrop-blur-sm"
                         onClick={() => setShowBoothSettingsModal(false)}
                     />
-                    <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 w-full max-w-md max-h-[90vh] overflow-y-auto rounded-2xl sm:rounded-3xl p-4 sm:p-6 shadow-2xl relative z-10 space-y-4 animate-in zoom-in-95 duration-200">
+                    <div className="bg-white dark:bg-night-2 w-full max-w-md max-h-[90vh] overflow-y-auto rounded-[22px] sm:rounded-3xl p-4 sm:p-6 shadow-2xl relative z-10 space-y-4 animate-in zoom-in-95 duration-200">
                         <div className="flex items-center justify-between">
                             <div className="flex items-center gap-2.5">
-                                <div className="w-9 h-9 rounded-xl bg-violet-100 dark:bg-violet-950/60 text-violet-600 dark:text-violet-400 flex items-center justify-center">
+                                <div className="w-9 h-9 rounded-[14px] bg-violet-100 dark:bg-violet-950/60 text-violet-600 dark:text-violet-400 flex items-center justify-center">
                                     <SlidersHorizontal size={18} />
                                 </div>
                                 <div>
@@ -2450,7 +2450,7 @@ const OutreachRegistration: React.FC = () => {
                             <button
                                 type="button"
                                 onClick={() => setShowBoothSettingsModal(false)}
-                                className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-white cursor-pointer"
+                                className="p-1.5 rounded-[12px] text-slate-400 hover:text-slate-700 dark:hover:text-white cursor-pointer"
                             >
                                 <X size={18} />
                             </button>
@@ -2468,7 +2468,7 @@ const OutreachRegistration: React.FC = () => {
                                         setIsOutreachMode(false);
                                         setRegistrationMode('Student Self-Registration');
                                     }}
-                                    className={`py-2.5 px-3 rounded-xl text-xs font-bold border cursor-pointer ${
+                                    className={`py-2.5 px-3 rounded-[14px] text-xs font-bold border cursor-pointer ${
                                         !isOutreachMode
                                             ? 'bg-violet-600 text-white border-violet-600'
                                             : 'bg-slate-50 dark:bg-slate-950 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-800'
@@ -2482,9 +2482,9 @@ const OutreachRegistration: React.FC = () => {
                                         setIsOutreachMode(true);
                                         setRegistrationMode('Staff Assisted (Booth/Field)');
                                     }}
-                                    className={`py-2.5 px-3 rounded-xl text-xs font-bold border cursor-pointer ${
+                                    className={`py-2.5 px-3 rounded-[14px] text-xs font-bold border cursor-pointer ${
                                         isOutreachMode
-                                            ? 'bg-emerald-600 text-white border-emerald-600'
+                                            ? 'bg-mint text-white border-mint'
                                             : 'bg-slate-50 dark:bg-slate-950 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-800'
                                     }`}
                                 >
@@ -2504,7 +2504,7 @@ const OutreachRegistration: React.FC = () => {
                                     <select
                                         value={outreachEvent}
                                         onChange={(e) => setOutreachEvent(e.target.value)}
-                                        className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-xs font-bold"
+                                        className="w-full px-3.5 py-2.5 rounded-[14px] bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-xs font-bold"
                                     >
                                         {campaigns.map(c => (
                                             <option key={c.id} value={c.name}>
@@ -2522,7 +2522,7 @@ const OutreachRegistration: React.FC = () => {
                                                 setOutreachEvent(e.target.value);
                                             }}
                                             placeholder="Enter new outreach event name"
-                                            className="w-full mt-2 px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-xs font-bold"
+                                            className="w-full mt-2 px-3.5 py-2.5 rounded-[14px] bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-xs font-bold"
                                         />
                                     )}
                                 </div>
@@ -2536,9 +2536,9 @@ const OutreachRegistration: React.FC = () => {
                                         <button
                                             type="button"
                                             onClick={() => setRegistrationMode('Staff Assisted (Booth/Field)')}
-                                            className={`py-2 px-3 rounded-xl text-xs font-bold border cursor-pointer ${
+                                            className={`py-2 px-3 rounded-[14px] text-xs font-bold border cursor-pointer ${
                                                 registrationMode === 'Staff Assisted (Booth/Field)'
-                                                    ? 'bg-emerald-600 text-white border-emerald-600'
+                                                    ? 'bg-mint text-white border-mint'
                                                     : 'bg-slate-50 dark:bg-slate-950 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-800'
                                             }`}
                                         >
@@ -2547,7 +2547,7 @@ const OutreachRegistration: React.FC = () => {
                                         <button
                                             type="button"
                                             onClick={() => setRegistrationMode('Student Self-Registration')}
-                                            className={`py-2 px-3 rounded-xl text-xs font-bold border cursor-pointer ${
+                                            className={`py-2 px-3 rounded-[14px] text-xs font-bold border cursor-pointer ${
                                                 registrationMode === 'Student Self-Registration'
                                                     ? 'bg-violet-600 text-white border-violet-600'
                                                     : 'bg-slate-50 dark:bg-slate-950 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-800'
@@ -2561,13 +2561,13 @@ const OutreachRegistration: React.FC = () => {
                                 {/* Staff Selector */}
                                 {registrationMode === 'Staff Assisted (Booth/Field)' && (
                                     <div>
-                                        <label className="block text-[11px] font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400 mb-1.5">
+                                        <label className="block text-[11px] font-bold uppercase tracking-wider text-mint dark:text-emerald-400 mb-1.5">
                                             Registered By (Mobilizer / Staff Audit)
                                         </label>
                                         <select
                                             value={registeredByStaff}
                                             onChange={(e) => setRegisteredByStaff(e.target.value)}
-                                            className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-xs font-bold"
+                                            className="w-full px-3.5 py-2.5 rounded-[14px] bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-xs font-bold"
                                         >
                                             {staffRoster
                                                 .filter(s => s.id !== 'stf-self')
@@ -2584,7 +2584,7 @@ const OutreachRegistration: React.FC = () => {
                                                 value={customStaffName}
                                                 onChange={(e) => setCustomStaffName(e.target.value)}
                                                 placeholder="Enter staff full name"
-                                                className="w-full mt-2 px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-xs font-bold"
+                                                className="w-full mt-2 px-3.5 py-2.5 rounded-[14px] bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-xs font-bold"
                                             />
                                         )}
                                     </div>
@@ -2599,7 +2599,7 @@ const OutreachRegistration: React.FC = () => {
                                         type="text"
                                         value={adminRemarks}
                                         onChange={(e) => setAdminRemarks(e.target.value)}
-                                        className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-xs"
+                                        className="w-full px-3.5 py-2.5 rounded-[14px] bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-xs"
                                     />
                                 </div>
                             </div>
@@ -2609,7 +2609,7 @@ const OutreachRegistration: React.FC = () => {
                             <button
                                 type="button"
                                 onClick={() => setShowBoothSettingsModal(false)}
-                                className="w-full py-2.5 rounded-xl bg-violet-600 hover:bg-violet-700 text-white text-xs font-bold cursor-pointer"
+                                className="w-full py-2.5 rounded-[14px] bg-violet-600 hover:bg-violet-700 text-white text-xs font-bold cursor-pointer"
                             >
                                 Save & Continue
                             </button>

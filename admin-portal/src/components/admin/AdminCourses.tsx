@@ -338,7 +338,7 @@ const AdminCourses: React.FC<AdminCoursesProps> = ({ isInstructor = false }) => 
     };
 
     if (loading) return (
-        <div className="p-12 text-center text-gray-500 flex flex-col items-center gap-3">
+        <div className="p-12 text-center text-stone-500 flex flex-col items-center gap-3">
             <Loader2 className="animate-spin text-violet-600" size={32} />
             <p className="font-semibold text-sm">Loading courses and live schedules...</p>
         </div>
@@ -347,28 +347,28 @@ const AdminCourses: React.FC<AdminCoursesProps> = ({ isInstructor = false }) => 
     return (
         <div className="space-y-6">
             {/* Top Bar */}
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center bg-white dark:bg-slate-900 p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-slate-800 gap-4">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center bg-white dark:bg-night-2 p-6 rounded-[22px] gap-4">
                 <div>
-                    <h2 className="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                    <h1 className="m-0 text-[28px] font-extrabold tracking-[-0.02em] flex items-center gap-2">
                         <BookOpen className="text-violet-600" size={22} />
                         {isInstructor ? 'Tutor Dashboard & Live Lessons' : 'Course & Live Cohort Management'}
-                    </h2>
-                    <p className="text-xs text-gray-500 dark:text-slate-400 mt-0.5">
+                    </h1>
+                    <p className="text-xs text-stone-500 dark:text-slate-400 mt-0.5">
                         Attendance codes are auto-generated for every live lesson. View, copy, or broadcast session PINs directly to students.
                     </p>
                 </div>
                 <button 
                     onClick={() => navigate(isInstructor ? '/instructor/courses/setup' : '/courses/setup')}
-                    className="bg-violet-600 hover:bg-violet-700 text-white px-4 py-2.5 rounded-xl flex items-center gap-2 font-bold text-sm transition-colors shadow-sm cursor-pointer"
+                    className="bg-brand hover:bg-brand-mid text-white px-4 py-2.5 rounded-[14px] flex items-center gap-2 font-bold text-sm transition-colors cursor-pointer"
                 >
                     <Plus size={18} /> New Course Wizard
                 </button>
             </div>
 
             {/* Tutor Live Session Guidance Banner */}
-            <div className="bg-gradient-to-r from-violet-600 to-indigo-700 rounded-2xl p-5 text-white shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+            <div className="bg-gradient-to-r from-violet-600 to-brand rounded-[22px] p-5 text-white flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
                 <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-white/15 backdrop-blur-sm flex items-center justify-center shrink-0">
+                    <div className="w-10 h-10 rounded-[14px] bg-white/15 backdrop-blur-sm flex items-center justify-center shrink-0">
                         <Radio className="text-white animate-pulse" size={20} />
                     </div>
                     <div>
@@ -379,7 +379,7 @@ const AdminCourses: React.FC<AdminCoursesProps> = ({ isInstructor = false }) => 
                     </div>
                 </div>
                 <div className="flex items-center gap-2 shrink-0">
-                    <span className="px-3 py-1 bg-white/20 backdrop-blur-sm text-white rounded-lg text-xs font-bold border border-white/20">
+                    <span className="px-3 py-1 bg-white/20 backdrop-blur-sm text-white rounded-[12px] text-xs font-bold border border-white/20">
                         ⚡ Active Cohorts: {filteredCourses.length}
                     </span>
                 </div>
@@ -388,12 +388,12 @@ const AdminCourses: React.FC<AdminCoursesProps> = ({ isInstructor = false }) => 
             {/* Courses Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {filteredCourses.length === 0 && (
-                    <div className="col-span-full py-16 text-center text-gray-400 dark:text-slate-500 bg-white dark:bg-slate-900 rounded-3xl border border-dashed border-gray-200 dark:border-slate-800 space-y-2">
+                    <div className="col-span-full py-16 text-center text-stone-400 dark:text-slate-500 bg-white dark:bg-night-2 rounded-[26px] border-dashed space-y-2">
                         <Radio size={36} className="mx-auto opacity-40 text-violet-500" />
-                        <p className="font-bold text-base text-gray-700 dark:text-slate-300">
+                        <p className="font-bold text-base text-stone-700 dark:text-slate-300">
                             {isInstructor ? "You haven't uploaded any courses yet." : "No courses available."}
                         </p>
-                        <p className="text-xs text-gray-400">
+                        <p className="text-xs text-stone-400">
                             Click "New Course Wizard" above to set up a live cohort course with Google Meet schedule.
                         </p>
                     </div>
@@ -408,17 +408,17 @@ const AdminCourses: React.FC<AdminCoursesProps> = ({ isInstructor = false }) => 
                     return (
                         <div 
                             key={c.id} 
-                            className={`bg-white dark:bg-slate-900 rounded-2xl overflow-hidden border transition-all flex flex-col justify-between ${
+                            className={`bg-white dark:bg-night-2 rounded-[22px] overflow-hidden transition-all flex flex-col justify-between ${
                                 isTargetOpen 
                                     ? 'border-violet-500 ring-2 ring-violet-500 shadow-xl shadow-violet-500/20' 
-                                    : 'border-gray-150 dark:border-slate-800 shadow-sm hover:shadow-lg'
+                                    : 'border-stone-150 dark:border-slate-800 hover:shadow-lg'
                             }`}
                         >
                             <div>
                                 {/* Cover Image & Status Badges */}
                                 <div 
                                     onClick={() => setDetailsModalCourse(c)}
-                                    className="h-44 bg-gray-200 dark:bg-slate-800 relative overflow-hidden cursor-pointer group"
+                                    className="h-44 bg-stone-200 dark:bg-slate-800 relative overflow-hidden cursor-pointer group"
                                     title="Click to view course overview"
                                 >
                                     {c.image ? (
@@ -432,30 +432,30 @@ const AdminCourses: React.FC<AdminCoursesProps> = ({ isInstructor = false }) => 
                                             }}
                                         />
                                     ) : (
-                                        <div className="w-full h-full flex items-center justify-center text-gray-400 group-hover:text-gray-600 transition-colors">
+                                        <div className="w-full h-full flex items-center justify-center text-stone-400 group-hover:text-stone-600 transition-colors">
                                             No Image
                                         </div>
                                     )}
 
                                     {/* Cohort Badge */}
                                     <div className="absolute top-3 left-3 flex flex-wrap gap-1.5">
-                                        <span className="px-2.5 py-1 bg-violet-600/90 text-white text-[11px] font-bold rounded-lg shadow-sm backdrop-blur-sm flex items-center gap-1">
+                                        <span className="px-2.5 py-1 bg-brand/90 text-white text-[11px] font-bold rounded-[12px] backdrop-blur-sm flex items-center gap-1">
                                             <Radio size={12} className="animate-pulse" />
                                             {c.cohortName || 'Live Cohort'}
                                         </span>
                                         {c.isDraft ? (
-                                            <span className="px-2 py-0.5 bg-amber-500 text-white text-[10px] font-bold rounded-md shadow-sm">
+                                            <span className="px-2 py-0.5 bg-amber-500 text-white text-[10px] font-bold rounded-md">
                                                 Draft
                                             </span>
                                         ) : (
-                                            <span className="px-2 py-0.5 bg-emerald-500 text-white text-[10px] font-bold rounded-md shadow-sm flex items-center gap-0.5">
+                                            <span className="px-2 py-0.5 bg-emerald-500 text-white text-[10px] font-bold rounded-md flex items-center gap-0.5">
                                                 <CheckCircle2 size={10} /> Published
                                             </span>
                                         )}
                                     </div>
 
                                     {/* Price Badge */}
-                                    <div className="absolute top-3 right-3 bg-white/90 dark:bg-slate-900/90 backdrop-blur-sm px-2.5 py-1 rounded-lg text-xs font-bold text-violet-600 dark:text-violet-400 shadow-sm border border-violet-100 dark:border-slate-800">
+                                    <div className="absolute top-3 right-3 bg-white/90 dark:bg-night-2/90 backdrop-blur-sm px-2.5 py-1 rounded-[12px] text-xs font-bold text-violet-600 dark:text-violet-400 border border-violet-100 dark:border-slate-800">
                                         {c.accessTier === 'FREE' ? 'FREE' : formatAmount(c.price || 0, currency)}
                                     </div>
                                 </div>
@@ -465,7 +465,7 @@ const AdminCourses: React.FC<AdminCoursesProps> = ({ isInstructor = false }) => 
                                     <div className="flex items-start justify-between gap-2">
                                         <h3 
                                             onClick={() => setDetailsModalCourse(c)}
-                                            className="font-bold text-base text-gray-900 dark:text-white line-clamp-1 hover:text-violet-600 dark:hover:text-violet-400 cursor-pointer transition-colors"
+                                            className="font-bold text-base text-stone-900 dark:text-white line-clamp-1 hover:text-violet-600 dark:hover:text-violet-400 cursor-pointer transition-colors"
                                             title="Click to view course overview"
                                         >
                                             {c.title}
@@ -474,9 +474,9 @@ const AdminCourses: React.FC<AdminCoursesProps> = ({ isInstructor = false }) => 
 
                                     {/* Google Meet Link Bar */}
                                     {hasLiveMeet && (
-                                        <div className="flex items-center justify-between gap-2 bg-emerald-50/70 dark:bg-emerald-950/30 p-2 rounded-xl border border-emerald-100 dark:border-emerald-900/40 text-xs">
+                                        <div className="flex items-center justify-between gap-2 bg-mint-soft/70 dark:bg-emerald-950/30 p-2 rounded-[14px] border border-mint-soft dark:border-emerald-900/40 text-xs">
                                             <div className="flex items-center gap-1.5 overflow-hidden">
-                                                <Radio size={13} className="text-emerald-600 shrink-0 animate-pulse" />
+                                                <Radio size={13} className="text-mint shrink-0 animate-pulse" />
                                                 <span className="font-semibold text-emerald-800 dark:text-emerald-300 truncate text-[11px]">
                                                     {c.meetingLink}
                                                 </span>
@@ -491,16 +491,16 @@ const AdminCourses: React.FC<AdminCoursesProps> = ({ isInstructor = false }) => 
                                                             setTimeout(() => setCopiedCardMeet(null), 1500);
                                                         }
                                                     }}
-                                                    className="p-1 hover:bg-emerald-100 dark:hover:bg-emerald-900/60 rounded text-emerald-700 dark:text-emerald-300 cursor-pointer"
+                                                    className="p-1 hover:bg-mint-soft dark:hover:bg-emerald-900/60 rounded text-mint dark:text-emerald-300 cursor-pointer"
                                                     title="Copy Google Meet Link"
                                                 >
-                                                    {copiedCardMeet === c.id ? <Check size={12} className="text-emerald-600" /> : <Copy size={12} />}
+                                                    {copiedCardMeet === c.id ? <Check size={12} className="text-mint" /> : <Copy size={12} />}
                                                 </button>
                                                 <a 
                                                     href={c.meetingLink} 
                                                     target="_blank" 
                                                     rel="noopener noreferrer" 
-                                                    className="p-1 hover:bg-emerald-100 dark:hover:bg-emerald-900/60 rounded text-emerald-700 dark:text-emerald-300"
+                                                    className="p-1 hover:bg-mint-soft dark:hover:bg-emerald-900/60 rounded text-mint dark:text-emerald-300"
                                                     title="Open Google Meet"
                                                 >
                                                     <ExternalLink size={12} />
@@ -510,9 +510,9 @@ const AdminCourses: React.FC<AdminCoursesProps> = ({ isInstructor = false }) => 
                                     )}
 
                                     {/* Live Schedule Info Box */}
-                                    <div className="bg-gray-50 dark:bg-slate-855 p-3 rounded-xl border border-gray-100 dark:border-slate-800 space-y-2 text-xs">
-                                        <div className="flex items-center justify-between text-gray-700 dark:text-slate-300">
-                                            <span className="flex items-center gap-1 text-[11px] text-gray-500">
+                                    <div className="bg-stone-50 dark:bg-slate-855 p-3 rounded-[14px] border border-stone-100 dark:border-slate-800 space-y-2 text-xs">
+                                        <div className="flex items-center justify-between text-stone-700 dark:text-slate-300">
+                                            <span className="flex items-center gap-1 text-[11px] text-stone-500">
                                                 <Calendar size={12} className="text-violet-500" /> Period:
                                             </span>
                                             <span className="font-bold">
@@ -520,8 +520,8 @@ const AdminCourses: React.FC<AdminCoursesProps> = ({ isInstructor = false }) => 
                                             </span>
                                         </div>
 
-                                        <div className="flex items-center justify-between text-gray-700 dark:text-slate-300">
-                                            <span className="flex items-center gap-1 text-[11px] text-gray-500">
+                                        <div className="flex items-center justify-between text-stone-700 dark:text-slate-300">
+                                            <span className="flex items-center gap-1 text-[11px] text-stone-500">
                                                 <Clock size={12} className="text-emerald-500" /> Timing:
                                             </span>
                                             <span className="font-medium text-[11px]">
@@ -530,17 +530,17 @@ const AdminCourses: React.FC<AdminCoursesProps> = ({ isInstructor = false }) => 
                                         </div>
 
                                         {/* Auto Generated Attendance PINs Bar */}
-                                        <div className="pt-2 border-t border-gray-200/60 dark:border-slate-800">
+                                        <div className="pt-2 border-t border-stone-200/60 dark:border-slate-800">
                                             <button
                                                 type="button"
                                                 onClick={() => setLiveLessonsModalCourse(c)}
-                                                className="w-full py-1.5 px-2.5 bg-violet-50 hover:bg-violet-100 dark:bg-violet-950/40 dark:hover:bg-violet-900/40 text-violet-700 dark:text-violet-300 rounded-lg text-xs font-bold flex items-center justify-between transition-colors cursor-pointer group"
+                                                className="w-full py-1.5 px-2.5 bg-violet-50 hover:bg-violet-100 dark:bg-violet-950/40 dark:hover:bg-violet-900/40 text-violet-700 dark:text-violet-300 rounded-[12px] text-xs font-bold flex items-center justify-between transition-colors cursor-pointer group"
                                             >
                                                 <div className="flex items-center gap-1.5">
                                                     <Key size={12} className="text-violet-600 dark:text-violet-400" />
                                                     <span>Live Lesson Attendance PINs</span>
                                                 </div>
-                                                <div className="flex items-center gap-1 font-mono text-[11px] font-bold text-violet-700 dark:text-violet-300 bg-white dark:bg-slate-900 px-2 py-0.5 rounded border border-violet-200 dark:border-violet-800">
+                                                <div className="flex items-center gap-1 font-mono text-[11px] font-bold text-violet-700 dark:text-violet-300 bg-white dark:bg-night-2 px-2 py-0.5 rounded border-violet-200 dark:border-violet-800">
                                                     <span>{liveLessonsList.length} Lessons</span>
                                                     <ArrowRight size={10} className="group-hover:translate-x-0.5 transition-transform" />
                                                 </div>
@@ -551,13 +551,13 @@ const AdminCourses: React.FC<AdminCoursesProps> = ({ isInstructor = false }) => 
                             </div>
 
                             {/* Card Footer Actions */}
-                            <div className="p-4 pt-0 border-t border-gray-100 dark:border-slate-800 mt-2 flex flex-col gap-2">
+                            <div className="p-4 pt-0 border-t border-stone-100 dark:border-slate-800 mt-2 flex flex-col gap-2">
                                 <div className="grid grid-cols-3 gap-2 pt-2">
                                     {/* Live PINs Button */}
                                     <button 
                                         type="button"
                                         onClick={() => setLiveLessonsModalCourse(c)}
-                                        className="py-2 bg-purple-50 hover:bg-purple-100 dark:bg-purple-950/40 dark:hover:bg-purple-900/40 text-purple-700 dark:text-purple-300 rounded-xl text-xs font-bold flex items-center justify-center gap-1 transition-colors cursor-pointer"
+                                        className="py-2 bg-brand-soft hover:bg-brand-soft dark:bg-purple-950/40 dark:hover:bg-purple-900/40 text-brand dark:text-purple-300 rounded-[14px] text-xs font-bold flex items-center justify-center gap-1 transition-colors cursor-pointer"
                                         title="View auto-generated attendance codes for every live lesson"
                                     >
                                         <Key size={13} /> Live PINs
@@ -567,7 +567,7 @@ const AdminCourses: React.FC<AdminCoursesProps> = ({ isInstructor = false }) => 
                                     <button 
                                         type="button"
                                         onClick={() => handleSendAlert(c)}
-                                        className="py-2 bg-violet-50 hover:bg-violet-100 dark:bg-violet-950/40 dark:hover:bg-violet-900/40 text-violet-700 dark:text-violet-300 rounded-xl text-xs font-bold flex items-center justify-center gap-1 transition-colors cursor-pointer"
+                                        className="py-2 bg-violet-50 hover:bg-violet-100 dark:bg-violet-950/40 dark:hover:bg-violet-900/40 text-violet-700 dark:text-violet-300 rounded-[14px] text-xs font-bold flex items-center justify-center gap-1 transition-colors cursor-pointer"
                                         title="Broadcast Google Meet link & attendance PIN"
                                     >
                                         <Bell size={13} /> Send Alert
@@ -577,7 +577,7 @@ const AdminCourses: React.FC<AdminCoursesProps> = ({ isInstructor = false }) => 
                                     <button 
                                         type="button"
                                         onClick={() => openScheduleModal(c)}
-                                        className="py-2 bg-gray-100 hover:bg-gray-200 dark:bg-slate-800 dark:hover:bg-slate-750 text-gray-700 dark:text-slate-300 rounded-xl text-xs font-bold flex items-center justify-center gap-1 transition-colors cursor-pointer"
+                                        className="py-2 bg-stone-100 hover:bg-stone-200 dark:bg-slate-800 dark:hover:bg-slate-750 text-stone-700 dark:text-slate-300 rounded-[14px] text-xs font-bold flex items-center justify-center gap-1 transition-colors cursor-pointer"
                                         title="Edit live schedule, Google Meet link, and exam dates"
                                     >
                                         <Calendar size={13} /> Live Dates
@@ -589,7 +589,7 @@ const AdminCourses: React.FC<AdminCoursesProps> = ({ isInstructor = false }) => 
                                         <button 
                                             type="button"
                                             onClick={() => setDetailsModalCourse(c)}
-                                            className="text-gray-700 dark:text-slate-300 font-bold hover:text-violet-600 dark:hover:text-violet-400 cursor-pointer flex items-center gap-1 transition-colors"
+                                            className="text-stone-700 dark:text-slate-300 font-bold hover:text-violet-600 dark:hover:text-violet-400 cursor-pointer flex items-center gap-1 transition-colors"
                                         >
                                             <BookOpen size={12} /> Overview
                                         </button>
@@ -627,40 +627,40 @@ const AdminCourses: React.FC<AdminCoursesProps> = ({ isInstructor = false }) => 
             {/* Modal: Live Lessons & Auto-Generated Attendance Codes */}
             {liveLessonsModalCourse && (
                 <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[150] flex items-center justify-center p-4">
-                    <div className="bg-white dark:bg-slate-900 rounded-3xl w-full max-w-2xl max-h-[90vh] overflow-hidden shadow-2xl border border-gray-150 dark:border-slate-800 flex flex-col animate-in fade-in zoom-in duration-200">
+                    <div className="bg-white dark:bg-night-2 rounded-[26px] w-full max-w-2xl max-h-[90vh] overflow-hidden shadow-2xl flex flex-col animate-in fade-in zoom-in duration-200">
                         {/* Modal Header */}
-                        <div className="p-6 border-b border-gray-100 dark:border-slate-800 flex items-start justify-between gap-4">
+                        <div className="p-6 border-b border-stone-100 dark:border-slate-800 flex items-start justify-between gap-4">
                             <div>
                                 <div className="flex items-center gap-2 mb-1">
                                     <span className="px-2.5 py-0.5 bg-violet-100 dark:bg-violet-950/60 text-violet-700 dark:text-violet-300 font-bold text-[11px] rounded-full flex items-center gap-1">
                                         <Radio size={10} className="animate-pulse" /> {liveLessonsModalCourse.cohortName || 'Live Cohort'}
                                     </span>
-                                    <span className="text-xs text-gray-400">•</span>
-                                    <span className="text-xs text-gray-500 dark:text-slate-400">
+                                    <span className="text-xs text-stone-400">•</span>
+                                    <span className="text-xs text-stone-500 dark:text-slate-400">
                                         {liveLessonsModalCourse.startDate} to {liveLessonsModalCourse.endDate}
                                     </span>
                                 </div>
-                                <h3 className="text-xl font-bold text-gray-900 dark:text-white">
+                                <h3 className="text-xl font-bold text-stone-900 dark:text-white">
                                     {liveLessonsModalCourse.title}
                                 </h3>
-                                <p className="text-xs text-gray-500 dark:text-slate-400 mt-1">
+                                <p className="text-xs text-stone-500 dark:text-slate-400 mt-1">
                                     Auto-generated attendance codes for each live lesson. Share codes with students during live Google Meet lectures to verify presence.
                                 </p>
                             </div>
                             <button 
                                 onClick={() => setLiveLessonsModalCourse(null)} 
-                                className="text-gray-400 hover:text-gray-600 dark:hover:text-slate-300 p-1 cursor-pointer rounded-lg hover:bg-gray-100 dark:hover:bg-slate-800"
+                                className="text-stone-400 hover:text-stone-600 dark:hover:text-slate-300 p-1 cursor-pointer rounded-[12px] hover:bg-stone-100 dark:hover:bg-slate-800"
                             >
                                 <X size={20} />
                             </button>
                         </div>
 
                         {/* Google Meet Info Strip */}
-                        <div className="px-6 py-3 bg-violet-50/50 dark:bg-slate-855 border-b border-gray-100 dark:border-slate-800 flex flex-wrap items-center justify-between gap-3 text-xs">
-                            <div className="flex items-center gap-2 font-medium text-gray-700 dark:text-slate-300">
+                        <div className="px-6 py-3 bg-violet-50/50 dark:bg-slate-855 border-b border-stone-100 dark:border-slate-800 flex flex-wrap items-center justify-between gap-3 text-xs">
+                            <div className="flex items-center gap-2 font-medium text-stone-700 dark:text-slate-300">
                                 <Radio size={14} className="text-emerald-500" />
                                 <span>Live Meet:</span>
-                                <span className="font-mono font-semibold text-gray-900 dark:text-white">
+                                <span className="font-mono font-semibold text-stone-900 dark:text-white">
                                     {liveLessonsModalCourse.meetingLink || 'No Meet link configured'}
                                 </span>
                             </div>
@@ -673,7 +673,7 @@ const AdminCourses: React.FC<AdminCoursesProps> = ({ isInstructor = false }) => 
                                             setCopiedCardMeet('modal-meet');
                                             setTimeout(() => setCopiedCardMeet(null), 1500);
                                         }}
-                                        className="px-2.5 py-1 bg-white dark:bg-slate-800 hover:bg-gray-100 dark:hover:bg-slate-700 text-gray-700 dark:text-slate-200 rounded-lg text-[11px] font-bold border border-gray-200 dark:border-slate-700 flex items-center gap-1 cursor-pointer"
+                                        className="px-2.5 py-1 bg-white dark:bg-slate-800 hover:bg-stone-100 dark:hover:bg-slate-700 text-stone-700 dark:text-slate-200 rounded-[12px] text-[11px] font-bold flex items-center gap-1 cursor-pointer"
                                     >
                                         {copiedCardMeet === 'modal-meet' ? <Check size={11} className="text-emerald-500" /> : <Copy size={11} />}
                                         {copiedCardMeet === 'modal-meet' ? 'Copied' : 'Copy Meet'}
@@ -682,7 +682,7 @@ const AdminCourses: React.FC<AdminCoursesProps> = ({ isInstructor = false }) => 
                                         href={liveLessonsModalCourse.meetingLink}
                                         target="_blank"
                                         rel="noopener noreferrer"
-                                        className="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-[11px] font-bold flex items-center gap-1"
+                                        className="px-2.5 py-1 bg-mint hover:bg-mint text-white rounded-[12px] text-[11px] font-bold flex items-center gap-1"
                                     >
                                         <ExternalLink size={11} /> Join Call
                                     </a>
@@ -700,7 +700,7 @@ const AdminCourses: React.FC<AdminCoursesProps> = ({ isInstructor = false }) => 
                                 return (
                                     <div 
                                         key={lesson.id} 
-                                        className="bg-gray-50/70 dark:bg-slate-855 border border-gray-200/80 dark:border-slate-800 rounded-2xl p-4 transition-all hover:border-violet-300 dark:hover:border-violet-700/50 space-y-3"
+                                        className="bg-stone-50/70 dark:bg-slate-855 border border-stone-200/80 dark:border-slate-800 rounded-[22px] p-4 transition-all hover:border-violet-300 dark:hover:border-violet-700/50 space-y-3"
                                     >
                                         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                                             {/* Lesson Info */}
@@ -709,14 +709,14 @@ const AdminCourses: React.FC<AdminCoursesProps> = ({ isInstructor = false }) => 
                                                     <span className="px-2 py-0.5 bg-violet-100 dark:bg-violet-950 text-violet-700 dark:text-violet-300 font-bold text-[11px] rounded-md">
                                                         Lesson {idx + 1}
                                                     </span>
-                                                    <span className="text-[11px] text-gray-400 font-medium">
+                                                    <span className="text-[11px] text-stone-400 font-medium">
                                                         {lesson.sectionTitle}
                                                     </span>
                                                 </div>
-                                                <h4 className="font-bold text-sm text-gray-900 dark:text-white">
+                                                <h4 className="font-bold text-sm text-stone-900 dark:text-white">
                                                     {lesson.title}
                                                 </h4>
-                                                <div className="flex items-center gap-3 text-xs text-gray-500 dark:text-slate-400">
+                                                <div className="flex items-center gap-3 text-xs text-stone-500 dark:text-slate-400">
                                                     <span className="flex items-center gap-1">
                                                         <Calendar size={12} className="text-violet-500" />
                                                         {lesson.scheduledDate}
@@ -730,10 +730,10 @@ const AdminCourses: React.FC<AdminCoursesProps> = ({ isInstructor = false }) => 
                                             </div>
 
                                             {/* Auto-Generated Attendance Code & Fast Actions */}
-                                            <div className="flex sm:flex-col items-end justify-between sm:justify-center gap-2 pt-2 sm:pt-0 border-t sm:border-t-0 border-gray-200 dark:border-slate-800">
+                                            <div className="flex sm:flex-col items-end justify-between sm:justify-center gap-2 pt-2 sm:pt-0 border-t sm:border-t-0 border-stone-200 dark:border-slate-800">
                                                 <div className="flex items-center gap-2">
                                                     <div className="text-right">
-                                                        <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">
+                                                        <span className="text-[10px] font-bold text-stone-400 uppercase tracking-wider block">
                                                             Attendance PIN
                                                         </span>
                                                         <div className="flex items-center gap-1.5">
@@ -751,7 +751,7 @@ const AdminCourses: React.FC<AdminCoursesProps> = ({ isInstructor = false }) => 
                                                             setCopiedLessonPin(lesson.id);
                                                             setTimeout(() => setCopiedLessonPin(null), 1500);
                                                         }}
-                                                        className="px-2.5 py-1.5 bg-violet-600 hover:bg-violet-700 text-white rounded-xl text-xs font-bold flex items-center gap-1 shadow-sm transition-colors cursor-pointer"
+                                                        className="px-2.5 py-1.5 bg-brand hover:bg-brand-mid text-white rounded-[14px] text-xs font-bold flex items-center gap-1 transition-colors cursor-pointer"
                                                         title="Copy this lesson's unique attendance code"
                                                     >
                                                         {isCopiedPin ? <Check size={12} /> : <Copy size={12} />}
@@ -765,7 +765,7 @@ const AdminCourses: React.FC<AdminCoursesProps> = ({ isInstructor = false }) => 
                                                         type="button"
                                                         disabled={isRegenerating}
                                                         onClick={() => handleRegenerateLessonPin(liveLessonsModalCourse, lesson.id, lesson.sectionId)}
-                                                        className="px-2 py-1 bg-gray-100 hover:bg-gray-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-gray-700 dark:text-slate-300 rounded-lg text-[10px] font-semibold flex items-center gap-1 transition-colors cursor-pointer"
+                                                        className="px-2 py-1 bg-stone-100 hover:bg-stone-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-stone-700 dark:text-slate-300 rounded-[12px] text-[10px] font-semibold flex items-center gap-1 transition-colors cursor-pointer"
                                                         title="Auto-generate a new unique code for this lesson"
                                                     >
                                                         <RefreshCw size={10} className={isRegenerating ? 'animate-spin text-violet-600' : ''} />
@@ -775,7 +775,7 @@ const AdminCourses: React.FC<AdminCoursesProps> = ({ isInstructor = false }) => 
                                                     <button
                                                         type="button"
                                                         onClick={() => handleCopyLessonInvite(liveLessonsModalCourse, lesson)}
-                                                        className="px-2 py-1 bg-gray-100 hover:bg-gray-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-gray-700 dark:text-slate-300 rounded-lg text-[10px] font-semibold flex items-center gap-1 transition-colors cursor-pointer"
+                                                        className="px-2 py-1 bg-stone-100 hover:bg-stone-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-stone-700 dark:text-slate-300 rounded-[12px] text-[10px] font-semibold flex items-center gap-1 transition-colors cursor-pointer"
                                                         title="Copy full invitation with Meet link and attendance PIN"
                                                     >
                                                         {isCopiedInvite ? <Check size={10} className="text-emerald-500" /> : <Share2 size={10} />}
@@ -785,7 +785,7 @@ const AdminCourses: React.FC<AdminCoursesProps> = ({ isInstructor = false }) => 
                                                     <button
                                                         type="button"
                                                         onClick={() => handleSendAlert(liveLessonsModalCourse, lesson)}
-                                                        className="px-2 py-1 bg-violet-50 hover:bg-violet-100 dark:bg-violet-950/60 dark:hover:bg-violet-900/60 text-violet-700 dark:text-violet-300 rounded-lg text-[10px] font-bold flex items-center gap-1 transition-colors cursor-pointer"
+                                                        className="px-2 py-1 bg-violet-50 hover:bg-violet-100 dark:bg-violet-950/60 dark:hover:bg-violet-900/60 text-violet-700 dark:text-violet-300 rounded-[12px] text-[10px] font-bold flex items-center gap-1 transition-colors cursor-pointer"
                                                         title="Broadcast this lesson alert with its auto PIN to student feeds"
                                                     >
                                                         <Bell size={10} /> Alert
@@ -799,14 +799,14 @@ const AdminCourses: React.FC<AdminCoursesProps> = ({ isInstructor = false }) => 
                         </div>
 
                         {/* Modal Footer */}
-                        <div className="p-4 px-6 border-t border-gray-100 dark:border-slate-800 bg-gray-50/50 dark:bg-slate-900 flex items-center justify-between">
-                            <p className="text-[11px] text-gray-500 dark:text-slate-400">
+                        <div className="p-4 px-6 border-t border-stone-100 dark:border-slate-800 bg-stone-50/50 dark:bg-night-2 flex items-center justify-between">
+                            <p className="text-[11px] text-stone-500 dark:text-slate-400">
                                 💡 Students unlock module quizzes immediately upon submitting their live lesson PIN.
                             </p>
                             <button
                                 type="button"
                                 onClick={() => setLiveLessonsModalCourse(null)}
-                                className="px-4 py-2 bg-gray-200 hover:bg-gray-300 dark:bg-slate-800 dark:hover:bg-slate-700 text-gray-800 dark:text-slate-200 text-xs font-bold rounded-xl cursor-pointer"
+                                className="px-4 py-2 bg-stone-200 hover:bg-stone-300 dark:bg-slate-800 dark:hover:bg-slate-700 text-stone-800 dark:text-slate-200 text-xs font-bold rounded-[14px] cursor-pointer"
                             >
                                 Close
                             </button>
@@ -818,16 +818,16 @@ const AdminCourses: React.FC<AdminCoursesProps> = ({ isInstructor = false }) => 
             {/* Modal: Live Schedule & Assessment Dates */}
             {scheduleModalCourse && (
                 <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[150] flex items-center justify-center p-4">
-                    <div className="bg-white dark:bg-slate-900 rounded-3xl w-full max-w-lg overflow-hidden shadow-2xl p-6 border border-gray-150 dark:border-slate-800 space-y-4 animate-in fade-in zoom-in duration-200">
-                        <div className="flex justify-between items-center pb-2 border-b border-gray-100 dark:border-slate-800">
+                    <div className="bg-white dark:bg-night-2 rounded-[26px] w-full max-w-lg overflow-hidden shadow-2xl p-6 space-y-4 animate-in fade-in zoom-in duration-200">
+                        <div className="flex justify-between items-center pb-2 border-b border-stone-100 dark:border-slate-800">
                             <div>
-                                <h3 className="font-bold text-gray-900 dark:text-white text-base flex items-center gap-2">
+                                <h3 className="font-bold text-stone-900 dark:text-white text-base flex items-center gap-2">
                                     <Calendar className="text-violet-600" size={18} />
                                     Live Schedule & Assessment Dates
                                 </h3>
-                                <p className="text-xs text-gray-500">{scheduleModalCourse.title}</p>
+                                <p className="text-xs text-stone-500">{scheduleModalCourse.title}</p>
                             </div>
-                            <button onClick={() => setScheduleModalCourse(null)} className="text-gray-400 hover:text-gray-600 p-1 cursor-pointer">
+                            <button onClick={() => setScheduleModalCourse(null)} className="text-stone-400 hover:text-stone-600 p-1 cursor-pointer">
                                 <X size={18} />
                             </button>
                         </div>
@@ -836,33 +836,33 @@ const AdminCourses: React.FC<AdminCoursesProps> = ({ isInstructor = false }) => 
                             <div className="py-8 text-center space-y-2">
                                 <CheckCircle2 className="mx-auto text-emerald-500 w-12 h-12" />
                                 <h4 className="font-bold text-emerald-800 dark:text-emerald-400 text-base">Live Schedule Updated!</h4>
-                                <p className="text-xs text-gray-500">Google Meet link, schedule, and exam dates saved.</p>
+                                <p className="text-xs text-stone-500">Google Meet link, schedule, and exam dates saved.</p>
                             </div>
                         ) : (
                             <div className="space-y-4">
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                     <div>
-                                        <label className="block text-xs font-bold uppercase text-gray-500 mb-1">Cohort Interval / Name</label>
+                                        <label className="block text-xs font-bold uppercase text-stone-500 mb-1">Cohort Interval / Name</label>
                                         <input 
                                             value={scheduleFormData.cohortName || ''} 
                                             onChange={e => setScheduleFormData({...scheduleFormData, cohortName: e.target.value})}
-                                            className="w-full p-2.5 text-xs bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl outline-none font-semibold text-gray-900 dark:text-white"
+                                            className="w-full p-2.5 text-xs bg-stone-50 dark:bg-slate-800 border border-stone-200 dark:border-slate-700 rounded-[14px] outline-none font-semibold text-stone-900 dark:text-white"
                                         />
                                     </div>
                                     <div>
-                                        <label className="block text-xs font-bold uppercase text-gray-500 mb-1">Google Meet Link</label>
+                                        <label className="block text-xs font-bold uppercase text-stone-500 mb-1">Google Meet Link</label>
                                         <input 
                                             value={scheduleFormData.meetingLink || ''} 
                                             onChange={e => setScheduleFormData({...scheduleFormData, meetingLink: e.target.value})}
                                             placeholder="https://meet.google.com/..."
-                                            className="w-full p-2.5 text-xs bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl outline-none text-gray-900 dark:text-white font-mono"
+                                            className="w-full p-2.5 text-xs bg-stone-50 dark:bg-slate-800 border border-stone-200 dark:border-slate-700 rounded-[14px] outline-none text-stone-900 dark:text-white font-mono"
                                         />
                                     </div>
                                 </div>
 
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                     <div>
-                                        <label className="block text-xs font-bold uppercase text-gray-500 mb-1">Lessons Start Date</label>
+                                        <label className="block text-xs font-bold uppercase text-stone-500 mb-1">Lessons Start Date</label>
                                         <input 
                                             type="date" 
                                             value={scheduleFormData.startDate || ''} 
@@ -875,11 +875,11 @@ const AdminCourses: React.FC<AdminCoursesProps> = ({ isInstructor = false }) => 
                                                     ...(prev.endDate && val && val > prev.endDate ? { endDate: val } : {})
                                                 }));
                                             }}
-                                            className="w-full p-2.5 text-xs bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl outline-none text-gray-900 dark:text-white font-medium"
+                                            className="w-full p-2.5 text-xs bg-stone-50 dark:bg-slate-800 border border-stone-200 dark:border-slate-700 rounded-[14px] outline-none text-stone-900 dark:text-white font-medium"
                                         />
                                     </div>
                                     <div>
-                                        <label className="block text-xs font-bold uppercase text-gray-500 mb-1">Lessons End Date</label>
+                                        <label className="block text-xs font-bold uppercase text-stone-500 mb-1">Lessons End Date</label>
                                         <input 
                                             type="date" 
                                             value={scheduleFormData.endDate || ''} 
@@ -892,14 +892,14 @@ const AdminCourses: React.FC<AdminCoursesProps> = ({ isInstructor = false }) => 
                                                     ...(prev.startDate && val && val < prev.startDate ? { startDate: val } : {})
                                                 }));
                                             }}
-                                            className="w-full p-2.5 text-xs bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl outline-none text-gray-900 dark:text-white font-medium"
+                                            className="w-full p-2.5 text-xs bg-stone-50 dark:bg-slate-800 border border-stone-200 dark:border-slate-700 rounded-[14px] outline-none text-stone-900 dark:text-white font-medium"
                                         />
                                     </div>
                                 </div>
 
                                 {/* Days of the Week */}
                                 <div>
-                                    <label className="block text-xs font-bold uppercase text-gray-500 mb-1.5">Live Lesson Days</label>
+                                    <label className="block text-xs font-bold uppercase text-stone-500 mb-1.5">Live Lesson Days</label>
                                     <div className="flex flex-wrap gap-1.5">
                                         {DAYS_OF_WEEK.map(day => {
                                             const isSel = (scheduleFormData.lessonDays || []).includes(day);
@@ -908,8 +908,8 @@ const AdminCourses: React.FC<AdminCoursesProps> = ({ isInstructor = false }) => 
                                                     key={day}
                                                     type="button"
                                                     onClick={() => toggleScheduleDay(day)}
-                                                    className={`px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                                                        isSel ? 'bg-violet-600 text-white' : 'bg-gray-100 dark:bg-slate-800 text-gray-600 dark:text-slate-300'
+                                                    className={`px-3 py-1 rounded-[12px] text-xs font-bold transition-all cursor-pointer ${
+                                                        isSel ? 'bg-brand text-white' : 'bg-stone-100 dark:bg-slate-800 text-stone-600 dark:text-slate-300'
                                                     }`}
                                                 >
                                                     {day}
@@ -921,29 +921,29 @@ const AdminCourses: React.FC<AdminCoursesProps> = ({ isInstructor = false }) => 
 
                                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                                     <div>
-                                        <label className="block text-xs font-bold uppercase text-gray-500 mb-1">Start Time</label>
+                                        <label className="block text-xs font-bold uppercase text-stone-500 mb-1">Start Time</label>
                                         <input 
                                             type="time" 
                                             value={scheduleFormData.lessonStartTime || '18:00'} 
                                             onChange={e => setScheduleFormData({...scheduleFormData, lessonStartTime: e.target.value})}
-                                            className="w-full p-2 text-xs bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl outline-none text-gray-900 dark:text-white font-semibold"
+                                            className="w-full p-2 text-xs bg-stone-50 dark:bg-slate-800 border border-stone-200 dark:border-slate-700 rounded-[14px] outline-none text-stone-900 dark:text-white font-semibold"
                                         />
                                     </div>
                                     <div>
-                                        <label className="block text-xs font-bold uppercase text-gray-500 mb-1">End Time</label>
+                                        <label className="block text-xs font-bold uppercase text-stone-500 mb-1">End Time</label>
                                         <input 
                                             type="time" 
                                             value={scheduleFormData.lessonEndTime || '20:00'} 
                                             onChange={e => setScheduleFormData({...scheduleFormData, lessonEndTime: e.target.value})}
-                                            className="w-full p-2 text-xs bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl outline-none text-gray-900 dark:text-white font-semibold"
+                                            className="w-full p-2 text-xs bg-stone-50 dark:bg-slate-800 border border-stone-200 dark:border-slate-700 rounded-[14px] outline-none text-stone-900 dark:text-white font-semibold"
                                         />
                                     </div>
                                     <div>
-                                        <label className="block text-xs font-bold uppercase text-gray-500 mb-1">Timezone</label>
+                                        <label className="block text-xs font-bold uppercase text-stone-500 mb-1">Timezone</label>
                                         <select 
                                             value={scheduleFormData.timezone || 'EAT (UTC+3)'} 
                                             onChange={e => setScheduleFormData({...scheduleFormData, timezone: e.target.value})}
-                                            className="w-full p-2 text-xs bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl outline-none text-gray-900 dark:text-white font-semibold"
+                                            className="w-full p-2 text-xs bg-stone-50 dark:bg-slate-800 border border-stone-200 dark:border-slate-700 rounded-[14px] outline-none text-stone-900 dark:text-white font-semibold"
                                         >
                                             {TIMEZONES.map(tz => (
                                                 <option key={tz} value={tz}>{tz}</option>
@@ -955,19 +955,19 @@ const AdminCourses: React.FC<AdminCoursesProps> = ({ isInstructor = false }) => 
                                 {/* Default Attendance Code */}
                                 <div>
                                     <div className="flex items-center justify-between mb-1">
-                                        <label className="block text-xs font-bold uppercase text-gray-500">Default Cohort Attendance PIN</label>
-                                        <span className="text-[10px] text-gray-400">Fallback code</span>
+                                        <label className="block text-xs font-bold uppercase text-stone-500">Default Cohort Attendance PIN</label>
+                                        <span className="text-[10px] text-stone-400">Fallback code</span>
                                     </div>
                                     <div className="flex gap-2">
                                         <input 
                                             value={scheduleFormData.attendanceCode || ''} 
                                             onChange={e => setScheduleFormData({...scheduleFormData, attendanceCode: e.target.value.toUpperCase()})}
-                                            className="flex-1 p-2 text-xs font-mono font-bold uppercase bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl text-purple-600 dark:text-purple-400"
+                                            className="flex-1 p-2 text-xs font-mono font-bold uppercase bg-stone-50 dark:bg-slate-800 border border-stone-200 dark:border-slate-700 rounded-[14px] text-brand dark:text-purple-400"
                                         />
                                         <button 
                                             type="button" 
                                             onClick={generateModalPin}
-                                            className="px-3 py-1.5 bg-purple-100 hover:bg-purple-200 dark:bg-purple-950/60 dark:hover:bg-purple-900 text-purple-700 dark:text-purple-300 rounded-xl text-xs font-bold transition-colors cursor-pointer"
+                                            className="px-3 py-1.5 bg-brand-soft hover:bg-purple-200 dark:bg-purple-950/60 dark:hover:bg-purple-900 text-brand dark:text-purple-300 rounded-[14px] text-xs font-bold transition-colors cursor-pointer"
                                         >
                                             <Key size={13} className="inline mr-1" /> New Code
                                         </button>
@@ -975,36 +975,36 @@ const AdminCourses: React.FC<AdminCoursesProps> = ({ isInstructor = false }) => 
                                 </div>
 
                                 {/* Assessment Dates */}
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-gray-100 dark:border-slate-800">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-stone-100 dark:border-slate-800">
                                     <div>
-                                        <label className="block text-xs font-bold uppercase text-gray-500 mb-1 flex items-center gap-1">
+                                        <label className="block text-xs font-bold uppercase text-stone-500 mb-1 flex items-center gap-1">
                                             <HelpCircle size={13} className="text-purple-500" /> Module Quiz Date
                                         </label>
                                         <input 
                                             type="date"
                                             value={scheduleFormData.quizDate || ''} 
                                             onChange={e => setScheduleFormData({...scheduleFormData, quizDate: e.target.value})}
-                                            className="w-full p-2 text-xs bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl outline-none text-gray-900 dark:text-white font-medium"
+                                            className="w-full p-2 text-xs bg-stone-50 dark:bg-slate-800 border border-stone-200 dark:border-slate-700 rounded-[14px] outline-none text-stone-900 dark:text-white font-medium"
                                         />
                                     </div>
                                     <div>
-                                        <label className="block text-xs font-bold uppercase text-gray-500 mb-1 flex items-center gap-1">
+                                        <label className="block text-xs font-bold uppercase text-stone-500 mb-1 flex items-center gap-1">
                                             <Calendar size={13} className="text-emerald-500" /> Final Examination Date
                                         </label>
                                         <input 
                                             type="date" 
                                             value={scheduleFormData.examDate || ''} 
                                             onChange={e => setScheduleFormData({...scheduleFormData, examDate: e.target.value})}
-                                            className="w-full p-2 text-xs bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl outline-none text-gray-900 dark:text-white font-medium"
+                                            className="w-full p-2 text-xs bg-stone-50 dark:bg-slate-800 border border-stone-200 dark:border-slate-700 rounded-[14px] outline-none text-stone-900 dark:text-white font-medium"
                                         />
                                     </div>
                                 </div>
 
-                                <div className="flex justify-end gap-2 pt-3 border-t border-gray-100 dark:border-slate-800">
+                                <div className="flex justify-end gap-2 pt-3 border-t border-stone-100 dark:border-slate-800">
                                     <button 
                                         type="button" 
                                         onClick={() => setScheduleModalCourse(null)} 
-                                        className="px-4 py-2 text-xs font-semibold text-gray-600 dark:text-slate-300 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-xl cursor-pointer"
+                                        className="px-4 py-2 text-xs font-semibold text-stone-600 dark:text-slate-300 hover:bg-stone-100 dark:hover:bg-slate-800 rounded-[14px] cursor-pointer"
                                     >
                                         Cancel
                                     </button>
@@ -1012,7 +1012,7 @@ const AdminCourses: React.FC<AdminCoursesProps> = ({ isInstructor = false }) => 
                                         type="button" 
                                         onClick={handleSaveSchedule} 
                                         disabled={isSavingSchedule} 
-                                        className="px-5 py-2 bg-violet-600 hover:bg-violet-700 text-white text-xs font-bold rounded-xl flex items-center gap-1.5 shadow-sm cursor-pointer disabled:opacity-50"
+                                        className="px-5 py-2 bg-brand hover:bg-brand-mid text-white text-xs font-bold rounded-[14px] flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
                                     >
                                         {isSavingSchedule ? <Loader2 size={13} className="animate-spin" /> : <Save size={13} />}
                                         {isSavingSchedule ? 'Saving...' : 'Save Live Schedule'}
@@ -1027,13 +1027,13 @@ const AdminCourses: React.FC<AdminCoursesProps> = ({ isInstructor = false }) => 
             {/* Modal: Broadcast Lesson Alert */}
             {alertModalCourse && (
                 <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[150] flex items-center justify-center p-4">
-                    <div className="bg-white dark:bg-slate-900 rounded-3xl w-full max-w-lg overflow-hidden shadow-2xl p-6 border border-gray-100 dark:border-slate-800 space-y-4 animate-in fade-in zoom-in duration-200">
-                        <div className="flex justify-between items-center pb-2 border-b border-gray-100 dark:border-slate-800">
+                    <div className="bg-white dark:bg-night-2 rounded-[26px] w-full max-w-lg overflow-hidden shadow-2xl p-6 space-y-4 animate-in fade-in zoom-in duration-200">
+                        <div className="flex justify-between items-center pb-2 border-b border-stone-100 dark:border-slate-800">
                             <div className="flex items-center gap-2">
                                 <Bell className="text-violet-600" size={18} />
-                                <h3 className="font-bold text-gray-900 dark:text-white text-base">Broadcast Live Lesson Alert</h3>
+                                <h3 className="font-bold text-stone-900 dark:text-white text-base">Broadcast Live Lesson Alert</h3>
                             </div>
-                            <button onClick={() => setAlertModalCourse(null)} className="text-gray-400 hover:text-gray-600 p-1 cursor-pointer">
+                            <button onClick={() => setAlertModalCourse(null)} className="text-stone-400 hover:text-stone-600 p-1 cursor-pointer">
                                 <X size={18} />
                             </button>
                         </div>
@@ -1042,12 +1042,12 @@ const AdminCourses: React.FC<AdminCoursesProps> = ({ isInstructor = false }) => 
                             <div className="py-8 text-center space-y-2">
                                 <CheckCircle2 className="mx-auto text-emerald-500 w-12 h-12" />
                                 <h4 className="font-bold text-emerald-800 dark:text-emerald-400 text-base">Lesson Alert Sent!</h4>
-                                <p className="text-xs text-gray-500">Google Meet link and attendance PIN broadcasted to students.</p>
+                                <p className="text-xs text-stone-500">Google Meet link and attendance PIN broadcasted to students.</p>
                             </div>
                         ) : (
                             <div className="space-y-4">
-                                <div className="bg-gray-50 dark:bg-slate-850 p-4 rounded-xl border border-gray-100 dark:border-slate-800 text-xs space-y-2">
-                                    <div className="flex justify-between font-bold text-gray-800 dark:text-slate-200">
+                                <div className="bg-stone-50 dark:bg-slate-850 p-4 rounded-[14px] border border-stone-100 dark:border-slate-800 text-xs space-y-2">
+                                    <div className="flex justify-between font-bold text-stone-800 dark:text-slate-200">
                                         <span>{alertModalCourse.title}</span>
                                         <span className="text-violet-600">{alertModalCourse.cohortName || 'Active Cohort'}</span>
                                     </div>
@@ -1056,36 +1056,36 @@ const AdminCourses: React.FC<AdminCoursesProps> = ({ isInstructor = false }) => 
                                             Lesson: {alertLessonTitle}
                                         </div>
                                     )}
-                                    <div className="text-gray-600 dark:text-slate-400 font-mono text-[11px] bg-white dark:bg-slate-900 p-2.5 rounded-lg border border-gray-100 dark:border-slate-800 space-y-1">
+                                    <div className="text-stone-600 dark:text-slate-400 font-mono text-[11px] bg-white dark:bg-night-2 p-2.5 rounded-[12px] space-y-1">
                                         <p><strong>🔗 Meet Link:</strong> {alertModalCourse.meetingLink || 'Link not set'}</p>
-                                        <p><strong>🔑 Attendance PIN:</strong> <span className="font-bold text-purple-700 dark:text-purple-300">{alertAttendancePin || alertModalCourse.attendanceCode || 'None'}</span></p>
+                                        <p><strong>🔑 Attendance PIN:</strong> <span className="font-bold text-brand dark:text-purple-300">{alertAttendancePin || alertModalCourse.attendanceCode || 'None'}</span></p>
                                         <p><strong>⏰ Schedule:</strong> {(alertModalCourse.lessonDays || []).join(', ')} @ {alertModalCourse.lessonStartTime || '18:00'} ({alertModalCourse.timezone || 'EAT'})</p>
                                     </div>
                                 </div>
 
                                 <div>
-                                    <label className="block text-xs font-bold uppercase text-gray-500 mb-1">Optional Message / Lecture Topic</label>
+                                    <label className="block text-xs font-bold uppercase text-stone-500 mb-1">Optional Message / Lecture Topic</label>
                                     <textarea 
                                         value={alertNote}
                                         onChange={e => setAlertNote(e.target.value)}
                                         rows={3}
-                                        className="w-full p-2.5 text-xs bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl text-gray-900 dark:text-white outline-none focus:ring-2 focus:ring-violet-500"
+                                        className="w-full p-2.5 text-xs bg-stone-50 dark:bg-slate-800 border border-stone-200 dark:border-slate-700 rounded-[14px] text-stone-900 dark:text-white outline-none focus:ring-2 focus:ring-brand"
                                         placeholder="e.g. Live class starts in 15 minutes! Please have your environments open."
                                     />
                                 </div>
 
-                                <div className="flex justify-end gap-2 pt-2 border-t border-gray-100 dark:border-slate-800">
+                                <div className="flex justify-end gap-2 pt-2 border-t border-stone-100 dark:border-slate-800">
                                     <button 
                                         type="button" 
                                         onClick={() => setAlertModalCourse(null)} 
-                                        className="px-4 py-2 text-xs font-semibold text-gray-600 dark:text-slate-300 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-xl cursor-pointer"
+                                        className="px-4 py-2 text-xs font-semibold text-stone-600 dark:text-slate-300 hover:bg-stone-100 dark:hover:bg-slate-800 rounded-[14px] cursor-pointer"
                                     >
                                         Cancel
                                     </button>
                                     <button 
                                         type="button" 
                                         onClick={confirmBroadcastAlert} 
-                                        className="px-5 py-2 bg-violet-600 hover:bg-violet-700 text-white text-xs font-bold rounded-xl flex items-center gap-1.5 shadow-sm cursor-pointer"
+                                        className="px-5 py-2 bg-brand hover:bg-brand-mid text-white text-xs font-bold rounded-[14px] flex items-center gap-1.5 cursor-pointer"
                                     >
                                         <Send size={13} /> Send Notification
                                     </button>
@@ -1099,7 +1099,7 @@ const AdminCourses: React.FC<AdminCoursesProps> = ({ isInstructor = false }) => 
             {/* Modal: Comprehensive Course Overview / Details */}
             {detailsModalCourse && (
                 <div className="fixed inset-0 bg-black/75 backdrop-blur-md z-[160] flex items-center justify-center p-4 animate-in fade-in duration-200">
-                    <div className="bg-white dark:bg-slate-900 rounded-3xl w-full max-w-3xl max-h-[90vh] overflow-hidden shadow-2xl border border-gray-150 dark:border-slate-800 flex flex-col animate-in zoom-in-95 duration-200">
+                    <div className="bg-white dark:bg-night-2 rounded-[26px] w-full max-w-3xl max-h-[90vh] overflow-hidden shadow-2xl flex flex-col animate-in zoom-in-95 duration-200">
                         {/* Header Banner */}
                         <div className="relative h-44 sm:h-52 bg-slate-950 shrink-0 overflow-hidden">
                             {detailsModalCourse.image ? (
@@ -1130,16 +1130,16 @@ const AdminCourses: React.FC<AdminCoursesProps> = ({ isInstructor = false }) => 
                             {/* Badges & Title */}
                             <div className="absolute bottom-4 left-6 right-6 space-y-2">
                                 <div className="flex flex-wrap items-center gap-2">
-                                    <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-violet-600 text-white shadow-sm flex items-center gap-1">
+                                    <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-brand text-white flex items-center gap-1">
                                         <Radio size={11} className="animate-pulse" />
                                         {detailsModalCourse.cohortName || 'Active Cohort'}
                                     </span>
                                     {detailsModalCourse.isDraft ? (
-                                        <span className="px-2 py-0.5 bg-amber-500 text-white text-[11px] font-bold rounded-md shadow-sm">
+                                        <span className="px-2 py-0.5 bg-amber-500 text-white text-[11px] font-bold rounded-md">
                                             Draft
                                         </span>
                                     ) : (
-                                        <span className="px-2 py-0.5 bg-emerald-500 text-white text-[11px] font-bold rounded-md shadow-sm flex items-center gap-1">
+                                        <span className="px-2 py-0.5 bg-emerald-500 text-white text-[11px] font-bold rounded-md flex items-center gap-1">
                                             <CheckCircle2 size={11} /> Published
                                         </span>
                                     )}
@@ -1159,30 +1159,30 @@ const AdminCourses: React.FC<AdminCoursesProps> = ({ isInstructor = false }) => 
                         {/* Modal Body (Scrollable) */}
                         <div className="flex-1 overflow-y-auto p-6 space-y-6">
                             {/* Live Cohort & Schedule Card */}
-                            <div className="bg-violet-50/70 dark:bg-violet-950/30 rounded-2xl p-4 border border-violet-100 dark:border-violet-900/40 space-y-3">
+                            <div className="bg-violet-50/70 dark:bg-violet-950/30 rounded-[22px] p-4 border border-violet-100 dark:border-violet-900/40 space-y-3">
                                 <div className="flex items-center justify-between">
                                     <span className="text-xs font-bold uppercase tracking-wider text-violet-700 dark:text-violet-300 flex items-center gap-1.5">
                                         <Radio size={14} className="animate-pulse" /> Live Cohort Schedule & Access
                                     </span>
-                                    <span className="text-xs font-mono font-bold text-violet-600 dark:text-violet-400 bg-white dark:bg-slate-900 px-2.5 py-0.5 rounded-lg border border-violet-200 dark:border-violet-800">
+                                    <span className="text-xs font-mono font-bold text-violet-600 dark:text-violet-400 bg-white dark:bg-night-2 px-2.5 py-0.5 rounded-[12px] border-violet-200 dark:border-violet-800">
                                         {detailsModalCourse.timezone || 'EAT (UTC+3)'}
                                     </span>
                                 </div>
 
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-                                    <div className="bg-white dark:bg-slate-900 p-3 rounded-xl border border-violet-100 dark:border-slate-800 space-y-1">
-                                        <span className="text-[10px] font-bold uppercase text-gray-400 block">Class Schedule & Dates</span>
-                                        <p className="font-semibold text-gray-800 dark:text-slate-200">
+                                    <div className="bg-white dark:bg-night-2 p-3 rounded-[14px] border-violet-100 space-y-1">
+                                        <span className="text-[10px] font-bold uppercase text-stone-400 block">Class Schedule & Dates</span>
+                                        <p className="font-semibold text-stone-800 dark:text-slate-200">
                                             {detailsModalCourse.startDate ? `${detailsModalCourse.startDate} → ${detailsModalCourse.endDate || 'Ongoing'}` : 'Dates not specified'}
                                         </p>
-                                        <p className="text-gray-500 dark:text-slate-400 text-[11px]">
+                                        <p className="text-stone-500 dark:text-slate-400 text-[11px]">
                                             {(detailsModalCourse.lessonDays || []).join(', ')} @ {detailsModalCourse.lessonStartTime || '18:00'} - {detailsModalCourse.lessonEndTime || '20:00'}
                                         </p>
                                     </div>
 
-                                    <div className="bg-white dark:bg-slate-900 p-3 rounded-xl border border-violet-100 dark:border-slate-800 space-y-1">
+                                    <div className="bg-white dark:bg-night-2 p-3 rounded-[14px] border-violet-100 space-y-1">
                                         <div className="flex items-center justify-between">
-                                            <span className="text-[10px] font-bold uppercase text-gray-400">Default Attendance PIN</span>
+                                            <span className="text-[10px] font-bold uppercase text-stone-400">Default Attendance PIN</span>
                                             <button
                                                 type="button"
                                                 onClick={() => {
@@ -1204,10 +1204,10 @@ const AdminCourses: React.FC<AdminCoursesProps> = ({ isInstructor = false }) => 
 
                                 {/* Meet Link Bar */}
                                 {detailsModalCourse.meetingLink ? (
-                                    <div className="bg-white dark:bg-slate-900 p-3 rounded-xl border border-violet-100 dark:border-slate-800 flex items-center justify-between gap-3 text-xs">
+                                    <div className="bg-white dark:bg-night-2 p-3 rounded-[14px] border-violet-100 flex items-center justify-between gap-3 text-xs">
                                         <div className="flex items-center gap-2 overflow-hidden">
                                             <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0"></span>
-                                            <span className="text-gray-500 dark:text-slate-400 font-medium shrink-0">Meet:</span>
+                                            <span className="text-stone-500 dark:text-slate-400 font-medium shrink-0">Meet:</span>
                                             <a 
                                                 href={detailsModalCourse.meetingLink} 
                                                 target="_blank" 
@@ -1225,7 +1225,7 @@ const AdminCourses: React.FC<AdminCoursesProps> = ({ isInstructor = false }) => 
                                                     setCopiedDetailsMeet(true);
                                                     setTimeout(() => setCopiedDetailsMeet(false), 1500);
                                                 }}
-                                                className="px-2.5 py-1 text-[11px] font-semibold bg-gray-100 dark:bg-slate-800 hover:bg-gray-200 dark:hover:bg-slate-750 text-gray-700 dark:text-slate-300 rounded-lg flex items-center gap-1 cursor-pointer"
+                                                className="px-2.5 py-1 text-[11px] font-semibold bg-stone-100 dark:bg-slate-800 hover:bg-stone-200 dark:hover:bg-slate-750 text-stone-700 dark:text-slate-300 rounded-[12px] flex items-center gap-1 cursor-pointer"
                                             >
                                                 {copiedDetailsMeet ? <Check size={11} className="text-emerald-500" /> : <Copy size={11} />}
                                                 {copiedDetailsMeet ? 'Copied' : 'Copy'}
@@ -1234,30 +1234,30 @@ const AdminCourses: React.FC<AdminCoursesProps> = ({ isInstructor = false }) => 
                                                 href={detailsModalCourse.meetingLink}
                                                 target="_blank"
                                                 rel="noopener noreferrer"
-                                                className="px-3 py-1 text-[11px] font-bold bg-violet-600 hover:bg-violet-700 text-white rounded-lg flex items-center gap-1 cursor-pointer"
+                                                className="px-3 py-1 text-[11px] font-bold bg-brand hover:bg-brand-mid text-white rounded-[12px] flex items-center gap-1 cursor-pointer"
                                             >
                                                 <ExternalLink size={11} /> Join
                                             </a>
                                         </div>
                                     </div>
                                 ) : (
-                                    <p className="text-[11px] text-gray-500 italic">No Google Meet link set yet for this cohort.</p>
+                                    <p className="text-[11px] text-stone-500 italic">No Google Meet link set yet for this cohort.</p>
                                 )}
                             </div>
 
                             {/* Instructor & Outcomes */}
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <div className="space-y-1.5">
-                                    <span className="text-xs font-bold uppercase tracking-wider text-gray-400">Instructor</span>
-                                    <div className="flex items-center gap-3 bg-gray-50 dark:bg-slate-850 p-3 rounded-2xl border border-gray-100 dark:border-slate-800">
-                                        <div className="w-10 h-10 rounded-full bg-violet-600 text-white font-bold flex items-center justify-center shrink-0">
+                                    <span className="text-xs font-bold uppercase tracking-wider text-stone-400">Instructor</span>
+                                    <div className="flex items-center gap-3 bg-stone-50 dark:bg-slate-850 p-3 rounded-[22px] border border-stone-100 dark:border-slate-800">
+                                        <div className="w-10 h-10 rounded-full bg-brand text-white font-bold flex items-center justify-center shrink-0">
                                             {detailsModalCourse.instructorAvatar || detailsModalCourse.instructor?.slice(0, 2).toUpperCase() || 'IN'}
                                         </div>
                                         <div className="min-w-0">
-                                            <p className="text-sm font-bold text-gray-900 dark:text-white truncate">
+                                            <p className="text-sm font-bold text-stone-900 dark:text-white truncate">
                                                 {detailsModalCourse.instructor || 'Lead Instructor'}
                                             </p>
-                                            <p className="text-xs text-gray-500 truncate">
+                                            <p className="text-xs text-stone-500 truncate">
                                                 {detailsModalCourse.instructorEmail || 'No email attached'}
                                             </p>
                                         </div>
@@ -1265,15 +1265,15 @@ const AdminCourses: React.FC<AdminCoursesProps> = ({ isInstructor = false }) => 
                                 </div>
 
                                 <div className="space-y-1.5">
-                                    <span className="text-xs font-bold uppercase tracking-wider text-gray-400">Access & Pricing</span>
-                                    <div className="bg-gray-50 dark:bg-slate-850 p-3 rounded-2xl border border-gray-100 dark:border-slate-800 flex items-center justify-between">
+                                    <span className="text-xs font-bold uppercase tracking-wider text-stone-400">Access & Pricing</span>
+                                    <div className="bg-stone-50 dark:bg-slate-850 p-3 rounded-[22px] border border-stone-100 dark:border-slate-800 flex items-center justify-between">
                                         <div>
-                                            <p className="text-sm font-bold text-gray-900 dark:text-white">
+                                            <p className="text-sm font-bold text-stone-900 dark:text-white">
                                                 {detailsModalCourse.accessTier === 'FREE' ? 'Free Admission' : formatAmount(detailsModalCourse.price || 0, currency)}
                                             </p>
-                                            <p className="text-xs text-gray-500 capitalize">{detailsModalCourse.level || 'All levels'} Level</p>
+                                            <p className="text-xs text-stone-500 capitalize">{detailsModalCourse.level || 'All levels'} Level</p>
                                         </div>
-                                        <span className="px-2.5 py-1 rounded-lg text-xs font-bold bg-violet-100 dark:bg-violet-950/60 text-violet-700 dark:text-violet-300">
+                                        <span className="px-2.5 py-1 rounded-[12px] text-xs font-bold bg-violet-100 dark:bg-violet-950/60 text-violet-700 dark:text-violet-300">
                                             {detailsModalCourse.platform || 'Welile'}
                                         </span>
                                     </div>
@@ -1283,8 +1283,8 @@ const AdminCourses: React.FC<AdminCoursesProps> = ({ isInstructor = false }) => 
                             {/* Description */}
                             {detailsModalCourse.description && (
                                 <div className="space-y-1.5">
-                                    <span className="text-xs font-bold uppercase tracking-wider text-gray-400">Description</span>
-                                    <p className="text-xs text-gray-600 dark:text-slate-300 leading-relaxed bg-gray-50 dark:bg-slate-850 p-3.5 rounded-2xl border border-gray-100 dark:border-slate-800">
+                                    <span className="text-xs font-bold uppercase tracking-wider text-stone-400">Description</span>
+                                    <p className="text-xs text-stone-600 dark:text-slate-300 leading-relaxed bg-stone-50 dark:bg-slate-850 p-3.5 rounded-[22px] border border-stone-100 dark:border-slate-800">
                                         {detailsModalCourse.description}
                                     </p>
                                 </div>
@@ -1293,7 +1293,7 @@ const AdminCourses: React.FC<AdminCoursesProps> = ({ isInstructor = false }) => 
                             {/* Curriculum Outline */}
                             <div className="space-y-3">
                                 <div className="flex items-center justify-between">
-                                    <span className="text-xs font-bold uppercase tracking-wider text-gray-400 flex items-center gap-1.5">
+                                    <span className="text-xs font-bold uppercase tracking-wider text-stone-400 flex items-center gap-1.5">
                                         <BookOpen size={13} /> Curriculum Syllabus ({detailsModalCourse.sections?.length || 0} Modules)
                                     </span>
                                 </div>
@@ -1302,10 +1302,10 @@ const AdminCourses: React.FC<AdminCoursesProps> = ({ isInstructor = false }) => 
                                     {(() => {
                                         let liveLessonCounter = 0;
                                         return (detailsModalCourse.sections || []).map((sec, sIdx) => (
-                                            <div key={sec.id || sIdx} className="bg-gray-50 dark:bg-slate-850 rounded-2xl p-3 border border-gray-100 dark:border-slate-800 space-y-2">
-                                                <div className="flex items-center justify-between text-xs font-bold text-gray-800 dark:text-slate-200">
+                                            <div key={sec.id || sIdx} className="bg-stone-50 dark:bg-slate-850 rounded-[22px] p-3 border border-stone-100 dark:border-slate-800 space-y-2">
+                                                <div className="flex items-center justify-between text-xs font-bold text-stone-800 dark:text-slate-200">
                                                     <span>{sec.title}</span>
-                                                    <span className="text-[11px] text-gray-400 font-normal">{sec.lessons?.length || 0} topics</span>
+                                                    <span className="text-[11px] text-stone-400 font-normal">{sec.lessons?.length || 0} topics</span>
                                                 </div>
                                                 <div className="space-y-1 pl-2">
                                                     {(sec.lessons || []).map((les, lIdx) => {
@@ -1317,12 +1317,12 @@ const AdminCourses: React.FC<AdminCoursesProps> = ({ isInstructor = false }) => 
                                                             currentLiveNum = les.sessionNumber || liveLessonCounter;
                                                         }
                                                         return (
-                                                            <div key={les.id || lIdx} className="flex items-center justify-between text-xs py-1.5 border-t border-gray-200/50 dark:border-slate-800 text-gray-600 dark:text-slate-400">
+                                                            <div key={les.id || lIdx} className="flex items-center justify-between text-xs py-1.5 border-t border-stone-200/50 dark:border-slate-800 text-stone-600 dark:text-slate-400">
                                                                 <div className="flex items-center gap-2 truncate pr-2">
                                                                     {isLive ? (
                                                                         <Radio size={12} className="text-violet-600 shrink-0 animate-pulse" />
                                                                     ) : (
-                                                                        <span className="w-1.5 h-1.5 rounded-full bg-gray-400 shrink-0"></span>
+                                                                        <span className="w-1.5 h-1.5 rounded-full bg-stone-400 shrink-0"></span>
                                                                     )}
                                                                     <span className="truncate">{les.title}</span>
                                                                     {isLive && (
@@ -1338,7 +1338,7 @@ const AdminCourses: React.FC<AdminCoursesProps> = ({ isInstructor = false }) => 
                                                                         </span>
                                                                     )}
                                                                     {les.attendanceCode && (
-                                                                        <span className="font-mono text-[10px] text-purple-600 dark:text-purple-400 font-bold bg-purple-50 dark:bg-purple-950/50 px-1.5 py-0.5 rounded">
+                                                                        <span className="font-mono text-[10px] text-brand dark:text-purple-400 font-bold bg-brand-soft dark:bg-purple-950/50 px-1.5 py-0.5 rounded">
                                                                             PIN: {les.attendanceCode}
                                                                         </span>
                                                                     )}
@@ -1347,14 +1347,14 @@ const AdminCourses: React.FC<AdminCoursesProps> = ({ isInstructor = false }) => 
                                                                             href={meetUrl} 
                                                                             target="_blank" 
                                                                             rel="noopener noreferrer" 
-                                                                            className="px-2.5 py-1 text-[11px] font-bold bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-100 dark:hover:bg-emerald-900/60 rounded-lg border border-emerald-200 dark:border-emerald-900/50 flex items-center gap-1 cursor-pointer transition-colors"
+                                                                            className="px-2.5 py-1 text-[11px] font-bold bg-mint-soft dark:bg-emerald-950/40 text-mint dark:text-emerald-400 hover:bg-mint-soft dark:hover:bg-emerald-900/60 rounded-[12px] border border-emerald-200 dark:border-emerald-900/50 flex items-center gap-1 cursor-pointer transition-colors"
                                                                             title="Follow link to join live Google Meet call"
                                                                         >
                                                                             <span>Join Call</span>
                                                                             <ExternalLink size={10} />
                                                                         </a>
                                                                     )}
-                                                                    <span className="text-[11px] text-gray-400 font-medium">
+                                                                    <span className="text-[11px] text-stone-400 font-medium">
                                                                         {les.duration || detailsModalCourse.defaultLessonDuration || '1 hour'}
                                                                     </span>
                                                                 </div>
@@ -1370,14 +1370,14 @@ const AdminCourses: React.FC<AdminCoursesProps> = ({ isInstructor = false }) => 
                         </div>
 
                         {/* Modal Footer Actions */}
-                        <div className="p-4 bg-gray-50 dark:bg-slate-850 border-t border-gray-150 dark:border-slate-800 flex flex-wrap items-center justify-between gap-2 shrink-0">
+                        <div className="p-4 bg-stone-50 dark:bg-slate-850 border-t border-stone-150 dark:border-slate-800 flex flex-wrap items-center justify-between gap-2 shrink-0">
                             <button
                                 type="button"
                                 onClick={() => {
                                     const base = window.location.origin.includes('admin') ? window.location.origin.replace('admin.', '') : window.location.origin;
                                     window.open(`${base}/discover/${detailsModalCourse.id}`, '_blank');
                                 }}
-                                className="px-4 py-2.5 bg-white dark:bg-slate-800 hover:bg-gray-100 dark:hover:bg-slate-750 text-gray-700 dark:text-slate-200 text-xs font-bold rounded-xl border border-gray-200 dark:border-slate-700 flex items-center gap-1.5 transition-colors cursor-pointer"
+                                className="px-4 py-2.5 bg-white dark:bg-slate-800 hover:bg-stone-100 dark:hover:bg-slate-750 text-stone-700 dark:text-slate-200 text-xs font-bold rounded-[14px] flex items-center gap-1.5 transition-colors cursor-pointer"
                             >
                                 <ExternalLink size={13} /> View Student Page
                             </button>
@@ -1390,7 +1390,7 @@ const AdminCourses: React.FC<AdminCoursesProps> = ({ isInstructor = false }) => 
                                         handleCloseDetailsModal();
                                         handleSendAlert(c);
                                     }}
-                                    className="px-4 py-2.5 bg-violet-50 hover:bg-violet-100 dark:bg-violet-950/40 dark:hover:bg-violet-900/40 text-violet-700 dark:text-violet-300 text-xs font-bold rounded-xl flex items-center gap-1.5 transition-colors cursor-pointer"
+                                    className="px-4 py-2.5 bg-violet-50 hover:bg-violet-100 dark:bg-violet-950/40 dark:hover:bg-violet-900/40 text-violet-700 dark:text-violet-300 text-xs font-bold rounded-[14px] flex items-center gap-1.5 transition-colors cursor-pointer"
                                 >
                                     <Bell size={13} /> Broadcast Alert
                                 </button>
@@ -1401,14 +1401,14 @@ const AdminCourses: React.FC<AdminCoursesProps> = ({ isInstructor = false }) => 
                                         handleCloseDetailsModal();
                                         navigate(isInstructor ? `/instructor/courses/setup?courseId=${cId}` : `/courses/setup?courseId=${cId}`);
                                     }}
-                                    className="px-4 py-2.5 bg-violet-600 hover:bg-violet-700 text-white text-xs font-bold rounded-xl flex items-center gap-1.5 transition-all shadow-sm cursor-pointer"
+                                    className="px-4 py-2.5 bg-brand hover:bg-brand-mid text-white text-xs font-bold rounded-[14px] flex items-center gap-1.5 transition-all cursor-pointer"
                                 >
                                     <Edit3 size={13} /> Edit Syllabus
                                 </button>
                                 <button
                                     type="button"
                                     onClick={handleCloseDetailsModal}
-                                    className="px-4 py-2.5 bg-gray-200 dark:bg-slate-750 hover:bg-gray-300 dark:hover:bg-slate-700 text-gray-700 dark:text-slate-200 text-xs font-semibold rounded-xl transition-colors cursor-pointer"
+                                    className="px-4 py-2.5 bg-stone-200 dark:bg-slate-750 hover:bg-stone-300 dark:hover:bg-slate-700 text-stone-700 dark:text-slate-200 text-xs font-semibold rounded-[14px] transition-colors cursor-pointer"
                                 >
                                     Close
                                 </button>

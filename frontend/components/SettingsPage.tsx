@@ -96,25 +96,25 @@ const SettingsPage: React.FC = () => {
     return (
         <div className="space-y-6 max-w-4xl mx-auto pb-12">
             {/* Header Title */}
-            <div className="flex justify-between items-center bg-white dark:bg-slate-900 p-6 rounded-2xl shadow-sm border border-stone-100 dark:border-slate-800 transition-colors duration-200">
+            <div className="flex justify-between items-center bg-white dark:bg-night-2 p-6 rounded-[22px] transition-colors duration-200">
                 <div>
-                    <h2 className="text-xl font-semibold text-stone-900 dark:text-white font-serif">{t('settings')}</h2>
+                    <h2 className="text-xl font-extrabold text-stone-900 dark:text-white tracking-[-0.02em]">{t('settings')}</h2>
                     <p className="text-sm text-stone-600 dark:text-slate-400">{t('configure_locale')}</p>
                 </div>
             </div>
 
             {/* Success Toast */}
             {showSuccessToast && (
-                <div className="fixed bottom-6 right-6 z-50 flex items-center gap-3 bg-emerald-600 text-white px-6 py-4 rounded-2xl shadow-sm">
+                <div className="fixed bottom-6 right-6 z-50 flex items-center gap-3 bg-mint text-white px-6 py-4 rounded-[22px] shadow-sm">
                     <Check size={20} className="stroke-[3]" />
                     <span className="font-semibold text-sm">{t('saved_successfully')}</span>
                 </div>
             )}
 
             {/* 1. Appearance / Theme */}
-            <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl shadow-sm border border-stone-100 dark:border-slate-800 transition-colors duration-200">
+            <div className="bg-white dark:bg-night-2 p-6 rounded-[22px] transition-colors duration-200">
                 <div className="flex items-center gap-3 mb-6">
-                    <div className="p-2.5 bg-violet-50 dark:bg-violet-950/50 text-violet-700 dark:text-violet-400 rounded-xl">
+                    <div className="p-2.5 bg-violet-50 dark:bg-violet-950/50 text-violet-700 dark:text-violet-400 rounded-[14px]">
                         <Sun size={20} className="dark:hidden" />
                         <Moon size={20} className="hidden dark:block" />
                     </div>
@@ -128,14 +128,14 @@ const SettingsPage: React.FC = () => {
                     {/* Light Mode Card */}
                     <div 
                         onClick={() => setTheme('light')}
-                        className={`p-5 rounded-2xl border-2 cursor-pointer transition-all flex flex-col justify-between h-36 ${
+                        className={`p-5 rounded-[22px] border-2 cursor-pointer transition-all flex flex-col justify-between h-36 ${
                             theme === 'light' 
                                 ? 'bg-violet-50/55 border-violet-500 shadow-sm dark:bg-slate-800/20' 
                                 : 'bg-stone-50 dark:bg-slate-800/40 border-stone-100 dark:border-slate-800 hover:border-stone-200 dark:hover:border-slate-700'
                         }`}
                     >
                         <div className="flex justify-between items-start">
-                            <span className="p-2 bg-white dark:bg-slate-800 text-amber-500 rounded-lg shadow-sm">
+                            <span className="p-2 bg-white dark:bg-slate-800 text-amber-500 rounded-[12px] shadow-sm">
                                 <Sun size={18} />
                             </span>
                             {theme === 'light' && (
@@ -153,14 +153,14 @@ const SettingsPage: React.FC = () => {
                     {/* Dark Mode Card */}
                     <div 
                         onClick={() => setTheme('dark')}
-                        className={`p-5 rounded-2xl border-2 cursor-pointer transition-all flex flex-col justify-between h-36 ${
+                        className={`p-5 rounded-[22px] border-2 cursor-pointer transition-all flex flex-col justify-between h-36 ${
                             theme === 'dark' 
                                 ? 'bg-violet-50/55 border-violet-500 shadow-sm dark:bg-slate-800/30' 
                                 : 'bg-stone-50 dark:bg-slate-800/40 border-stone-100 dark:border-slate-800 hover:border-stone-200 dark:hover:border-slate-700'
                         }`}
                     >
                         <div className="flex justify-between items-start">
-                            <span className="p-2 bg-white dark:bg-slate-800 text-violet-400 rounded-lg shadow-sm">
+                            <span className="p-2 bg-white dark:bg-slate-800 text-violet-400 rounded-[12px] shadow-sm">
                                 <Moon size={18} />
                             </span>
                             {theme === 'dark' && (
@@ -178,9 +178,9 @@ const SettingsPage: React.FC = () => {
             </div>
 
             {/* 2. Language & Region */}
-            <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl shadow-sm border border-stone-100 dark:border-slate-800 transition-colors duration-200">
+            <div className="bg-white dark:bg-night-2 p-6 rounded-[22px] transition-colors duration-200">
                 <div className="flex items-center gap-3 mb-6">
-                    <div className="p-2.5 bg-violet-50 dark:bg-violet-950/50 text-violet-700 dark:text-violet-400 rounded-xl">
+                    <div className="p-2.5 bg-violet-50 dark:bg-violet-950/50 text-violet-700 dark:text-violet-400 rounded-[14px]">
                         <Globe size={20} />
                     </div>
                     <div>
@@ -195,7 +195,7 @@ const SettingsPage: React.FC = () => {
                         <select 
                             value={language}
                             onChange={(e) => setLanguage(e.target.value)}
-                            className="w-full p-3 bg-stone-50 dark:bg-slate-800 border border-stone-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-violet-500 text-stone-900 dark:text-white outline-none transition-all"
+                            className="w-full p-3 bg-stone-50 dark:bg-slate-800 border border-stone-200 dark:border-slate-700 rounded-[14px] focus:ring-2 focus:ring-violet-500 text-stone-900 dark:text-white outline-none transition-all"
                         >
                             <option value="en">English (US)</option>
                             <option value="es">Español (ES)</option>
@@ -211,7 +211,7 @@ const SettingsPage: React.FC = () => {
                         <select 
                             value={timezone}
                             onChange={(e) => setTimezone(e.target.value)}
-                            className="w-full p-3 bg-stone-50 dark:bg-slate-800 border border-stone-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-violet-500 text-stone-900 dark:text-white outline-none transition-all"
+                            className="w-full p-3 bg-stone-50 dark:bg-slate-800 border border-stone-200 dark:border-slate-700 rounded-[14px] focus:ring-2 focus:ring-violet-500 text-stone-900 dark:text-white outline-none transition-all"
                         >
                             <option value="UTC-5 (EST)">UTC-5 (Eastern Time - US)</option>
                             <option value="UTC+0 (GMT)">UTC+0 (Greenwich Mean Time)</option>
@@ -225,9 +225,9 @@ const SettingsPage: React.FC = () => {
             </div>
 
             {/* 3. Notifications */}
-            <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl shadow-sm border border-stone-100 dark:border-slate-800 transition-colors duration-200">
+            <div className="bg-white dark:bg-night-2 p-6 rounded-[22px] transition-colors duration-200">
                 <div className="flex items-center gap-3 mb-6">
-                    <div className="p-2.5 bg-violet-50 dark:bg-violet-950/50 text-violet-700 dark:text-violet-400 rounded-xl">
+                    <div className="p-2.5 bg-violet-50 dark:bg-violet-950/50 text-violet-700 dark:text-violet-400 rounded-[14px]">
                         <Bell size={20} />
                     </div>
                     <div>
@@ -238,7 +238,7 @@ const SettingsPage: React.FC = () => {
 
                 <div className="space-y-4">
                     {/* Course Updates */}
-                    <div className="flex items-center justify-between p-4 border border-stone-50 dark:border-slate-800 rounded-xl">
+                    <div className="flex items-center justify-between p-4 border border-stone-50 dark:border-slate-800 rounded-[14px]">
                         <div>
                             <h4 className="font-semibold text-sm text-stone-900 dark:text-white">{t('course_announcements')}</h4>
                             <p className="text-xs text-stone-600 dark:text-slate-400 mt-0.5">{t('course_announcements_desc')}</p>
@@ -256,7 +256,7 @@ const SettingsPage: React.FC = () => {
                     </div>
 
                     {/* Exam Reminders */}
-                    <div className="flex items-center justify-between p-4 border border-stone-50 dark:border-slate-800 rounded-xl">
+                    <div className="flex items-center justify-between p-4 border border-stone-50 dark:border-slate-800 rounded-[14px]">
                         <div>
                             <h4 className="font-semibold text-sm text-stone-900 dark:text-white">{t('exam_rules')}</h4>
                             <p className="text-xs text-stone-600 dark:text-slate-400 mt-0.5">{t('exam_rules_desc')}</p>
@@ -274,7 +274,7 @@ const SettingsPage: React.FC = () => {
                     </div>
 
                     {/* Billing Alerts */}
-                    <div className="flex items-center justify-between p-4 border border-stone-50 dark:border-slate-800 rounded-xl">
+                    <div className="flex items-center justify-between p-4 border border-stone-50 dark:border-slate-800 rounded-[14px]">
                         <div>
                             <h4 className="font-semibold text-sm text-stone-900 dark:text-white">{t('wallet_alerts')}</h4>
                             <p className="text-xs text-stone-600 dark:text-slate-400 mt-0.5">{t('wallet_alerts_desc')}</p>
@@ -292,7 +292,7 @@ const SettingsPage: React.FC = () => {
                     </div>
 
                     {/* Newsletters */}
-                    <div className="flex items-center justify-between p-4 border border-stone-50 dark:border-slate-800 rounded-xl">
+                    <div className="flex items-center justify-between p-4 border border-stone-50 dark:border-slate-800 rounded-[14px]">
                         <div>
                             <h4 className="font-semibold text-sm text-stone-900 dark:text-white">{t('newsletters')}</h4>
                             <p className="text-xs text-stone-600 dark:text-slate-400 mt-0.5">{t('newsletters_desc')}</p>
@@ -312,9 +312,9 @@ const SettingsPage: React.FC = () => {
             </div>
 
             {/* 4. Security & Privacy */}
-            <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl shadow-sm border border-stone-100 dark:border-slate-800 transition-colors duration-200">
+            <div className="bg-white dark:bg-night-2 p-6 rounded-[22px] transition-colors duration-200">
                 <div className="flex items-center gap-3 mb-6">
-                    <div className="p-2.5 bg-violet-50 dark:bg-violet-950/50 text-violet-700 dark:text-violet-400 rounded-xl">
+                    <div className="p-2.5 bg-violet-50 dark:bg-violet-950/50 text-violet-700 dark:text-violet-400 rounded-[14px]">
                         <Shield size={20} />
                     </div>
                     <div>
@@ -325,7 +325,7 @@ const SettingsPage: React.FC = () => {
 
                 <div className="space-y-4">
                     {/* 2FA */}
-                    <div className="flex items-center justify-between p-4 border border-stone-50 dark:border-slate-800 rounded-xl">
+                    <div className="flex items-center justify-between p-4 border border-stone-50 dark:border-slate-800 rounded-[14px]">
                         <div>
                             <h4 className="font-semibold text-sm text-stone-900 dark:text-white flex items-center gap-2">
                                 <Lock size={16} className="text-stone-500" />
@@ -346,7 +346,7 @@ const SettingsPage: React.FC = () => {
                     </div>
 
                     {/* Profile Visibility */}
-                    <div className="flex items-center justify-between p-4 border border-stone-50 dark:border-slate-800 rounded-xl">
+                    <div className="flex items-center justify-between p-4 border border-stone-50 dark:border-slate-800 rounded-[14px]">
                         <div>
                             <h4 className="font-semibold text-sm text-stone-900 dark:text-white">{t('public_profile')}</h4>
                             <p className="text-xs text-stone-600 dark:text-slate-400 mt-0.5">{t('public_profile_desc')}</p>
@@ -370,7 +370,7 @@ const SettingsPage: React.FC = () => {
                 <button 
                     onClick={handleSave}
                     disabled={isSaving}
-                    className="flex items-center justify-center gap-2 bg-violet-700 hover:bg-violet-800 text-white font-bold px-8 py-3 rounded-2xl shadow-sm active:scale-95 transition-all disabled:opacity-75 disabled:cursor-not-allowed"
+                    className="flex items-center justify-center gap-2 bg-violet-700 hover:bg-brand-mid text-white font-bold px-8 py-3 rounded-[22px] shadow-sm active:scale-95 transition-all disabled:opacity-75 disabled:cursor-not-allowed"
                 >
                     {isSaving ? (
                         <>

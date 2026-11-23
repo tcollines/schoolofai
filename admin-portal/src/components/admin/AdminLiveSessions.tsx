@@ -42,8 +42,8 @@ interface SessionAttendance {
 
 const COURSE_SLUG = 'ai-fundamentals';
 const EAT = '+03:00'; // East Africa Time has no daylight saving
-const card = 'bg-white dark:bg-slate-900 rounded-2xl border border-gray-100 dark:border-slate-800 shadow-sm';
-const input = 'w-full rounded-lg border border-gray-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500';
+const card = 'bg-white dark:bg-night-2 rounded-[22px]';
+const input = 'w-full rounded-[12px] bg-white dark:bg-night-2 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand';
 
 const toEatParts = (iso: string) => {
     const d = new Date(new Date(iso).getTime() + 3 * 3600 * 1000);
@@ -248,7 +248,7 @@ const AdminLiveSessions: React.FC = () => {
                     <div className="min-w-0 flex-1">
                         <div className="flex flex-wrap items-center gap-2">
                             <p className="font-semibold">{s.title}</p>
-                            {!s.is_published && <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-gray-200 dark:bg-slate-700">Hidden</span>}
+                            {!s.is_published && <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-stone-200 dark:bg-slate-700">Hidden</span>}
                             <button
                                 type="button"
                                 onClick={() => setExpandedId(isOpen ? null : s.id)}
@@ -259,10 +259,10 @@ const AdminLiveSessions: React.FC = () => {
                                 {isOpen ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
                             </button>
                         </div>
-                        <p className="text-sm text-gray-500 dark:text-slate-400 mt-0.5">
+                        <p className="text-sm text-stone-500 dark:text-slate-400 mt-0.5">
                             {fmt(s.starts_at)} EAT{s.host_name ? ` · ${s.host_name}` : ''}{s.module_id ? ` · ${MODULES.find(m => m.id === s.module_id)?.title || s.module_id}` : ''}
                         </p>
-                        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-gray-500 dark:text-slate-400 mt-1">
+                        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-stone-500 dark:text-slate-400 mt-1">
                             <span>{(() => {
                                 const r = remStatus[s.id];
                                 if (!r) return 'Reminders: none sent yet';
@@ -282,39 +282,39 @@ const AdminLiveSessions: React.FC = () => {
                                 <button
                                     title="Copy tracked share link (counts joins from WhatsApp, groups, or email)"
                                     onClick={() => copyText(trackedUrl, `tracked-${s.id}`)}
-                                    className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold border border-violet-200 dark:border-violet-800 text-violet-700 dark:text-violet-300 hover:bg-violet-50 dark:hover:bg-violet-950/40"
+                                    className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-[12px] text-xs font-semibold border border-violet-200 dark:border-violet-800 text-violet-700 dark:text-violet-300 hover:bg-violet-50 dark:hover:bg-violet-950/40"
                                 >
                                     {copied === `tracked-${s.id}` ? <><Check size={14} /> Tracked link copied</> : <><Link2 size={14} /> Copy tracked link</>}
                                 </button>
                                 <button
                                     title="Copy raw Google Meet link"
                                     onClick={() => copyText(s.meet_link!, `raw-${s.id}`)}
-                                    className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-800 text-gray-500"
+                                    className="p-2 rounded-[12px] hover:bg-stone-100 dark:hover:bg-slate-800 text-stone-500"
                                 >
-                                    {copied === `raw-${s.id}` ? <Check size={15} className="text-emerald-600" /> : <Copy size={15} />}
+                                    {copied === `raw-${s.id}` ? <Check size={15} className="text-mint" /> : <Copy size={15} />}
                                 </button>
                             </>
                         )}
-                        <button title={s.is_published ? 'Hide from students' : 'Show to students'} onClick={() => togglePublish(s)} className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-800">{s.is_published ? <Eye size={16} /> : <EyeOff size={16} />}</button>
-                        <button title="Edit" onClick={() => startEdit(s)} className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-800"><Edit3 size={16} /></button>
-                        <button title="Delete" onClick={() => remove(s)} className="p-2 rounded-lg hover:bg-red-50 dark:hover:bg-red-950/30 text-red-600"><Trash2 size={16} /></button>
+                        <button title={s.is_published ? 'Hide from students' : 'Show to students'} onClick={() => togglePublish(s)} className="p-2 rounded-[12px] hover:bg-stone-100 dark:hover:bg-slate-800">{s.is_published ? <Eye size={16} /> : <EyeOff size={16} />}</button>
+                        <button title="Edit" onClick={() => startEdit(s)} className="p-2 rounded-[12px] hover:bg-stone-100 dark:hover:bg-slate-800"><Edit3 size={16} /></button>
+                        <button title="Delete" onClick={() => remove(s)} className="p-2 rounded-[12px] hover:bg-red-50 dark:hover:bg-red-950/30 text-red-600"><Trash2 size={16} /></button>
                     </div>
                 </div>
 
                 {/* Expandable Attendees + Manual Check-in Drawer */}
                 {isOpen && (
-                    <div className="rounded-xl bg-gray-50 dark:bg-slate-800/40 border border-gray-200 dark:border-slate-800 p-4 space-y-4">
+                    <div className="rounded-[14px] bg-stone-50 dark:bg-slate-800/40 border border-stone-200 dark:border-slate-800 p-4 space-y-4">
                         <div className="flex flex-wrap items-center justify-between gap-2">
                             <div>
                                 <h3 className="font-bold text-sm">Tracked Attendance for this Session</h3>
-                                <p className="text-xs text-gray-500 dark:text-slate-400">
+                                <p className="text-xs text-stone-500 dark:text-slate-400">
                                     Email reminders, calendar invites, and the tracked share link automatically record attendance here.
                                 </p>
                             </div>
                             {att && att.attendees.length > 0 && (
                                 <button
                                     onClick={() => exportSessionAttendees(s, att)}
-                                    className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold border border-gray-300 dark:border-slate-700 bg-white dark:bg-slate-900 hover:bg-gray-50"
+                                    className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-[12px] text-xs font-semibold bg-white dark:bg-night-2 hover:bg-stone-50"
                                 >
                                     <Download size={13} /> Export Attendees
                                 </button>
@@ -322,8 +322,8 @@ const AdminLiveSessions: React.FC = () => {
                         </div>
 
                         {s.meet_link && (
-                            <div className="text-xs bg-white dark:bg-slate-900 rounded-lg border border-gray-200 dark:border-slate-700 px-3 py-2 flex flex-wrap items-center justify-between gap-2">
-                                <span className="text-gray-600 dark:text-slate-300 break-all">
+                            <div className="text-xs bg-white dark:bg-night-2 rounded-[12px] px-3 py-2 flex flex-wrap items-center justify-between gap-2">
+                                <span className="text-stone-600 dark:text-slate-300 break-all">
                                     <strong className="text-violet-700 dark:text-violet-300">Shareable Tracked Link:</strong> {trackedUrl}
                                 </span>
                                 <button onClick={() => copyText(trackedUrl, `box-${s.id}`)} className="font-semibold text-violet-700 dark:text-violet-300 hover:underline shrink-0">
@@ -333,34 +333,34 @@ const AdminLiveSessions: React.FC = () => {
                         )}
 
                         {att && att.attendees.length > 0 ? (
-                            <div className="overflow-x-auto rounded-lg border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-900">
+                            <div className="overflow-x-auto rounded-[12px] bg-white dark:bg-night-2">
                                 <table className="w-full text-xs">
                                     <thead>
-                                        <tr className="text-left uppercase text-gray-500 border-b border-gray-100 dark:border-slate-800">
+                                        <tr className="text-left uppercase text-stone-500 border-b border-stone-100 dark:border-slate-800">
                                             <th className="py-2 px-3">Learner</th>
                                             <th className="py-2 px-3">Contact</th>
                                             <th className="py-2 px-3">Joined Via</th>
                                             <th className="py-2 px-3 text-right">Time (EAT)</th>
                                         </tr>
                                     </thead>
-                                    <tbody className="divide-y divide-gray-100 dark:divide-slate-800">
+                                    <tbody className="divide-y divide-stone-100 dark:divide-slate-800">
                                         {att.attendees.map(a => (
                                             <tr key={a.user_id}>
                                                 <td className="py-2 px-3 font-medium">{a.name}</td>
-                                                <td className="py-2 px-3 text-gray-500">{[a.email, a.phone].filter(Boolean).join(' · ')}</td>
+                                                <td className="py-2 px-3 text-stone-500">{[a.email, a.phone].filter(Boolean).join(' · ')}</td>
                                                 <td className="py-2 px-3">
                                                     <span className="px-2 py-0.5 rounded-full bg-violet-100 text-violet-800 dark:bg-violet-950/60 dark:text-violet-300 font-semibold">
                                                         {SOURCE_LABELS[a.source] || a.source}
                                                     </span>
                                                 </td>
-                                                <td className="py-2 px-3 text-right font-mono text-gray-500">{fmtTime(a.joined_at)}</td>
+                                                <td className="py-2 px-3 text-right font-mono text-stone-500">{fmtTime(a.joined_at)}</td>
                                             </tr>
                                         ))}
                                     </tbody>
                                 </table>
                             </div>
                         ) : (
-                            <p className="text-xs text-gray-500">No signed-in learners recorded yet for this session.</p>
+                            <p className="text-xs text-stone-500">No signed-in learners recorded yet for this session.</p>
                         )}
 
                         {guest > 0 && (
@@ -370,7 +370,7 @@ const AdminLiveSessions: React.FC = () => {
                         )}
 
                         {/* Manual Attendance Check-In */}
-                        <div className="border-t border-gray-200 dark:border-slate-700 pt-3 space-y-2">
+                        <div className="border-t border-stone-200 dark:border-slate-700 pt-3 space-y-2">
                             <p className="text-xs font-bold flex items-center gap-1.5">
                                 <UserCheck size={14} className="text-violet-600" />
                                 Record extra Google Meet attendees (if anyone joined outside the tracked link)
@@ -386,13 +386,13 @@ const AdminLiveSessions: React.FC = () => {
                                     type="button"
                                     disabled={markingId === s.id}
                                     onClick={() => void submitManualCheckIn(s.id)}
-                                    className="shrink-0 inline-flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-lg text-xs font-semibold bg-violet-600 hover:bg-violet-700 text-white disabled:opacity-60"
+                                    className="shrink-0 inline-flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-[12px] text-xs font-semibold bg-brand hover:bg-brand-mid text-white disabled:opacity-60"
                                 >
                                     {markingId === s.id ? <Loader2 size={13} className="animate-spin" /> : <UserCheck size={13} />}
                                     Credit Attendance
                                 </button>
                             </div>
-                            {markNotice[s.id] && <p className="text-xs text-emerald-700 dark:text-emerald-400 font-medium">{markNotice[s.id]}</p>}
+                            {markNotice[s.id] && <p className="text-xs text-mint dark:text-emerald-400 font-medium">{markNotice[s.id]}</p>}
                         </div>
                     </div>
                 )}
@@ -404,12 +404,12 @@ const AdminLiveSessions: React.FC = () => {
         <div className="space-y-6">
             <div className="flex flex-wrap items-start justify-between gap-3">
                 <div>
-                    <h1 className="text-2xl font-bold">Live Classes</h1>
-                    <p className="text-sm text-gray-500 dark:text-slate-400">
+                    <h1 className="m-0 text-[28px] font-extrabold tracking-[-0.02em]">Live Classes</h1>
+                    <p className="text-sm text-stone-500 dark:text-slate-400">
                         Schedule live sessions, share tracked join links (so email, WhatsApp &amp; calendar attendees are always counted), and inspect exact attendance.
                     </p>
                 </div>
-                <button onClick={startNew} className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-semibold bg-violet-600 hover:bg-violet-700 text-white"><Plus size={16} /> New session</button>
+                <button onClick={startNew} className="inline-flex items-center gap-2 px-4 py-2.5 rounded-[12px] text-sm font-semibold bg-brand hover:bg-brand-mid text-white"><Plus size={16} /> New session</button>
             </div>
 
             {missingDb && <MissingDbNotice />}
@@ -419,8 +419,8 @@ const AdminLiveSessions: React.FC = () => {
             {open && (
                 <form onSubmit={save} className={`${card} p-5 space-y-4`}>
                     <div className="flex items-center justify-between">
-                        <h2 className="font-bold">{editing ? 'Edit session' : 'New session'}</h2>
-                        <button type="button" onClick={() => setOpen(false)} aria-label="Close" className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-800"><X size={18} /></button>
+                        <h2 className="m-0 text-[16px] font-extrabold">{editing ? 'Edit session' : 'New session'}</h2>
+                        <button type="button" onClick={() => setOpen(false)} aria-label="Close" className="p-2 rounded-[12px] hover:bg-stone-100 dark:hover:bg-slate-800"><X size={18} /></button>
                     </div>
                     <div className="grid md:grid-cols-2 gap-4">
                         <label className="block md:col-span-2"><span className="text-sm font-semibold">Title *</span><input value={form.title} onChange={set('title')} placeholder="Live Clinic: prompting practice" className={`${input} mt-1`} /></label>
@@ -440,35 +440,35 @@ const AdminLiveSessions: React.FC = () => {
                         <label className="block md:col-span-2"><span className="text-sm font-semibold">Meeting link</span>
                             <div className="flex gap-2 mt-1">
                                 <input value={form.meet} onChange={set('meet')} placeholder="https://meet.google.com/abc-defg-hij" className={input} />
-                                <a href="https://meet.google.com/new" target="_blank" rel="noreferrer" className="shrink-0 inline-flex items-center gap-1.5 px-3 rounded-lg border border-gray-300 dark:border-slate-700 text-sm font-medium hover:bg-gray-50 dark:hover:bg-slate-800"><Video size={15} /> Create <ExternalLink size={12} /></a>
+                                <a href="https://meet.google.com/new" target="_blank" rel="noreferrer" className="shrink-0 inline-flex items-center gap-1.5 px-3 rounded-[12px] border border-stone-300 dark:border-slate-700 text-sm font-medium hover:bg-stone-50 dark:hover:bg-slate-800"><Video size={15} /> Create <ExternalLink size={12} /></a>
                             </div>
-                            <span className="text-xs text-gray-500">Reminders and share links automatically route through our tracked join URL before opening Google Meet.</span>
+                            <span className="text-xs text-stone-500">Reminders and share links automatically route through our tracked join URL before opening Google Meet.</span>
                         </label>
                         <label className="block md:col-span-2"><span className="text-sm font-semibold">Recording link (add after the class)</span><input value={form.recording} onChange={set('recording')} placeholder="https://" className={`${input} mt-1`} /></label>
                         {!editing && (
                             <label className="block"><span className="text-sm font-semibold">Repeat weekly for</span>
-                                <div className="flex items-center gap-2 mt-1"><input type="number" min={1} max={26} value={form.repeat} onChange={set('repeat')} className={`${input} w-24`} /><span className="text-sm text-gray-500">session(s) in total</span></div>
+                                <div className="flex items-center gap-2 mt-1"><input type="number" min={1} max={26} value={form.repeat} onChange={set('repeat')} className={`${input} w-24`} /><span className="text-sm text-stone-500">session(s) in total</span></div>
                             </label>
                         )}
                         <label className="flex items-center gap-2 md:col-span-2 text-sm font-medium"><input type="checkbox" checked={form.published} onChange={set('published')} className="accent-violet-600 w-4 h-4" /> Visible to students</label>
                     </div>
                     {error && <p role="alert" className="text-sm text-red-600">{error}</p>}
                     <div className="flex gap-2">
-                        <button type="submit" disabled={saving} className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-semibold bg-violet-600 hover:bg-violet-700 text-white disabled:opacity-60">{saving && <Loader2 size={16} className="animate-spin" />} {editing ? 'Save changes' : 'Create session'}</button>
-                        <button type="button" onClick={() => setOpen(false)} className="px-4 py-2.5 rounded-lg text-sm font-medium border border-gray-300 dark:border-slate-700">Cancel</button>
+                        <button type="submit" disabled={saving} className="inline-flex items-center gap-2 px-4 py-2.5 rounded-[12px] text-sm font-semibold bg-brand hover:bg-brand-mid text-white disabled:opacity-60">{saving && <Loader2 size={16} className="animate-spin" />} {editing ? 'Save changes' : 'Create session'}</button>
+                        <button type="button" onClick={() => setOpen(false)} className="px-4 py-2.5 rounded-[12px] text-sm font-medium border border-stone-300 dark:border-slate-700">Cancel</button>
                     </div>
                 </form>
             )}
 
-            {loading ? <div className="flex items-center gap-2 text-gray-500"><Loader2 className="animate-spin" size={18} /> Loading...</div> : (
+            {loading ? <div className="flex items-center gap-2 text-stone-500"><Loader2 className="animate-spin" size={18} /> Loading...</div> : (
                 <>
                     <div className={`${card} p-5`}>
-                        <h2 className="font-bold">Upcoming</h2>
-                        {upcoming.length === 0 ? <p className="text-sm text-gray-500 mt-2">No upcoming sessions. Create one above.</p> : <ul className="divide-y divide-gray-100 dark:divide-slate-800 mt-1">{upcoming.map(s => <Row key={s.id} s={s} />)}</ul>}
+                        <h2 className="m-0 text-[16px] font-extrabold">Upcoming</h2>
+                        {upcoming.length === 0 ? <p className="text-sm text-stone-500 mt-2">No upcoming sessions. Create one above.</p> : <ul className="divide-y divide-stone-100 dark:divide-slate-800 mt-1">{upcoming.map(s => <Row key={s.id} s={s} />)}</ul>}
                     </div>
                     <div className={`${card} p-5`}>
-                        <h2 className="font-bold">Past sessions</h2>
-                        {past.length === 0 ? <p className="text-sm text-gray-500 mt-2">Nothing yet.</p> : <ul className="divide-y divide-gray-100 dark:divide-slate-800 mt-1">{past.map(s => <Row key={s.id} s={s} />)}</ul>}
+                        <h2 className="m-0 text-[16px] font-extrabold">Past sessions</h2>
+                        {past.length === 0 ? <p className="text-sm text-stone-500 mt-2">Nothing yet.</p> : <ul className="divide-y divide-stone-100 dark:divide-slate-800 mt-1">{past.map(s => <Row key={s.id} s={s} />)}</ul>}
                     </div>
                 </>
             )}

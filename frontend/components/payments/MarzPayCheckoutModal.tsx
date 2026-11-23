@@ -23,15 +23,18 @@ interface MarzPayCheckoutModalProps {
 
 const API_BASE = (import.meta.env.VITE_API_URL || '').replace(/\/$/, '');
 
-export const MarzPayCheckoutModal: React.FC<MarzPayCheckoutModalProps> = ({
-    isOpen,
-    onClose,
-    plan,
-    seats = 10,
-    course,
-    user,
-    onSuccess
-}) => {
+export interface CheckoutOptions {
+    isOpen: boolean;
+    onClose: () => void;
+    plan: 'pro' | 'premium' | 'corporate';
+    seats?: number;
+    course?: { id: string; title: string; price?: number };
+    user?: any;
+    onSuccess?: () => void;
+}
+
+/** All checkout logic (prices, live rate, promo codes, MarzPay initiate + status polling, plan activation). Shared by the modal and the full checkout page. */
+export function useMarzPayCheckout({ isOpen, onClose, plan, seats = 10, course, user, onSuccess }: CheckoutOptions) {
     const [method, setMethod] = useState<'mobile_money' | 'card'>('mobile_money');
     const [country, setCountry] = useState('UG');
     const [phoneNumber, setPhoneNumber] = useState('');
@@ -241,6 +244,32 @@ export const MarzPayCheckoutModal: React.FC<MarzPayCheckoutModalProps> = ({
                 }
             }
 
+            // Ensure payment is recorded in the Wallet Ledger
+            try {
+                await fetch(`${API_BASE}/api/admin/wallet/transaction`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        reference: txRef || undefined,
+                        type: 'deposit',
+                        paymentType: isCoursePurchase ? 'course' : 'package',
+                        plan: isCoursePurchase ? 'course' : targetPlan,
+                        itemTitle: planTitle,
+                        seats: isCorp ? numSeats : 1,
+                        userId: uid || '',
+                        userEmail: authUser?.email || user?.email || '',
+                        userName: user?.name || user?.full_name || authUser?.user_metadata?.full_name || 'Learner',
+                        phoneNumber: phoneNumber ? formatFullInternationalPhone(phoneNumber, country) : '',
+                        promoCode: appliedPromo || undefined,
+                        amount: finalPayableUgx,
+                        usdAmount: isPromoApplied ? 1 : usdPrice,
+                        method,
+                        description: `Welile School - ${planTitle}`,
+                        status: 'completed'
+                    })
+                });
+            } catch (_) {}
+
             // Add celebration notification
             const userEmail = authUser?.email || user?.email || localStorage.getItem('logged_in_email') || '';
             const notifKey = `portal-notifications-${userEmail}`;
@@ -365,8 +394,11 @@ export const MarzPayCheckoutModal: React.FC<MarzPayCheckoutModalProps> = ({
             if (contentType.includes('application/json')) {
                 result = await response.json();
             } else {
-                const text = await response.text();
-                throw new Error(text || `Server returned HTTP ${response.status} (${response.statusText})`);
+                // The payment service answered with a web page instead of data: it is offline or out of date.
+                await response.text().catch(() => '');
+                throw new Error(response.status === 404 || response.status >= 500
+                    ? 'The payment service is not reachable right now. Please try again in a few minutes. No money has been taken.'
+                    : `The payment service returned an unexpected answer (HTTP ${response.status}). Please try again. No money has been taken.`);
             }
 
             if (!response.ok || !result.success) {
@@ -412,6 +444,20 @@ export const MarzPayCheckoutModal: React.FC<MarzPayCheckoutModalProps> = ({
         }
     };
 
+    return { method, setMethod, country, setCountry, phoneNumber, setPhoneNumber, premiumOption, setPremiumOption, showPromoBox, setShowPromoBox, displayCurrency, setDisplayCurrency, effectiveRate, setEffectiveRate, baseRate, setBaseRate, loading, setLoading, error, setError, paymentStatus, setPaymentStatus, transactionData, setTransactionData, countdown, setCountdown, promoCodeInput, setPromoCodeInput, appliedPromo, setAppliedPromo, promoError, setPromoError, promoSuccess, setPromoSuccess, isCoursePurchase, isPro, isCorp, numSeats, corpUnitPrice, planTitle, planBadgeLabel, usdPrice, baseUgxAmount, isPromoApplied, finalPayableUgx, discountUgx, handleSwitchCurrency, getCountryDialCode, formatFullInternationalPhone, getUgandaProvider, providerBadge, handleApplyPromo, handleRemovePromo, activatePaidRole, handleInitiatePayment, handleFinishSuccess };
+}
+
+export const MarzPayCheckoutModal: React.FC<MarzPayCheckoutModalProps> = ({
+    isOpen,
+    onClose,
+    plan,
+    seats = 10,
+    course,
+    user,
+    onSuccess
+}) => {
+    const { method, setMethod, country, setCountry, phoneNumber, setPhoneNumber, premiumOption, setPremiumOption, showPromoBox, setShowPromoBox, displayCurrency, setDisplayCurrency, effectiveRate, setEffectiveRate, baseRate, setBaseRate, loading, setLoading, error, setError, paymentStatus, setPaymentStatus, transactionData, setTransactionData, countdown, setCountdown, promoCodeInput, setPromoCodeInput, appliedPromo, setAppliedPromo, promoError, setPromoError, promoSuccess, setPromoSuccess, isCoursePurchase, isPro, isCorp, numSeats, corpUnitPrice, planTitle, planBadgeLabel, usdPrice, baseUgxAmount, isPromoApplied, finalPayableUgx, discountUgx, handleSwitchCurrency, getCountryDialCode, formatFullInternationalPhone, getUgandaProvider, providerBadge, handleApplyPromo, handleRemovePromo, activatePaidRole, handleInitiatePayment, handleFinishSuccess } = useMarzPayCheckout({ isOpen, onClose, plan, seats, course, user, onSuccess });
+
     if (!isOpen) return null;
 
     return (
@@ -423,7 +469,7 @@ export const MarzPayCheckoutModal: React.FC<MarzPayCheckoutModalProps> = ({
             />
 
             {/* Modal Container — responsive bottom-sheet on small phones, floating card on tablet/desktop */}
-            <div className="bg-white dark:bg-slate-900 border-t sm:border border-slate-200 dark:border-slate-800 w-full max-w-[500px] rounded-t-3xl sm:rounded-3xl shadow-2xl relative z-10 animate-in zoom-in-95 duration-200 text-gray-900 dark:text-white max-h-[94dvh] sm:max-h-[92vh] flex flex-col overflow-hidden">
+            <div className="bg-white dark:bg-slate-900 border-t sm:border border-slate-200 dark:border-slate-800 w-full max-w-[500px] rounded-t-3xl sm:rounded-3xl shadow-2xl relative z-10 animate-in zoom-in-95 duration-200 text-stone-900 dark:text-white max-h-[94dvh] sm:max-h-[92vh] flex flex-col overflow-hidden">
 
                 {/* Top Gradient Accent Bar */}
                 <div className="h-1.5 w-full bg-gradient-to-r from-violet-600 via-indigo-500 to-emerald-400 shrink-0" />
@@ -431,7 +477,7 @@ export const MarzPayCheckoutModal: React.FC<MarzPayCheckoutModalProps> = ({
                 {/* Sticky Top Header Bar */}
                 <div className="px-4 sm:px-6 pt-4 pb-3 flex items-center justify-between border-b border-slate-100 dark:border-slate-800/80 shrink-0">
                     <div className="flex items-center gap-2 min-w-0">
-                        <div className="w-7 h-7 rounded-lg bg-violet-100 dark:bg-violet-950/60 text-violet-600 dark:text-violet-400 flex items-center justify-center shrink-0">
+                        <div className="w-7 h-7 rounded-[12px] bg-violet-100 dark:bg-violet-950/60 text-violet-600 dark:text-violet-400 flex items-center justify-center shrink-0">
                             <Lock size={14} />
                         </div>
                         <div className="truncate">
@@ -459,25 +505,25 @@ export const MarzPayCheckoutModal: React.FC<MarzPayCheckoutModalProps> = ({
                     {/* SUCCESS VIEW */}
                     {paymentStatus === 'success' ? (
                         <div className="text-center py-4 sm:py-6 space-y-5">
-                            <div className="w-16 h-16 sm:w-20 sm:h-20 bg-emerald-100 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 rounded-full flex items-center justify-center mx-auto shadow-inner ring-8 ring-emerald-50 dark:ring-emerald-950/20">
+                            <div className="w-16 h-16 sm:w-20 sm:h-20 bg-mint-soft dark:bg-emerald-950/40 text-mint dark:text-emerald-400 rounded-full flex items-center justify-center mx-auto shadow-inner ring-8 ring-emerald-50 dark:ring-emerald-950/20">
                                 <CheckCircle2 size={40} />
                             </div>
 
                             <div className="space-y-1.5">
-                                <span className="inline-flex items-center gap-1 px-3 py-1 bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300 rounded-full text-[11px] font-black uppercase tracking-wider">
+                                <span className="inline-flex items-center gap-1 px-3 py-1 bg-mint-soft dark:bg-emerald-900/40 text-mint dark:text-emerald-300 rounded-full text-[11px] font-black uppercase tracking-wider">
                                     <CheckCircle2 size={12} /> Payment Confirmed
                                 </span>
-                                <h3 className="text-xl sm:text-2xl font-black text-gray-900 dark:text-white">
+                                <h3 className="text-xl sm:text-2xl font-black text-stone-900 dark:text-white">
                                     {isCoursePurchase ? 'Course Unlocked!' : `Welcome to ${planTitle}!`}
                                 </h3>
-                                <p className="text-xs sm:text-sm text-gray-500 dark:text-slate-400 max-w-md mx-auto leading-relaxed">
+                                <p className="text-xs sm:text-sm text-stone-500 dark:text-slate-400 max-w-md mx-auto leading-relaxed">
                                     {isCoursePurchase
                                         ? `Your payment for "${course?.title}" is complete and your enrollment is active.`
                                         : 'Your payment has been verified and full learning access is now active on your account.'}
                                 </p>
                             </div>
 
-                            <div className="p-4 bg-slate-50 dark:bg-slate-800/60 rounded-2xl border border-slate-200/70 dark:border-slate-800 text-left text-xs space-y-2.5">
+                            <div className="p-4 bg-slate-50 dark:bg-slate-800/60 rounded-[22px] border border-slate-200/70 dark:border-slate-800 text-left text-xs space-y-2.5">
                                 <div className="flex items-center justify-between gap-2">
                                     <span className="text-slate-500 dark:text-slate-400">
                                         {isCoursePurchase ? 'Course' : 'Plan Activated'}
@@ -488,7 +534,7 @@ export const MarzPayCheckoutModal: React.FC<MarzPayCheckoutModalProps> = ({
                                 </div>
                                 <div className="flex items-center justify-between gap-2">
                                     <span className="text-slate-500 dark:text-slate-400">Amount Paid</span>
-                                    <span className="font-bold text-emerald-600 dark:text-emerald-400">
+                                    <span className="font-bold text-mint dark:text-emerald-400">
                                         UGX {finalPayableUgx.toLocaleString()}{isPromoApplied ? ' (Promo)' : ` ($${usdPrice} USD)`}
                                     </span>
                                 </div>
@@ -502,7 +548,7 @@ export const MarzPayCheckoutModal: React.FC<MarzPayCheckoutModalProps> = ({
 
                             <button
                                 onClick={handleFinishSuccess}
-                                className="w-full py-3.5 sm:py-4 bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 text-white font-bold rounded-2xl shadow-lg shadow-violet-500/25 transition-all cursor-pointer flex items-center justify-center gap-2 text-sm"
+                                className="w-full py-3.5 sm:py-4 bg-gradient-to-r from-violet-600 to-brand hover:from-violet-700 hover:to-brand text-white font-bold rounded-[22px] shadow-lg shadow-violet-500/25 transition-all cursor-pointer flex items-center justify-center gap-2 text-sm"
                             >
                                 Start Learning Now <ArrowRight size={18} />
                             </button>
@@ -521,19 +567,19 @@ export const MarzPayCheckoutModal: React.FC<MarzPayCheckoutModalProps> = ({
                                 <span className="inline-block px-3 py-0.5 bg-violet-100 dark:bg-violet-950/60 text-violet-700 dark:text-violet-300 rounded-full text-[11px] font-bold uppercase tracking-wider">
                                     Action Required on Phone
                                 </span>
-                                <h3 className="text-xl sm:text-2xl font-black text-gray-900 dark:text-white">
+                                <h3 className="text-xl sm:text-2xl font-black text-stone-900 dark:text-white">
                                     Approve Payment Prompt
                                 </h3>
-                                <p className="text-xs sm:text-sm text-gray-500 dark:text-slate-400 max-w-sm mx-auto leading-relaxed">
+                                <p className="text-xs sm:text-sm text-stone-500 dark:text-slate-400 max-w-sm mx-auto leading-relaxed">
                                     We've sent a Mobile Money STK push for{' '}
                                     <strong className="text-violet-600 dark:text-violet-400">
                                         UGX {finalPayableUgx.toLocaleString()}
                                     </strong>{' '}
-                                    to <strong className="text-gray-900 dark:text-white">{formatFullInternationalPhone(phoneNumber, country)}</strong>.
+                                    to <strong className="text-stone-900 dark:text-white">{formatFullInternationalPhone(phoneNumber, country)}</strong>.
                                 </p>
                             </div>
 
-                            <div className="bg-amber-50/90 dark:bg-amber-950/25 border border-amber-200 dark:border-amber-900/40 rounded-2xl p-3.5 sm:p-4 text-xs text-amber-900 dark:text-amber-200 text-left space-y-2">
+                            <div className="bg-amber-50/90 dark:bg-amber-950/25 border border-amber-200 dark:border-amber-900/40 rounded-[22px] p-3.5 sm:p-4 text-xs text-amber-900 dark:text-amber-200 text-left space-y-2">
                                 <p className="font-bold flex items-center gap-1.5">
                                     <AlertCircle size={14} className="shrink-0 text-amber-600" />
                                     Complete these 3 quick steps on your phone:
@@ -545,14 +591,14 @@ export const MarzPayCheckoutModal: React.FC<MarzPayCheckoutModalProps> = ({
                                 </ol>
                             </div>
 
-                            <div className="flex items-center justify-center gap-2 text-xs text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-slate-800/50 py-2.5 px-4 rounded-xl">
+                            <div className="flex items-center justify-center gap-2 text-xs text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-slate-800/50 py-2.5 px-4 rounded-[14px]">
                                 <Loader2 size={14} className="animate-spin text-violet-600 shrink-0" />
                                 <span>Waiting for confirmation... ({countdown}s)</span>
                             </div>
 
                             <button
                                 onClick={() => setPaymentStatus('idle')}
-                                className="w-full py-3 rounded-xl border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 font-semibold text-xs hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+                                className="w-full py-3 rounded-[14px] border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 font-semibold text-xs hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors cursor-pointer"
                             >
                                 Change Phone Number or Payment Method
                             </button>
@@ -561,7 +607,7 @@ export const MarzPayCheckoutModal: React.FC<MarzPayCheckoutModalProps> = ({
                         /* INITIAL CHECKOUT SELECTION VIEW */
                         <div className="space-y-4 sm:space-y-5">
                             {/* 1. Order Summary Card (Stripe / Coursera style) */}
-                            <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-slate-900 via-slate-900 to-indigo-950 text-white p-4 sm:p-5 shadow-md border border-slate-800">
+                            <div className="relative overflow-hidden rounded-[22px] bg-gradient-to-br from-slate-900 via-slate-900 to-indigo-950 text-white p-4 sm:p-5 shadow-md border border-slate-800">
                                 <div className="absolute -right-8 -top-8 w-28 h-28 rounded-full bg-violet-500/15 blur-2xl pointer-events-none" />
 
                                 <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
@@ -616,7 +662,7 @@ export const MarzPayCheckoutModal: React.FC<MarzPayCheckoutModalProps> = ({
                                         <TrendingUp size={12} className="text-emerald-400 shrink-0" />
                                         <span className="font-mono font-semibold">$1 USD = UGX {effectiveRate.toLocaleString()}</span>
                                     </span>
-                                    <div className="inline-flex items-center bg-white/10 p-0.5 rounded-lg border border-white/15">
+                                    <div className="inline-flex items-center bg-white/10 p-0.5 rounded-[12px] border border-white/15">
                                         <button
                                             type="button"
                                             onClick={() => handleSwitchCurrency('UGX')}
@@ -645,7 +691,7 @@ export const MarzPayCheckoutModal: React.FC<MarzPayCheckoutModalProps> = ({
 
                             {/* Error Banner */}
                             {error && (
-                                <div className="p-3.5 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-900/50 rounded-2xl text-xs text-red-700 dark:text-red-300 flex items-start gap-2.5 animate-in fade-in duration-150">
+                                <div className="p-3.5 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-900/50 rounded-[22px] text-xs text-red-700 dark:text-red-300 flex items-start gap-2.5 animate-in fade-in duration-150">
                                     <AlertCircle size={16} className="shrink-0 mt-0.5 text-red-600 dark:text-red-400" />
                                     <div className="leading-relaxed break-words min-w-0 flex-1">{error}</div>
                                 </div>
@@ -661,7 +707,7 @@ export const MarzPayCheckoutModal: React.FC<MarzPayCheckoutModalProps> = ({
                                         <button
                                             type="button"
                                             onClick={() => setPremiumOption('full')}
-                                            className={`p-3 rounded-2xl border text-left transition-all cursor-pointer flex items-center justify-between sm:block ${
+                                            className={`p-3 rounded-[22px] border text-left transition-all cursor-pointer flex items-center justify-between sm:block ${
                                                 premiumOption === 'full'
                                                     ? 'border-violet-600 bg-violet-50/60 dark:bg-violet-950/25 ring-2 ring-violet-500/20'
                                                     : 'border-slate-200 dark:border-slate-800 hover:border-slate-300'
@@ -676,7 +722,7 @@ export const MarzPayCheckoutModal: React.FC<MarzPayCheckoutModalProps> = ({
                                         <button
                                             type="button"
                                             onClick={() => setPremiumOption('installment')}
-                                            className={`p-3 rounded-2xl border text-left transition-all cursor-pointer flex items-center justify-between sm:block ${
+                                            className={`p-3 rounded-[22px] border text-left transition-all cursor-pointer flex items-center justify-between sm:block ${
                                                 premiumOption === 'installment'
                                                     ? 'border-violet-600 bg-violet-50/60 dark:bg-violet-950/25 ring-2 ring-violet-500/20'
                                                     : 'border-slate-200 dark:border-slate-800 hover:border-slate-300'
@@ -684,7 +730,7 @@ export const MarzPayCheckoutModal: React.FC<MarzPayCheckoutModalProps> = ({
                                         >
                                             <div className="flex items-center gap-1.5">
                                                 <span className="text-xs font-bold text-slate-900 dark:text-white">3 Installments</span>
-                                                <span className="text-[9px] bg-emerald-100 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-300 px-1.5 py-0.5 rounded font-black">
+                                                <span className="text-[9px] bg-mint-soft dark:bg-emerald-950/50 text-mint dark:text-emerald-300 px-1.5 py-0.5 rounded font-black">
                                                     MoMo Friendly
                                                 </span>
                                             </div>
@@ -696,72 +742,13 @@ export const MarzPayCheckoutModal: React.FC<MarzPayCheckoutModalProps> = ({
                                 </div>
                             )}
 
-                            {/* 2. Payment Method Selector Tabs (Flutterwave / Stripe style) */}
-                            <div className="space-y-2">
-                                <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-                                    Select Payment Method
-                                </label>
-                                <div className="grid grid-cols-2 gap-2.5">
-                                    <button
-                                        type="button"
-                                        onClick={() => setMethod('mobile_money')}
-                                        className={`p-3 sm:p-3.5 rounded-2xl border text-left transition-all cursor-pointer relative overflow-hidden ${
-                                            method === 'mobile_money'
-                                                ? 'border-violet-600 bg-violet-50/60 dark:bg-violet-950/30 ring-2 ring-violet-500/20'
-                                                : 'border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 bg-white dark:bg-slate-900'
-                                        }`}
-                                    >
-                                        <div className="flex items-center justify-between mb-1.5">
-                                            <div className={`w-8 h-8 rounded-xl flex items-center justify-center ${
-                                                method === 'mobile_money'
-                                                    ? 'bg-violet-600 text-white'
-                                                    : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400'
-                                            }`}>
-                                                <Smartphone size={16} />
-                                            </div>
-                                            <div className="flex items-center gap-1">
-                                                <span className="px-1.5 py-0.5 rounded text-[9px] font-black bg-amber-400 text-slate-950">MTN</span>
-                                                <span className="px-1.5 py-0.5 rounded text-[9px] font-black bg-red-500 text-white">Airtel</span>
-                                            </div>
-                                        </div>
-                                        <div className="text-xs font-extrabold text-slate-900 dark:text-white">
-                                            Mobile Money
-                                        </div>
-                                        <div className="text-[10px] text-slate-500 dark:text-slate-400 truncate">
-                                            Instant phone PIN prompt
-                                        </div>
-                                    </button>
-
-                                    <button
-                                        type="button"
-                                        onClick={() => setMethod('card')}
-                                        className={`p-3 sm:p-3.5 rounded-2xl border text-left transition-all cursor-pointer relative overflow-hidden ${
-                                            method === 'card'
-                                                ? 'border-violet-600 bg-violet-50/60 dark:bg-violet-950/30 ring-2 ring-violet-500/20'
-                                                : 'border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 bg-white dark:bg-slate-900'
-                                        }`}
-                                    >
-                                        <div className="flex items-center justify-between mb-1.5">
-                                            <div className={`w-8 h-8 rounded-xl flex items-center justify-center ${
-                                                method === 'card'
-                                                    ? 'bg-violet-600 text-white'
-                                                    : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400'
-                                            }`}>
-                                                <CreditCard size={16} />
-                                            </div>
-                                            <div className="flex items-center gap-1">
-                                                <span className="px-1.5 py-0.5 rounded text-[9px] font-black bg-blue-600 text-white">VISA</span>
-                                                <span className="px-1.5 py-0.5 rounded text-[9px] font-black bg-orange-500 text-white">MC</span>
-                                            </div>
-                                        </div>
-                                        <div className="text-xs font-extrabold text-slate-900 dark:text-white">
-                                            Bank Card
-                                        </div>
-                                        <div className="text-[10px] text-slate-500 dark:text-slate-400 truncate">
-                                            Debit or Credit Card
-                                        </div>
-                                    </button>
-                                </div>
+                            {/* 2. Payment method: Mobile Money only (MTN and Airtel) */}
+                            <div className="flex items-center justify-between gap-3 rounded-[18px] bg-brand-soft/60 dark:bg-night-3 px-4 py-3">
+                                <span className="flex items-center gap-3 min-w-0">
+                                    <span className="w-9 h-9 rounded-[12px] bg-brand text-white inline-flex items-center justify-center shrink-0"><Smartphone size={17} /></span>
+                                    <span className="min-w-0"><span className="block text-[14px] font-extrabold">Mobile Money</span><span className="block text-[12px] text-[#6B6680] dark:text-slate-400">Approve with your PIN</span></span>
+                                </span>
+                                <span className="flex gap-1 shrink-0"><span className="px-1.5 py-0.5 rounded-[6px] bg-[#FFCC00] text-[#16122B] text-[10px] font-extrabold">MTN</span><span className="px-1.5 py-0.5 rounded-[6px] bg-[#E40000] text-white text-[10px] font-extrabold">Airtel</span></span>
                             </div>
 
                             {/* 3. Method-Specific Input Area */}
@@ -783,7 +770,7 @@ export const MarzPayCheckoutModal: React.FC<MarzPayCheckoutModalProps> = ({
                                     </div>
 
                                     {/* Unified Composite Phone Input — never overflows on mobile */}
-                                    <div className="flex items-stretch rounded-2xl border border-slate-200 dark:border-slate-700 bg-slate-50/70 dark:bg-slate-800/80 focus-within:border-violet-600 focus-within:ring-2 focus-within:ring-violet-500/20 focus-within:bg-white dark:focus-within:bg-slate-800 transition-all overflow-hidden">
+                                    <div className="flex items-stretch rounded-[22px] border border-slate-200 dark:border-slate-700 bg-slate-50/70 dark:bg-slate-800/80 focus-within:border-violet-600 focus-within:ring-2 focus-within:ring-violet-500/20 focus-within:bg-white dark:focus-within:bg-slate-800 transition-all overflow-hidden">
                                         <select
                                             value={country}
                                             onChange={(e) => {
@@ -821,7 +808,7 @@ export const MarzPayCheckoutModal: React.FC<MarzPayCheckoutModalProps> = ({
                                     </p>
                                 </div>
                             ) : (
-                                <div className="p-4 bg-slate-50 dark:bg-slate-800/60 rounded-2xl border border-slate-200 dark:border-slate-700/80 text-xs space-y-2 text-slate-600 dark:text-slate-300">
+                                <div className="p-4 bg-slate-50 dark:bg-slate-800/60 rounded-[22px] border border-slate-200 dark:border-slate-700/80 text-xs space-y-2 text-slate-600 dark:text-slate-300">
                                     <div className="flex items-center justify-between">
                                         <div className="flex items-center gap-2 font-bold text-slate-900 dark:text-white">
                                             <ShieldCheck size={16} className="text-violet-600 shrink-0" />
@@ -838,16 +825,16 @@ export const MarzPayCheckoutModal: React.FC<MarzPayCheckoutModalProps> = ({
                             )}
 
                             {/* 4. Collapsible / Clean Promo Code Section */}
-                            <div className="rounded-2xl border border-slate-200/80 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-800/40 overflow-hidden">
+                            <div className="rounded-[22px] border border-slate-200/80 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-800/40 overflow-hidden">
                                 {appliedPromo ? (
-                                    <div className="p-3 flex items-center justify-between gap-2 bg-emerald-50/90 dark:bg-emerald-950/30">
+                                    <div className="p-3 flex items-center justify-between gap-2 bg-mint-soft/90 dark:bg-emerald-950/30">
                                         <div className="flex items-center gap-2 min-w-0">
-                                            <Sparkles size={15} className="text-emerald-600 dark:text-emerald-400 shrink-0" />
+                                            <Sparkles size={15} className="text-mint dark:text-emerald-400 shrink-0" />
                                             <div className="min-w-0">
                                                 <div className="text-xs font-bold text-emerald-900 dark:text-emerald-300 truncate">
                                                     Promo '{appliedPromo}' Applied
                                                 </div>
-                                                <div className="text-[11px] text-emerald-700 dark:text-emerald-400 truncate">
+                                                <div className="text-[11px] text-mint dark:text-emerald-400 truncate">
                                                     Saved UGX {discountUgx.toLocaleString()} — Pay only UGX 1,000
                                                 </div>
                                             </div>
@@ -891,12 +878,12 @@ export const MarzPayCheckoutModal: React.FC<MarzPayCheckoutModalProps> = ({
                                                             }
                                                         }}
                                                         placeholder="Enter code"
-                                                        className="flex-1 min-w-0 px-3 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-bold uppercase tracking-wider text-slate-900 dark:text-white placeholder-slate-400 outline-none focus:ring-2 focus:ring-violet-500/20"
+                                                        className="flex-1 min-w-0 px-3 py-2 bg-white dark:bg-night-2 rounded-[14px] text-xs font-bold uppercase tracking-wider text-slate-900 dark:text-white placeholder-slate-400 outline-none focus:ring-2 focus:ring-violet-500/20"
                                                     />
                                                     <button
                                                         type="button"
                                                         onClick={handleApplyPromo}
-                                                        className="px-4 py-2 bg-slate-900 dark:bg-violet-600 hover:bg-violet-600 dark:hover:bg-violet-500 text-white rounded-xl text-xs font-bold transition-colors cursor-pointer shrink-0"
+                                                        className="px-4 py-2 bg-slate-900 dark:bg-violet-600 hover:bg-violet-600 dark:hover:bg-violet-500 text-white rounded-[14px] text-xs font-bold transition-colors cursor-pointer shrink-0"
                                                     >
                                                         Apply
                                                     </button>
@@ -923,7 +910,7 @@ export const MarzPayCheckoutModal: React.FC<MarzPayCheckoutModalProps> = ({
                                                 <span>Standard Price</span>
                                                 <span className="line-through">UGX {baseUgxAmount.toLocaleString()}</span>
                                             </div>
-                                            <div className="flex items-center justify-between font-semibold text-emerald-600 dark:text-emerald-400">
+                                            <div className="flex items-center justify-between font-semibold text-mint dark:text-emerald-400">
                                                 <span>Promo Discount ({appliedPromo})</span>
                                                 <span>- UGX {discountUgx.toLocaleString()}</span>
                                             </div>
@@ -945,7 +932,7 @@ export const MarzPayCheckoutModal: React.FC<MarzPayCheckoutModalProps> = ({
                                     type="button"
                                     onClick={handleInitiatePayment}
                                     disabled={loading}
-                                    className="w-full py-3.5 sm:py-4 px-4 bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 text-white font-bold rounded-2xl text-xs sm:text-sm shadow-lg shadow-violet-500/25 transition-all cursor-pointer flex items-center justify-center gap-2 disabled:opacity-50"
+                                    className="w-full py-3.5 sm:py-4 px-4 bg-gradient-to-r from-violet-600 to-brand hover:from-violet-700 hover:to-brand text-white font-bold rounded-[22px] text-xs sm:text-sm shadow-lg shadow-violet-500/25 transition-all cursor-pointer flex items-center justify-center gap-2 disabled:opacity-50"
                                 >
                                     {loading ? (
                                         <>

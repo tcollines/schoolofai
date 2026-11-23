@@ -86,15 +86,15 @@ const LiveJoinRedirect: React.FC = () => {
     const destination = state.result?.meet_link || state.result?.recording_url || null;
 
     return (
-        <div className="min-h-screen bg-[#faf8f5] dark:bg-slate-950 text-[#1c1917] dark:text-slate-100 flex items-center justify-center p-4">
-            <div className="max-w-md w-full rounded-2xl bg-white dark:bg-slate-900 border border-stone-200 dark:border-slate-800 shadow-lg p-6 text-center space-y-4">
-                <div className="w-14 h-14 mx-auto rounded-2xl bg-violet-100 dark:bg-violet-950/60 text-violet-700 dark:text-violet-300 flex items-center justify-center">
+        <div className="min-h-screen bg-panel dark:bg-slate-950 text-ink dark:text-slate-100 flex items-center justify-center p-4">
+            <div className="max-w-md w-full rounded-[20px] bg-white dark:bg-slate-900 border border-stone-200 dark:border-slate-800 shadow-lg p-6 text-center space-y-4">
+                <div className="w-14 h-14 mx-auto rounded-[20px] bg-brand-soft dark:bg-night-3/60 text-brand dark:text-violet-300 flex items-center justify-center">
                     {state.loading ? <Loader2 size={28} className="animate-spin" /> : <Video size={28} />}
                 </div>
 
                 {state.loading && (
                     <>
-                        <h1 className="font-serif text-xl font-semibold">Opening your live class...</h1>
+                        <h1 className="text-xl font-extrabold tracking-[-0.02em]">Opening your live class...</h1>
                         <p className="text-sm text-stone-600 dark:text-slate-400">
                             Recording your attendance and taking you straight to the classroom.
                         </p>
@@ -103,11 +103,11 @@ const LiveJoinRedirect: React.FC = () => {
 
                 {!state.loading && state.error && (
                     <>
-                        <h1 className="font-serif text-xl font-semibold">Could not open live class</h1>
+                        <h1 className="text-xl font-extrabold tracking-[-0.02em]">Could not open live class</h1>
                         <p className="text-sm text-red-600 dark:text-red-400">{state.error}</p>
                         <Link
                             to="/learn/ai-fundamentals/live"
-                            className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-violet-700 hover:bg-violet-800 text-white font-semibold text-sm"
+                            className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-[14px] bg-brand hover:bg-brand-mid text-white font-semibold text-sm"
                         >
                             Open Live Classes Timetable
                         </Link>
@@ -116,7 +116,7 @@ const LiveJoinRedirect: React.FC = () => {
 
                 {!state.loading && state.result && (
                     <>
-                        <h1 className="font-serif text-xl font-semibold">{state.result.title || 'Welile Live Class'}</h1>
+                        <h1 className="text-xl font-extrabold tracking-[-0.02em]">{state.result.title || 'Welile Live Class'}</h1>
                         {state.result.host_name && (
                             <p className="text-sm text-stone-500 dark:text-slate-400">With {state.result.host_name}</p>
                         )}
@@ -127,7 +127,7 @@ const LiveJoinRedirect: React.FC = () => {
                                 </p>
                                 <a
                                     href={destination}
-                                    className="w-full inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-violet-700 hover:bg-violet-800 text-white font-semibold text-sm shadow-sm"
+                                    className="w-full inline-flex items-center justify-center gap-2 px-5 py-3 rounded-[14px] bg-brand hover:bg-brand-mid text-white font-semibold text-sm shadow-sm"
                                 >
                                     <Video size={17} />
                                     {state.result.meet_link ? 'Join Google Meet Now' : 'Watch Session Replay'}
@@ -140,7 +140,7 @@ const LiveJoinRedirect: React.FC = () => {
                             </p>
                         )}
                         <div className="pt-2">
-                            <Link to="/learn/ai-fundamentals/live" className="text-xs font-medium text-violet-700 dark:text-violet-300 hover:underline">
+                            <Link to="/learn/ai-fundamentals/live" className="text-xs font-medium text-brand dark:text-violet-300 hover:underline">
                                 Back to AI Fundamentals course
                             </Link>
                         </div>

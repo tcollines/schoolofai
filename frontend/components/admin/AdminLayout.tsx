@@ -35,10 +35,10 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ onExit, isInstructor }) => {
         : (location.pathname.split('/')[1] || 'registrations');
 
     return (
-        <div className="flex min-h-screen bg-gray-50 dark:bg-slate-950 text-gray-900 dark:text-slate-100 font-sans">
+        <div className="flex min-h-screen bg-stone-50 dark:bg-slate-950 text-stone-900 dark:text-slate-100 font-sans">
             <div className="w-64 bg-slate-900 text-white flex flex-col fixed inset-y-0 z-50 shadow-2xl">
                 <div className="p-6 border-b border-slate-800 flex items-center gap-3">
-                    <div className="w-8 h-8 bg-violet-600 rounded-lg flex items-center justify-center">
+                    <div className="w-8 h-8 bg-violet-600 rounded-[12px] flex items-center justify-center">
                         <span className="font-bold text-white">{isInstructor ? 'I' : 'A'}</span>
                     </div>
                     <span className="text-xl font-bold tracking-tight">
@@ -50,7 +50,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ onExit, isInstructor }) => {
                         <button
                             key={item.id}
                             onClick={() => navigate(`/admin/${item.id}`)}
-                            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium ${
+                            className={`w-full flex items-center gap-3 px-4 py-3 rounded-[14px] text-sm font-medium ${
                                 activeTab === item.id
                                     ? 'bg-violet-600 text-white shadow-lg'
                                     : 'text-slate-400 hover:bg-slate-800 hover:text-white'
@@ -65,7 +65,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ onExit, isInstructor }) => {
                     <div className="p-4 mt-auto border-t border-slate-800">
                         <button
                             onClick={onExit}
-                            className="flex items-center justify-center gap-2 w-full px-4 py-3 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white rounded-xl text-sm font-medium"
+                            className="flex items-center justify-center gap-2 w-full px-4 py-3 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white rounded-[14px] text-sm font-medium"
                         >
                             <LogOut size={16} /> Exit Console
                         </button>

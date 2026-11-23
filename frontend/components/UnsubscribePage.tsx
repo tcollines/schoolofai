@@ -18,8 +18,8 @@ const UnsubscribePage: React.FC = () => {
             <Logo className="h-10" />
             <div className={`${CARD} rounded-2xl p-6 mt-8 max-w-md w-full text-center`}>
                 {state === 'working' && <Loader2 className="animate-spin mx-auto text-violet-700" />}
-                {state === 'done' && <><h1 className="font-serif text-2xl font-semibold">Reminders turned off</h1><p className={`mt-2 ${MUTED}`}>We will not email you about live classes any more. You can turn them back on any time from the Live classes page of your course.</p><a href="/learn/ai-fundamentals" className="mt-4 inline-block font-semibold text-violet-800 underline">Go to my course</a></>}
-                {state === 'bad' && <><h1 className="font-serif text-2xl font-semibold">This link did not work</h1><p className={`mt-2 ${MUTED}`}>Sign in and turn reminders off from the Live classes page of your course.</p><a href="/login" className="mt-4 inline-block font-semibold text-violet-800 underline">Sign in</a></>}
+                {state === 'done' && <><h1 className="tracking-[-0.02em] text-2xl font-semibold">Reminders turned off</h1><p className={`mt-2 ${MUTED}`}>We will not email you about live classes any more. You can turn them back on any time from the Live classes page of your course.</p><a href="/learn/ai-fundamentals" className="mt-4 inline-block font-semibold text-violet-800 underline">Go to my course</a></>}
+                {state === 'bad' && <><h1 className="tracking-[-0.02em] text-2xl font-semibold">This link did not work</h1><p className={`mt-2 ${MUTED}`}>Sign in and turn reminders off from the Live classes page of your course.</p><a href="/login" className="mt-4 inline-block font-semibold text-violet-800 underline">Sign in</a></>}
             </div>
         </div>
     );

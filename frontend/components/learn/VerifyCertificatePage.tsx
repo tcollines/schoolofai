@@ -29,18 +29,18 @@ const VerifyCertificatePage: React.FC = () => {
                 <ThemeButton />
             </header>
             <main className="max-w-xl mx-auto px-4 py-10">
-                <h1 className="font-serif text-3xl font-semibold text-center">Certificate verification</h1>
+                <h1 className="text-3xl font-extrabold tracking-[-0.02em] text-center">Certificate verification</h1>
                 <p className={`text-center mt-2 text-sm font-mono ${MUTED}`}>{id}</p>
 
-                <div className={`${CARD} rounded-3xl p-8 mt-8 text-center`}>
-                    {state === 'loading' && <Loader2 className="mx-auto animate-spin text-violet-700" />}
+                <div className={`${CARD} p-8 mt-8 text-center`}>
+                    {state === 'loading' && <Loader2 className="mx-auto animate-spin text-brand" />}
 
                     {state === 'valid' && info && (
                         <>
-                            <BadgeCheck size={52} className="mx-auto text-emerald-600" />
-                            <p className="mt-3 font-semibold text-emerald-700 dark:text-emerald-400">This certificate is genuine</p>
+                            <BadgeCheck size={52} className="mx-auto text-mint" />
+                            <p className="mt-3 font-semibold text-mint dark:text-emerald-400">This certificate is genuine</p>
                             <p className={`mt-6 text-sm ${MUTED}`}>Awarded to</p>
-                            <p className="font-serif text-3xl font-semibold mt-1">{info.name}</p>
+                            <p className="text-3xl font-extrabold tracking-[-0.02em] mt-1">{info.name}</p>
                             <p className={`mt-4 text-sm ${MUTED}`}>for completing</p>
                             <p className="font-semibold mt-1">{info.courseTitle}</p>
                             <p className={`mt-4 text-sm ${MUTED}`}>

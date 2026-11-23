@@ -29,35 +29,35 @@ const FreeCourseCard: React.FC<Props> = ({ uid, variant = 'featured' }) => {
         return (
             <Link
                 to={s.started || s.cert ? BASE : '/free/ai-fundamentals'}
-                className="group flex items-center gap-4 rounded-2xl border border-stone-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 hover:border-violet-300 dark:hover:border-violet-700 transition-colors"
+                className="group flex items-center gap-4 rounded-[20px] bg-white dark:bg-night-2 p-4 hover:-translate-y-0.5 transition-colors"
             >
-                <div className="shrink-0 w-14 h-14 rounded-xl bg-violet-100 dark:bg-violet-950 text-violet-800 dark:text-violet-300 flex items-center justify-center"><GraduationCap size={26} /></div>
+                <div className="shrink-0 w-14 h-14 rounded-[14px] bg-brand-soft dark:bg-night-3 text-brand dark:text-violet-300 flex items-center justify-center"><GraduationCap size={26} /></div>
                 <div className="min-w-0 flex-1">
                     <p className="flex flex-wrap items-center gap-2">
                         <span className="font-semibold leading-snug">{COURSE.short}</span>
                         <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-lime-200 text-lime-900">Free</span>
                     </p>
                     <div className="mt-2 flex items-center gap-3">
-                        <div className="flex-1 h-2 rounded-full bg-stone-200 dark:bg-slate-800 overflow-hidden" role="progressbar" aria-valuenow={s.pct} aria-valuemin={0} aria-valuemax={100} aria-label="Course progress">
-                            <div className="h-full rounded-full bg-violet-700 transition-all duration-500" style={{ width: `${s.pct}%` }} />
+                        <div className="flex-1 h-2 rounded-full bg-[#EEEBF6] dark:bg-night-3 overflow-hidden" role="progressbar" aria-valuenow={s.pct} aria-valuemin={0} aria-valuemax={100} aria-label="Course progress">
+                            <div className="h-full rounded-full bg-brand transition-all duration-500" style={{ width: `${s.pct}%` }} />
                         </div>
                         <span className="text-xs font-semibold tabular-nums w-9 text-right">{s.pct}%</span>
                     </div>
                     <p className="mt-1 text-xs text-stone-600 dark:text-slate-400">{status} · {s.done} of {s.total} items</p>
                 </div>
-                <ArrowRight size={18} className="shrink-0 text-stone-400 group-hover:text-violet-700 transition-colors" />
+                <ArrowRight size={18} className="shrink-0 text-stone-400 group-hover:text-brand transition-colors" />
             </Link>
         );
     }
 
     return (
-        <section aria-label={COURSE.title} className="rounded-3xl border border-stone-200 dark:border-slate-800 bg-white dark:bg-slate-900 overflow-hidden">
+        <section aria-label={COURSE.title} className="rounded-[24px] bg-white dark:bg-night-2 overflow-hidden">
             <div className="p-6 sm:p-8 flex flex-col md:flex-row md:items-center gap-6">
                 <div className="flex-1 min-w-0">
-                    <p className="inline-flex items-center gap-2 text-xs font-semibold tracking-wide uppercase text-violet-800 dark:text-violet-300 bg-violet-100 dark:bg-violet-950 px-3 py-1.5 rounded-full">
+                    <p className="inline-flex items-center gap-2 text-xs font-semibold tracking-wide uppercase text-brand dark:text-violet-300 bg-brand-soft dark:bg-night-3 px-3 py-1.5 rounded-full">
                         Free course · sponsored by {COURSE.sponsor}
                     </p>
-                    <h2 className="font-serif text-2xl sm:text-3xl font-semibold leading-tight mt-4">{COURSE.title}</h2>
+                    <h2 className="text-2xl sm:text-3xl font-extrabold tracking-[-0.02em] leading-tight mt-4">{COURSE.title}</h2>
                     <p className="mt-2 text-stone-600 dark:text-slate-400 max-w-xl">{COURSE.tagline}</p>
 
                     <ul className="mt-4 flex flex-wrap gap-x-5 gap-y-2 text-sm font-medium text-stone-700 dark:text-slate-300">
@@ -67,17 +67,17 @@ const FreeCourseCard: React.FC<Props> = ({ uid, variant = 'featured' }) => {
                     </ul>
 
                     {s.started && !s.cert && s.nextItemTitle && (
-                        <p className="mt-4 text-sm text-stone-600 dark:text-slate-400">Up next: <span className="font-semibold text-[#1c1917] dark:text-slate-100">{s.nextItemTitle}</span></p>
+                        <p className="mt-4 text-sm text-stone-600 dark:text-slate-400">Up next: <span className="font-semibold text-ink dark:text-slate-100">{s.nextItemTitle}</span></p>
                     )}
 
                     <div className="mt-6 flex flex-wrap items-center gap-3">
-                        <Link to={cta.to} className="inline-flex items-center justify-center gap-2 rounded-xl bg-violet-700 hover:bg-violet-800 text-white font-semibold px-6 py-3.5 text-[15px] transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:ring-offset-2">
+                        <Link to={cta.to} className="inline-flex items-center justify-center gap-2 rounded-[14px] bg-brand hover:bg-brand-mid text-white font-semibold px-6 py-3.5 text-[15px] transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2">
                             {cta.label} <ArrowRight size={18} />
                         </Link>
                         {!s.started && !s.cert && (
-                            <Link to="/free/ai-fundamentals" className="text-sm font-semibold text-violet-800 dark:text-violet-300 hover:underline">See what is inside</Link>
+                            <Link to="/free/ai-fundamentals" className="text-sm font-semibold text-brand dark:text-violet-300 hover:underline">See what is inside</Link>
                         )}
-                        <Link to={`${BASE}/live`} className="text-sm font-semibold text-violet-800 dark:text-violet-300 hover:underline">Live classes</Link>
+                        <Link to={`${BASE}/live`} className="text-sm font-semibold text-brand dark:text-violet-300 hover:underline">Live classes</Link>
                     </div>
                 </div>
 

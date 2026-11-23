@@ -24,7 +24,7 @@ const AdminAuthPrompt: React.FC<{ onSignedIn: () => void }> = ({ onSignedIn }) =
     };
 
     return (
-        <div className="rounded-2xl border border-amber-300 bg-amber-50 dark:bg-amber-950/30 dark:border-amber-900 p-5 max-w-lg">
+        <div className="rounded-[22px] border border-amber-300 bg-amber-50 dark:bg-amber-950/30 dark:border-amber-900 p-5 max-w-lg">
             <div className="flex gap-3">
                 <ShieldAlert className="text-amber-600 shrink-0" />
                 <div className="text-sm">
@@ -34,11 +34,11 @@ const AdminAuthPrompt: React.FC<{ onSignedIn: () => void }> = ({ onSignedIn }) =
             </div>
             <form onSubmit={submit} className="mt-4 grid gap-3">
                 <input type="email" required value={email} onChange={e => setEmail(e.target.value)} placeholder="Administrator email" autoComplete="username"
-                    className="w-full rounded-lg border border-gray-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2.5 text-sm" />
+                    className="w-full rounded-[12px] bg-white dark:bg-night-2 px-3 py-2.5 text-sm" />
                 <input type="password" required value={password} onChange={e => setPassword(e.target.value)} placeholder="Password" autoComplete="current-password"
-                    className="w-full rounded-lg border border-gray-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2.5 text-sm" />
+                    className="w-full rounded-[12px] bg-white dark:bg-night-2 px-3 py-2.5 text-sm" />
                 {error && <p role="alert" className="text-sm text-red-600">{error}</p>}
-                <button type="submit" disabled={busy} className="inline-flex items-center justify-center gap-2 rounded-lg bg-violet-600 hover:bg-violet-700 text-white font-semibold px-4 py-2.5 text-sm disabled:opacity-60">
+                <button type="submit" disabled={busy} className="inline-flex items-center justify-center gap-2 rounded-[12px] bg-violet-600 hover:bg-violet-700 text-white font-semibold px-4 py-2.5 text-sm disabled:opacity-60">
                     {busy && <Loader2 size={16} className="animate-spin" />} Sign in
                 </button>
             </form>
@@ -47,7 +47,7 @@ const AdminAuthPrompt: React.FC<{ onSignedIn: () => void }> = ({ onSignedIn }) =
 };
 
 export const MissingDbNotice: React.FC = () => (
-    <div className="rounded-2xl border border-amber-300 bg-amber-50 dark:bg-amber-950/30 dark:border-amber-900 p-5 max-w-2xl flex gap-3">
+    <div className="rounded-[22px] border border-amber-300 bg-amber-50 dark:bg-amber-950/30 dark:border-amber-900 p-5 max-w-2xl flex gap-3">
         <Database className="text-amber-600 shrink-0" />
         <div className="text-sm">
             <p className="font-semibold">The free-course database update is not installed yet</p>

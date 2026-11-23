@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Welile School Student Dashboard</title>
+    <title>Welile School of AI</title>
     <link rel="icon" type="image/x-icon" href="/favicon.ico" />
     <link rel="icon" type="image/png" sizes="48x48" href="/favicon-48x48.png" />
     <link rel="icon" type="image/png" sizes="96x96" href="/favicon-96x96.png" />
@@ -11,16 +11,20 @@
     <link rel="icon" type="image/png" sizes="512x512" href="/icon.png" />
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
     <link rel="manifest" href="/manifest.webmanifest" />
-    <meta name="theme-color" content="#6d28d9" />
+    <meta name="theme-color" content="#5B2BC4" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-title" content="Welile AI" />
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Chewy&family=Outfit:wght@300;400;500&family=DM+Sans:wght@400;500&family=Montserrat:wght@500;600&family=Source+Serif+4:opsz,wght@8..60,500;8..60,600;8..60,700&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=Chewy&family=Source+Serif+4:ital,opsz,wght@0,8..60,500;0,8..60,600;1,8..60,500&display=swap" rel="stylesheet">
     <style>
       body {
-        font-family: 'Inter', sans-serif;
-        background-color: #faf8f5; /* Warm paper background */
+        font-family: -apple-system, BlinkMacSystemFont, 'Plus Jakarta Sans', system-ui, sans-serif;
+        background-color: #F7F6FC; /* Welile panel lavender */
+        color: #1E1B2E;
+        -webkit-font-smoothing: antialiased;
         transition: background-color 0.2s, color 0.2s;
       }
       /* Custom scrollbar for webkit */
@@ -32,20 +36,20 @@
         background: transparent;
       }
       ::-webkit-scrollbar-thumb {
-        background: #cbd5e1;
+        background: #D3CDE3;
         border-radius: 3px;
       }
       ::-webkit-scrollbar-thumb:hover {
-        background: #94a3b8;
+        background: #A39DB5;
       }
 
       /* Dark mode CSS overrides for Admin Console and other legacy sections */
       .dark body {
-        background-color: #020617; /* slate-950 */
+        background-color: #0F0C1D; /* slate-950 */
       }
       .dark .bg-white {
-        background-color: #0f172a !important; /* slate-900 */
-        border-color: #1e293b !important; /* slate-800 */
+        background-color: #16122B !important; /* slate-900 */
+        border-color: #221B40 !important; /* slate-800 */
         color: #f8fafc !important; /* slate-50 */
       }
       .dark .border-gray-50,
@@ -55,39 +59,39 @@
       .dark .border-gray-250,
       .dark .divide-gray-100,
       .dark .divide-gray-200 {
-        border-color: #1e293b !important;
+        border-color: #221B40 !important;
       }
       .dark .bg-gray-50 {
-        background-color: #1e293b !important; /* slate-800 */
+        background-color: #221B40 !important; /* slate-800 */
       }
       .dark .hover\:bg-gray-50:hover,
       .dark tr.hover\:bg-gray-50:hover {
-        background-color: #1e293b !important;
+        background-color: #221B40 !important;
       }
       .dark .text-gray-900,
       .dark .text-gray-800,
       .dark .text-gray-700 {
-        color: #f1f5f9 !important; /* slate-100 */
+        color: #F1EFF6 !important; /* slate-100 */
       }
       .dark .text-gray-600,
       .dark .text-gray-500,
       .dark .text-gray-400 {
-        color: #94a3b8 !important; /* slate-400 */
+        color: #A39DB5 !important; /* slate-400 */
       }
       .dark input,
       .dark select,
       .dark textarea {
-        background-color: #1e293b !important;
-        border-color: #334155 !important;
+        background-color: #221B40 !important;
+        border-color: #2A2347 !important;
         color: #f8fafc !important;
       }
       .dark input::placeholder,
       .dark textarea::placeholder {
-        color: #64748b !important;
+        color: #8A85A0 !important;
       }
       [contenteditable]:empty:before {
         content: attr(data-placeholder);
-        color: #94a3b8;
+        color: #A39DB5;
         cursor: text;
         display: block;
       }
@@ -98,28 +102,42 @@
         theme: {
           extend: {
             fontFamily: {
-              serif: ['"Source Serif 4"', 'Georgia', 'serif'],
+              sans: ['-apple-system', 'BlinkMacSystemFont', '"Plus Jakarta Sans"', 'system-ui', 'sans-serif'],
+              // Headings that used the old serif now use the redesign's display sans
+              serif: ['-apple-system', 'BlinkMacSystemFont', '"Plus Jakarta Sans"', 'system-ui', 'sans-serif'],
+              display: ['-apple-system', 'BlinkMacSystemFont', '"Plus Jakarta Sans"', 'system-ui', 'sans-serif'],
+              cert: ['"Source Serif 4"', 'Georgia', 'serif'],
             },
+            borderRadius: { '4xl': '2rem' },
             colors: {
+              ink: '#1E1B2E',
+              panel: '#F7F6FC',
+              lilac: '#ECE8F7',
+              brand: { DEFAULT: '#5B2BC4', soft: '#EEE8FD', ink: '#2A1A5E', mid: '#6B3BD6', light: '#7A4CE0' },
+              night: { DEFAULT: '#16122B', 2: '#221B40', 3: '#2A2347', line: '#4B4062' },
+              mint: { DEFAULT: '#157A4A', soft: '#DDF3E6', ink: '#0F5A35' },
               welile: {
-                dark: '#111111',
-                gray: '#222222',
-                purple: '#6d28d9', // Primary accent (deep violet)
-                lightPurple: '#f3e8ff', // Brighter light purple
-                lime: '#d9f99d', // Secondary Accent for specific buttons
+                dark: '#16122B',
+                gray: '#2A2347',
+                purple: '#5B2BC4',
+                lightPurple: '#EEE8FD',
+                lime: '#D7F27A',
               },
               violet: {
-                50: '#faf5ff',
-                100: '#f3e8ff',
-                200: '#e9d5ff',
-                300: '#d8b4fe',
-                400: '#c084fc',
-                500: '#7c3aed',
-                600: '#6d28d9', // deep violet (primary buttons)
-                700: '#5b21b6', // hover
-                800: '#7e22ce',
-                900: '#581c87',
-                950: '#2e1065',
+                50: '#F7F4FE', 100: '#EEE8FD', 200: '#DCD2FA', 300: '#C1AEF5', 400: '#9C7BF0',
+                500: '#7A4CE0', 600: '#6B3BD6', 700: '#5B2BC4', 800: '#4A20A6', 900: '#3B1A8A', 950: '#2A1A5E'
+              },
+              stone: {
+                50: '#F7F6FC', 100: '#F1EFF6', 200: '#E7E3F0', 300: '#D3CDE3', 400: '#A39DB5',
+                500: '#8A85A0', 600: '#6B6680', 700: '#4A4560', 800: '#2C2840', 900: '#1E1B2E', 950: '#16122B'
+              },
+              slate: {
+                50: '#F7F6FC', 100: '#F1EFF6', 200: '#E6E1EE', 300: '#CFC8DC', 400: '#A39DB5', 500: '#8A85A0',
+                600: '#6B6680', 700: '#2A2347', 800: '#221B40', 900: '#16122B', 950: '#0F0C1D'
+              },
+              lime: {
+                50: '#F7FBE8', 100: '#EFF7D6', 200: '#D7F27A', 300: '#C8E85C', 400: '#B5D94A', 500: '#8DB31A',
+                600: '#6E8C12', 700: '#55690F', 800: '#3F4A1C', 900: '#2E3A06'
               }
             }
           }

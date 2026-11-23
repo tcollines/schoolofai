@@ -60,7 +60,7 @@ const ResetPasswordPage: React.FC = () => {
 
     return (
         <div className="min-h-screen flex items-center justify-center px-4" style={{ background: '#faf8f5' }}>
-            <div className="w-full max-w-md rounded-2xl bg-white border border-stone-200 shadow-sm p-8">
+            <div className="w-full max-w-md rounded-[22px] bg-white p-8">
                 <h1 className="text-2xl text-stone-900 mb-1" style={{ fontFamily: 'Georgia, serif' }}>
                     Choose a new password
                 </h1>
@@ -90,7 +90,7 @@ const ResetPasswordPage: React.FC = () => {
                                 autoComplete="new-password"
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
-                                className="mt-1 w-full rounded-lg border border-stone-300 px-3 py-2 text-sm outline-none focus:border-violet-600"
+                                className="mt-1 w-full rounded-[12px] border border-stone-300 px-3 py-2 text-sm outline-none focus:border-violet-600"
                                 required
                             />
                         </label>
@@ -101,7 +101,7 @@ const ResetPasswordPage: React.FC = () => {
                                 autoComplete="new-password"
                                 value={confirm}
                                 onChange={(e) => setConfirm(e.target.value)}
-                                className="mt-1 w-full rounded-lg border border-stone-300 px-3 py-2 text-sm outline-none focus:border-violet-600"
+                                className="mt-1 w-full rounded-[12px] border border-stone-300 px-3 py-2 text-sm outline-none focus:border-violet-600"
                                 required
                             />
                         </label>
@@ -109,7 +109,7 @@ const ResetPasswordPage: React.FC = () => {
                         <button
                             type="submit"
                             disabled={busy}
-                            className="w-full rounded-lg py-2.5 text-sm font-semibold text-white disabled:opacity-60"
+                            className="w-full rounded-[12px] py-2.5 text-sm font-semibold text-white disabled:opacity-60"
                             style={{ background: '#6d28d9' }}
                         >
                             {busy ? 'Saving…' : 'Save new password'}

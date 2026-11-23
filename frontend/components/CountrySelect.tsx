@@ -86,15 +86,15 @@ const CountrySelect: React.FC<Props> = ({ value, onChange, id, placeholder = 'Se
                     onClick={() => setOpen(true)}
                     onChange={e => { setQuery(e.target.value); setOpen(true); }}
                     onKeyDown={onKeyDown}
-                    className="w-full pl-10 pr-16 py-3 bg-slate-50 dark:bg-slate-950 border border-gray-200 dark:border-slate-800 rounded-xl outline-none focus:border-violet-600 focus:ring-2 focus:ring-violet-600/20 text-gray-900 dark:text-white text-base"
+                    className="w-full pl-10 pr-16 py-3 bg-slate-50 dark:bg-slate-950 border border-stone-200 dark:border-slate-800 rounded-[14px] outline-none focus:border-violet-600 focus:ring-2 focus:ring-violet-600/20 text-stone-900 dark:text-white text-base"
                 />
                 <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center">
                     {value && (
-                        <button type="button" aria-label="Clear country" onClick={() => { onChange(''); setQuery(''); setOpen(true); }} className="p-1.5 rounded-lg text-stone-400 hover:text-stone-700 dark:hover:text-slate-200">
+                        <button type="button" aria-label="Clear country" onClick={() => { onChange(''); setQuery(''); setOpen(true); }} className="p-1.5 rounded-[12px] text-stone-400 hover:text-stone-700 dark:hover:text-slate-200">
                             <X size={16} />
                         </button>
                     )}
-                    <button type="button" tabIndex={-1} aria-label="Show countries" onClick={() => setOpen(o => !o)} className="p-1.5 rounded-lg text-stone-400">
+                    <button type="button" tabIndex={-1} aria-label="Show countries" onClick={() => setOpen(o => !o)} className="p-1.5 rounded-[12px] text-stone-400">
                         <ChevronDown size={18} className={`transition-transform ${open ? 'rotate-180' : ''}`} />
                     </button>
                 </div>
@@ -105,7 +105,7 @@ const CountrySelect: React.FC<Props> = ({ value, onChange, id, placeholder = 'Se
                     id={listId}
                     ref={listRef}
                     role="listbox"
-                    className="absolute z-30 mt-2 w-full max-h-72 overflow-y-auto rounded-xl border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-xl py-1"
+                    className="absolute z-30 mt-2 w-full max-h-72 overflow-y-auto rounded-[14px] bg-white dark:bg-night-2 shadow-xl py-1"
                 >
                     {results.length === 0 && <li className="px-4 py-3 text-sm text-stone-500 dark:text-slate-400">No country matches "{query}". Check the spelling.</li>}
                     {results.map((c, i) => {
@@ -127,7 +127,7 @@ const CountrySelect: React.FC<Props> = ({ value, onChange, id, placeholder = 'Se
                                     <span>{c}</span>
                                     {selected && <Check size={16} className="text-violet-700 dark:text-violet-300 shrink-0" />}
                                 </li>
-                                {isPopularEnd && <li role="presentation" className="px-4 pt-2 pb-1 text-[11px] font-semibold uppercase tracking-wide text-stone-400 border-t border-gray-100 dark:border-slate-800 mt-1">All countries</li>}
+                                {isPopularEnd && <li role="presentation" className="px-4 pt-2 pb-1 text-[11px] font-semibold uppercase tracking-wide text-stone-400 border-t border-stone-100 dark:border-slate-800 mt-1">All countries</li>}
                             </React.Fragment>
                         );
                     })}

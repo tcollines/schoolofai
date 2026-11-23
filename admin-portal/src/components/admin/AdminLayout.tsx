@@ -201,8 +201,8 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ onExit, isInstructor, isAdmin
 
     if (!sessionChecked && isAdminAuthenticated) {
         return (
-            <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-[#090d16]">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-violet-500"></div>
+            <div className="min-h-screen flex items-center justify-center bg-panel dark:bg-night">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand"></div>
             </div>
         );
     }
@@ -276,129 +276,96 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ onExit, isInstructor, isAdmin
         );
     };
 
+    const initialsOf = (n: string) => (n ? n.split(' ').map((w: string) => w[0]).join('').slice(0, 2).toUpperCase() : 'A');
+    const go = (id: string) => {
+        if (isAdminSubdomain) navigate(isInstructor ? `/instructor/${id}` : `/${id}`);
+        else navigate(isInstructor ? `/instructor/${id}` : `/admin/${id}`);
+    };
+    const activeLabel = menuItems.find(i => i.id === activeTab)?.label || (activeTab === 'courses' ? 'Course Setup' : '');
+
     return (
-        <div className="flex min-h-screen bg-gray-50 dark:bg-slate-950 text-gray-900 dark:text-slate-100 font-sans transition-colors duration-200">
-            {/* Admin Sidebar */}
-            {navOpen && <div className="fixed inset-0 z-40 bg-black/50 lg:hidden" onClick={() => setNavOpen(false)} aria-hidden="true" />}
-            <div className={`w-64 max-w-[85vw] bg-slate-900 text-white flex flex-col fixed inset-y-0 left-0 z-50 shadow-2xl overflow-y-auto transition-transform duration-300 lg:translate-x-0 ${navOpen ? 'translate-x-0' : '-translate-x-full'}`}>
-                <div className="p-6 border-b border-slate-800 flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 bg-violet-600 rounded-lg flex items-center justify-center">
-                            <span className="font-bold text-white">{isInstructor ? 'I' : 'A'}</span>
-                        </div>
-                        <span className="text-xl font-bold tracking-tight">
-                            {isInstructor ? 'Instructor' : 'Admin'}<span className="text-violet-400">Portal</span>
+        <div className="flex min-h-screen bg-panel dark:bg-night text-ink dark:text-slate-100 font-sans transition-colors duration-200">
+            {/* Admin sidebar (night) */}
+            {navOpen && <div className="fixed inset-0 z-40 bg-night/60 lg:hidden" onClick={() => setNavOpen(false)} aria-hidden="true" />}
+            <aside aria-label={isInstructor ? 'Instructor navigation' : 'Admin navigation'} className={`w-[240px] max-w-[85vw] bg-night text-white flex flex-col fixed inset-y-0 left-0 z-50 overflow-y-auto transition-transform duration-300 lg:translate-x-0 ${navOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+                <div className="px-5 pt-6 pb-5 flex items-center justify-between">
+                    <div className="flex items-center gap-2.5">
+                        <span className="w-9 h-9 rounded-[11px] bg-brand inline-flex items-center justify-center font-extrabold">W</span>
+                        <span className="leading-tight">
+                            <span className="block text-[14px] font-extrabold">{isInstructor ? 'Welile Instructor' : 'Welile Admin'}</span>
+                            <span className="block text-[11px] text-[#B9B2CC]">School of AI</span>
                         </span>
                     </div>
-                    <button onClick={() => setNavOpen(false)} aria-label="Close menu" className="lg:hidden p-2 rounded-lg text-slate-300 hover:bg-slate-800"><X size={20} /></button>
+                    <button onClick={() => setNavOpen(false)} aria-label="Close menu" className="lg:hidden w-10 h-10 rounded-[11px] inline-flex items-center justify-center text-[#B9B2CC] hover:bg-night-3"><X size={19} /></button>
                 </div>
 
-                <nav className="flex-1 px-4 py-6 space-y-2">
-                    {menuItems.map((item) => (
-                        <button
-                            key={item.id}
-                            onClick={() => {
-                                if (isAdminSubdomain) {
-                                    navigate(isInstructor ? `/instructor/${item.id}` : `/${item.id}`);
-                                } else {
-                                    navigate(isInstructor ? `/instructor/${item.id}` : `/admin/${item.id}`);
-                                }
-                            }}
-                            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 ease-out text-sm font-medium group min-h-[44px] lg:hover:translate-x-2 lg:hover:scale-[1.02] active:scale-[0.98] ${
-                                activeTab === item.id
-                                    ? 'bg-violet-600 text-white shadow-lg shadow-violet-900/20'
-                                    : 'text-slate-400 hover:bg-slate-800 hover:text-white'
-                            }`}
-                        >
-                            <item.icon size={20} className="transition-transform duration-300 group-hover:scale-110 group-hover:rotate-[8deg]" />
-                            {item.label}
-                        </button>
-                    ))}
+                <nav className="flex-1 px-3 pb-4 flex flex-col gap-0.5">
+                    {menuItems.map((item) => {
+                        const on = activeTab === item.id;
+                        return (
+                            <button
+                                key={item.id}
+                                onClick={() => go(item.id)}
+                                aria-current={on ? 'page' : undefined}
+                                className={`press relative w-full flex items-center gap-3 px-3 min-h-[40px] rounded-[11px] text-[13px] text-left transition-colors ${on ? 'bg-night-3 text-white font-extrabold' : 'text-[#B9B2CC] font-semibold hover:bg-night-2 hover:text-white'}`}
+                            >
+                                {on && <span aria-hidden="true" className="absolute -left-3 top-2.5 bottom-2.5 w-1 rounded-full bg-lime-200" />}
+                                <item.icon size={17} className={on ? 'text-lime-200' : ''} />
+                                {item.label}
+                            </button>
+                        );
+                    })}
                 </nav>
 
-                <div className="p-4 mt-auto border-t border-slate-800">
-                    <button 
-                        onClick={handleExitConsole}
-                        className="flex items-center justify-center gap-2 w-full px-4 py-3 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white rounded-xl transition-colors text-sm font-medium"
-                    >
-                        <LogOut size={16} /> Exit {isInstructor ? 'Instructor' : 'Admin'} Console
-                    </button>
+                <div className="mx-3 mb-4 pt-3 border-t border-night-3 flex items-center gap-2.5 px-2">
+                    {userAvatar && (userAvatar.startsWith('http') || userAvatar.startsWith('data:')) ? (
+                        <img src={userAvatar} alt="" className="w-8 h-8 rounded-full object-cover shrink-0" />
+                    ) : (
+                        <span className="w-8 h-8 rounded-full bg-lime-200 text-ink text-[12px] font-extrabold inline-flex items-center justify-center shrink-0">{userAvatar || initialsOf(userName)}</span>
+                    )}
+                    <span className="flex-1 min-w-0 leading-tight">
+                        <span className="block text-[12px] font-extrabold truncate">{userName || (isInstructor ? 'Instructor' : 'Admin')}</span>
+                        <span className="block text-[11px] text-[#B9B2CC]">{isInstructor ? 'Instructor' : 'Administrator'}</span>
+                    </span>
+                    <button onClick={handleExitConsole} aria-label="Sign out" title="Sign out" className="press w-9 h-9 rounded-[10px] inline-flex items-center justify-center text-[#B9B2CC] hover:bg-night-3 hover:text-white"><LogOut size={16} /></button>
                 </div>
-            </div>
+            </aside>
 
-            {/* Main Content Area */}
-            <main className="flex-1 lg:ml-64 min-w-0 flex flex-col min-h-screen">
-                {/* Admin Header */}
-                <header className="h-16 bg-white dark:bg-slate-900 border-b border-gray-200 dark:border-slate-800 flex items-center justify-between gap-2 px-3 sm:px-8 shadow-sm transition-colors shrink-0 sticky top-0 z-30">
-                    <div className="flex items-center gap-2 min-w-0">
-                        <button onClick={() => setNavOpen(true)} aria-label="Open menu" className="lg:hidden p-2.5 -ml-1 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-800"><Menu size={22} /></button>
-                        <h1 className="text-lg sm:text-xl font-semibold text-gray-800 dark:text-white capitalize truncate">
-                            {menuItems.find(i => i.id === activeTab)?.label}
-                        </h1>
-                    </div>
-
-                    <div className="flex items-center gap-2 sm:gap-4 shrink-0">
-                        {/* Currency Switcher */}
-                        <button 
-                            onClick={toggleCurrency}
-                            className="px-3 py-1.5 bg-violet-50 dark:bg-violet-950/40 text-violet-600 dark:text-violet-400 hover:bg-violet-100 dark:hover:bg-violet-900/40 rounded-full border border-violet-100 dark:border-violet-900/30 transition-colors cursor-pointer flex items-center gap-1.5 text-xs font-bold shadow-sm"
-                            title="Toggle Currency"
-                        >
-                            <span className="w-1.5 h-1.5 rounded-full bg-violet-500 animate-pulse"></span>
-                            <span>{currency}</span>
+            {/* Main content area */}
+            <main className="flex-1 lg:ml-[240px] min-w-0 flex flex-col min-h-screen">
+                <header className="frost sticky top-0 z-30 shrink-0">
+                    <div className="h-[64px] px-3 sm:px-6 lg:px-7 flex items-center gap-2 sm:gap-3">
+                        <button onClick={() => setNavOpen(true)} aria-label="Open menu" className="press lg:hidden w-11 h-11 rounded-[12px] bg-white dark:bg-night-2 inline-flex items-center justify-center"><Menu size={20} /></button>
+                        {/* each page shows its own title; the bar only repeats it on phones, where the menu is hidden */}
+                        <div className="min-w-0 flex-1 leading-tight">
+                            <p className="m-0 text-[11px] font-extrabold tracking-[0.12em] uppercase text-brand dark:text-violet-300">{isInstructor ? 'Instructor' : 'Admin'}</p>
+                            <p className="m-0 text-[17px] font-extrabold tracking-[-0.01em] truncate lg:hidden">{activeLabel}</p>
+                        </div>
+                        <button onClick={toggleCurrency} title="Switch currency" aria-label={`Currency: ${currency}. Switch currency`} className="press h-10 px-3 rounded-[12px] bg-white dark:bg-night-2 inline-flex items-center gap-1.5 text-[12px] font-extrabold">
+                            <span className="w-1.5 h-1.5 rounded-full bg-brand" aria-hidden="true" />{currency}
                         </button>
-
-                        <button 
-                            onClick={toggleTheme}
-                            className="p-2 bg-white dark:bg-slate-900 rounded-full border border-gray-100 dark:border-slate-800 hover:bg-gray-50 dark:hover:bg-slate-800 shadow-sm text-gray-700 dark:text-slate-300 transition-colors cursor-pointer flex items-center justify-center"
-                            title="Toggle Theme"
-                        >
-                            {isDark ? <Sun size={20} /> : <Moon size={20} />}
+                        <button onClick={toggleTheme} aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'} className="press w-10 h-10 rounded-[12px] bg-white dark:bg-night-2 inline-flex items-center justify-center text-[#6B6680] dark:text-slate-300">
+                            {isDark ? <Sun size={18} /> : <Moon size={18} />}
                         </button>
-                        
-                        <div className="h-8 w-px bg-gray-200 dark:bg-slate-850" />
-                        
-                        {/* Profile Info Dropdown */}
                         <div className="relative">
-                            <button 
-                                onClick={() => setShowProfileDropdown(!showProfileDropdown)}
-                                className="flex items-center gap-3 hover:bg-gray-50 dark:hover:bg-slate-800 p-1.5 rounded-xl transition-colors cursor-pointer"
-                            >
-                                <div className="text-right hidden sm:block text-left">
-                                    <p className="text-sm font-bold text-gray-800 dark:text-white leading-tight">{userName}</p>
-                                    <p className="text-[10px] font-semibold text-gray-400 dark:text-slate-500 capitalize">{isInstructor ? 'Instructor' : 'Administrator'}</p>
-                                </div>
-                                
-                                {/* Avatar */}
+                            <button onClick={() => setShowProfileDropdown(!showProfileDropdown)} aria-haspopup="menu" aria-expanded={showProfileDropdown} className="press h-10 pl-1 pr-3 rounded-full bg-white dark:bg-night-2 inline-flex items-center gap-2">
                                 {userAvatar && (userAvatar.startsWith('http') || userAvatar.startsWith('data:')) ? (
-                                    <div className="w-9 h-9 rounded-full border-2 border-white dark:border-slate-800 shadow-sm overflow-hidden shrink-0 bg-gray-100 dark:bg-slate-800">
-                                        <img src={userAvatar} alt="Profile" className="w-full h-full object-cover" />
-                                    </div>
+                                    <img src={userAvatar} alt="" className="w-8 h-8 rounded-full object-cover" />
                                 ) : (
-                                    <div className="w-9 h-9 rounded-full border border-gray-200 dark:border-slate-800 bg-violet-100 dark:bg-violet-950/40 text-violet-600 dark:text-violet-400 flex items-center justify-center font-bold text-sm shrink-0">
-                                        {userAvatar || (userName ? userName.split(' ').map((n: string) => n[0]).join('').slice(0, 2).toUpperCase() : 'U')}
-                                    </div>
+                                    <span className="w-8 h-8 rounded-full bg-brand-soft dark:bg-night-3 text-brand dark:text-violet-300 text-[12px] font-extrabold inline-flex items-center justify-center">{userAvatar || initialsOf(userName)}</span>
                                 )}
+                                <span className="hidden sm:block text-[13px] font-bold max-w-[140px] truncate">{userName}</span>
                             </button>
-
                             {showProfileDropdown && (
                                 <>
                                     <div className="fixed inset-0 z-10" onClick={() => setShowProfileDropdown(false)} />
-                                    <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-slate-900 border border-gray-100 dark:border-slate-800 rounded-2xl shadow-xl py-2 z-20 transition-all duration-200">
-                                        <div className="px-4 py-2 border-b border-gray-100 dark:border-slate-800">
-                                            <p className="text-xs font-semibold text-gray-400 dark:text-slate-500">Logged in as</p>
-                                            <p className="text-xs font-bold text-gray-800 dark:text-white truncate">{userEmail}</p>
+                                    <div role="menu" className="absolute right-0 mt-2 w-56 bg-white dark:bg-night-2 rounded-[18px] shadow-xl p-2 z-20">
+                                        <div className="px-3 py-2">
+                                            <p className="m-0 text-[11px] font-semibold text-[#6B6680]">Signed in as</p>
+                                            <p className="m-0 text-[13px] font-bold truncate">{userEmail}</p>
                                         </div>
-                                        <button
-                                            onClick={() => {
-                                                setShowProfileDropdown(false);
-                                                handleExitConsole();
-                                            }}
-                                            className="w-full text-left px-4 py-2.5 text-sm text-red-650 hover:bg-red-50 dark:hover:bg-red-950/20 transition-colors flex items-center gap-2 font-medium cursor-pointer"
-                                        >
-                                            <LogOut size={16} />
-                                            Sign Out
-                                        </button>
+                                        <button role="menuitem" onClick={() => { setShowProfileDropdown(false); handleBackToStudentPortal(); }} className="w-full text-left px-3 h-10 rounded-[11px] text-[13px] font-semibold hover:bg-panel dark:hover:bg-night-3">Student site</button>
+                                        <button role="menuitem" onClick={() => { setShowProfileDropdown(false); handleExitConsole(); }} className="w-full text-left px-3 h-10 rounded-[11px] text-[13px] font-bold text-[#A3321F] hover:bg-[#FDECE8] dark:hover:bg-red-950/20 flex items-center gap-2"><LogOut size={15} />Sign out</button>
                                     </div>
                                 </>
                             )}
@@ -406,7 +373,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ onExit, isInstructor, isAdmin
                     </div>
                 </header>
 
-                <div className="p-3 sm:p-6 lg:p-8 flex-1 min-w-0 overflow-x-auto">
+                <div className="admin-content px-3 sm:px-6 lg:px-7 pt-2 pb-10 flex-1 min-w-0 overflow-x-auto">
                     {renderContent()}
                 </div>
             </main>

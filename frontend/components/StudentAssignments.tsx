@@ -262,71 +262,71 @@ export const StudentAssignments: React.FC<StudentAssignmentsProps> = ({ courses,
         <div className="space-y-6">
             {/* Header */}
             <div>
-                <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Assignments</h2>
-                <p className="text-gray-500 dark:text-slate-400">View tasks, complete project case studies, and submit grading answers.</p>
+                <h2 className="text-2xl font-bold text-stone-900 dark:text-white">Assignments</h2>
+                <p className="text-stone-500 dark:text-slate-400">View tasks, complete project case studies, and submit grading answers.</p>
             </div>
 
             {/* Quick Stats Grid */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="bg-white dark:bg-slate-900 p-5 rounded-3xl border border-gray-100 dark:border-slate-800 shadow-sm flex items-center gap-4">
-                    <div className="w-12 h-12 bg-blue-50 dark:bg-blue-950/20 text-blue-600 dark:text-blue-450 rounded-2xl flex items-center justify-center shrink-0">
+                <div className="bg-white dark:bg-night-2 p-5 rounded-[26px] flex items-center gap-4">
+                    <div className="w-12 h-12 bg-brand-soft dark:bg-blue-950/20 text-brand dark:text-blue-450 rounded-[22px] flex items-center justify-center shrink-0">
                         <ClipboardList size={22} />
                     </div>
                     <div>
-                        <p className="text-xs text-gray-400 dark:text-slate-500 font-semibold uppercase tracking-wider">Total Tasks</p>
-                        <p className="text-2xl font-extrabold text-gray-900 dark:text-white mt-0.5">{totalCount}</p>
+                        <p className="text-xs text-stone-400 dark:text-slate-500 font-semibold uppercase tracking-wider">Total Tasks</p>
+                        <p className="text-2xl font-extrabold text-stone-900 dark:text-white mt-0.5">{totalCount}</p>
                     </div>
                 </div>
 
-                <div className="bg-white dark:bg-slate-900 p-5 rounded-3xl border border-gray-100 dark:border-slate-800 shadow-sm flex items-center gap-4">
-                    <div className="w-12 h-12 bg-amber-50 dark:bg-amber-955/20 text-amber-600 dark:text-amber-400 rounded-2xl flex items-center justify-center shrink-0">
+                <div className="bg-white dark:bg-night-2 p-5 rounded-[26px] flex items-center gap-4">
+                    <div className="w-12 h-12 bg-amber-50 dark:bg-amber-955/20 text-amber-600 dark:text-amber-400 rounded-[22px] flex items-center justify-center shrink-0">
                         <Clock size={22} />
                     </div>
                     <div>
-                        <p className="text-xs text-gray-400 dark:text-slate-500 font-semibold uppercase tracking-wider">Pending</p>
-                        <p className="text-2xl font-extrabold text-gray-900 dark:text-white mt-0.5">{pendingCount}</p>
+                        <p className="text-xs text-stone-400 dark:text-slate-500 font-semibold uppercase tracking-wider">Pending</p>
+                        <p className="text-2xl font-extrabold text-stone-900 dark:text-white mt-0.5">{pendingCount}</p>
                     </div>
                 </div>
 
-                <div className="bg-white dark:bg-slate-900 p-5 rounded-3xl border border-gray-100 dark:border-slate-800 shadow-sm flex items-center gap-4">
-                    <div className="w-12 h-12 bg-green-50 dark:bg-green-950/20 text-green-600 dark:text-green-400 rounded-2xl flex items-center justify-center shrink-0">
+                <div className="bg-white dark:bg-night-2 p-5 rounded-[26px] flex items-center gap-4">
+                    <div className="w-12 h-12 bg-mint-soft dark:bg-green-950/20 text-mint dark:text-green-400 rounded-[22px] flex items-center justify-center shrink-0">
                         <CheckCircle size={22} />
                     </div>
                     <div>
-                        <p className="text-xs text-gray-400 dark:text-slate-500 font-semibold uppercase tracking-wider">Completed</p>
-                        <p className="text-2xl font-extrabold text-gray-900 dark:text-white mt-0.5">{completedCount}</p>
+                        <p className="text-xs text-stone-400 dark:text-slate-500 font-semibold uppercase tracking-wider">Completed</p>
+                        <p className="text-2xl font-extrabold text-stone-900 dark:text-white mt-0.5">{completedCount}</p>
                     </div>
                 </div>
             </div>
 
             {/* Filter Tabs */}
-            <div className="flex gap-2 p-1 bg-gray-100/80 dark:bg-slate-900/60 border border-gray-100 dark:border-slate-800/80 rounded-2xl w-fit">
+            <div className="flex gap-2 p-1 bg-stone-100/80 dark:bg-slate-900/60 border border-stone-100 dark:border-slate-800/80 rounded-[22px] w-fit">
                 <button
                     onClick={() => setFilter('ALL')}
-                    className={`px-4 py-2 text-xs font-bold rounded-xl transition-all cursor-pointer ${
+                    className={`px-4 py-2 text-xs font-bold rounded-[14px] transition-all cursor-pointer ${
                         filter === 'ALL'
-                            ? 'bg-white dark:bg-slate-850 text-gray-900 dark:text-white shadow-sm'
-                            : 'text-gray-500 hover:text-gray-900 dark:hover:text-white'
+                            ? 'bg-white dark:bg-slate-850 text-stone-900 dark:text-white shadow-sm'
+                            : 'text-stone-500 hover:text-stone-900 dark:hover:text-white'
                     }`}
                 >
                     All ({totalCount})
                 </button>
                 <button
                     onClick={() => setFilter('PENDING')}
-                    className={`px-4 py-2 text-xs font-bold rounded-xl transition-all cursor-pointer ${
+                    className={`px-4 py-2 text-xs font-bold rounded-[14px] transition-all cursor-pointer ${
                         filter === 'PENDING'
-                            ? 'bg-white dark:bg-slate-850 text-gray-900 dark:text-white shadow-sm'
-                            : 'text-gray-500 hover:text-gray-900 dark:hover:text-white'
+                            ? 'bg-white dark:bg-slate-850 text-stone-900 dark:text-white shadow-sm'
+                            : 'text-stone-500 hover:text-stone-900 dark:hover:text-white'
                     }`}
                 >
                     Pending ({pendingCount})
                 </button>
                 <button
                     onClick={() => setFilter('COMPLETED')}
-                    className={`px-4 py-2 text-xs font-bold rounded-xl transition-all cursor-pointer ${
+                    className={`px-4 py-2 text-xs font-bold rounded-[14px] transition-all cursor-pointer ${
                         filter === 'COMPLETED'
-                            ? 'bg-white dark:bg-slate-850 text-gray-900 dark:text-white shadow-sm'
-                            : 'text-gray-500 hover:text-gray-900 dark:hover:text-white'
+                            ? 'bg-white dark:bg-slate-850 text-stone-900 dark:text-white shadow-sm'
+                            : 'text-stone-500 hover:text-stone-900 dark:hover:text-white'
                     }`}
                 >
                     Completed ({completedCount})
@@ -335,10 +335,10 @@ export const StudentAssignments: React.FC<StudentAssignmentsProps> = ({ courses,
 
             {/* Main Assignments List */}
             {filteredAssignments.length === 0 ? (
-                <div className="bg-white dark:bg-slate-900 border border-gray-100 dark:border-slate-800 rounded-3xl p-12 text-center text-gray-500">
-                    <ClipboardList size={48} className="mx-auto text-gray-300 dark:text-slate-700 mb-3" />
-                    <p className="font-semibold text-gray-700 dark:text-slate-350">No assignments found</p>
-                    <p className="text-xs text-gray-400 mt-1">There are no assignments matching your current filter.</p>
+                <div className="bg-white dark:bg-night-2 rounded-[26px] p-12 text-center text-stone-500">
+                    <ClipboardList size={48} className="mx-auto text-stone-300 dark:text-slate-700 mb-3" />
+                    <p className="font-semibold text-stone-700 dark:text-slate-350">No assignments found</p>
+                    <p className="text-xs text-stone-400 mt-1">There are no assignments matching your current filter.</p>
                 </div>
             ) : (
                 <div className="space-y-4">
@@ -351,16 +351,16 @@ export const StudentAssignments: React.FC<StudentAssignmentsProps> = ({ courses,
                         return (
                             <div 
                                 key={asg.id} 
-                                className={`bg-white dark:bg-slate-900 border rounded-3xl p-6 shadow-sm hover:shadow-md transition-all duration-300 ${
+                                className={`bg-white dark:bg-night-2 rounded-[26px] p-6 transition-all duration-300 ${
                                     isCompleted 
-                                        ? 'border-green-100 dark:border-green-950/20 bg-green-50/5 dark:bg-green-950/2' 
-                                        : 'border-gray-100 dark:border-slate-800'
+                                        ? 'border-mint-soft dark:border-green-950/20 bg-mint-soft/5 dark:bg-green-950/2' 
+                                        : 'border-stone-100 dark:border-slate-800'
                                 }`}
                             >
                                 <div className="flex flex-col gap-4">
                                     <div className="flex justify-between items-start gap-4">
                                         <div className="space-y-1">
-                                            <h3 className={`font-bold text-base leading-snug break-words ${isCompleted ? 'text-gray-500 line-through' : 'text-gray-900 dark:text-white'}`}>
+                                            <h3 className={`font-bold text-base leading-snug break-words ${isCompleted ? 'text-stone-500 line-through' : 'text-stone-900 dark:text-white'}`}>
                                                 {asg.title}
                                             </h3>
                                             <div className="flex flex-wrap gap-2 text-xs pt-1">
@@ -372,7 +372,7 @@ export const StudentAssignments: React.FC<StudentAssignmentsProps> = ({ courses,
                                                     <Clock size={12} />
                                                     <span>Due {getFormattedDate(asg.dueDate)}</span>
                                                 </div>
-                                                <div className="flex items-center gap-1 bg-gray-50 dark:bg-slate-800 text-gray-600 dark:text-slate-300 px-2.5 py-1 rounded-full font-medium">
+                                                <div className="flex items-center gap-1 bg-stone-50 dark:bg-slate-800 text-stone-600 dark:text-slate-300 px-2.5 py-1 rounded-full font-medium">
                                                     <span>{asg.points || 100} Points</span>
                                                 </div>
                                                 {asg.weight && (
@@ -384,7 +384,7 @@ export const StudentAssignments: React.FC<StudentAssignmentsProps> = ({ courses,
                                         </div>
                                         <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold tracking-wide uppercase shrink-0 ${
                                             isCompleted
-                                                ? 'bg-green-100/60 dark:bg-green-950/40 text-green-600 dark:text-green-400 border border-green-200/30'
+                                                ? 'bg-mint-soft/60 dark:bg-green-950/40 text-mint dark:text-green-400 border border-green-200/30'
                                                 : 'bg-amber-100/60 dark:bg-amber-955/20 text-amber-600 dark:text-amber-400 border border-amber-200/30'
                                         }`}>
                                             {status}
@@ -392,7 +392,7 @@ export const StudentAssignments: React.FC<StudentAssignmentsProps> = ({ courses,
                                     </div>
 
                                     {/* Action row (Toggle Detail / Mark completion) */}
-                                    <div className="flex items-center justify-between border-t border-gray-50 dark:border-slate-800/60 pt-4 mt-2">
+                                    <div className="flex items-center justify-between border-t border-stone-50 dark:border-slate-800/60 pt-4 mt-2">
                                         <button
                                             onClick={() => setExpandedAssignmentId(isExpanded ? null : asg.id)}
                                             className="text-xs font-bold text-violet-600 dark:text-violet-400 hover:underline flex items-center gap-1 cursor-pointer"
@@ -419,12 +419,12 @@ export const StudentAssignments: React.FC<StudentAssignmentsProps> = ({ courses,
                                                 toggleAssignmentStatus(asg.id, status);
                                             }}
                                             disabled={isOverdue(asg.dueDate)}
-                                            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all duration-200 ${
+                                            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-[14px] text-xs font-bold transition-all duration-200 ${
                                                 isOverdue(asg.dueDate)
-                                                    ? 'bg-gray-100 dark:bg-slate-800 text-gray-400 dark:text-slate-600 border border-gray-200/50 dark:border-slate-850/80 cursor-not-allowed opacity-60'
+                                                    ? 'bg-stone-100 dark:bg-slate-800 text-stone-400 dark:text-slate-600 border border-stone-200/50 dark:border-slate-850/80 cursor-not-allowed opacity-60'
                                                     : isCompleted
                                                         ? 'bg-amber-50 dark:bg-amber-955/10 text-amber-600 dark:text-amber-400 hover:bg-amber-100/60 cursor-pointer shadow-none'
-                                                        : 'bg-green-600 hover:bg-green-700 text-white shadow-sm cursor-pointer'
+                                                        : 'bg-mint hover:bg-mint text-white shadow-sm cursor-pointer'
                                             }`}
                                         >
                                             {isCompleted ? (
@@ -443,39 +443,39 @@ export const StudentAssignments: React.FC<StudentAssignmentsProps> = ({ courses,
 
                                     {/* Collapsible Details Area */}
                                     {isExpanded && (
-                                        <div className="animate-in slide-in-from-top-4 duration-300 border-t border-gray-50 dark:border-slate-800/60 pt-4 mt-2 space-y-4">
-                                            <div className="bg-gray-50 dark:bg-slate-900/60 rounded-2xl p-4 border border-gray-100 dark:border-slate-800 space-y-3">
-                                                <h4 className="text-xs font-bold text-gray-500 dark:text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
+                                        <div className="animate-in slide-in-from-top-4 duration-300 border-t border-stone-50 dark:border-slate-800/60 pt-4 mt-2 space-y-4">
+                                            <div className="bg-stone-50 dark:bg-slate-900/60 rounded-[22px] p-4 border border-stone-100 dark:border-slate-800 space-y-3">
+                                                <h4 className="text-xs font-bold text-stone-500 dark:text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
                                                     <FileText size={14} />
                                                     Assignment Prompt & Instructions
                                                 </h4>
-                                                <p className="text-sm text-gray-700 dark:text-slate-350 leading-relaxed whitespace-pre-line">
+                                                <p className="text-sm text-stone-700 dark:text-slate-350 leading-relaxed whitespace-pre-line">
                                                     {asg.description || 'No instructions provided.'}
                                                 </p>
                                             </div>
 
                                             {/* Attached Resource Section */}
                                             {asg.resourceType && asg.resourceType !== 'none' && (
-                                                <div className="bg-white dark:bg-slate-900 border border-gray-100 dark:border-slate-800 rounded-2xl p-4 space-y-3.5 shadow-sm">
-                                                    <h4 className="text-xs font-bold text-gray-500 dark:text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
+                                                <div className="bg-white dark:bg-night-2 rounded-[22px] p-4 space-y-3.5">
+                                                    <h4 className="text-xs font-bold text-stone-500 dark:text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
                                                         {asg.resourceType === 'pdf' && <FileText size={15} className="text-red-500" />}
                                                         {asg.resourceType === 'video' && <PlayCircle size={15} className="text-blue-500" />}
                                                         {asg.resourceType === 'audio' && <Volume2 size={15} className="text-green-500" />}
                                                         Attached {asg.resourceType.toUpperCase()} Resource
                                                     </h4>
 
-                    <div className="space-y-3 bg-gray-50 dark:bg-slate-950/40 p-3.5 rounded-xl border border-gray-100 dark:border-slate-800">
+                    <div className="space-y-3 bg-stone-50 dark:bg-slate-950/40 p-3.5 rounded-[14px] border border-stone-100 dark:border-slate-800">
                         <div className="flex items-center justify-between gap-3">
                             <div className="min-w-0 flex-1">
-                                <p className="text-xs font-bold text-gray-800 dark:text-slate-200 truncate">{asg.resourceName || `assignment_resource.${asg.resourceType}`}</p>
-                                <p className="text-[10px] text-gray-400 mt-0.5">{asg.resourceSize || '2.0 MB'}</p>
+                                <p className="text-xs font-bold text-stone-800 dark:text-slate-200 truncate">{asg.resourceName || `assignment_resource.${asg.resourceType}`}</p>
+                                <p className="text-[10px] text-stone-400 mt-0.5">{asg.resourceSize || '2.0 MB'}</p>
                             </div>
                             {asg.resourceUrl && asg.resourceUrl.startsWith('http') ? (
                                  <a
                                      href={asg.resourceUrl}
                                      target="_blank"
                                      rel="noopener noreferrer"
-                                     className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-100 dark:bg-slate-800 hover:bg-gray-200 dark:hover:bg-slate-700 rounded-lg text-xs font-bold text-gray-700 dark:text-slate-300 cursor-pointer shrink-0 transition-colors"
+                                     className="flex items-center gap-1.5 px-3 py-1.5 bg-stone-100 dark:bg-slate-800 hover:bg-stone-200 dark:hover:bg-slate-700 rounded-[12px] text-xs font-bold text-stone-700 dark:text-slate-300 cursor-pointer shrink-0 transition-colors"
                                  >
                                      <ExternalLink size={13} />
                                      Click on Link
@@ -484,7 +484,7 @@ export const StudentAssignments: React.FC<StudentAssignmentsProps> = ({ courses,
                                 <button
                                     type="button"
                                     disabled
-                                    className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-100 dark:bg-slate-800 rounded-lg text-xs font-bold text-gray-400 dark:text-slate-500 cursor-not-allowed shrink-0"
+                                    className="flex items-center gap-1.5 px-3 py-1.5 bg-stone-100 dark:bg-slate-800 rounded-[12px] text-xs font-bold text-stone-400 dark:text-slate-500 cursor-not-allowed shrink-0"
                                 >
                                     {downloadProgress[asg.id] === 100 ? (
                                         <>
@@ -501,7 +501,7 @@ export const StudentAssignments: React.FC<StudentAssignmentsProps> = ({ courses,
                             ) : (
                                  <button
                                      onClick={(e) => handleDownload(e, asg)}
-                                     className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-100 dark:bg-slate-800 hover:bg-gray-200 dark:hover:bg-slate-700 rounded-lg text-xs font-bold text-gray-700 dark:text-slate-300 cursor-pointer shrink-0 transition-colors"
+                                     className="flex items-center gap-1.5 px-3 py-1.5 bg-stone-100 dark:bg-slate-800 hover:bg-stone-200 dark:hover:bg-slate-700 rounded-[12px] text-xs font-bold text-stone-700 dark:text-slate-300 cursor-pointer shrink-0 transition-colors"
                                  >
                                      <Download size={13} />
                                      Download
@@ -512,7 +512,7 @@ export const StudentAssignments: React.FC<StudentAssignmentsProps> = ({ courses,
                         {/* Download progress bar */}
                         {downloadProgress[asg.id] !== undefined && (
                             <div className="w-full pt-1">
-                                <div className="w-full bg-gray-200 dark:bg-slate-800 rounded-full h-1.5 overflow-hidden">
+                                <div className="w-full bg-stone-200 dark:bg-slate-800 rounded-full h-1.5 overflow-hidden">
                                     <div 
                                         className="bg-violet-600 h-full rounded-full transition-all duration-150" 
                                         style={{ width: `${downloadProgress[asg.id]}%` }}
@@ -525,8 +525,8 @@ export const StudentAssignments: React.FC<StudentAssignmentsProps> = ({ courses,
                      {/* Multimedia Previews */}
                      {asg.resourceType === 'video' && (
                           <div className="space-y-1.5">
-                              <p className="text-[11px] font-semibold text-gray-500 dark:text-slate-400">Attached Video Lesson Lecture Preview:</p>
-                              <div className="rounded-xl overflow-hidden aspect-video bg-black border border-gray-150 dark:border-slate-800 relative">
+                              <p className="text-[11px] font-semibold text-stone-500 dark:text-slate-400">Attached Video Lesson Lecture Preview:</p>
+                              <div className="rounded-[14px] overflow-hidden aspect-video bg-black border border-stone-150 dark:border-slate-800 relative">
                                   <video
                                       src={
                                           asg.resourceUrl && asg.resourceUrl !== 'simulated-local-file'
@@ -543,8 +543,8 @@ export const StudentAssignments: React.FC<StudentAssignmentsProps> = ({ courses,
 
                       {asg.resourceType === 'audio' && (
                           <div className="space-y-1.5">
-                              <p className="text-[11px] font-semibold text-gray-500 dark:text-slate-400">Instructor Audio Briefing Notes:</p>
-                              <div className="bg-gray-50 dark:bg-slate-950/40 border border-gray-100 dark:border-slate-800/85 rounded-xl p-3.5 flex flex-col gap-3">
+                              <p className="text-[11px] font-semibold text-stone-500 dark:text-slate-400">Instructor Audio Briefing Notes:</p>
+                              <div className="bg-stone-50 dark:bg-slate-950/40 border border-stone-100 dark:border-slate-800/85 rounded-[14px] p-3.5 flex flex-col gap-3">
                                   <audio
                                       src={
                                           asg.resourceUrl && asg.resourceUrl !== 'simulated-local-file'
@@ -567,16 +567,16 @@ export const StudentAssignments: React.FC<StudentAssignmentsProps> = ({ courses,
 
                                             {/* Submission form */}
                                             <div className="space-y-3">
-                                                <h4 className="text-xs font-bold text-gray-500 dark:text-slate-400 uppercase tracking-wider">
+                                                <h4 className="text-xs font-bold text-stone-500 dark:text-slate-400 uppercase tracking-wider">
                                                     Your Answer / Submission
                                                 </h4>
                                                 {hasSubmittedText ? (
-                                                    <div className="bg-green-50/40 dark:bg-green-950/10 border border-green-200/50 dark:border-green-900/40 rounded-2xl p-4 space-y-2">
-                                                        <div className="flex items-center gap-2 text-green-600 dark:text-green-400 font-bold text-xs">
+                                                    <div className="bg-mint-soft/40 dark:bg-green-950/10 border border-green-200/50 dark:border-green-900/40 rounded-[22px] p-4 space-y-2">
+                                                        <div className="flex items-center gap-2 text-mint dark:text-green-400 font-bold text-xs">
                                                             <CheckCircle2 size={16} />
                                                             Submitted successfully!
                                                         </div>
-                                                        <p className="text-sm text-gray-600 dark:text-slate-400 italic bg-white dark:bg-slate-900 p-3 rounded-xl border border-gray-100 dark:border-slate-800">
+                                                        <p className="text-sm text-stone-600 dark:text-slate-400 italic bg-white dark:bg-night-2 p-3 rounded-[14px]">
                                                             "{hasSubmittedText}"
                                                         </p>
                                                         {isOverdue(asg.dueDate) ? (
@@ -598,11 +598,11 @@ export const StudentAssignments: React.FC<StudentAssignmentsProps> = ({ courses,
                                                         )}
                                                     </div>
                                                 ) : isOverdue(asg.dueDate) ? (
-                                                    <div className="bg-red-50/50 dark:bg-red-950/15 border border-red-200/50 dark:border-red-900/40 rounded-2xl p-4 text-center space-y-1">
+                                                    <div className="bg-red-50/50 dark:bg-red-950/15 border border-red-200/50 dark:border-red-900/40 rounded-[22px] p-4 text-center space-y-1">
                                                         <p className="text-xs font-bold text-red-650 dark:text-red-400 flex items-center justify-center gap-1.5 animate-none">
                                                             <span><AlertTriangle className="inline-block w-4 h-4 mr-1 align-middle" />️ Due Date Passed: Submissions Closed</span>
                                                         </p>
-                                                        <p className="text-[11px] text-gray-500 dark:text-slate-400">
+                                                        <p className="text-[11px] text-stone-500 dark:text-slate-400">
                                                             This task was due on {getFormattedDate(asg.dueDate)} and is no longer accepting answers.
                                                         </p>
                                                     </div>
@@ -613,12 +613,12 @@ export const StudentAssignments: React.FC<StudentAssignmentsProps> = ({ courses,
                                                             onChange={(e) => setSubmissionTexts({ ...submissionTexts, [asg.id]: e.target.value })}
                                                             placeholder="Type your response here or paste your submission link..."
                                                             rows={4}
-                                                            className="w-full rounded-2xl border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-3 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/20"
+                                                            className="w-full rounded-[22px] bg-white dark:bg-night-2 p-3 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/20"
                                                             required
                                                         />
                                                         <button
                                                             type="submit"
-                                                            className="px-4 py-2 bg-violet-600 hover:bg-violet-750 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 cursor-pointer shadow-sm ml-auto"
+                                                            className="px-4 py-2 bg-violet-600 hover:bg-violet-750 text-white rounded-[14px] text-xs font-bold flex items-center gap-1.5 cursor-pointer shadow-sm ml-auto"
                                                         >
                                                             <Send size={12} />
                                                             Submit Project

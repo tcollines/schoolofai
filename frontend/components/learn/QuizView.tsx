@@ -92,20 +92,30 @@ const QuizView: React.FC<Props> = ({ questions, passMark, heading, onSubmit, gra
 
     return (
         <div>
-            <h2 className="font-serif text-2xl font-semibold">{heading}</h2>
-            <p className={`mt-1 text-sm ${MUTED}`}>{shown.length} questions · {passMark}% to pass</p>
+            <div className="rounded-[22px] bg-lime-200 text-ink p-5 sm:p-6 flex items-center gap-4">
+                <div className="flex-1 min-w-0">
+                    <h2 className="m-0 text-[22px] font-extrabold tracking-[-0.02em]">{heading}</h2>
+                    <p className="m-0 mt-1 text-[13px] font-semibold text-lime-900">{shown.length} questions · {passMark}% to pass</p>
+                </div>
+                {!result && (
+                    <div className="shrink-0 text-right">
+                        <p className="m-0 text-[22px] font-extrabold tabular-nums">{Object.keys(answers).filter(k => shown.some(q => q.id === k)).length}/{shown.length}</p>
+                        <p className="m-0 text-[12px] font-semibold text-lime-900">answered</p>
+                    </div>
+                )}
+            </div>
 
             {result && (
                 <div
                     role="status"
-                    className={`mt-5 rounded-2xl p-5 border ${result.passed
-                        ? 'bg-emerald-50 dark:bg-emerald-950/40 border-emerald-200 dark:border-emerald-900'
-                        : 'bg-amber-50 dark:bg-amber-950/30 border-amber-200 dark:border-amber-900'}`}
+                    className={`mt-4 rounded-[20px] p-5 ${result.passed
+                        ? 'bg-mint-soft text-[#0E5A35] dark:bg-emerald-950/40 dark:text-emerald-200'
+                        : 'bg-[#FFF3D6] text-[#6B4A00] dark:bg-amber-950/30 dark:text-amber-200'}`}
                 >
                     <div className="flex items-start gap-3">
-                        {result.passed ? <Trophy className="text-emerald-600 shrink-0 mt-0.5" /> : <RotateCcw className="text-amber-600 shrink-0 mt-0.5" />}
+                        {result.passed ? <Trophy className="text-mint shrink-0 mt-0.5" /> : <RotateCcw className="text-amber-600 shrink-0 mt-0.5" />}
                         <div>
-                            <p className="font-semibold">{result.passed ? (passedLabel || 'Well done, you passed!') : 'Not quite there yet'}</p>
+                            <p className="m-0 text-[16px] font-extrabold">{result.passed ? (passedLabel || 'Well done, you passed!') : 'Not quite there yet'}</p>
                             <p className="text-sm mt-1">
                                 You scored {result.score} out of {result.total} ({result.pct}%).{' '}
                                 {result.passed ? '' : `You need ${passMark}% to pass. ${grade ? 'The questions you missed are marked below. Review the lessons and try again.' : 'Read the explanations below and try again.'}`}
@@ -115,17 +125,17 @@ const QuizView: React.FC<Props> = ({ questions, passMark, heading, onSubmit, gra
                 </div>
             )}
 
-            <ol className="mt-6 space-y-5">
+            <ol className="mt-4 p-0 list-none space-y-4">
                 {shown.map((qq, qi) => {
                     const isWrong = !!result && wrong.has(qq.id);
                     const rev = review.get(qq.id);
                     return (
                         <li key={qq.id}>
-                            <fieldset className={`${CARD} rounded-2xl p-5`} disabled={!!result}>
+                            <fieldset className={`${CARD} p-5`} disabled={!!result}>
                                 <legend className="sr-only">Question {qi + 1}</legend>
-                                <p className="font-medium leading-snug"><span className="text-violet-700 dark:text-violet-400 font-semibold">{qi + 1}.</span> {qq.text}</p>
+                                <p className="m-0 text-[16px] font-bold leading-snug"><span className="inline-flex items-center justify-center w-7 h-7 mr-2 rounded-[9px] bg-brand-soft dark:bg-night-3 text-brand dark:text-violet-300 text-[13px] font-extrabold align-[2px]">{qi + 1}</span>{qq.text}</p>
                                 {result && isWrong && !rev && <p className="mt-2 text-sm font-medium text-red-600">Not correct</p>}
-                                <div className="mt-3 space-y-2">
+                                <div className="mt-4 space-y-2">
                                     {qq.options.map((opt, oi) => {
                                         const chosen = answers[qq.id] === oi;
                                         const isCorrectOption = !!result && !!rev && rev.correct === oi;
@@ -134,27 +144,28 @@ const QuizView: React.FC<Props> = ({ questions, passMark, heading, onSubmit, gra
                                         return (
                                             <label
                                                 key={oi}
-                                                className={`flex items-start gap-3 rounded-xl border px-4 py-3 cursor-pointer text-[15px] leading-snug transition-colors min-h-[48px]
-                                                    ${isCorrectOption || chosenRight ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-950/40'
-                                                        : chosenWrong ? 'border-red-400 bg-red-50 dark:bg-red-950/30'
-                                                            : chosen ? 'border-violet-600 bg-violet-50 dark:bg-violet-950/40'
-                                                                : 'border-stone-200 dark:border-slate-700 hover:bg-stone-50 dark:hover:bg-slate-800'}`}
+                                                className={`press flex items-center gap-3 rounded-[14px] border-2 px-3 py-2.5 cursor-pointer text-[15px] leading-snug transition-colors min-h-[52px] focus-within:ring-2 focus-within:ring-brand
+                                                    ${isCorrectOption || chosenRight ? 'border-mint bg-mint-soft dark:bg-emerald-950/40'
+                                                        : chosenWrong ? 'border-[#F0533A] bg-[#FDECE8] dark:bg-red-950/30'
+                                                            : chosen ? 'border-brand bg-brand-soft dark:bg-night-3'
+                                                                : 'border-transparent bg-panel dark:bg-night-3/60 hover:border-[#D9D0F5]'}`}
                                             >
                                                 <input
                                                     type="radio"
                                                     name={qq.id}
                                                     checked={chosen}
                                                     onChange={() => setAnswers(a => ({ ...a, [qq.id]: oi }))}
-                                                    className="mt-1 accent-violet-700 shrink-0"
+                                                    className="sr-only"
                                                 />
+                                                <span aria-hidden="true" className={`w-8 h-8 shrink-0 rounded-[10px] inline-flex items-center justify-center text-[13px] font-extrabold ${chosen ? 'bg-brand text-white' : 'bg-white dark:bg-night-2 text-[#6B6680]'}`}>{String.fromCharCode(65 + oi)}</span>
                                                 <span className="flex-1">{opt}</span>
-                                                {(isCorrectOption || chosenRight) && <CheckCircle2 size={18} className="text-emerald-600 shrink-0" />}
+                                                {(isCorrectOption || chosenRight) && <CheckCircle2 size={18} className="text-mint shrink-0" />}
                                                 {chosenWrong && <XCircle size={18} className="text-red-500 shrink-0" />}
                                             </label>
                                         );
                                     })}
                                 </div>
-                                {rev?.explanation && <p className={`mt-3 text-sm ${MUTED}`}><span className="font-semibold text-[#1c1917] dark:text-slate-100">Why: </span>{rev.explanation}</p>}
+                                {rev?.explanation && <p className={`mt-3 text-sm ${MUTED}`}><span className="font-semibold text-ink dark:text-slate-100">Why: </span>{rev.explanation}</p>}
                             </fieldset>
                         </li>
                     );

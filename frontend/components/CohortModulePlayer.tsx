@@ -89,7 +89,7 @@ export default function CohortModulePlayer({ module, userId, cohortId, onComplet
 
     return (
         <div className="max-w-4xl mx-auto py-8">
-            <h1 className="text-3xl font-semibold text-stone-900 dark:text-white mb-8 font-serif">{module.title}</h1>
+            <h1 className="text-3xl font-extrabold text-stone-900 dark:text-white mb-8 tracking-[-0.02em]">{module.title}</h1>
             
             {/* Step Navigation */}
             <div className="flex flex-wrap gap-2 mb-8">
@@ -107,8 +107,7 @@ export default function CohortModulePlayer({ module, userId, cohortId, onComplet
                             if (item.s === 6 && !attendanceSubmitted) return; // Locked
                             setStep(item.s);
                         }}
-                        className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-colors
-                            ${step === item.s 
+                        className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-colors ${step === item.s 
                                 ? 'bg-violet-700 text-white' 
                                 : item.s === 6 && !attendanceSubmitted
                                     ? 'bg-stone-100 dark:bg-slate-800 text-stone-500 cursor-not-allowed opacity-50'
@@ -123,15 +122,15 @@ export default function CohortModulePlayer({ module, userId, cohortId, onComplet
             </div>
 
             {/* Step Content */}
-            <div className="bg-white dark:bg-slate-900 rounded-2xl p-6 md:p-10 shadow-sm border border-stone-200 dark:border-slate-800">
+            <div className="bg-white dark:bg-night-2 rounded-[22px] p-6 md:p-10">
                 {step === 1 && (
                     <div className="space-y-6">
-                        <h2 className="text-2xl font-semibold flex items-center gap-2 font-serif"><Video className="text-violet-500" /> Module Introduction</h2>
+                        <h2 className="text-2xl font-extrabold flex items-center gap-2 tracking-[-0.02em]"><Video className="text-violet-500" /> Module Introduction</h2>
                         {(() => {
                             const ytId = getYoutubeVideoId(module.introVideoUrl);
                             if (ytId) {
                                 return (
-                                    <div className="aspect-video bg-black rounded-2xl overflow-hidden shadow-sm">
+                                    <div className="aspect-video bg-black rounded-[22px] overflow-hidden shadow-sm">
                                         <iframe
                                             src={`https://www.youtube.com/embed/${ytId}?autoplay=1&rel=0`}
                                             title="Module Intro"
@@ -143,27 +142,27 @@ export default function CohortModulePlayer({ module, userId, cohortId, onComplet
                                 );
                             } else if (module.introVideoUrl) {
                                 return (
-                                    <div className="aspect-video bg-black rounded-2xl overflow-hidden shadow-sm">
+                                    <div className="aspect-video bg-black rounded-[22px] overflow-hidden shadow-sm">
                                         <video src={module.introVideoUrl} controls className="w-full h-full object-cover" />
                                     </div>
                                 );
                             } else {
                                 return (
-                                    <div className="aspect-video bg-stone-100 dark:bg-slate-800 rounded-2xl flex flex-col items-center justify-center text-stone-600">
+                                    <div className="aspect-video bg-stone-100 dark:bg-slate-800 rounded-[22px] flex flex-col items-center justify-center text-stone-600">
                                         <PlayCircle className="w-16 h-16 mb-4 opacity-50" />
                                         <p>No intro video provided for this module.</p>
                                     </div>
                                 );
                             }
                         })()}
-                        <button onClick={() => setStep(2)} className="mt-6 px-6 py-3 bg-violet-700 text-white rounded-xl font-bold hover:bg-violet-800">Continue to Outline</button>
+                        <button onClick={() => setStep(2)} className="mt-6 px-6 py-3 bg-violet-700 text-white rounded-[14px] font-bold hover:bg-brand-mid">Continue to Outline</button>
                     </div>
                 )}
 
                 {step === 2 && (
                     <div className="space-y-6">
-                        <h2 className="text-2xl font-semibold flex items-center gap-2 font-serif"><List className="text-violet-500" /> Course Outline</h2>
-                        <div className="bg-stone-50 dark:bg-slate-950 p-6 rounded-2xl border border-stone-100 dark:border-slate-800">
+                        <h2 className="text-2xl font-extrabold flex items-center gap-2 tracking-[-0.02em]"><List className="text-violet-500" /> Course Outline</h2>
+                        <div className="bg-stone-50 dark:bg-slate-950 p-6 rounded-[22px] border border-stone-100 dark:border-slate-800">
                             {module.courseOutline && module.courseOutline.length > 0 ? (
                                 <ul className="space-y-4">
                                     {module.courseOutline.map((topic, i) => (
@@ -177,31 +176,31 @@ export default function CohortModulePlayer({ module, userId, cohortId, onComplet
                                 <p className="text-stone-600">No outline provided.</p>
                             )}
                         </div>
-                        <button onClick={() => setStep(3)} className="px-6 py-3 bg-violet-700 text-white rounded-xl font-bold hover:bg-violet-800">Continue to Notes</button>
+                        <button onClick={() => setStep(3)} className="px-6 py-3 bg-violet-700 text-white rounded-[14px] font-bold hover:bg-brand-mid">Continue to Notes</button>
                     </div>
                 )}
 
                 {step === 3 && (
                     <div className="space-y-6">
-                        <h2 className="text-2xl font-semibold flex items-center gap-2 font-serif"><FileText className="text-violet-500" /> Global Course Notes</h2>
+                        <h2 className="text-2xl font-extrabold flex items-center gap-2 tracking-[-0.02em]"><FileText className="text-violet-500" /> Global Course Notes</h2>
                         {courseNotes.length > 0 ? (
                             <div className="space-y-6">
                                 {courseNotes.map(note => (
-                                    <div key={note.id} className="prose dark:prose-invert max-w-none bg-stone-50 dark:bg-slate-950 p-6 rounded-2xl border border-stone-100 dark:border-slate-800" dangerouslySetInnerHTML={{ __html: note.content }} />
+                                    <div key={note.id} className="prose dark:prose-invert max-w-none bg-stone-50 dark:bg-slate-950 p-6 rounded-[22px] border border-stone-100 dark:border-slate-800" dangerouslySetInnerHTML={{ __html: note.content }} />
                                 ))}
                             </div>
                         ) : (
                             <p className="text-stone-600">No course notes available.</p>
                         )}
-                        <button onClick={() => setStep(4)} className="px-6 py-3 bg-violet-700 text-white rounded-xl font-bold hover:bg-violet-800">Continue to Live Session</button>
+                        <button onClick={() => setStep(4)} className="px-6 py-3 bg-violet-700 text-white rounded-[14px] font-bold hover:bg-brand-mid">Continue to Live Session</button>
                     </div>
                 )}
 
                 {step === 4 && (
                     <div className="space-y-6">
-                        <h2 className="text-2xl font-semibold flex items-center gap-2 font-serif"><Calendar className="text-violet-500" /> Physical Lesson</h2>
+                        <h2 className="text-2xl font-extrabold flex items-center gap-2 tracking-[-0.02em]"><Calendar className="text-violet-500" /> Physical Lesson</h2>
                         {sessionData ? (
-                            <div className="bg-violet-50 dark:bg-violet-950/30 p-8 rounded-2xl border border-violet-100 dark:border-violet-900/50 relative overflow-hidden">
+                            <div className="bg-violet-50 dark:bg-violet-950/30 p-8 rounded-[22px] border border-violet-100 dark:border-violet-900/50 relative overflow-hidden">
                                 <div className="absolute top-0 right-0 p-8 opacity-10">
                                     <Calendar className="w-48 h-48" />
                                 </div>
@@ -225,19 +224,19 @@ export default function CohortModulePlayer({ module, userId, cohortId, onComplet
                         ) : (
                             <p className="text-stone-600">No live session scheduled for this module yet.</p>
                         )}
-                        <button onClick={() => setStep(5)} className="px-6 py-3 bg-violet-700 text-white rounded-xl font-bold hover:bg-violet-800">Continue to Attendance</button>
+                        <button onClick={() => setStep(5)} className="px-6 py-3 bg-violet-700 text-white rounded-[14px] font-bold hover:bg-brand-mid">Continue to Attendance</button>
                     </div>
                 )}
 
                 {step === 5 && (
                     <div className="space-y-6 max-w-lg">
-                        <h2 className="text-2xl font-semibold flex items-center gap-2 font-serif"><Key className="text-violet-500" /> Attendance Code</h2>
+                        <h2 className="text-2xl font-extrabold flex items-center gap-2 tracking-[-0.02em]"><Key className="text-violet-500" /> Attendance Code</h2>
                         {attendanceSubmitted ? (
-                            <div className="bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-900/50 p-6 rounded-2xl flex items-start gap-4">
+                            <div className="bg-mint-soft dark:bg-green-950/30 border border-green-200 dark:border-green-900/50 p-6 rounded-[22px] flex items-start gap-4">
                                 <CheckCircle className="w-8 h-8 text-green-500 shrink-0" />
                                 <div>
                                     <h3 className="text-lg font-bold text-green-800 dark:text-green-400">Attendance Verified</h3>
-                                    <p className="text-green-600 dark:text-green-500 mt-1">You have successfully submitted the attendance code for this module. The quiz is now unlocked!</p>
+                                    <p className="text-mint dark:text-green-500 mt-1">You have successfully submitted the attendance code for this module. The quiz is now unlocked!</p>
                                 </div>
                             </div>
                         ) : (
@@ -250,42 +249,42 @@ export default function CohortModulePlayer({ module, userId, cohortId, onComplet
                                         value={attendanceCode}
                                         onChange={e => setAttendanceCode(e.target.value)}
                                         placeholder="Enter Code"
-                                        className="flex-1 bg-stone-50 dark:bg-slate-950 border border-stone-200 dark:border-slate-700 rounded-xl px-4 py-3 text-2xl tracking-[0.5em] font-mono font-bold text-center uppercase focus:border-violet-500 focus:ring-2 focus:ring-violet-200 outline-none"
+                                        className="flex-1 bg-stone-50 dark:bg-slate-950 border border-stone-200 dark:border-slate-700 rounded-[14px] px-4 py-3 text-2xl tracking-[0.5em] font-mono font-bold text-center uppercase focus:border-violet-500 focus:ring-2 focus:ring-violet-200 outline-none"
                                     />
                                 </div>
                                 <button 
                                     onClick={handleCodeSubmit}
                                     disabled={submittingCode || attendanceCode.length < 3}
-                                    className="w-full px-6 py-3 bg-violet-700 text-white rounded-xl font-bold hover:bg-violet-800 disabled:opacity-50 flex justify-center items-center gap-2"
+                                    className="w-full px-6 py-3 bg-violet-700 text-white rounded-[14px] font-bold hover:bg-brand-mid disabled:opacity-50 flex justify-center items-center gap-2"
                                 >
                                     {submittingCode ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Submit Code'}
                                 </button>
                             </>
                         )}
                         {attendanceSubmitted && (
-                            <button onClick={() => setStep(6)} className="w-full px-6 py-3 bg-violet-700 text-white rounded-xl font-bold hover:bg-violet-800">Take Module Quiz</button>
+                            <button onClick={() => setStep(6)} className="w-full px-6 py-3 bg-violet-700 text-white rounded-[14px] font-bold hover:bg-brand-mid">Take Module Quiz</button>
                         )}
                     </div>
                 )}
 
                 {step === 6 && (
                     <div className="space-y-6">
-                        <h2 className="text-2xl font-semibold flex items-center gap-2 font-serif"><CheckCircle className="text-violet-500" /> Module Quiz</h2>
+                        <h2 className="text-2xl font-extrabold flex items-center gap-2 tracking-[-0.02em]"><CheckCircle className="text-violet-500" /> Module Quiz</h2>
                         {!attendanceSubmitted ? (
-                            <div className="bg-amber-50 dark:bg-amber-950/30 p-8 rounded-2xl text-center border border-amber-200 dark:border-amber-900/50">
+                            <div className="bg-amber-50 dark:bg-amber-950/30 p-8 rounded-[22px] text-center border border-amber-200 dark:border-amber-900/50">
                                 <Lock className="w-12 h-12 text-amber-500 mx-auto mb-4" />
                                 <h3 className="text-xl font-bold text-amber-800 dark:text-amber-400 mb-2">Quiz Locked</h3>
                                 <p className="text-amber-600 dark:text-amber-500">You must submit the LIVELESSON attendance code before taking the quiz.</p>
-                                <button onClick={() => setStep(5)} className="mt-6 px-6 py-2 bg-amber-500 text-white rounded-lg font-bold hover:bg-amber-600">Go to Attendance</button>
+                                <button onClick={() => setStep(5)} className="mt-6 px-6 py-2 bg-amber-500 text-white rounded-[12px] font-bold hover:bg-amber-600">Go to Attendance</button>
                             </div>
                         ) : (
-                            <div className="text-center p-12 bg-stone-50 dark:bg-slate-950 rounded-2xl border border-stone-100 dark:border-slate-800">
+                            <div className="text-center p-12 bg-stone-50 dark:bg-slate-950 rounded-[22px] border border-stone-100 dark:border-slate-800">
                                 {/* Normally we'd render the Quiz component here. Using a placeholder for integration */}
                                 <h3 className="text-xl font-bold mb-4">Ready for the Quiz?</h3>
                                 <p className="text-stone-600 mb-8">This quiz will test your knowledge on {module.title}.</p>
                                 <button 
                                     onClick={() => handleQuizComplete(100, true)}
-                                    className="px-8 py-3 bg-green-600 text-white rounded-xl font-bold hover:bg-green-700"
+                                    className="px-8 py-3 bg-mint text-white rounded-[14px] font-bold hover:bg-mint"
                                 >
                                     Start Quiz (Mock Pass)
                                 </button>

@@ -110,8 +110,8 @@ const VideoPlayer: React.FC<Props> = ({ videoId, videoUrl, audioUrl, poster, tit
     if (audioOnly) {
         const audioSrc = audioUrl || videoUrl;
         return (
-            <div className="w-full rounded-2xl border border-stone-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4">
-                <p className="flex items-center gap-2 font-semibold text-sm"><Headphones size={18} className="text-violet-700 dark:text-violet-400" /> Audio only</p>
+            <div className="w-full rounded-[20px] bg-white dark:bg-night-2 p-4">
+                <p className="flex items-center gap-2 font-semibold text-sm"><Headphones size={18} className="text-brand dark:text-violet-400" /> Audio only</p>
                 {audioSrc ? (
                     <audio key={audioSrc} className="w-full mt-3" playsInline {...mediaHandlers('audio')} src={audioSrc} />
                 ) : (
@@ -124,12 +124,12 @@ const VideoPlayer: React.FC<Props> = ({ videoId, videoUrl, audioUrl, poster, tit
     if (videoUrl && /\.(mp3|m4a|mpeg|wav|ogg)(\?|$)/i.test(videoUrl)) {
         // Voice lesson: presenter photo with a simple audio player (no large video download)
         return (
-            <div className="w-full rounded-2xl overflow-hidden border border-stone-200 dark:border-slate-800 bg-white dark:bg-slate-900">
+            <div className="w-full rounded-[20px] overflow-hidden bg-white dark:bg-night-2">
                 <div className="flex flex-col sm:flex-row items-center gap-5 p-5 sm:p-6">
-                    <img src="/instructor/timothy.webp" alt="Timothy Christian Waniaye" className="w-36 h-36 sm:w-44 sm:h-44 rounded-2xl object-cover shrink-0" />
+                    <img src="/instructor/timothy.webp" alt="Timothy Christian Waniaye" className="w-36 h-36 sm:w-44 sm:h-44 rounded-[20px] object-cover shrink-0" />
                     <div className="w-full min-w-0">
-                        <p className="text-xs font-semibold uppercase tracking-wide text-violet-700 dark:text-violet-400">Voice lesson</p>
-                        <p className="font-serif text-xl font-semibold mt-1">{title}</p>
+                        <p className="text-xs font-semibold uppercase tracking-wide text-brand dark:text-violet-400">Voice lesson</p>
+                        <p className="text-xl font-extrabold tracking-[-0.02em] mt-1">{title}</p>
                         <p className="text-sm text-stone-600 dark:text-slate-400 mt-0.5">With Timothy Christian Waniaye, Welile School of AI</p>
                         <audio key={videoUrl} className="w-full mt-4" playsInline {...mediaHandlers('audio')} />
                     </div>
@@ -140,7 +140,7 @@ const VideoPlayer: React.FC<Props> = ({ videoId, videoUrl, audioUrl, poster, tit
 
     if (videoUrl) {
         return (
-            <div className="aspect-video w-full bg-black rounded-2xl overflow-hidden">
+            <div className="aspect-video w-full bg-black rounded-[20px] overflow-hidden">
                 <video
                     key={videoUrl}
                     className="w-full h-full"
@@ -164,8 +164,8 @@ const VideoPlayer: React.FC<Props> = ({ videoId, videoUrl, audioUrl, poster, tit
 
     if (videoId && dataSaver && !armed) {
         return (
-            <button type="button" onClick={() => setArmed(true)} className="aspect-video w-full rounded-2xl border border-stone-200 dark:border-slate-800 bg-stone-100 dark:bg-slate-900 flex flex-col items-center justify-center text-center px-6 focus:outline-none focus-visible:ring-2 focus-visible:ring-violet-500">
-                <PlayCircle size={40} className="text-violet-700 dark:text-violet-400" />
+            <button type="button" onClick={() => setArmed(true)} className="aspect-video w-full rounded-[20px] border border-stone-200 dark:border-slate-800 bg-stone-100 dark:bg-slate-900 flex flex-col items-center justify-center text-center px-6 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand">
+                <PlayCircle size={40} className="text-brand dark:text-violet-400" />
                 <span className="mt-2 font-semibold">Tap to load the video</span>
                 <span className="mt-1 text-sm text-stone-600 dark:text-slate-400">Data saver is on, so nothing is downloaded until you tap.</span>
             </button>
@@ -173,12 +173,12 @@ const VideoPlayer: React.FC<Props> = ({ videoId, videoUrl, audioUrl, poster, tit
     }
 
     if (videoId) {
-        return <div ref={mountRef} className="aspect-video w-full bg-black rounded-2xl overflow-hidden [&_iframe]:w-full [&_iframe]:h-full" aria-label={title} />;
+        return <div ref={mountRef} className="aspect-video w-full bg-black rounded-[20px] overflow-hidden [&_iframe]:w-full [&_iframe]:h-full" aria-label={title} />;
     }
 
     return (
-        <div className="aspect-video w-full rounded-2xl bg-gradient-to-br from-stone-100 to-stone-200 dark:from-slate-900 dark:to-slate-800 border border-stone-200 dark:border-slate-800 flex flex-col items-center justify-center text-center px-6">
-            <Video size={36} className="text-violet-700 dark:text-violet-400" />
+        <div className="aspect-video w-full rounded-[20px] bg-gradient-to-br from-stone-100 to-stone-200 dark:from-slate-900 dark:to-slate-800 border border-stone-200 dark:border-slate-800 flex flex-col items-center justify-center text-center px-6">
+            <Video size={36} className="text-brand dark:text-violet-400" />
             <p className="mt-3 font-semibold">The video for this lesson is being recorded</p>
             <p className="mt-1 text-sm text-stone-600 dark:text-slate-400 max-w-sm">Read the lesson notes below and try the hands-on task. You can mark the lesson complete when you are done.</p>
         </div>

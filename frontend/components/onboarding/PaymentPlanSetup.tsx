@@ -70,22 +70,22 @@ const PaymentPlanSetup: React.FC = () => {
             <div className="max-w-6xl mx-auto">
                 <div className="text-center mb-14">
                     <h2 className="text-xs sm:text-sm font-extrabold text-violet-600 dark:text-violet-400 tracking-widest uppercase mb-2">Pricing Plans</h2>
-                    <h1 className="text-3xl sm:text-5xl font-black text-gray-900 dark:text-white mb-4 tracking-tight">Choose your learning path</h1>
-                    <p className="text-base sm:text-lg text-gray-500 dark:text-slate-400 max-w-2xl mx-auto mb-5">
+                    <h1 className="text-3xl sm:text-5xl font-black text-stone-900 dark:text-white mb-4 tracking-tight">Choose your learning path</h1>
+                    <p className="text-base sm:text-lg text-stone-500 dark:text-slate-400 max-w-2xl mx-auto mb-5">
                         Unlock your full potential with our flexible learning plans. Upgrade anytime.
                     </p>
-                    <div className="inline-flex items-center gap-1 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 p-1 rounded-xl shadow-sm text-xs font-bold">
+                    <div className="inline-flex items-center gap-1 bg-white dark:bg-night-2 p-1 rounded-[14px] text-xs font-bold">
                         <button
                             type="button"
                             onClick={() => setCurrencyPreference('USD')}
-                            className={`px-3.5 py-1.5 rounded-lg transition-all cursor-pointer ${currency === 'USD' ? 'bg-violet-600 text-white shadow' : 'text-gray-500 dark:text-slate-400 hover:text-gray-900 dark:hover:text-white'}`}
+                            className={`px-3.5 py-1.5 rounded-[12px] transition-all cursor-pointer ${currency === 'USD' ? 'bg-violet-600 text-white shadow' : 'text-stone-500 dark:text-slate-400 hover:text-stone-900 dark:hover:text-white'}`}
                         >
                             USD ($)
                         </button>
                         <button
                             type="button"
                             onClick={() => setCurrencyPreference('UGX')}
-                            className={`px-3.5 py-1.5 rounded-lg transition-all cursor-pointer ${currency === 'UGX' ? 'bg-violet-600 text-white shadow' : 'text-gray-500 dark:text-slate-400 hover:text-gray-900 dark:hover:text-white'}`}
+                            className={`px-3.5 py-1.5 rounded-[12px] transition-all cursor-pointer ${currency === 'UGX' ? 'bg-violet-600 text-white shadow' : 'text-stone-500 dark:text-slate-400 hover:text-stone-900 dark:hover:text-white'}`}
                         >
                             UGX (USh)
                         </button>
@@ -93,22 +93,22 @@ const PaymentPlanSetup: React.FC = () => {
                 </div>
 
                 {error && (
-                    <div className="max-w-2xl mx-auto bg-red-50 dark:bg-red-950/30 text-red-650 dark:text-red-400 p-4 rounded-xl mb-8 text-sm text-center">
+                    <div className="max-w-2xl mx-auto bg-red-50 dark:bg-red-950/30 text-red-650 dark:text-red-400 p-4 rounded-[14px] mb-8 text-sm text-center">
                         <AlertTriangle className="inline-block w-4 h-4 mr-1 align-middle" />️ {error}
                     </div>
                 )}
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 max-w-6xl mx-auto items-stretch">
                     {/* Basic Free Plan */}
-                    <div className="bg-white dark:bg-slate-900 rounded-[32px] p-8 shadow-xl border border-gray-150 dark:border-slate-800 flex flex-col justify-between relative overflow-hidden group hover:-translate-y-2 transition-transform duration-300">
+                    <div className="bg-white dark:bg-night-2 rounded-[32px] p-8 shadow-xl flex flex-col justify-between relative overflow-hidden group hover:-translate-y-2 transition-transform duration-300">
                         <div>
                             <div className="mb-6">
-                                <h3 className="text-2xl font-black text-gray-900 dark:text-white mb-2">Basic</h3>
-                                <p className="text-gray-500 dark:text-slate-400 text-sm">Perfect for getting started</p>
+                                <h3 className="text-2xl font-black text-stone-900 dark:text-white mb-2">Basic</h3>
+                                <p className="text-stone-500 dark:text-slate-400 text-sm">Perfect for getting started</p>
                             </div>
                             <div className="mb-8 flex items-baseline gap-2">
-                                <span className="text-5xl font-black text-gray-900 dark:text-white">$0</span>
-                                <span className="text-gray-500 dark:text-slate-400 font-semibold">/ forever</span>
+                                <span className="text-5xl font-black text-stone-900 dark:text-white">$0</span>
+                                <span className="text-stone-500 dark:text-slate-400 font-semibold">/ forever</span>
                             </div>
                             <ul className="space-y-4 mb-8">
                                 {[
@@ -116,7 +116,7 @@ const PaymentPlanSetup: React.FC = () => {
                                     'Basic community support',
                                     'Progress tracking'
                                 ].map((feature, i) => (
-                                    <li key={i} className="flex items-center gap-3 text-sm text-gray-600 dark:text-slate-300 font-semibold">
+                                    <li key={i} className="flex items-center gap-3 text-sm text-stone-600 dark:text-slate-300 font-semibold">
                                         <div className="w-6 h-6 rounded-full bg-violet-100 dark:bg-violet-900/30 flex items-center justify-center shrink-0">
                                             <Check className="w-4 h-4 text-violet-600 dark:text-violet-400" />
                                         </div>
@@ -128,7 +128,7 @@ const PaymentPlanSetup: React.FC = () => {
                         <button
                             onClick={() => handleSelectPlan('free')}
                             disabled={loading !== null}
-                            className="w-full py-4 bg-gray-100 dark:bg-slate-800 hover:bg-gray-200 dark:hover:bg-slate-700 text-gray-900 dark:text-white rounded-full text-sm font-black uppercase tracking-wider transition-colors flex items-center justify-center gap-2 cursor-pointer mt-6"
+                            className="w-full py-4 bg-stone-100 dark:bg-slate-800 hover:bg-stone-200 dark:hover:bg-slate-700 text-stone-900 dark:text-white rounded-full text-sm font-black uppercase tracking-wider transition-colors flex items-center justify-center gap-2 cursor-pointer mt-6"
                         >
                             {loading === 'free' ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Get Started Free'}
                             {loading !== 'free' && <ArrowRight className="w-4 h-4" />}
@@ -142,12 +142,12 @@ const PaymentPlanSetup: React.FC = () => {
                         </div>
                         <div>
                             <div className="mb-6">
-                                <h3 className="text-2xl font-black text-gray-900 dark:text-white mb-2">Pro</h3>
-                                <p className="text-gray-500 dark:text-slate-400 text-sm">Full monthly access for dedicated learners</p>
+                                <h3 className="text-2xl font-black text-stone-900 dark:text-white mb-2">Pro</h3>
+                                <p className="text-stone-500 dark:text-slate-400 text-sm">Full monthly access for dedicated learners</p>
                             </div>
                             <div className="mb-8 flex items-baseline gap-2">
-                                <span className="text-4xl sm:text-5xl font-black text-gray-900 dark:text-white">{formatAmount(25)}</span>
-                                <span className="text-gray-500 dark:text-slate-400 font-semibold">/ month</span>
+                                <span className="text-4xl sm:text-5xl font-black text-stone-900 dark:text-white">{formatAmount(25)}</span>
+                                <span className="text-stone-500 dark:text-slate-400 font-semibold">/ month</span>
                             </div>
                             <ul className="space-y-4 mb-8">
                                 {[
@@ -158,7 +158,7 @@ const PaymentPlanSetup: React.FC = () => {
                                     'Certificate of completion',
                                     'Cancel anytime'
                                 ].map((feature, i) => (
-                                    <li key={i} className="flex items-center gap-3 text-sm text-gray-600 dark:text-slate-300 font-semibold">
+                                    <li key={i} className="flex items-center gap-3 text-sm text-stone-600 dark:text-slate-300 font-semibold">
                                         <div className="w-6 h-6 rounded-full bg-violet-100 dark:bg-violet-900/30 flex items-center justify-center shrink-0">
                                             <Check className="w-4 h-4 text-violet-600 dark:text-violet-400" />
                                         </div>
@@ -212,7 +212,7 @@ const PaymentPlanSetup: React.FC = () => {
                         <button
                             onClick={() => handleSelectPlan('premium')}
                             disabled={loading !== null}
-                            className="w-full py-4 bg-white hover:bg-gray-50 text-violet-900 rounded-full text-sm font-black uppercase tracking-wider transition-colors shadow-lg hover:shadow-xl flex items-center justify-center gap-2 relative z-10 cursor-pointer mt-6"
+                            className="w-full py-4 bg-white hover:bg-stone-50 text-violet-900 rounded-full text-sm font-black uppercase tracking-wider transition-colors shadow-lg hover:shadow-xl flex items-center justify-center gap-2 relative z-10 cursor-pointer mt-6"
                         >
                             {loading === 'premium' ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Upgrade to Premium'}
                             {loading !== 'premium' && <ArrowRight className="w-4 h-4" />}
@@ -224,24 +224,24 @@ const PaymentPlanSetup: React.FC = () => {
                 </div>
 
                 {/* Corporate Team Banner */}
-                <div className="mt-10 max-w-6xl mx-auto p-6 rounded-3xl bg-white dark:bg-slate-900 border border-violet-200 dark:border-slate-800 shadow-xl flex flex-col md:flex-row items-center justify-between gap-6">
+                <div className="mt-10 max-w-6xl mx-auto p-6 rounded-[26px] bg-white dark:bg-night-2 border-violet-200 shadow-xl flex flex-col md:flex-row items-center justify-between gap-6">
                     <div className="flex items-center gap-4">
-                        <div className="w-14 h-14 rounded-2xl bg-violet-100 dark:bg-violet-900/40 text-violet-600 dark:text-violet-400 flex items-center justify-center shrink-0">
+                        <div className="w-14 h-14 rounded-[22px] bg-violet-100 dark:bg-violet-900/40 text-violet-600 dark:text-violet-400 flex items-center justify-center shrink-0">
                             <Building2 className="w-7 h-7" />
                         </div>
                         <div>
                             <div className="flex items-center gap-2 mb-1">
-                                <h3 className="text-lg font-black text-gray-900 dark:text-white">Looking to upskill your team?</h3>
+                                <h3 className="text-lg font-black text-stone-900 dark:text-white">Looking to upskill your team?</h3>
                                 <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-violet-100 dark:bg-violet-950/60 text-violet-700 dark:text-violet-300">CORPORATE</span>
                             </div>
-                            <p className="text-sm text-gray-500 dark:text-slate-400">
+                            <p className="text-sm text-stone-500 dark:text-slate-400">
                                 Corporate plans start at <strong>{formatAmount(20)}/seat</strong> for 10+ seats or <strong>{formatAmount(15)}/seat</strong> for 50+ people with dedicated branding, email seat invites & live progress reporting.
                             </p>
                         </div>
                     </div>
                     <button
                         onClick={() => navigate('/plans')}
-                        className="whitespace-nowrap px-6 py-3.5 bg-gradient-to-r from-violet-600 to-indigo-600 text-white rounded-full font-bold text-sm hover:shadow-lg hover:opacity-95 transition-all flex items-center gap-2 cursor-pointer"
+                        className="whitespace-nowrap px-6 py-3.5 bg-gradient-to-r from-violet-600 to-brand text-white rounded-full font-bold text-sm hover:shadow-lg hover:opacity-95 transition-all flex items-center gap-2 cursor-pointer"
                     >
                         <span>Configure Corporate Plan</span>
                         <ArrowRight className="w-4 h-4" />

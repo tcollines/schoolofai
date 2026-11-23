@@ -18,6 +18,11 @@ export default function Orb({
   backgroundColor = '#000000'
 }: OrbProps) {
   const ctnDom = useRef<HTMLDivElement>(null);
+  // Live values read by the render loop, so changing them never rebuilds the WebGL context
+  const forceRef = useRef(forceHoverState);
+  const intensityRef = useRef(hoverIntensity);
+  forceRef.current = forceHoverState;
+  intensityRef.current = hoverIntensity;
 
   const vert = /* glsl */ `
     precision highp float;
@@ -230,6 +235,8 @@ export default function Orb({
       (program.uniforms.iResolution.value as Vec3).set(gl.canvas.width, gl.canvas.height, gl.canvas.width / gl.canvas.height);
     }
     window.addEventListener('resize', resize);
+    const ro = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(resize) : null;
+    ro?.observe(container);
     resize();
 
     let targetHover = 0;
@@ -270,10 +277,10 @@ export default function Orb({
       lastTime = t;
       program.uniforms.iTime.value = t * 0.001;
       program.uniforms.hue.value = hue;
-      program.uniforms.hoverIntensity.value = hoverIntensity;
+      program.uniforms.hoverIntensity.value = intensityRef.current;
       program.uniforms.backgroundColor.value = hexToVec3(backgroundColor);
 
-      const effectiveHover = forceHoverState ? 1 : targetHover;
+      const effectiveHover = forceRef.current ? 1 : targetHover;
       program.uniforms.hover.value += (effectiveHover - program.uniforms.hover.value) * 0.1;
 
       if (rotateOnHover && effectiveHover > 0.5) {
@@ -288,13 +295,14 @@ export default function Orb({
     return () => {
       cancelAnimationFrame(rafId);
       window.removeEventListener('resize', resize);
+      ro?.disconnect();
       container.removeEventListener('mousemove', handleMouseMove);
       container.removeEventListener('mouseleave', handleMouseLeave);
       container.removeChild(gl.canvas);
       gl.getExtension('WEBGL_lose_context')?.loseContext();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [hue, hoverIntensity, rotateOnHover, forceHoverState, backgroundColor]);
+  }, [hue, rotateOnHover, backgroundColor]);
 
   return <div ref={ctnDom} className="orb-container" />;
 }

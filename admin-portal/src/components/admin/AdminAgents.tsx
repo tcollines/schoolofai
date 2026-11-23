@@ -51,17 +51,17 @@ interface AgentClient {
     registered_by?: string | null;
 }
 
-const card = 'bg-white dark:bg-slate-900 rounded-2xl border border-gray-100 dark:border-slate-800 shadow-sm';
-const input = 'w-full rounded-lg border border-gray-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500';
+const card = 'bg-white dark:bg-night-2 rounded-[22px]';
+const input = 'w-full h-11 rounded-[12px] border-2 border-transparent bg-panel dark:bg-night-3 px-3.5 text-sm focus:outline-none focus:border-brand transition-colors';
 const isMissingFn = (m: string) => /schema cache|does not exist|could not find the function/i.test(m);
 const isAuthError = (m: string) => /row-level security|permission denied|not authorized/i.test(m);
 
 const STAGE_STYLES: Record<string, string> = {
-    'Completed': 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/50 dark:text-emerald-300',
+    'Completed': 'bg-mint-soft text-emerald-800 dark:bg-emerald-950/50 dark:text-emerald-300',
     'Joined live': 'bg-sky-100 text-sky-800 dark:bg-sky-950/50 dark:text-sky-300',
     'Studying': 'bg-violet-100 text-violet-800 dark:bg-violet-950/50 dark:text-violet-300',
-    'In course': 'bg-indigo-100 text-indigo-800 dark:bg-indigo-950/50 dark:text-indigo-300',
-    'Account opened': 'bg-blue-100 text-blue-800 dark:bg-blue-950/50 dark:text-blue-300',
+    'In course': 'bg-brand-soft text-indigo-800 dark:bg-indigo-950/50 dark:text-indigo-300',
+    'Account opened': 'bg-brand-soft text-blue-800 dark:bg-blue-950/50 dark:text-blue-300',
     'Waiting to sign up': 'bg-amber-100 text-amber-800 dark:bg-amber-950/50 dark:text-amber-300',
 };
 
@@ -113,7 +113,7 @@ const MiniSparkline: React.FC<{ data: number[] }> = ({ data }) => {
                 <div
                     key={i}
                     title={`${n} registration${n === 1 ? '' : 's'}`}
-                    className={`flex-1 rounded-xs transition-all ${n > 0 ? 'bg-violet-500 dark:bg-violet-400' : 'bg-gray-200 dark:bg-slate-800'}`}
+                    className={`flex-1 rounded-xs transition-all ${n > 0 ? 'bg-brand dark:bg-violet-400' : 'bg-stone-200 dark:bg-slate-800'}`}
                     style={{ height: `${Math.max(12, Math.round((n / max) * 100))}%` }}
                 />
             ))}
@@ -349,41 +349,25 @@ const AdminAgents: React.FC = () => {
     return (
         <div className="space-y-6">
             {/* Page Header */}
-            <div className="flex flex-wrap items-start justify-between gap-3">
-                <div>
-                    <h1 className="text-2xl font-bold flex items-center gap-2">
-                        <Activity className="text-violet-600" size={24} />
-                        Agent Monitoring
-                    </h1>
-                    <p className="text-sm text-gray-500 dark:text-slate-400 mt-0.5">
-                        Live summary of every agent&apos;s registrations, account conversions, course progress, and full student roster.
-                    </p>
+            <section className="relative overflow-hidden rounded-[26px] bg-brand text-white p-6 sm:p-7 flex flex-wrap items-center justify-between gap-5">
+                <span aria-hidden="true" className="absolute -right-16 -top-24 w-[300px] h-[300px] rounded-full bg-brand-mid" />
+                <div className="relative max-w-[620px]">
+                    <p className="m-0 text-[12px] font-bold tracking-[0.12em] uppercase text-[#D9CCFF] flex items-center gap-2"><Activity size={14} />Agent monitoring</p>
+                    <h1 className="mt-2 mb-0 text-[26px] sm:text-[30px] font-extrabold tracking-[-0.02em] leading-tight">How every agent is doing</h1>
+                    <p className="mt-1.5 mb-0 text-[14px] text-[#E4DAFF]">Live summary of every agent&apos;s registrations, account conversions, course progress, and full student roster.</p>
                 </div>
-                <div className="flex flex-wrap items-center gap-2">
-                    <Link
-                        to="/staff"
-                        className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-900 hover:bg-gray-50 dark:hover:bg-slate-800"
-                    >
-                        <Handshake size={15} />
-                        Manage Staff & Links
+                <div className="relative flex flex-wrap items-center gap-2">
+                    <Link to="/staff" className="h-11 inline-flex items-center gap-2 px-4 rounded-[12px] text-[13px] font-bold bg-brand-mid text-white hover:bg-brand-light no-underline">
+                        <Handshake size={16} />Staff & links
                     </Link>
-                    <button
-                        onClick={exportSummaryCsv}
-                        disabled={filteredAgents.length === 0}
-                        className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-900 hover:bg-gray-50 dark:hover:bg-slate-800 disabled:opacity-50"
-                    >
-                        <Download size={15} />
-                        Export Summary
+                    <button onClick={exportSummaryCsv} disabled={filteredAgents.length === 0} className="h-11 inline-flex items-center gap-2 px-4 rounded-[12px] text-[13px] font-bold bg-brand-mid text-white hover:bg-brand-light disabled:opacity-50">
+                        <Download size={16} />Export CSV
                     </button>
-                    <button
-                        onClick={() => void load()}
-                        className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-semibold bg-violet-600 hover:bg-violet-700 text-white"
-                    >
-                        <RefreshCw size={15} className={loading ? 'animate-spin' : ''} />
-                        Refresh
+                    <button onClick={() => void load()} className="h-11 inline-flex items-center gap-2 px-4 rounded-[12px] text-[13px] font-bold bg-white text-brand">
+                        <RefreshCw size={16} className={loading ? 'animate-spin' : ''} />Refresh
                     </button>
                 </div>
-            </div>
+            </section>
 
             {missingDb && <MissingDbNotice />}
             {needsAuth && <AdminAuthPrompt onSignedIn={() => { setNeedsAuth(false); setError(null); void load(); }} />}
@@ -391,64 +375,28 @@ const AdminAgents: React.FC = () => {
 
             {/* KPI Summary Cards */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-                <div className={`${card} p-4`}>
-                    <div className="flex items-center justify-between">
-                        <span className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-slate-400">Active Agents</span>
-                        <span className="w-8 h-8 rounded-lg flex items-center justify-center text-violet-600 bg-violet-50 dark:bg-violet-950/40">
-                            <Handshake size={16} />
-                        </span>
+                {[
+                    { label: 'Active agents', value: totals.activeAgents, sub: `${totals.agentsWithStudents} with registered students · ${agents.length} total`, icon: Handshake, tone: 'bg-brand-soft text-brand dark:bg-night-3 dark:text-violet-300', box: `${card}` },
+                    { label: 'Registered students', value: totals.registered, sub: `${totals.today} today · ${totals.week} in last 7 days`, icon: UserPlus, tone: 'bg-brand-soft text-brand dark:bg-night-3 dark:text-violet-300', box: `${card}` },
+                    { label: 'Accounts opened', value: totals.accounts, sub: `${overallConversion}% converted · ${totals.waiting} waiting to sign up`, icon: UserCheck, tone: 'bg-mint-soft text-mint', box: `${card}` },
+                    { label: 'Studying & certified', value: totals.recorded, sub: `${totals.live} joined live · ${totals.completed} completed`, icon: GraduationCap, tone: 'bg-white/70 text-night', box: 'bg-lime-200 text-night rounded-[22px]' },
+                ].map(k => (
+                    <div key={k.label} className={`${k.box} p-5`}>
+                        <div className="flex items-center justify-between">
+                            <span className={`text-[12px] font-bold ${k.box.includes('lime') ? 'text-lime-900' : 'text-stone-500 dark:text-slate-400'}`}>{k.label}</span>
+                            <span className={`w-9 h-9 rounded-[11px] flex items-center justify-center ${k.tone}`}><k.icon size={17} /></span>
+                        </div>
+                        <p className="m-0 text-[32px] font-extrabold tracking-[-0.02em] mt-2 tabular-nums">{k.value}</p>
+                        <p className={`m-0 text-[12px] mt-1 ${k.box.includes('lime') ? 'text-lime-900' : 'text-stone-500 dark:text-slate-400'}`}>{k.sub}</p>
                     </div>
-                    <p className="text-3xl font-extrabold mt-2">{totals.activeAgents}</p>
-                    <p className="text-xs text-gray-500 dark:text-slate-400 mt-1">
-                        {totals.agentsWithStudents} with registered students · {agents.length} total
-                    </p>
-                </div>
-
-                <div className={`${card} p-4`}>
-                    <div className="flex items-center justify-between">
-                        <span className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-slate-400">Registered Students</span>
-                        <span className="w-8 h-8 rounded-lg flex items-center justify-center text-blue-600 bg-blue-50 dark:bg-blue-950/40">
-                            <UserPlus size={16} />
-                        </span>
-                    </div>
-                    <p className="text-3xl font-extrabold mt-2">{totals.registered}</p>
-                    <p className="text-xs text-gray-500 dark:text-slate-400 mt-1">
-                        {totals.today} today · {totals.week} in last 7 days
-                    </p>
-                </div>
-
-                <div className={`${card} p-4`}>
-                    <div className="flex items-center justify-between">
-                        <span className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-slate-400">Accounts Opened</span>
-                        <span className="w-8 h-8 rounded-lg flex items-center justify-center text-emerald-600 bg-emerald-50 dark:bg-emerald-950/40">
-                            <UserCheck size={16} />
-                        </span>
-                    </div>
-                    <p className="text-3xl font-extrabold mt-2">{totals.accounts}</p>
-                    <p className="text-xs text-gray-500 dark:text-slate-400 mt-1">
-                        {overallConversion}% converted · {totals.waiting} waiting to sign up
-                    </p>
-                </div>
-
-                <div className={`${card} p-4`}>
-                    <div className="flex items-center justify-between">
-                        <span className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-slate-400">Studying & Certified</span>
-                        <span className="w-8 h-8 rounded-lg flex items-center justify-center text-amber-600 bg-amber-50 dark:bg-amber-950/40">
-                            <GraduationCap size={16} />
-                        </span>
-                    </div>
-                    <p className="text-3xl font-extrabold mt-2">{totals.recorded}</p>
-                    <p className="text-xs text-gray-500 dark:text-slate-400 mt-1">
-                        {totals.live} joined live · {totals.completed} completed
-                    </p>
-                </div>
+                ))}
             </div>
 
             {/* Filter & Controls Bar */}
             <div className={`${card} p-4 flex flex-wrap items-center justify-between gap-3`}>
                 <div className="flex flex-wrap items-center gap-2 flex-1 min-w-[220px]">
                     <div className="relative flex-1 min-w-[200px] max-w-xs">
-                        <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                        <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-stone-400" />
                         <input
                             value={search}
                             onChange={e => setSearch(e.target.value)}
@@ -456,12 +404,12 @@ const AdminAgents: React.FC = () => {
                             className={`${input} pl-9`}
                         />
                     </div>
-                    <div className="inline-flex rounded-lg border border-gray-300 dark:border-slate-700 overflow-hidden text-xs font-semibold" role="group" aria-label="Agent filter">
+                    <div className="inline-flex p-1 gap-1 rounded-[14px] bg-panel dark:bg-night-3 text-xs font-bold" role="group" aria-label="Agent filter">
                         {([['all', 'All'], ['with_students', 'With students'], ['active', 'Active']] as const).map(([val, label]) => (
                             <button
                                 key={val}
                                 onClick={() => setStatusFilter(val)}
-                                className={`px-3 py-2 ${statusFilter === val ? 'bg-violet-600 text-white' : 'bg-white dark:bg-slate-900 text-gray-700 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-slate-800'}`}
+                                className={`h-9 px-3.5 rounded-[10px] ${statusFilter === val ? 'bg-brand text-white' : 'text-stone-600 dark:text-slate-300 hover:text-brand'}`}
                             >
                                 {label}
                             </button>
@@ -470,13 +418,13 @@ const AdminAgents: React.FC = () => {
                 </div>
 
                 <div className="flex flex-wrap items-center gap-2">
-                    <div className="inline-flex rounded-lg border border-gray-300 dark:border-slate-700 overflow-hidden text-xs font-semibold" role="group" aria-label="Time period">
+                    <div className="inline-flex p-1 gap-1 rounded-[14px] bg-panel dark:bg-night-3 text-xs font-bold" role="group" aria-label="Time period">
                         {([[7, '7 days'], [30, '30 days'], [null, 'All time']] as [number | null, string][]).map(([d, l]) => (
                             <button
                                 key={l}
                                 onClick={() => setDays(d)}
                                 aria-pressed={days === d}
-                                className={`px-3 py-2 ${days === d ? 'bg-violet-600 text-white' : 'bg-white dark:bg-slate-900 text-gray-700 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-slate-800'}`}
+                                className={`h-9 px-3.5 rounded-[10px] ${days === d ? 'bg-brand text-white' : 'text-stone-600 dark:text-slate-300 hover:text-brand'}`}
                             >
                                 {l}
                             </button>
@@ -486,7 +434,7 @@ const AdminAgents: React.FC = () => {
                         value={sortBy}
                         onChange={e => setSortBy(e.target.value as any)}
                         aria-label="Sort agents by"
-                        className="rounded-lg border border-gray-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-2.5 py-2 text-xs font-semibold"
+                        className="h-11 rounded-[12px] border-0 bg-panel dark:bg-night-3 px-3 text-xs font-bold"
                     >
                         <option value="registered">Most registered</option>
                         <option value="today">Most today</option>
@@ -500,31 +448,31 @@ const AdminAgents: React.FC = () => {
 
             {/* Agents Summary Table */}
             <div className={`${card} overflow-hidden`}>
-                <div className="px-5 py-4 border-b border-gray-100 dark:border-slate-800 flex items-center justify-between gap-2">
+                <div className="px-5 py-4 border-b border-stone-100 dark:border-slate-800 flex items-center justify-between gap-2">
                     <div>
                         <h2 className="font-bold text-base">Agents Summary</h2>
-                        <p className="text-xs text-gray-500 dark:text-slate-400">
+                        <p className="text-xs text-stone-500 dark:text-slate-400">
                             Click any agent to inspect their full student roster, locations, and funnel breakdown.
                         </p>
                     </div>
-                    <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-gray-100 dark:bg-slate-800 text-gray-600 dark:text-slate-300">
+                    <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-stone-100 dark:bg-slate-800 text-stone-600 dark:text-slate-300">
                         {filteredAgents.length} {filteredAgents.length === 1 ? 'agent' : 'agents'}
                     </span>
                 </div>
 
                 {loading && agents.length === 0 ? (
-                    <div className="p-8 flex items-center justify-center gap-2 text-gray-500">
+                    <div className="p-8 flex items-center justify-center gap-2 text-stone-500">
                         <Loader2 className="animate-spin" size={18} /> Loading agent performance...
                     </div>
                 ) : filteredAgents.length === 0 ? (
-                    <div className="p-8 text-center text-sm text-gray-500">
+                    <div className="p-8 text-center text-sm text-stone-500">
                         No agents match the current filter.
                     </div>
                 ) : (
                     <div className="overflow-x-auto">
                         <table className="w-full text-sm">
                             <thead>
-                                <tr className="text-left text-xs uppercase tracking-wider text-gray-500 dark:text-slate-400 bg-gray-50/70 dark:bg-slate-800/40">
+                                <tr className="text-left text-xs uppercase tracking-wider text-stone-500 dark:text-slate-400 bg-panel dark:bg-night-3/50">
                                     <th className="py-3 px-4">Agent</th>
                                     <th className="py-3 px-3 text-right">Registered</th>
                                     <th className="py-3 px-3 text-right">Waiting</th>
@@ -536,7 +484,7 @@ const AdminAgents: React.FC = () => {
                                     <th className="py-3 px-4 text-right">Details</th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-gray-100 dark:divide-slate-800">
+                            <tbody className="divide-y divide-stone-100 dark:divide-slate-800">
                                 {filteredAgents.map(a => {
                                     const isSelected = selectedAgentId === a.id;
                                     const waitingCount = a.waiting ?? Math.max(0, a.registered - a.accounts);
@@ -548,8 +496,8 @@ const AdminAgents: React.FC = () => {
                                             onClick={() => toggleSelectAgent(a.id)}
                                             className={`cursor-pointer transition-colors ${
                                                 isSelected
-                                                    ? 'bg-violet-50/80 dark:bg-violet-950/30'
-                                                    : 'hover:bg-gray-50 dark:hover:bg-slate-800/40'
+                                                    ? 'bg-brand-soft dark:bg-night-3'
+                                                    : 'hover:bg-stone-50 dark:hover:bg-slate-800/40'
                                             } ${a.active ? '' : 'opacity-60'}`}
                                         >
                                             <td className="py-3.5 px-4">
@@ -557,56 +505,56 @@ const AdminAgents: React.FC = () => {
                                                     <div className={`w-9 h-9 rounded-full flex items-center justify-center font-bold text-xs shrink-0 ${
                                                         a.registered > 0
                                                             ? 'bg-violet-100 text-violet-700 dark:bg-violet-950/60 dark:text-violet-300'
-                                                            : 'bg-gray-100 text-gray-600 dark:bg-slate-800 dark:text-slate-400'
+                                                            : 'bg-stone-100 text-stone-600 dark:bg-slate-800 dark:text-slate-400'
                                                     }`}>
                                                         {a.name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase()}
                                                     </div>
                                                     <div className="min-w-0">
                                                         <div className="flex items-center gap-1.5">
-                                                            <p className="font-semibold text-gray-900 dark:text-white truncate">{a.name}</p>
+                                                            <p className="font-semibold text-stone-900 dark:text-white truncate">{a.name}</p>
                                                             {!a.active && (
-                                                                <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-gray-200 dark:bg-slate-700 text-gray-600 dark:text-slate-300">
+                                                                <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-stone-200 dark:bg-slate-700 text-stone-600 dark:text-slate-300">
                                                                     Inactive
                                                                 </span>
                                                             )}
                                                         </div>
-                                                        <p className="text-xs text-gray-500 dark:text-slate-400 truncate">
+                                                        <p className="text-xs text-stone-500 dark:text-slate-400 truncate">
                                                             {[a.email, a.staff_code, a.role].filter(Boolean).join(' · ')}
                                                         </p>
                                                     </div>
                                                 </div>
                                             </td>
                                             <td className="py-3.5 px-3 text-right whitespace-nowrap">
-                                                <span className="text-base font-extrabold text-gray-900 dark:text-white">{a.registered}</span>
+                                                <span className="text-base font-extrabold text-stone-900 dark:text-white">{a.registered}</span>
                                                 {(a.registered_today || 0) > 0 && (
-                                                    <span className="ml-1.5 inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 dark:bg-emerald-950/50 dark:text-emerald-300">
+                                                    <span className="ml-1.5 inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-mint-soft text-emerald-800 dark:bg-emerald-950/50 dark:text-emerald-300">
                                                         +{a.registered_today} today
                                                     </span>
                                                 )}
                                             </td>
                                             <td className="py-3.5 px-3 text-right whitespace-nowrap">
-                                                <span className={`font-semibold ${waitingCount > 0 ? 'text-amber-700 dark:text-amber-400' : 'text-gray-400'}`}>
+                                                <span className={`font-semibold ${waitingCount > 0 ? 'text-amber-700 dark:text-amber-400' : 'text-stone-400'}`}>
                                                     {waitingCount}
                                                 </span>
                                             </td>
                                             <td className="py-3.5 px-3 text-right whitespace-nowrap">
-                                                <span className="font-bold text-gray-900 dark:text-white">{a.accounts}</span>
+                                                <span className="font-bold text-stone-900 dark:text-white">{a.accounts}</span>
                                                 {totalStudents > 0 && (
-                                                    <span className="block text-[11px] text-gray-500 dark:text-slate-400">{convPct}%</span>
+                                                    <span className="block text-[11px] text-stone-500 dark:text-slate-400">{convPct}%</span>
                                                 )}
                                             </td>
                                             <td className="py-3.5 px-3 text-right whitespace-nowrap">
                                                 <span className="font-semibold text-violet-700 dark:text-violet-300">{a.recorded}</span>
                                             </td>
                                             <td className="py-3.5 px-3 text-right whitespace-nowrap">
-                                                <span className="text-xs text-gray-600 dark:text-slate-300">
-                                                    {a.live} live · <b className="text-emerald-700 dark:text-emerald-400">{a.completed}</b> cert
+                                                <span className="text-xs text-stone-600 dark:text-slate-300">
+                                                    {a.live} live · <b className="text-mint dark:text-emerald-400">{a.completed}</b> cert
                                                 </span>
                                             </td>
                                             <td className="py-3.5 px-3 hidden md:table-cell">
                                                 <MiniSparkline data={a.daily_registered || a.daily || []} />
                                             </td>
-                                            <td className="py-3.5 px-3 hidden lg:table-cell whitespace-nowrap text-xs text-gray-500 dark:text-slate-400">
+                                            <td className="py-3.5 px-3 hidden lg:table-cell whitespace-nowrap text-xs text-stone-500 dark:text-slate-400">
                                                 <span className="inline-flex items-center gap-1">
                                                     <Clock size={12} />
                                                     {timeAgo(a.last_activity_at)}
@@ -619,10 +567,10 @@ const AdminAgents: React.FC = () => {
                                                         e.stopPropagation();
                                                         toggleSelectAgent(a.id);
                                                     }}
-                                                    className={`inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-semibold border transition-colors ${
+                                                    className={`inline-flex items-center gap-1 px-2.5 py-1.5 rounded-[12px] text-xs font-semibold border transition-colors ${
                                                         isSelected
-                                                            ? 'bg-violet-600 text-white border-violet-600'
-                                                            : 'border-gray-200 dark:border-slate-700 hover:bg-gray-100 dark:hover:bg-slate-800'
+                                                            ? 'bg-brand text-white border-violet-600'
+                                                            : 'border-stone-200 dark:border-slate-700 hover:bg-stone-100 dark:hover:bg-slate-800'
                                                     }`}
                                                 >
                                                     {isSelected ? (
@@ -643,8 +591,8 @@ const AdminAgents: React.FC = () => {
 
             {/* Selected Agent Detailed Breakdown & Full Student Roster */}
             {selectedAgent && (
-                <div className={`${card} p-5 space-y-5 ring-2 ring-violet-500/30`}>
-                    <div className="flex flex-wrap items-start justify-between gap-3 border-b border-gray-100 dark:border-slate-800 pb-4">
+                <div className={`${card} p-5 sm:p-6 space-y-5 ring-2 ring-brand/30`}>
+                    <div className="flex flex-wrap items-start justify-between gap-3 border-b border-stone-100 dark:border-slate-800 pb-4">
                         <div>
                             <div className="flex flex-wrap items-center gap-2">
                                 <h2 className="text-xl font-bold">{selectedAgent.name}</h2>
@@ -654,24 +602,24 @@ const AdminAgents: React.FC = () => {
                                     </span>
                                 )}
                                 {selectedAgent.role && (
-                                    <span className="text-xs text-gray-500 dark:text-slate-400">{selectedAgent.role}</span>
+                                    <span className="text-xs text-stone-500 dark:text-slate-400">{selectedAgent.role}</span>
                                 )}
                             </div>
-                            <p className="text-xs text-gray-500 dark:text-slate-400 mt-1">
+                            <p className="text-xs text-stone-500 dark:text-slate-400 mt-1">
                                 {[selectedAgent.email, selectedAgent.phone, `Last activity: ${timeAgo(selectedAgent.last_activity_at)}`].filter(Boolean).join(' · ')}
                             </p>
                         </div>
                         <div className="flex flex-wrap items-center gap-2">
                             <button
                                 onClick={() => copyText(`${origin}/join/${selectedAgent.slug}`, `join-${selectedAgent.id}`)}
-                                className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium border border-gray-200 dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-800"
+                                className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-[12px] text-xs font-medium border border-stone-200 dark:border-slate-700 hover:bg-stone-50 dark:hover:bg-slate-800"
                             >
                                 {copiedKey === `join-${selectedAgent.id}` ? <><Check size={13} /> Copied sign-up link</> : <><Copy size={13} /> Copy /join/{selectedAgent.slug}</>}
                             </button>
                             <button
                                 onClick={exportAgentClientsCsv}
                                 disabled={!clients || clients.length === 0}
-                                className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium border border-gray-200 dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-800 disabled:opacity-50"
+                                className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-[12px] text-xs font-medium border border-stone-200 dark:border-slate-700 hover:bg-stone-50 dark:hover:bg-slate-800 disabled:opacity-50"
                             >
                                 <Download size={13} />
                                 Export Students CSV
@@ -679,7 +627,7 @@ const AdminAgents: React.FC = () => {
                             <button
                                 onClick={() => toggleSelectAgent(selectedAgent.id)}
                                 aria-label="Close agent details"
-                                className="p-1.5 rounded-lg border border-gray-200 dark:border-slate-700 hover:bg-gray-100 dark:hover:bg-slate-800"
+                                className="p-1.5 rounded-[12px] border border-stone-200 dark:border-slate-700 hover:bg-stone-100 dark:hover:bg-slate-800"
                             >
                                 <X size={15} />
                             </button>
@@ -689,14 +637,14 @@ const AdminAgents: React.FC = () => {
                     {/* Agent Metrics + Trend + Locations */}
                     <div className="grid lg:grid-cols-3 gap-4">
                         {/* Funnel Bars */}
-                        <div className="rounded-xl border border-gray-100 dark:border-slate-800 p-4 space-y-2.5">
-                            <h3 className="text-xs font-bold uppercase tracking-wide text-gray-500 dark:text-slate-400 flex items-center gap-1.5">
-                                <TrendingUp size={14} className="text-violet-600" /> Conversion Funnel
+                        <div className="rounded-[18px] bg-panel dark:bg-night-3/60 p-4 space-y-2.5">
+                            <h3 className="text-xs font-bold uppercase tracking-wide text-stone-500 dark:text-slate-400 flex items-center gap-1.5">
+                                <TrendingUp size={14} className="text-brand" /> Conversion Funnel
                             </h3>
                             {(() => {
                                 const maxVal = Math.max(1, selectedAgent.registered, selectedAgent.accounts, selectedAgent.total_students || 0);
                                 const bars: [string, number, string][] = [
-                                    ['Registered by agent', selectedAgent.registered, 'bg-violet-600'],
+                                    ['Registered by agent', selectedAgent.registered, 'bg-brand'],
                                     ['Waiting to sign up', selectedAgent.waiting ?? Math.max(0, selectedAgent.registered - selectedAgent.accounts), 'bg-amber-500'],
                                     ['Accounts opened', selectedAgent.accounts, 'bg-blue-500'],
                                     ['In free course', selectedAgent.enrolled, 'bg-indigo-500'],
@@ -707,10 +655,10 @@ const AdminAgents: React.FC = () => {
                                 return bars.map(([label, n, color]) => (
                                     <div key={label}>
                                         <div className="flex justify-between text-xs">
-                                            <span className="text-gray-600 dark:text-slate-300">{label}</span>
+                                            <span className="text-stone-600 dark:text-slate-300">{label}</span>
                                             <span className="font-bold">{n}</span>
                                         </div>
-                                        <div className="h-1.5 rounded-full bg-gray-100 dark:bg-slate-800 mt-1">
+                                        <div className="h-1.5 rounded-full bg-stone-100 dark:bg-slate-800 mt-1">
                                             <div className={`h-1.5 rounded-full ${color}`} style={{ width: `${Math.min(100, (n / maxVal) * 100)}%` }} />
                                         </div>
                                     </div>
@@ -719,13 +667,13 @@ const AdminAgents: React.FC = () => {
                         </div>
 
                         {/* 14-day Registrations Trend */}
-                        <div className="rounded-xl border border-gray-100 dark:border-slate-800 p-4 flex flex-col justify-between">
+                        <div className="rounded-[18px] bg-panel dark:bg-night-3/60 p-4 flex flex-col justify-between">
                             <div>
-                                <h3 className="text-xs font-bold uppercase tracking-wide text-gray-500 dark:text-slate-400 flex items-center gap-1.5">
-                                    <Users size={14} className="text-violet-600" /> Daily Registrations (Last 14 Days)
+                                <h3 className="text-xs font-bold uppercase tracking-wide text-stone-500 dark:text-slate-400 flex items-center gap-1.5">
+                                    <Users size={14} className="text-brand" /> Daily Registrations (Last 14 Days)
                                 </h3>
-                                <p className="text-xs text-gray-500 dark:text-slate-400 mt-1">
-                                    Today: <b className="text-gray-900 dark:text-white">{selectedAgent.registered_today ?? 0}</b> · Last 7d: <b className="text-gray-900 dark:text-white">{selectedAgent.registered_7d ?? 0}</b> · Points: <b className="text-violet-600">{selectedAgent.points ?? 0}</b>
+                                <p className="text-xs text-stone-500 dark:text-slate-400 mt-1">
+                                    Today: <b className="text-stone-900 dark:text-white">{selectedAgent.registered_today ?? 0}</b> · Last 7d: <b className="text-stone-900 dark:text-white">{selectedAgent.registered_7d ?? 0}</b> · Points: <b className="text-brand">{selectedAgent.points ?? 0}</b>
                                 </p>
                             </div>
                             {(() => {
@@ -738,7 +686,7 @@ const AdminAgents: React.FC = () => {
                                                 {n > 0 && <span className="text-[10px] font-bold text-violet-700 dark:text-violet-300">{n}</span>}
                                                 <div
                                                     title={`${n} registration${n === 1 ? '' : 's'}`}
-                                                    className={`w-full rounded-t-sm ${n > 0 ? 'bg-violet-500 dark:bg-violet-400' : 'bg-gray-100 dark:bg-slate-800'}`}
+                                                    className={`w-full rounded-t-sm ${n > 0 ? 'bg-brand dark:bg-violet-400' : 'bg-stone-100 dark:bg-slate-800'}`}
                                                     style={{ height: `${Math.max(6, Math.round((n / maxD) * 82))}%` }}
                                                 />
                                             </div>
@@ -746,17 +694,17 @@ const AdminAgents: React.FC = () => {
                                     </div>
                                 );
                             })()}
-                            <p className="text-[11px] text-gray-400 mt-2 flex justify-between">
+                            <p className="text-[11px] text-stone-400 mt-2 flex justify-between">
                                 <span>14 days ago</span>
                                 <span>Today</span>
                             </p>
                         </div>
 
                         {/* Top Locations & Programmes */}
-                        <div className="rounded-xl border border-gray-100 dark:border-slate-800 p-4 space-y-4">
+                        <div className="rounded-[18px] bg-panel dark:bg-night-3/60 p-4 space-y-4">
                             <div>
-                                <h3 className="text-xs font-bold uppercase tracking-wide text-gray-500 dark:text-slate-400 flex items-center gap-1.5">
-                                    <MapPin size={14} className="text-violet-600" /> Top Locations
+                                <h3 className="text-xs font-bold uppercase tracking-wide text-stone-500 dark:text-slate-400 flex items-center gap-1.5">
+                                    <MapPin size={14} className="text-brand" /> Top Locations
                                 </h3>
                                 {selectedAgent.by_location && Object.keys(selectedAgent.by_location).length > 0 ? (
                                     <div className="flex flex-wrap gap-1.5 mt-2.5">
@@ -765,19 +713,19 @@ const AdminAgents: React.FC = () => {
                                             .map(([loc, count]) => (
                                                 <span
                                                     key={loc}
-                                                    className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100 dark:bg-slate-800 text-gray-700 dark:text-slate-200"
+                                                    className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-stone-100 dark:bg-slate-800 text-stone-700 dark:text-slate-200"
                                                 >
                                                     {loc} <b className="text-violet-700 dark:text-violet-300">{count}</b>
                                                 </span>
                                             ))}
                                     </div>
                                 ) : (
-                                    <p className="text-xs text-gray-400 mt-2">No location data yet.</p>
+                                    <p className="text-xs text-stone-400 mt-2">No location data yet.</p>
                                 )}
                             </div>
-                            <div className="border-t border-gray-100 dark:border-slate-800 pt-3">
-                                <h3 className="text-xs font-bold uppercase tracking-wide text-gray-500 dark:text-slate-400 flex items-center gap-1.5">
-                                    <BookOpen size={14} className="text-violet-600" /> Programmes Registered
+                            <div className="border-t border-stone-100 dark:border-slate-800 pt-3">
+                                <h3 className="text-xs font-bold uppercase tracking-wide text-stone-500 dark:text-slate-400 flex items-center gap-1.5">
+                                    <BookOpen size={14} className="text-brand" /> Programmes Registered
                                 </h3>
                                 {selectedAgent.by_course && Object.keys(selectedAgent.by_course).length > 0 ? (
                                     <ul className="mt-2 space-y-1 text-xs">
@@ -785,13 +733,13 @@ const AdminAgents: React.FC = () => {
                                             .sort((a, b) => b[1] - a[1])
                                             .map(([course, count]) => (
                                                 <li key={course} className="flex justify-between">
-                                                    <span className="text-gray-700 dark:text-slate-300 truncate pr-2">{course}</span>
+                                                    <span className="text-stone-700 dark:text-slate-300 truncate pr-2">{course}</span>
                                                     <span className="font-bold">{count}</span>
                                                 </li>
                                             ))}
                                     </ul>
                                 ) : (
-                                    <p className="text-xs text-gray-400 mt-2">No course registrations yet.</p>
+                                    <p className="text-xs text-stone-400 mt-2">No course registrations yet.</p>
                                 )}
                             </div>
                         </div>
@@ -807,12 +755,12 @@ const AdminAgents: React.FC = () => {
                                 </h3>
                             </div>
                             <div className="relative w-full sm:w-64">
-                                <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                                <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-stone-400" />
                                 <input
                                     value={clientSearch}
                                     onChange={e => setClientSearch(e.target.value)}
                                     placeholder="Filter students..."
-                                    className={`${input} pl-8 !py-1.5 text-xs`}
+                                    className={`${input} pl-9 !h-10 text-xs`}
                                 />
                             </div>
                         </div>
@@ -824,8 +772,8 @@ const AdminAgents: React.FC = () => {
                                     onClick={() => setClientStage('all')}
                                     className={`px-2.5 py-1 rounded-full text-xs font-semibold border ${
                                         clientStage === 'all'
-                                            ? 'bg-violet-600 text-white border-violet-600'
-                                            : 'border-gray-200 dark:border-slate-700 text-gray-600 dark:text-slate-300'
+                                            ? 'bg-brand text-white border-violet-600'
+                                            : 'border-stone-200 dark:border-slate-700 text-stone-600 dark:text-slate-300'
                                     }`}
                                 >
                                     All ({clients.length})
@@ -839,8 +787,8 @@ const AdminAgents: React.FC = () => {
                                             onClick={() => setClientStage(st)}
                                             className={`px-2.5 py-1 rounded-full text-xs font-semibold border ${
                                                 clientStage === st
-                                                    ? 'bg-violet-600 text-white border-violet-600'
-                                                    : 'border-gray-200 dark:border-slate-700 text-gray-600 dark:text-slate-300'
+                                                    ? 'bg-brand text-white border-violet-600'
+                                                    : 'border-stone-200 dark:border-slate-700 text-stone-600 dark:text-slate-300'
                                             }`}
                                         >
                                             {st} ({count})
@@ -851,18 +799,18 @@ const AdminAgents: React.FC = () => {
                         )}
 
                         {clientsLoading || clients === null ? (
-                            <div className="py-6 flex items-center gap-2 text-sm text-gray-500">
+                            <div className="py-6 flex items-center gap-2 text-sm text-stone-500">
                                 <Loader2 className="animate-spin" size={16} /> Loading students...
                             </div>
                         ) : filteredClients.length === 0 ? (
-                            <p className="py-6 text-sm text-gray-500">
+                            <p className="py-6 text-sm text-stone-500">
                                 {clients.length === 0 ? 'No students registered by this agent in this period.' : 'No students match your search.'}
                             </p>
                         ) : (
-                            <div className="overflow-x-auto rounded-xl border border-gray-100 dark:border-slate-800">
+                            <div className="overflow-x-auto rounded-[14px] border border-stone-100 dark:border-slate-800">
                                 <table className="w-full text-sm">
                                     <thead>
-                                        <tr className="text-left text-xs uppercase text-gray-500 dark:text-slate-400 bg-gray-50/80 dark:bg-slate-800/40">
+                                        <tr className="text-left text-xs uppercase text-stone-500 dark:text-slate-400 bg-panel dark:bg-night-3/50">
                                             <th className="py-2.5 px-3">Date</th>
                                             <th className="py-2.5 px-3">Student</th>
                                             <th className="py-2.5 px-3">Contact</th>
@@ -872,30 +820,30 @@ const AdminAgents: React.FC = () => {
                                             <th className="py-2.5 px-3 text-right">Stage</th>
                                         </tr>
                                     </thead>
-                                    <tbody className="divide-y divide-gray-100 dark:divide-slate-800">
+                                    <tbody className="divide-y divide-stone-100 dark:divide-slate-800">
                                         {filteredClients.map((c, idx) => (
-                                            <tr key={`${c.phone || c.email || c.name}-${idx}`} className="hover:bg-gray-50/60 dark:hover:bg-slate-800/30">
-                                                <td className="py-2.5 px-3 whitespace-nowrap text-xs text-gray-500 dark:text-slate-400">
+                                            <tr key={`${c.phone || c.email || c.name}-${idx}`} className="hover:bg-stone-50/60 dark:hover:bg-slate-800/30">
+                                                <td className="py-2.5 px-3 whitespace-nowrap text-xs text-stone-500 dark:text-slate-400">
                                                     {formatEatDate(c.joined)}
                                                 </td>
-                                                <td className="py-2.5 px-3 font-medium text-gray-900 dark:text-white">
+                                                <td className="py-2.5 px-3 font-medium text-stone-900 dark:text-white">
                                                     {c.name || '(no name)'}
                                                 </td>
-                                                <td className="py-2.5 px-3 text-xs text-gray-600 dark:text-slate-300">
+                                                <td className="py-2.5 px-3 text-xs text-stone-600 dark:text-slate-300">
                                                     {c.phone && <div className="font-mono">{c.phone}</div>}
-                                                    {c.email && <div className="text-gray-500 dark:text-slate-400 truncate max-w-[200px]">{c.email}</div>}
+                                                    {c.email && <div className="text-stone-500 dark:text-slate-400 truncate max-w-[200px]">{c.email}</div>}
                                                 </td>
-                                                <td className="py-2.5 px-3 text-xs text-gray-600 dark:text-slate-300">
+                                                <td className="py-2.5 px-3 text-xs text-stone-600 dark:text-slate-300">
                                                     {c.location || '—'}
                                                 </td>
-                                                <td className="py-2.5 px-3 text-xs text-gray-600 dark:text-slate-300 hidden sm:table-cell">
+                                                <td className="py-2.5 px-3 text-xs text-stone-600 dark:text-slate-300 hidden sm:table-cell">
                                                     {c.course || 'AI Fundamentals (free)'}
                                                 </td>
-                                                <td className="py-2.5 px-3 text-xs font-medium text-gray-700 dark:text-slate-200 hidden md:table-cell">
+                                                <td className="py-2.5 px-3 text-xs font-medium text-stone-700 dark:text-slate-200 hidden md:table-cell">
                                                     {c.registered_by || selectedAgent.name}
                                                 </td>
                                                 <td className="py-2.5 px-3 text-right whitespace-nowrap">
-                                                    <span className={`inline-block text-xs font-semibold px-2.5 py-0.5 rounded-full ${STAGE_STYLES[c.stage] || 'bg-gray-100 text-gray-800'}`}>
+                                                    <span className={`inline-block text-xs font-semibold px-2.5 py-0.5 rounded-full ${STAGE_STYLES[c.stage] || 'bg-stone-100 text-stone-800'}`}>
                                                         {c.stage}
                                                     </span>
                                                 </td>

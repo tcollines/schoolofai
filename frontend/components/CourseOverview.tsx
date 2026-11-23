@@ -110,11 +110,11 @@ const CourseOverview: React.FC<CourseOverviewProps> = ({ courses, onEnroll, onUn
                 <div className="w-20 h-20 bg-stone-100 dark:bg-slate-800 rounded-full flex items-center justify-center mb-6">
                     <BookOpen size={32} className="text-stone-500 dark:text-slate-500" />
                 </div>
-                <h2 className="text-2xl font-semibold text-stone-900 dark:text-white mb-2 font-serif">Course Not Found</h2>
+                <h2 className="text-2xl font-extrabold text-stone-900 dark:text-white mb-2 tracking-[-0.02em]">Course Not Found</h2>
                 <p className="text-stone-600 dark:text-slate-400 mb-6 max-w-md">We couldn't find the course you're looking for. It might have been removed or the URL is incorrect.</p>
                 <button 
                     onClick={() => navigate('/discover')}
-                    className="px-6 py-3 bg-stone-900 dark:bg-white hover:bg-violet-800 text-white dark:text-stone-900 font-bold rounded-xl transition-colors"
+                    className="px-6 py-3 bg-stone-900 dark:bg-white hover:bg-brand-mid text-white dark:text-stone-900 font-bold rounded-[14px] transition-colors"
                 >
                     Back to Discover
                 </button>
@@ -138,7 +138,7 @@ const CourseOverview: React.FC<CourseOverviewProps> = ({ courses, onEnroll, onUn
             </button>
 
             {/* Hero Section */}
-            <div className="bg-white dark:bg-slate-900 rounded-2xl overflow-hidden border border-stone-100 dark:border-slate-800 shadow-sm">
+            <div className="bg-white dark:bg-night-2 rounded-[22px] overflow-hidden">
                 <div className="relative h-64 md:h-80 lg:h-96 w-full">
                     <img 
                         src={course.image} 
@@ -163,7 +163,7 @@ const CourseOverview: React.FC<CourseOverviewProps> = ({ courses, onEnroll, onUn
                                 </span>
                             )}
                         </div>
-                        <h1 className="text-3xl md:text-4xl lg:text-5xl font-semibold text-white mb-4 leading-tight font-serif">
+                        <h1 className="text-3xl md:text-4xl lg:text-5xl font-extrabold text-white mb-4 leading-tight tracking-[-0.02em]">
                             {course.title}
                         </h1>
                         <p className="text-stone-200 md:text-lg max-w-2xl">
@@ -177,7 +177,7 @@ const CourseOverview: React.FC<CourseOverviewProps> = ({ courses, onEnroll, onUn
                 <div className="flex flex-col md:flex-row items-center justify-between p-6 md:p-8 bg-white dark:bg-slate-900 gap-6">
                     <div className="flex flex-wrap items-center gap-6 md:gap-10 w-full md:w-auto">
                         <div className="flex items-center gap-3">
-                            <div className="w-12 h-12 rounded-full bg-blue-50 dark:bg-blue-950/30 text-blue-600 dark:text-blue-400 flex items-center justify-center">
+                            <div className="w-12 h-12 rounded-full bg-brand-soft dark:bg-blue-950/30 text-brand dark:text-blue-400 flex items-center justify-center">
                                 <Clock size={24} />
                             </div>
                             <div>
@@ -223,9 +223,11 @@ const CourseOverview: React.FC<CourseOverviewProps> = ({ courses, onEnroll, onUn
                                             onLoginClick();
                                             return;
                                         }
+                                        // Web: the full checkout page. Phones: the checkout sheet.
+                                        if (window.matchMedia('(min-width: 1024px)').matches) { navigate(`/checkout?course=${encodeURIComponent(String(course.id))}&back=${encodeURIComponent(`/discover/${course.id}`)}`); return; }
                                         setIsBuyModalOpen(true);
                                     }}
-                                    className="w-full md:w-auto px-6 py-3.5 rounded-xl text-base font-bold transition-colors flex items-center justify-center gap-2 shadow-sm bg-violet-700 hover:bg-violet-800 text-white cursor-pointer"
+                                    className="w-full md:w-auto px-6 py-3.5 rounded-[14px] text-base font-bold transition-colors flex items-center justify-center gap-2 shadow-sm bg-violet-700 hover:bg-brand-mid text-white cursor-pointer"
                                 >
                                     Buy Course ({formatAmount(course.price || 49)})
                                 </button>
@@ -246,12 +248,12 @@ const CourseOverview: React.FC<CourseOverviewProps> = ({ courses, onEnroll, onUn
                                         navigate('/courses');
                                     }
                                 }}
-                                className={`w-full md:w-auto px-6 py-3.5 rounded-xl text-base font-bold transition-colors flex items-center justify-center gap-2 shadow-sm cursor-pointer ${
+                                className={`w-full md:w-auto px-6 py-3.5 rounded-[14px] text-base font-bold transition-colors flex items-center justify-center gap-2 shadow-sm cursor-pointer ${
                                     isEnrolled 
-                                        ? 'bg-emerald-100 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-200 dark:hover:bg-emerald-900/50'
+                                        ? 'bg-mint-soft dark:bg-emerald-950/30 text-mint dark:text-emerald-400 hover:bg-emerald-200 dark:hover:bg-emerald-900/50'
                                         : (!isEnrolled && course.accessTier === 'PAID' && userRole !== UserRole.PRO && userRole !== UserRole.PREMIUM && userRole !== UserRole.SPONSORED && userRole !== UserRole.ADMIN)
                                             ? 'bg-amber-500 hover:bg-amber-600 text-white'
-                                            : 'bg-stone-900 dark:bg-slate-100 hover:bg-violet-800 text-white dark:text-stone-900 dark:hover:text-white shadow-sm dark:shadow-none'
+                                            : 'bg-stone-900 dark:bg-slate-100 hover:bg-brand-mid text-white dark:text-stone-900 dark:hover:text-white shadow-sm dark:shadow-none'
                                 }`}
                             >
                                 {isEnrolled ? (
@@ -270,7 +272,7 @@ const CourseOverview: React.FC<CourseOverviewProps> = ({ courses, onEnroll, onUn
                                             onUnenroll(course.id);
                                         }
                                     }}
-                                    className="w-full md:w-32 py-3.5 bg-white hover:bg-red-50 text-red-500 hover:text-red-600 dark:bg-slate-900 dark:hover:bg-red-950/20 border border-stone-200 dark:border-slate-800 hover:border-red-200 dark:hover:border-transparent rounded-xl text-base font-bold transition-all flex items-center justify-center gap-2 cursor-pointer shadow-sm"
+                                    className="w-full md:w-32 py-3.5 bg-white hover:bg-red-50 text-red-500 hover:text-red-600 dark:bg-night-2 dark:hover:bg-red-950/20 hover:border-red-200 dark:hover:border-transparent rounded-[14px] text-base font-bold transition-all flex items-center justify-center gap-2 cursor-pointer"
                                 >
                                     Unenroll
                                 </button>
@@ -282,7 +284,7 @@ const CourseOverview: React.FC<CourseOverviewProps> = ({ courses, onEnroll, onUn
 
             {/* Live Interactive Cohort & Google Meet Call Card */}
             {(course.meetingLink || course.startDate || (course.sections && course.sections.some(s => s.lessons?.some((l: any) => l.meetLink || l.classType === 'online')))) && (
-                <div className="bg-violet-800 rounded-2xl p-6 md:p-8 text-white shadow-sm relative overflow-hidden">
+                <div className="bg-violet-800 rounded-[22px] p-6 md:p-8 text-white shadow-sm relative overflow-hidden">
                     <div className="absolute -top-12 -right-12 w-64 h-64 bg-white/10 rounded-full blur-2xl pointer-events-none"></div>
 
                     <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
@@ -292,7 +294,7 @@ const CourseOverview: React.FC<CourseOverviewProps> = ({ courses, onEnroll, onUn
                                     <Radio size={13} className="animate-pulse text-emerald-300" />
                                     Live Interactive Cohort
                                 </span>
-                                <span className="px-3 py-1 bg-emerald-600 rounded-full text-xs font-bold">
+                                <span className="px-3 py-1 bg-mint rounded-full text-xs font-bold">
                                     {course.cohortName || 'Active Cohort'}
                                 </span>
                                 <span className="px-2.5 py-0.5 bg-white/15 rounded-md text-xs font-mono text-violet-200">
@@ -300,7 +302,7 @@ const CourseOverview: React.FC<CourseOverviewProps> = ({ courses, onEnroll, onUn
                                 </span>
                             </div>
 
-                            <h2 className="text-2xl md:text-3xl font-semibold tracking-tight font-serif">
+                            <h2 className="text-2xl md:text-3xl font-extrabold tracking-tight tracking-[-0.02em]">
                                 Live Interactive Google Meet Lectures
                             </h2>
 
@@ -313,7 +315,7 @@ const CourseOverview: React.FC<CourseOverviewProps> = ({ courses, onEnroll, onUn
 
                             {/* Google Meet Link Display Box */}
                             {course.meetingLink && (
-                                <div className="bg-white/15 p-3.5 rounded-2xl border border-white/15 flex flex-wrap items-center justify-between gap-3 text-xs">
+                                <div className="bg-white/15 p-3.5 rounded-[22px] border border-white/15 flex flex-wrap items-center justify-between gap-3 text-xs">
                                     <div className="flex items-center gap-2.5 overflow-hidden">
                                         <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse shrink-0"></span>
                                         <span className="text-violet-200 font-semibold shrink-0">Meeting Link:</span>
@@ -335,7 +337,7 @@ const CourseOverview: React.FC<CourseOverviewProps> = ({ courses, onEnroll, onUn
                                                 setCopiedMeet(true);
                                                 setTimeout(() => setCopiedMeet(false), 1800);
                                             }}
-                                            className="px-3 py-1.5 bg-white/10 hover:bg-white/20 rounded-xl text-xs font-bold transition-colors flex items-center gap-1.5 cursor-pointer backdrop-blur-sm"
+                                            className="px-3 py-1.5 bg-white/10 hover:bg-white/20 rounded-[14px] text-xs font-bold transition-colors flex items-center gap-1.5 cursor-pointer backdrop-blur-sm"
                                         >
                                             {copiedMeet ? <Check size={13} className="text-emerald-300" /> : <Copy size={13} />}
                                             {copiedMeet ? 'Copied' : 'Copy Link'}
@@ -352,14 +354,14 @@ const CourseOverview: React.FC<CourseOverviewProps> = ({ courses, onEnroll, onUn
                                     href={course.meetingLink}
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="px-7 py-4 bg-white hover:bg-violet-50 text-violet-800 font-bold rounded-2xl shadow-sm flex items-center justify-center gap-2 text-base transition-all transform hover:scale-105 active:scale-95 cursor-pointer"
+                                    className="px-7 py-4 bg-white hover:bg-violet-50 text-violet-800 font-bold rounded-[22px] shadow-sm flex items-center justify-center gap-2 text-base transition-all transform hover:scale-105 active:scale-95 cursor-pointer"
                                 >
                                     <Radio size={18} className="animate-pulse" />
                                     <span>Join Live Call Now</span>
                                     <ExternalLink size={16} />
                                 </a>
                             ) : (
-                                <div className="px-6 py-3.5 bg-white/10 backdrop-blur-sm rounded-2xl border border-white/10 text-xs text-center text-violet-200">
+                                <div className="px-6 py-3.5 bg-white/10 backdrop-blur-sm rounded-[22px] border border-white/10 text-xs text-center text-violet-200">
                                     Live link will be accessible upon enrollment
                                 </div>
                             )}
@@ -372,8 +374,8 @@ const CourseOverview: React.FC<CourseOverviewProps> = ({ courses, onEnroll, onUn
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 {/* Syllabus Column */}
                 <div className="lg:col-span-2 space-y-6">
-                    <div className="bg-white dark:bg-slate-900 p-6 md:p-8 rounded-2xl border border-stone-100 dark:border-slate-800 shadow-sm">
-                        <h2 className="text-2xl font-semibold text-stone-900 dark:text-white mb-6 flex items-center gap-2 font-serif">
+                    <div className="bg-white dark:bg-night-2 p-6 md:p-8 rounded-[22px]">
+                        <h2 className="text-2xl font-extrabold text-stone-900 dark:text-white mb-6 flex items-center gap-2 tracking-[-0.02em]">
                             <BookOpen className="text-violet-700" size={24} />
                             Course Syllabus & Live Sessions
                         </h2>
@@ -386,7 +388,7 @@ const CourseOverview: React.FC<CourseOverviewProps> = ({ courses, onEnroll, onUn
                                     let globalLiveLessonIdx = 0;
 
                                     return syllabus.map((section, idx) => (
-                                        <div key={section.id || idx} className="border border-stone-100 dark:border-slate-800 rounded-2xl overflow-hidden">
+                                        <div key={section.id || idx} className="border border-stone-100 dark:border-slate-800 rounded-[22px] overflow-hidden">
                                             <div className="bg-stone-50 dark:bg-slate-800 p-4 border-b border-stone-100 dark:border-slate-800 flex items-center justify-between">
                                                 <div>
                                                     <h3 className="font-bold text-stone-900 dark:text-white">Module {idx + 1}: {section.title}</h3>
@@ -426,10 +428,10 @@ const CourseOverview: React.FC<CourseOverviewProps> = ({ courses, onEnroll, onUn
                                                     return (
                                                         <div key={lesson.id || lIdx} className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-stone-50 dark:hover:bg-slate-800/40 transition-colors group">
                                                             <div className="flex items-start gap-3">
-                                                                <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 mt-0.5 ${
+                                                                <div className={`w-9 h-9 rounded-[14px] flex items-center justify-center shrink-0 mt-0.5 ${
                                                                     isLive 
                                                                         ? 'bg-violet-100 dark:bg-violet-950/60 text-violet-700 dark:text-violet-400' 
-                                                                        : lesson.type === 'video' ? 'bg-blue-50 dark:bg-blue-950/30 text-blue-600'
+                                                                        : lesson.type === 'video' ? 'bg-brand-soft dark:bg-blue-950/30 text-brand'
                                                                         : lesson.type === 'quiz' ? 'bg-amber-50 dark:bg-amber-950/30 text-amber-600'
                                                                         : 'bg-stone-100 dark:bg-slate-800 text-stone-600 dark:text-slate-400'
                                                                 }`}>
@@ -468,7 +470,7 @@ const CourseOverview: React.FC<CourseOverviewProps> = ({ courses, onEnroll, onUn
                                                             </div>
 
                                                             <div className="flex items-center gap-2 self-end sm:self-center shrink-0">
-                                                                <span className="text-xs font-medium text-stone-600 dark:text-slate-400 bg-stone-100 dark:bg-slate-800 px-2.5 py-1 rounded-lg">
+                                                                <span className="text-xs font-medium text-stone-600 dark:text-slate-400 bg-stone-100 dark:bg-slate-800 px-2.5 py-1 rounded-[12px]">
                                                                     {lesson.duration || course.defaultLessonDuration || '1 hour'}
                                                                 </span>
 
@@ -478,7 +480,7 @@ const CourseOverview: React.FC<CourseOverviewProps> = ({ courses, onEnroll, onUn
                                                                         href={meetUrl}
                                                                         target="_blank"
                                                                         rel="noopener noreferrer"
-                                                                        className="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all shadow-sm cursor-pointer"
+                                                                        className="px-3.5 py-1.5 bg-mint hover:bg-emerald-500 text-white rounded-[14px] text-xs font-bold flex items-center gap-1.5 transition-all shadow-sm cursor-pointer"
                                                                         title="Follow link to join live Google Meet lecture"
                                                                     >
                                                                         <Radio size={12} className="animate-pulse" />
@@ -501,7 +503,7 @@ const CourseOverview: React.FC<CourseOverviewProps> = ({ courses, onEnroll, onUn
 
                 {/* Info Sidebar Column */}
                 <div className="space-y-6">
-                    <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-stone-100 dark:border-slate-800 shadow-sm">
+                    <div className="bg-white dark:bg-night-2 p-6 rounded-[22px]">
                         <h3 className="font-bold text-stone-900 dark:text-white mb-4">About the Course</h3>
                         <div className="flex items-center gap-4 mb-4">
                             <div className="w-14 h-14 rounded-full bg-stone-200 dark:bg-slate-800 border-2 border-white dark:border-slate-900 shadow-sm overflow-hidden flex-shrink-0 flex items-center justify-center">
@@ -532,7 +534,7 @@ const CourseOverview: React.FC<CourseOverviewProps> = ({ courses, onEnroll, onUn
                         </p>
                     </div>
 
-                    <div className="bg-stone-900 p-6 rounded-2xl shadow-sm text-white">
+                    <div className="bg-stone-900 p-6 rounded-[22px] shadow-sm text-white">
                         <h3 className="font-bold text-white mb-4 flex items-center gap-2">
                             <Award className="text-yellow-400" size={20} />
                             What You'll Achieve
@@ -586,32 +588,32 @@ const CourseOverview: React.FC<CourseOverviewProps> = ({ courses, onEnroll, onUn
             {/* Legacy Wallet Purchase Modal (retained for reference) */}
             {false && isBuyModalOpen && (
                 <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
-                    <div className="bg-white dark:bg-slate-900 border border-stone-100 dark:border-slate-800 rounded-2xl w-full max-w-md overflow-hidden shadow-2xl p-6 relative">
-                        <h3 className="font-serif text-xl font-semibold text-stone-900 dark:text-white mb-4">Confirm Course Purchase</h3>
+                    <div className="bg-white dark:bg-night-2 rounded-[22px] w-full max-w-md overflow-hidden shadow-2xl p-6 relative">
+                        <h3 className="tracking-[-0.02em] text-xl font-semibold text-stone-900 dark:text-white mb-4">Confirm Course Purchase</h3>
                         
                         <div className="space-y-4 mb-6">
-                            <div className="bg-stone-50 dark:bg-slate-800 p-4 rounded-2xl border border-stone-100 dark:border-slate-800">
+                            <div className="bg-stone-50 dark:bg-slate-800 p-4 rounded-[22px] border border-stone-100 dark:border-slate-800">
                                 <p className="text-xs text-stone-500 dark:text-slate-500 uppercase font-bold mb-1">Course Title</p>
                                 <p className="text-sm font-bold text-stone-800 dark:text-white">{course.title}</p>
                             </div>
                             
                             <div className="grid grid-cols-2 gap-4">
-                                <div className="bg-stone-50 dark:bg-slate-800 p-4 rounded-2xl border border-stone-100 dark:border-slate-800">
+                                <div className="bg-stone-50 dark:bg-slate-800 p-4 rounded-[22px] border border-stone-100 dark:border-slate-800">
                                     <p className="text-xs text-stone-500 dark:text-slate-500 uppercase font-bold mb-1">Your Balance</p>
                                     <p className="text-lg font-bold text-stone-800 dark:text-white">{formatAmount(walletBalance ?? 0)}</p>
                                 </div>
-                                <div className="bg-stone-50 dark:bg-slate-800 p-4 rounded-2xl border border-stone-100 dark:border-slate-800">
+                                <div className="bg-stone-50 dark:bg-slate-800 p-4 rounded-[22px] border border-stone-100 dark:border-slate-800">
                                     <p className="text-xs text-stone-500 dark:text-slate-500 uppercase font-bold mb-1">Course Price</p>
                                     <p className="text-lg font-bold text-amber-600 dark:text-amber-400">{formatAmount(course.price || 49)}</p>
                                 </div>
                             </div>
 
                             {(walletBalance ?? 0) < (course.price || 49) ? (
-                                <div className="bg-red-50 dark:bg-red-950/20 border border-red-100 dark:border-red-900/30 rounded-2xl p-4 text-xs text-red-700 dark:text-red-400 font-medium">
+                                <div className="bg-red-50 dark:bg-red-950/20 border border-red-100 dark:border-red-900/30 rounded-[22px] p-4 text-xs text-red-700 dark:text-red-400 font-medium">
                                     Insufficient funds in your wallet. Please top up your wallet in your Profile dashboard first.
                                 </div>
                             ) : (
-                                <div className="bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-100 dark:border-emerald-900/30 rounded-2xl p-4 text-xs text-emerald-700 dark:text-emerald-400 font-medium">
+                                <div className="bg-mint-soft dark:bg-emerald-950/20 border border-mint-soft dark:border-emerald-900/30 rounded-[22px] p-4 text-xs text-mint dark:text-emerald-400 font-medium">
                                     Remaining balance after purchase: {formatAmount((walletBalance ?? 0) - (course.price || 49))}
                                 </div>
                             )}
@@ -620,7 +622,7 @@ const CourseOverview: React.FC<CourseOverviewProps> = ({ courses, onEnroll, onUn
                         <div className="flex gap-3 justify-end">
                             <button
                                 onClick={() => setIsBuyModalOpen(false)}
-                                className="px-4 py-2.5 rounded-xl border border-stone-200 text-stone-700 dark:text-slate-300 hover:bg-stone-50 dark:hover:bg-slate-800 text-sm font-semibold cursor-pointer"
+                                className="px-4 py-2.5 rounded-[14px] border border-stone-200 text-stone-700 dark:text-slate-300 hover:bg-stone-50 dark:hover:bg-slate-800 text-sm font-semibold cursor-pointer"
                                 disabled={isBuying}
                             >
                                 Cancel
@@ -642,10 +644,10 @@ const CourseOverview: React.FC<CourseOverviewProps> = ({ courses, onEnroll, onUn
                                     }
                                     setIsBuying(false);
                                 }}
-                                className={`px-5 py-2.5 rounded-xl text-sm font-semibold text-white transition-colors cursor-pointer ${
+                                className={`px-5 py-2.5 rounded-[14px] text-sm font-semibold text-white transition-colors cursor-pointer ${
                                     (walletBalance ?? 0) < (course.price || 49)
                                         ? 'bg-amber-600 hover:bg-amber-700'
-                                        : 'bg-violet-700 hover:bg-violet-800'
+                                        : 'bg-violet-700 hover:bg-brand-mid'
                                 }`}
                                 disabled={isBuying}
                             >

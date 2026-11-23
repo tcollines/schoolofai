@@ -32,15 +32,15 @@ const LiveTodayBar: React.FC = () => {
     const join = () => { if (real) void recordAttendance(uid, real, 'join_click'); };
 
     return (
-        <div role="status" className="bg-violet-700 text-white">
+        <div role="status" className="bg-brand text-white">
             <div className="px-3 sm:px-5 py-2 flex items-center gap-3 text-sm">
                 <Video size={16} className="shrink-0" />
                 <p className="flex-1 min-w-0 leading-snug">
                     <b>Live class today, 2:00 pm EAT</b> · {lecture.label} ({moduleLabel(lecture)}) · {when === 'now' ? 'starting now' : when}
                 </p>
                 {joinable
-                    ? <a href={real!.meet_link} target="_blank" rel="noreferrer" onClick={join} className="shrink-0 rounded-lg bg-white text-violet-800 font-semibold px-3 py-1.5 hover:bg-violet-50">Join now</a>
-                    : <Link to={`/learn/${COURSE.slug}/live`} className="shrink-0 rounded-lg bg-white/15 hover:bg-white/25 font-semibold px-3 py-1.5">Details</Link>}
+                    ? <a href={real!.meet_link} target="_blank" rel="noreferrer" onClick={join} className="shrink-0 rounded-[12px] bg-white text-brand font-bold px-3 py-1.5 hover:bg-violet-50">Join now</a>
+                    : <Link to={`/learn/${COURSE.slug}/live`} className="shrink-0 rounded-[12px] bg-white/15 hover:bg-white/25 font-semibold px-3 py-1.5">Details</Link>}
                 <button onClick={hide} aria-label="Hide for today" className="shrink-0 p-1 rounded hover:bg-white/15"><X size={16} /></button>
             </div>
         </div>

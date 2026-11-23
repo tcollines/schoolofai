@@ -196,7 +196,7 @@ const AdminDiscussions: React.FC = () => {
 
     if (loading) {
         return (
-            <div className="flex items-center justify-center h-[50vh] text-gray-500">
+            <div className="flex items-center justify-center h-[50vh] text-stone-500">
                 Loading discussion channels...
             </div>
         );
@@ -205,26 +205,26 @@ const AdminDiscussions: React.FC = () => {
     return (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-[calc(100vh-12rem)] min-h-[500px]">
             {/* Sidebar - Groups list */}
-            <div className="bg-white dark:bg-slate-900 border border-gray-100 dark:border-slate-800 rounded-3xl p-5 flex flex-col space-y-4 overflow-y-auto">
-                <div className="flex items-center gap-2 border-b border-gray-100 dark:border-slate-800 pb-3">
+            <div className="bg-white dark:bg-night-2 rounded-[26px] p-5 flex flex-col space-y-4 overflow-y-auto">
+                <div className="flex items-center gap-2 border-b border-stone-100 dark:border-slate-800 pb-3">
                     <Users size={18} className="text-violet-600" />
-                    <span className="font-bold text-gray-900 dark:text-white">Active Channels ({groups.length})</span>
+                    <span className="font-bold text-stone-900 dark:text-white">Active Channels ({groups.length})</span>
                 </div>
                 <div className="flex-1 space-y-2">
                     {groups.map(group => (
                         <div
                             key={group.id}
                             onClick={() => setSelectedGroupId(group.id)}
-                            className={`w-full text-left p-3.5 rounded-2xl border transition-all flex flex-col gap-1 cursor-pointer ${
+                            className={`w-full text-left p-3.5 rounded-[22px] border transition-all flex flex-col gap-1 cursor-pointer ${
                                 selectedGroupId === group.id
-                                    ? 'bg-violet-50/50 border-violet-250 dark:bg-violet-955/20 dark:border-violet-900/50 text-gray-900 dark:text-white shadow-sm'
-                                    : 'border-gray-50 dark:border-slate-800/40 hover:bg-gray-50/50 dark:hover:bg-slate-800/40 text-gray-600 dark:text-slate-400'
+                                    ? 'bg-violet-50/50 border-violet-250 dark:bg-violet-955/20 dark:border-violet-900/50 text-stone-900 dark:text-white'
+                                    : 'border-stone-50 dark:border-slate-800/40 hover:bg-stone-50/50 dark:hover:bg-slate-800/40 text-stone-600 dark:text-slate-400'
                             }`}
                         >
                             <div className="flex justify-between items-center w-full gap-2">
                                 <span className="font-bold text-sm truncate">{group.name}</span>
                                 <div className="flex items-center gap-1.5 shrink-0">
-                                    <span className="text-[10px] bg-gray-100 dark:bg-slate-800 text-gray-500 dark:text-slate-400 px-2 py-0.5 rounded-full font-mono font-semibold animate-none">
+                                    <span className="text-[10px] bg-stone-100 dark:bg-slate-800 text-stone-500 dark:text-slate-400 px-2 py-0.5 rounded-full font-mono font-semibold animate-none">
                                         {group.messages.length}
                                     </span>
                                     {group.id !== 'general' && (
@@ -233,7 +233,7 @@ const AdminDiscussions: React.FC = () => {
                                                 e.stopPropagation();
                                                 handleDeleteGroup(group.id);
                                             }}
-                                            className="p-1 text-gray-400 hover:text-red-500 hover:bg-gray-100 dark:hover:bg-slate-800 rounded transition-colors cursor-pointer"
+                                            className="p-1 text-stone-400 hover:text-red-500 hover:bg-stone-100 dark:hover:bg-slate-800 rounded transition-colors cursor-pointer"
                                             title="Delete channel"
                                         >
                                             <Trash2 size={13} />
@@ -248,13 +248,13 @@ const AdminDiscussions: React.FC = () => {
             </div>
 
             {/* Chat message list area */}
-            <div className="lg:col-span-2 bg-white dark:bg-slate-900 border border-gray-100 dark:border-slate-800 rounded-3xl p-6 flex flex-col min-h-0">
+            <div className="lg:col-span-2 bg-white dark:bg-night-2 rounded-[26px] p-6 flex flex-col min-h-0">
                 {activeGroup ? (
                     <>
-                        <div className="border-b border-gray-100 dark:border-slate-800 pb-4 mb-4 flex justify-between items-center">
+                        <div className="border-b border-stone-100 dark:border-slate-800 pb-4 mb-4 flex justify-between items-center">
                             <div>
-                                <h3 className="font-bold text-gray-900 dark:text-white text-base">{activeGroup.name}</h3>
-                                <p className="text-xs text-gray-500 dark:text-slate-400 mt-0.5">{activeGroup.description}</p>
+                                <h3 className="font-bold text-stone-900 dark:text-white text-base">{activeGroup.name}</h3>
+                                <p className="text-xs text-stone-500 dark:text-slate-400 mt-0.5">{activeGroup.description}</p>
                             </div>
                             <div className="flex items-center gap-1.5 px-3 py-1 bg-amber-50 dark:bg-amber-955/20 text-amber-600 dark:text-amber-400 border border-amber-200 dark:border-amber-900/40 rounded-full text-xs font-semibold">
                                 <ShieldAlert size={14} /> Admin Mode
@@ -264,7 +264,7 @@ const AdminDiscussions: React.FC = () => {
                         {/* Messages Container */}
                         <div className="flex-1 overflow-y-auto pr-1 space-y-4 min-h-0">
                             {activeGroup.messages.length === 0 ? (
-                                <div className="flex flex-col items-center justify-center h-full text-gray-400 dark:text-slate-500 py-10">
+                                <div className="flex flex-col items-center justify-center h-full text-stone-400 dark:text-slate-500 py-10">
                                     <MessageSquare size={36} className="mb-2 opacity-50" />
                                     <p className="text-sm font-medium">No messages in this discussion group.</p>
                                 </div>
@@ -272,36 +272,36 @@ const AdminDiscussions: React.FC = () => {
                                 activeGroup.messages.map(message => (
                                     <div 
                                         key={message.id} 
-                                        className="flex items-start justify-between gap-4 p-3 hover:bg-gray-50/50 dark:hover:bg-slate-800/30 rounded-2xl border border-transparent hover:border-gray-100 dark:hover:border-slate-800/60 transition-all"
+                                        className="flex items-start justify-between gap-4 p-3 hover:bg-stone-50/50 dark:hover:bg-slate-800/30 rounded-[22px] border border-transparent hover:border-stone-100 dark:hover:border-slate-800/60 transition-all"
                                     >
                                         <div className="flex items-start gap-3">
                                             <img 
                                                 src={message.senderAvatar} 
                                                 alt={message.senderName} 
-                                                className="w-9 h-9 rounded-full object-cover shadow-sm flex-shrink-0"
+                                                className="w-9 h-9 rounded-full object-cover flex-shrink-0"
                                             />
                                             <div className="space-y-1">
                                                 <div className="flex flex-wrap items-center gap-2">
-                                                    <span className="font-bold text-sm text-gray-900 dark:text-white">{message.senderName}</span>
+                                                    <span className="font-bold text-sm text-stone-900 dark:text-white">{message.senderName}</span>
                                                     <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full uppercase ${
                                                         message.role === 'instructor' 
                                                             ? 'bg-violet-100 text-violet-700 dark:bg-violet-955/40 dark:text-violet-300 border border-violet-200' 
                                                             : message.role === 'ai'
-                                                                ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-955/40 dark:text-emerald-300 border border-emerald-200'
+                                                                ? 'bg-mint-soft text-mint dark:bg-emerald-955/40 dark:text-emerald-300 border border-emerald-200'
                                                                 : 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300'
                                                     }`}>
                                                         {message.role}
                                                     </span>
-                                                    <span className="text-[10px] text-gray-400 font-medium">{message.timestamp}</span>
+                                                    <span className="text-[10px] text-stone-400 font-medium">{message.timestamp}</span>
                                                 </div>
-                                                <p className="text-sm text-gray-700 dark:text-slate-350 pr-4 break-words whitespace-pre-wrap leading-relaxed">
+                                                <p className="text-sm text-stone-700 dark:text-slate-350 pr-4 break-words whitespace-pre-wrap leading-relaxed">
                                                     {message.content}
                                                 </p>
                                             </div>
                                         </div>
                                         <button
                                             onClick={() => handleDeleteMessage(message.id)}
-                                            className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-955/30 rounded-xl transition-colors cursor-pointer self-center animate-none"
+                                            className="p-2 text-stone-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-955/30 rounded-[14px] transition-colors cursor-pointer self-center animate-none"
                                             title="Delete message from channel"
                                         >
                                             <Trash2 size={16} />
@@ -312,25 +312,25 @@ const AdminDiscussions: React.FC = () => {
                         </div>
 
                         {/* Send Message Input Form */}
-                        <form onSubmit={handleSendMessage} className="mt-4 pt-4 border-t border-gray-50 dark:border-slate-800/60 flex gap-2">
+                        <form onSubmit={handleSendMessage} className="mt-4 pt-4 border-t border-stone-50 dark:border-slate-800/60 flex gap-2">
                             <input
                                 type="text"
                                 value={inputText}
                                 onChange={(e) => setInputText(e.target.value)}
                                 placeholder="Type a message as Instructor (Dr. Kenji Tanaka)..."
-                                className="flex-1 rounded-xl border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/20"
+                                className="flex-1 rounded-[14px] bg-white dark:bg-night-2 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand"
                                 required
                             />
                             <button
                                 type="submit"
-                                className="px-5 py-2.5 bg-violet-600 hover:bg-violet-750 text-white rounded-xl text-xs font-bold flex items-center justify-center shrink-0 cursor-pointer shadow-sm"
+                                className="px-5 py-2.5 bg-brand hover:bg-violet-750 text-white rounded-[14px] text-xs font-bold flex items-center justify-center shrink-0 cursor-pointer"
                             >
                                 Send
                             </button>
                         </form>
                     </>
                 ) : (
-                    <div className="flex flex-col items-center justify-center h-full text-gray-400">
+                    <div className="flex flex-col items-center justify-center h-full text-stone-400">
                         <MessageSquare size={48} className="mb-2 opacity-50" />
                         <p className="font-medium">Select a channel to moderate messages.</p>
                     </div>

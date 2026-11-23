@@ -50,10 +50,10 @@ const ItemPage: React.FC = () => {
         const prevId = prevItemId(item.id);
         const prevItem = prevId ? findItem(prevId) : undefined;
         return (
-            <div className="max-w-2xl mx-auto px-4 sm:px-6 py-12">
-                <div className={`${CARD} rounded-3xl p-7 sm:p-10 text-center`}>
-                    <span className="mx-auto w-14 h-14 rounded-full bg-violet-100 dark:bg-violet-950 text-violet-700 dark:text-violet-300 flex items-center justify-center"><Lock size={26} /></span>
-                    <h1 className="font-serif text-2xl sm:text-3xl font-semibold leading-tight mt-5">Finish the previous lesson first</h1>
+            <div className="max-w-2xl mx-auto px-4 sm:px-6 py-10">
+                <div className={`${CARD} p-7 sm:p-10 text-center`}>
+                    <span className="mx-auto w-16 h-16 rounded-[20px] bg-brand-soft dark:bg-night-3 text-brand dark:text-violet-300 flex items-center justify-center"><Lock size={26} /></span>
+                    <h1 className="text-[24px] sm:text-[28px] font-extrabold tracking-[-0.02em] leading-tight mt-5 mb-0">Finish the previous lesson first</h1>
                     <p className={`mt-3 text-base leading-relaxed ${MUTED}`}>
                         Each lesson opens when you finish the one before it, so everything builds step by step. You can see the whole lineup, and "{item.title}" will open as soon as you complete {prevItem ? `"${prevItem.title}"` : 'the previous lesson'}.
                     </p>
@@ -91,22 +91,25 @@ const ItemPage: React.FC = () => {
     const KindIcon = item.kind === 'video' ? PlayCircle : item.kind === 'quiz' ? HelpCircle : FileText;
 
     return (
-        <article className="max-w-3xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
-            <p className={`text-sm ${MUTED}`}>
-                <Link to={base} className="hover:underline">Course</Link> / Module {mod.number}: {mod.title}
-            </p>
-            <div className="mt-2 flex items-start justify-between gap-3">
-                <h1 className="font-serif text-2xl sm:text-3xl font-semibold leading-tight">{item.title}</h1>
-                {done && <span className="shrink-0 inline-flex items-center gap-1 text-sm font-medium text-emerald-700 dark:text-emerald-400"><CheckCircle2 size={18} /> Done</span>}
+        <article className="max-w-[920px] mx-auto px-4 sm:px-6 lg:px-0 py-5 lg:py-0">
+            <nav aria-label="Breadcrumb" className={`text-[13px] font-semibold flex items-center gap-1.5 flex-wrap ${MUTED}`}>
+                <Link to={base} className="hover:text-brand no-underline">Course</Link>
+                <span aria-hidden="true">/</span>
+                <span>{mod.number === 0 ? 'Start here' : `Module ${mod.number}`}: {mod.title}</span>
+            </nav>
+            <div className="mt-2.5 flex items-start justify-between gap-3">
+                <h1 className="m-0 text-[24px] sm:text-[30px] font-extrabold leading-[1.15] tracking-[-0.02em]">{item.title}</h1>
+                {done && <span className="shrink-0 inline-flex items-center gap-1.5 h-8 px-3 rounded-full bg-mint-soft text-mint text-[13px] font-bold"><CheckCircle2 size={16} /> Done</span>}
             </div>
-            <p className={`mt-2 text-sm flex items-center gap-2 ${MUTED}`}>
-                <KindIcon size={16} /> {kindLabel} · {item.minutes} min
-                {item.kind === 'quiz' && bestScore(uid, item.id) !== null && <span>· Best score {bestScore(uid, item.id)}%</span>}
-            </p>
+            <div className="mt-3 flex flex-wrap items-center gap-2">
+                <span className={`inline-flex items-center gap-1.5 h-8 px-3 rounded-full text-[12px] font-bold ${item.kind === 'quiz' ? 'bg-lime-200 text-ink' : 'bg-brand-soft dark:bg-night-3 text-brand dark:text-violet-300'}`}><KindIcon size={14} /> {kindLabel}</span>
+                <span className="inline-flex items-center h-8 px-3 rounded-full bg-white dark:bg-night-2 text-[12px] font-bold">{item.minutes} min</span>
+                {item.kind === 'quiz' && bestScore(uid, item.id) !== null && <span className="inline-flex items-center h-8 px-3 rounded-full bg-white dark:bg-night-2 text-[12px] font-bold">Best score {bestScore(uid, item.id)}%</span>}
+            </div>
 
             {/* VIDEO */}
             {item.kind === 'video' && (
-                <div className="mt-5">
+                <div className="mt-5 rounded-[24px] bg-white dark:bg-night-2 p-2.5 sm:p-3">
                     <VideoPlayer
                         key={item.id}
                         videoId={item.videoId}
@@ -145,7 +148,7 @@ const ItemPage: React.FC = () => {
             {/* NOTES TABS (video + reading) */}
             {item.kind !== 'quiz' && (
                 <div className="mt-6">
-                    <div role="tablist" className="flex gap-1 overflow-x-auto border-b border-stone-200 dark:border-slate-800">
+                    <div role="tablist" aria-label="Lesson sections" className="no-scrollbar inline-flex max-w-full gap-1 overflow-x-auto p-1 rounded-[16px] bg-white dark:bg-night-2">
                         {([
                             ['overview', 'Lesson notes', FileText],
                             ...(transcript ? [['transcript', 'Transcript', ScrollText] as const] : []),
@@ -157,7 +160,7 @@ const ItemPage: React.FC = () => {
                                 role="tab"
                                 aria-selected={tab === id}
                                 onClick={() => setTab(id)}
-                                className={`flex items-center gap-2 px-3 sm:px-4 py-3 whitespace-nowrap text-sm font-semibold border-b-2 -mb-px transition-colors ${tab === id ? 'border-violet-700 text-violet-800 dark:text-violet-300' : 'border-transparent text-stone-500 dark:text-slate-400 hover:text-stone-800 dark:hover:text-slate-200'}`}
+                                className={`press flex items-center gap-2 px-3.5 sm:px-4 h-10 rounded-[12px] whitespace-nowrap text-[13px] font-bold transition-colors ${tab === id ? 'bg-brand text-white' : 'text-[#6B6680] dark:text-slate-400 hover:text-brand'}`}
                             >
                                 <Icon size={16} /> {label}
                             </button>
@@ -165,21 +168,21 @@ const ItemPage: React.FC = () => {
                     </div>
 
                     {tab === 'overview' && (
-                        <div className="pt-5 space-y-5">
+                        <div className="mt-4 rounded-[22px] bg-white dark:bg-night-2 p-5 sm:p-6 space-y-5">
                             {item.summary && <p className="text-[16px] leading-relaxed">{item.summary}</p>}
 
                             {item.points && item.points.length > 0 && (
                                 <div>
-                                    <h2 className="text-sm font-semibold uppercase tracking-wide text-violet-800 dark:text-violet-300">{item.kind === 'reading' ? 'Remember' : 'Key points'}</h2>
+                                    <h2 className="m-0 text-[12px] font-bold uppercase tracking-[0.12em] text-brand dark:text-violet-300">{item.kind === 'reading' ? 'Remember' : 'Key points'}</h2>
                                     <ul className="mt-2 space-y-2">
-                                        {item.points.map(p => <li key={p} className="flex gap-2 leading-snug"><CheckCircle2 size={18} className="mt-0.5 shrink-0 text-violet-700 dark:text-violet-400" />{p}</li>)}
+                                        {item.points.map(p => <li key={p} className="flex gap-2 leading-snug"><CheckCircle2 size={18} className="mt-0.5 shrink-0 text-brand dark:text-violet-400" />{p}</li>)}
                                     </ul>
                                 </div>
                             )}
 
                             {item.glossary && (
-                                <div className={`${CARD} rounded-2xl overflow-hidden`}>
-                                    <dl className="divide-y divide-stone-100 dark:divide-slate-800">
+                                <div className="rounded-[18px] bg-panel dark:bg-night-3/60 overflow-hidden">
+                                    <dl className="m-0 divide-y divide-[#E6E1F2] dark:divide-night-3">
                                         {item.glossary.map(g => (
                                             <div key={g.term} className="p-4 grid sm:grid-cols-[10rem_1fr] gap-1 sm:gap-4">
                                                 <dt className="font-semibold">{g.term}</dt>
@@ -191,9 +194,9 @@ const ItemPage: React.FC = () => {
                             )}
 
                             {item.tryIt && (
-                                <div className="rounded-2xl border border-violet-200 dark:border-violet-900 bg-violet-50 dark:bg-violet-950/30 p-5">
-                                    <p className="flex items-center gap-2 font-semibold text-violet-900 dark:text-violet-200"><Lightbulb size={18} /> Try it now: {item.tryIt.title}</p>
-                                    <ol className="mt-3 space-y-2 list-decimal list-inside text-[15px] leading-snug marker:text-violet-700 dark:marker:text-violet-300">
+                                <div className="rounded-[18px] bg-lime-100 p-5 text-lime-900">
+                                    <p className="m-0 flex items-center gap-2 font-extrabold text-ink"><Lightbulb size={18} /> Try it now: {item.tryIt.title}</p>
+                                    <ol className="mt-3 space-y-2 list-decimal list-inside text-[15px] leading-snug marker:text-lime-800 marker:font-bold">
                                         {item.tryIt.steps.map(s => <li key={s}>{s}</li>)}
                                     </ol>
                                 </div>
@@ -206,7 +209,7 @@ const ItemPage: React.FC = () => {
                     {tab === 'qa' && <LessonQA key={item.id} uid={uid} itemId={item.id} fullName={fullName} />}
 
                     {tab === 'notes' && (
-                        <div className="pt-5">
+                        <div className="mt-4">
                             <label htmlFor="note" className="sr-only">My notes</label>
                             <textarea
                                 id="note"
@@ -214,7 +217,7 @@ const ItemPage: React.FC = () => {
                                 onChange={e => { setNote(e.target.value); try { localStorage.setItem(noteKey, e.target.value); } catch { /* ignore */ } }}
                                 rows={8}
                                 placeholder="Write your own notes here. They are saved on this device."
-                                className="w-full rounded-xl border border-stone-300 dark:border-slate-700 bg-white dark:bg-slate-900 p-4 text-[15px] focus:outline-none focus-visible:ring-2 focus-visible:ring-violet-500"
+                                className="w-full rounded-[18px] border-0 bg-white dark:bg-night-2 p-5 text-[15px] leading-relaxed focus:outline-none focus-visible:ring-2 focus-visible:ring-brand"
                             />
                         </div>
                     )}
@@ -238,7 +241,7 @@ const ItemPage: React.FC = () => {
             {item.kind !== 'quiz' && (item.kind === 'reading' || done || !hasVideo) && <LessonRating uid={uid} itemId={item.id} />}
 
             {!fullAccess && !done && <p className={`mt-6 text-sm ${MUTED}`}>The next lesson opens when you finish this one.</p>}
-            <div className="mt-4 pt-6 border-t border-stone-200 dark:border-slate-800 flex items-center justify-between gap-3">
+            <div className="mt-5 p-3 rounded-[20px] bg-white dark:bg-night-2 flex items-center justify-between gap-3">
                 <button onClick={goPrev} disabled={!prev} className={BTN_SECONDARY}><ArrowLeft size={16} /> Previous</button>
                 <button onClick={goNext} disabled={!fullAccess && !done} title={!fullAccess && !done ? 'Finish this lesson to continue' : undefined} className={`${done || item.kind === 'quiz' ? BTN_PRIMARY : BTN_SECONDARY} disabled:opacity-50 disabled:cursor-not-allowed`}>
                     {next ? 'Next' : 'Final assessment'} <ArrowRight size={16} />

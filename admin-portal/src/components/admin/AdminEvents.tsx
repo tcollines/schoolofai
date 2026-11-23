@@ -435,14 +435,14 @@ const AdminEvents: React.FC = () => {
 
     return (
         <div className="space-y-6">
-            <div className="flex justify-between items-center bg-white dark:bg-slate-900 p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-slate-800 transition-colors">
+            <div className="flex justify-between items-center bg-white dark:bg-night-2 p-6 rounded-[22px] transition-colors">
                 <div>
-                    <h2 className="text-xl font-bold text-gray-900 dark:text-white">Ongoing & Upcoming Events</h2>
-                    <p className="text-sm text-gray-500 dark:text-slate-400 mt-1">Manage and publish live events or workshops for students</p>
+                    <h1 className="m-0 text-[28px] font-extrabold tracking-[-0.02em]">Ongoing and upcoming events</h1>
+                    <p className="text-sm text-stone-500 dark:text-slate-400 mt-1">Manage and publish live events or workshops for students</p>
                 </div>
                 <button
                     onClick={openCreateModal}
-                    className="flex items-center gap-2 bg-violet-600 hover:bg-violet-700 text-white px-4 py-2.5 rounded-xl font-medium text-sm transition-colors cursor-pointer shadow-md shadow-violet-200 dark:shadow-none"
+                    className="flex items-center gap-2 bg-brand hover:bg-brand-mid text-white px-4 py-2.5 rounded-[14px] font-medium text-sm transition-colors cursor-pointer shadow-md shadow-violet-200 dark:shadow-none"
                 >
                     <Plus size={16} /> Add Event
                 </button>
@@ -450,30 +450,30 @@ const AdminEvents: React.FC = () => {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {events.length === 0 ? (
-                    <div className="col-span-full bg-white dark:bg-slate-900 p-12 text-center text-gray-500 dark:text-slate-400 rounded-2xl border border-gray-100 dark:border-slate-800">
+                    <div className="col-span-full bg-white dark:bg-night-2 p-12 text-center text-stone-500 dark:text-slate-400 rounded-[22px]">
                         No upcoming events scheduled. Click "Add Event" to schedule one.
                     </div>
                 ) : (
                     events.map(event => (
-                        <div key={event.id} className="bg-white dark:bg-slate-900 p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-slate-800 flex flex-col justify-between transition-colors relative group">
+                        <div key={event.id} className="bg-white dark:bg-night-2 p-6 rounded-[22px] flex flex-col justify-between transition-colors relative group">
                             <div className="absolute top-4 right-4 flex gap-1 z-10">
                                 <button
                                     onClick={() => openReuseModal(event)}
-                                    className="text-gray-400 hover:text-green-600 p-1.5 hover:bg-green-50 dark:hover:bg-green-950/20 rounded-lg transition-colors cursor-pointer border-0 bg-transparent"
+                                    className="text-stone-400 hover:text-mint p-1.5 hover:bg-mint-soft dark:hover:bg-green-950/20 rounded-[12px] transition-colors cursor-pointer border-0 bg-transparent"
                                     title="Reuse Event (Duplicate)"
                                 >
                                     <Copy size={16} />
                                 </button>
                                 <button
                                     onClick={() => openEditModal(event)}
-                                    className="text-gray-400 hover:text-violet-600 p-1.5 hover:bg-violet-50 dark:hover:bg-violet-950/20 rounded-lg transition-colors cursor-pointer border-0 bg-transparent"
+                                    className="text-stone-400 hover:text-violet-600 p-1.5 hover:bg-violet-50 dark:hover:bg-violet-950/20 rounded-[12px] transition-colors cursor-pointer border-0 bg-transparent"
                                     title="Edit Event"
                                 >
                                     <Edit size={16} />
                                 </button>
                                 <button
                                     onClick={() => handleDelete(event.id)}
-                                    className="text-gray-400 hover:text-red-500 p-1.5 hover:bg-red-50 dark:hover:bg-red-950/20 rounded-lg transition-colors cursor-pointer border-0 bg-transparent"
+                                    className="text-stone-400 hover:text-red-500 p-1.5 hover:bg-red-50 dark:hover:bg-red-950/20 rounded-[12px] transition-colors cursor-pointer border-0 bg-transparent"
                                     title="Delete Event"
                                 >
                                     <Trash2 size={16} />
@@ -487,8 +487,8 @@ const AdminEvents: React.FC = () => {
                                     </span>
                                     <span className={`px-2.5 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${
                                         event.medium === 'Online' 
-                                            ? 'bg-green-50 dark:bg-green-950/30 text-green-600 dark:text-green-400' 
-                                            : 'bg-blue-50 dark:bg-blue-950/30 text-blue-600 dark:text-blue-400'
+                                            ? 'bg-mint-soft dark:bg-green-950/30 text-mint dark:text-green-400' 
+                                            : 'bg-brand-soft dark:bg-blue-950/30 text-brand dark:text-blue-400'
                                     }`}>
                                         {event.medium || 'Online'}
                                     </span>
@@ -499,45 +499,45 @@ const AdminEvents: React.FC = () => {
                                     )}
                                 </div>
 
-                                <h3 className="font-bold text-gray-900 dark:text-white text-lg group-hover:text-violet-600 dark:group-hover:text-violet-400 transition-colors mb-2 text-left">
+                                <h3 className="font-bold text-stone-900 dark:text-white text-lg group-hover:text-violet-600 dark:group-hover:text-violet-400 transition-colors mb-2 text-left">
                                     {event.title}
                                 </h3>
 
-                                <p className="text-gray-500 dark:text-slate-400 text-sm line-clamp-3 mb-4 text-left">
+                                <p className="text-stone-500 dark:text-slate-400 text-sm line-clamp-3 mb-4 text-left">
                                     {event.description}
                                 </p>
 
-                                <div className="space-y-2.5 text-xs text-gray-600 dark:text-slate-350 border-t border-gray-50 dark:border-slate-800/50 pt-4">
+                                <div className="space-y-2.5 text-xs text-stone-600 dark:text-slate-350 border-t border-stone-50 dark:border-slate-800/50 pt-4">
                                     <div className="flex items-center gap-2">
                                         <Clock size={14} className="text-violet-500 shrink-0" />
                                         <span>{event.date} @ {event.time}</span>
                                     </div>
                                     <div className="flex items-center gap-2">
                                         <Users size={14} className="text-violet-500 shrink-0" />
-                                        <span>Speaker: <strong className="text-gray-800 dark:text-gray-200">{event.speaker}</strong></span>
+                                        <span>Speaker: <strong className="text-stone-800 dark:text-stone-200">{event.speaker}</strong></span>
                                     </div>
                                     <div className="flex items-center gap-2">
                                         {event.medium === 'Online' ? (
                                             <>
                                                 <Video size={14} className="text-green-500 shrink-0" />
-                                                <a href={event.meetLink} target="_blank" rel="noopener noreferrer" className="text-green-600 dark:text-green-400 hover:underline line-clamp-1">
+                                                <a href={event.meetLink} target="_blank" rel="noopener noreferrer" className="text-mint dark:text-green-400 hover:underline line-clamp-1">
                                                     {event.meetLink}
                                                 </a>
                                             </>
                                         ) : (
                                             <>
                                                 <MapPin size={14} className="text-blue-500 shrink-0" />
-                                                <span className="line-clamp-1 text-gray-800 dark:text-gray-200">{event.location}</span>
+                                                <span className="line-clamp-1 text-stone-800 dark:text-stone-200">{event.location}</span>
                                             </>
                                         )}
                                     </div>
                                 </div>
                             </div>
 
-                             <div className="mt-4 pt-4 border-t border-gray-50 dark:border-slate-800/50 flex flex-col gap-2 text-xs">
-                                 <div className="flex justify-between items-center text-gray-400 dark:text-slate-500">
+                             <div className="mt-4 pt-4 border-t border-stone-50 dark:border-slate-800/50 flex flex-col gap-2 text-xs">
+                                 <div className="flex justify-between items-center text-stone-400 dark:text-slate-500">
                                      <span>
-                                         Target Course: <strong className="text-gray-600 dark:text-slate-300 capitalize">{event.courseId === 'global' ? 'Global' : courses.find(c => c.id === event.courseId)?.title || 'Course specific'}</strong>
+                                         Target Course: <strong className="text-stone-600 dark:text-slate-300 capitalize">{event.courseId === 'global' ? 'Global' : courses.find(c => c.id === event.courseId)?.title || 'Course specific'}</strong>
                                      </span>
                                      <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
                                          event.visibility === 'instructor' 
@@ -550,10 +550,10 @@ const AdminEvents: React.FC = () => {
                                      </span>
                                  </div>
                                 {event.type === 'Lesson' && (
-                                    <div className="text-[10px] bg-slate-50 dark:bg-slate-800/60 p-2.5 rounded-xl border border-gray-100 dark:border-slate-800 space-y-1 text-left">
-                                        <p><GraduationCap className="inline-block w-4 h-4 mr-1 align-middle" /> <strong className="text-gray-700 dark:text-slate-200">Course:</strong> {courses.find(c => c.id === event.courseId)?.title || 'Unknown Course'}</p>
-                                        <p><BookOpen className="inline-block w-4 h-4 mr-1 align-middle" /> <strong className="text-gray-700 dark:text-slate-200">Unit:</strong> {courses.find(c => c.id === event.courseId)?.sections?.find(s => s.id === event.sectionId)?.title || 'Unknown Unit'}</p>
-                                        <p><FileText className="inline-block w-4 h-4 mr-1 align-middle" /> <strong className="text-gray-700 dark:text-slate-200">Module:</strong> {courses.find(c => c.id === event.courseId)?.sections?.find(s => s.id === event.sectionId)?.lessons?.find(l => l.id === event.moduleId)?.title || 'Unknown Module'}</p>
+                                    <div className="text-[10px] bg-slate-50 dark:bg-slate-800/60 p-2.5 rounded-[14px] border border-stone-100 dark:border-slate-800 space-y-1 text-left">
+                                        <p><GraduationCap className="inline-block w-4 h-4 mr-1 align-middle" /> <strong className="text-stone-700 dark:text-slate-200">Course:</strong> {courses.find(c => c.id === event.courseId)?.title || 'Unknown Course'}</p>
+                                        <p><BookOpen className="inline-block w-4 h-4 mr-1 align-middle" /> <strong className="text-stone-700 dark:text-slate-200">Unit:</strong> {courses.find(c => c.id === event.courseId)?.sections?.find(s => s.id === event.sectionId)?.title || 'Unknown Unit'}</p>
+                                        <p><FileText className="inline-block w-4 h-4 mr-1 align-middle" /> <strong className="text-stone-700 dark:text-slate-200">Module:</strong> {courses.find(c => c.id === event.courseId)?.sections?.find(s => s.id === event.sectionId)?.lessons?.find(l => l.id === event.moduleId)?.title || 'Unknown Module'}</p>
                                     </div>
                                 )}
                             </div>
@@ -565,12 +565,12 @@ const AdminEvents: React.FC = () => {
             {/* Create / Edit Event Modal */}
             {isModalOpen && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
-                    <div className="bg-white dark:bg-slate-900 rounded-3xl w-full max-w-lg overflow-hidden shadow-2xl flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-200">
-                        <div className="p-6 border-b border-gray-100 dark:border-slate-800 flex justify-between items-center">
-                            <h3 className="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                    <div className="bg-white dark:bg-night-2 rounded-[26px] w-full max-w-lg overflow-hidden shadow-2xl flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-200">
+                        <div className="p-6 border-b border-stone-100 dark:border-slate-800 flex justify-between items-center">
+                            <h3 className="text-lg font-bold text-stone-900 dark:text-white flex items-center gap-2">
                                 <Calendar size={20} className="text-violet-600" /> {editingEvent ? 'Edit Scheduled Event' : 'Create New Event'}
                             </h3>
-                            <button onClick={() => setIsModalOpen(false)} className="text-gray-400 hover:text-gray-600 dark:hover:text-slate-200 cursor-pointer border-0 bg-transparent">
+                            <button onClick={() => setIsModalOpen(false)} className="text-stone-400 hover:text-stone-600 dark:hover:text-slate-200 cursor-pointer border-0 bg-transparent">
                                 <X size={20} />
                             </button>
                         </div>
@@ -578,11 +578,11 @@ const AdminEvents: React.FC = () => {
                         <form onSubmit={handleSubmit} className="p-6 overflow-y-auto space-y-4 text-left">
                             <div className="grid grid-cols-2 gap-4">
                                 <div className="space-y-1">
-                                    <label className="text-xs font-semibold text-gray-600 dark:text-slate-400">Event Type</label>
+                                    <label className="text-xs font-semibold text-stone-600 dark:text-slate-400">Event Type</label>
                                     <select 
                                         value={type} 
                                         onChange={(e) => setType(e.target.value as any)}
-                                        className="w-full p-2.5 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl text-sm"
+                                        className="w-full p-2.5 bg-stone-50 dark:bg-slate-800 border border-stone-200 dark:border-slate-700 rounded-[14px] text-sm"
                                     >
                                         <option value="Workshop">Workshop</option>
                                         <option value="Webinar">Webinar</option>
@@ -591,12 +591,12 @@ const AdminEvents: React.FC = () => {
                                     </select>
                                 </div>
                                 <div className="space-y-1">
-                                    <label className="text-xs font-semibold text-gray-600 dark:text-slate-400">Host / Speaker</label>
+                                    <label className="text-xs font-semibold text-stone-600 dark:text-slate-400">Host / Speaker</label>
                                     <input 
                                         type="text" 
                                         value={speaker} 
                                         onChange={(e) => setSpeaker(e.target.value)}
-                                        className="w-full p-2.5 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl text-sm"
+                                        className="w-full p-2.5 bg-stone-50 dark:bg-slate-800 border border-stone-200 dark:border-slate-700 rounded-[14px] text-sm"
                                         placeholder="e.g. Dr. Sarah Jenkins" 
                                         required
                                     />
@@ -604,23 +604,23 @@ const AdminEvents: React.FC = () => {
                             </div>
 
                             <div className="space-y-1">
-                                <label className="text-xs font-semibold text-gray-600 dark:text-slate-400">Event Title</label>
+                                <label className="text-xs font-semibold text-stone-600 dark:text-slate-400">Event Title</label>
                                 <input 
                                     type="text" 
                                     value={title} 
                                     onChange={(e) => setTitle(e.target.value)}
-                                    className="w-full p-2.5 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl text-sm"
+                                    className="w-full p-2.5 bg-stone-50 dark:bg-slate-800 border border-stone-200 dark:border-slate-700 rounded-[14px] text-sm"
                                     placeholder="Enter event title..." 
                                     required
                                 />
                             </div>
 
                             <div className="space-y-1">
-                                <label className="text-xs font-semibold text-gray-600 dark:text-slate-400">Description</label>
+                                <label className="text-xs font-semibold text-stone-600 dark:text-slate-400">Description</label>
                                 <textarea 
                                     value={description} 
                                     onChange={(e) => setDescription(e.target.value)}
-                                    className="w-full p-2.5 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl text-sm h-24"
+                                    className="w-full p-2.5 bg-stone-50 dark:bg-slate-800 border border-stone-200 dark:border-slate-700 rounded-[14px] text-sm h-24"
                                     placeholder="Enter event details and what students will learn..." 
                                     required
                                 />
@@ -628,59 +628,59 @@ const AdminEvents: React.FC = () => {
 
                             <div className="grid grid-cols-2 gap-4">
                                 <div className="space-y-1">
-                                    <label className="text-xs font-semibold text-gray-600 dark:text-slate-400">Date</label>
+                                    <label className="text-xs font-semibold text-stone-600 dark:text-slate-400">Date</label>
                                     <input 
                                         type="date" 
                                         value={date} 
                                         onChange={(e) => setDate(e.target.value)}
-                                        className="w-full p-2.5 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl text-sm" 
+                                        className="w-full p-2.5 bg-stone-50 dark:bg-slate-800 border border-stone-200 dark:border-slate-700 rounded-[14px] text-sm" 
                                         required
                                     />
                                 </div>
                                 <div className="space-y-1">
-                                    <label className="text-xs font-semibold text-gray-600 dark:text-slate-400">Time</label>
-                                    <div className="flex items-center gap-1 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl p-2.5 w-full text-sm">
+                                    <label className="text-xs font-semibold text-stone-600 dark:text-slate-400">Time</label>
+                                    <div className="flex items-center gap-1 bg-stone-50 dark:bg-slate-800 border border-stone-200 dark:border-slate-700 rounded-[14px] p-2.5 w-full text-sm">
                                         <select
                                             value={timeHour}
                                             onChange={(e) => setTimeHour(e.target.value)}
-                                            className="bg-transparent text-gray-800 dark:text-slate-200 outline-none cursor-pointer flex-1 text-center"
+                                            className="bg-transparent text-stone-800 dark:text-slate-200 outline-none cursor-pointer flex-1 text-center"
                                         >
                                             {Array.from({ length: 12 }, (_, i) => String(i + 1).padStart(2, '0')).map(h => (
-                                                <option key={h} value={h} className="bg-white dark:bg-slate-900 text-gray-800 dark:text-slate-200">{h}</option>
+                                                <option key={h} value={h} className="bg-white dark:bg-night-2 text-stone-800 dark:text-slate-200">{h}</option>
                                             ))}
                                         </select>
-                                        <span className="text-gray-400 dark:text-slate-500 font-bold">:</span>
+                                        <span className="text-stone-400 dark:text-slate-500 font-bold">:</span>
                                         <select
                                             value={timeMinute}
                                             onChange={(e) => setTimeMinute(e.target.value)}
-                                            className="bg-transparent text-gray-800 dark:text-slate-200 outline-none cursor-pointer flex-1 text-center"
+                                            className="bg-transparent text-stone-800 dark:text-slate-200 outline-none cursor-pointer flex-1 text-center"
                                         >
                                             {Array.from({ length: 60 }, (_, i) => String(i).padStart(2, '0')).map(m => (
-                                                <option key={m} value={m} className="bg-white dark:bg-slate-900 text-gray-800 dark:text-slate-200">{m}</option>
+                                                <option key={m} value={m} className="bg-white dark:bg-night-2 text-stone-800 dark:text-slate-200">{m}</option>
                                             ))}
                                         </select>
                                         <select
                                             value={timePeriod}
                                             onChange={(e) => setTimePeriod(e.target.value)}
-                                            className="bg-transparent text-gray-800 dark:text-slate-200 font-semibold outline-none cursor-pointer flex-1 text-center"
+                                            className="bg-transparent text-stone-800 dark:text-slate-200 font-semibold outline-none cursor-pointer flex-1 text-center"
                                         >
-                                            <option value="AM" className="bg-white dark:bg-slate-900 text-gray-800 dark:text-slate-200">AM</option>
-                                            <option value="PM" className="bg-white dark:bg-slate-900 text-gray-800 dark:text-slate-200">PM</option>
+                                            <option value="AM" className="bg-white dark:bg-night-2 text-stone-800 dark:text-slate-200">AM</option>
+                                            <option value="PM" className="bg-white dark:bg-night-2 text-stone-800 dark:text-slate-200">PM</option>
                                         </select>
                                     </div>
                                 </div>
                             </div>
 
                             {type === 'Lesson' ? (
-                                <div className="space-y-3 p-3 bg-gray-50/50 dark:bg-slate-800/40 rounded-2xl border border-gray-150/40 dark:border-slate-850">
-                                    <h4 className="text-xs font-bold uppercase tracking-wider text-purple-600 dark:text-purple-400">Lesson Linkage Details</h4>
+                                <div className="space-y-3 p-3 bg-stone-50/50 dark:bg-slate-800/40 rounded-[22px] border border-stone-150/40 dark:border-slate-850">
+                                    <h4 className="text-xs font-bold uppercase tracking-wider text-brand dark:text-purple-400">Lesson Linkage Details</h4>
                                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                                         <div className="space-y-1">
-                                            <label className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Course Preference</label>
+                                            <label className="text-[10px] font-bold text-stone-500 uppercase tracking-wider">Course Preference</label>
                                             <select 
                                                 value={courseId === 'global' ? '' : courseId} 
                                                 onChange={(e) => setCourseId(e.target.value)}
-                                                className="w-full p-2 bg-white dark:bg-slate-900 border border-gray-250 dark:border-slate-700 rounded-xl text-xs"
+                                                className="w-full p-2 bg-white dark:bg-night-2 rounded-[14px] text-xs"
                                                 required
                                             >
                                                 <option value="" disabled>Select Course...</option>
@@ -690,11 +690,11 @@ const AdminEvents: React.FC = () => {
                                             </select>
                                         </div>
                                         <div className="space-y-1">
-                                            <label className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Course Unit (Section)</label>
+                                            <label className="text-[10px] font-bold text-stone-500 uppercase tracking-wider">Course Unit (Section)</label>
                                             <select 
                                                 value={sectionId} 
                                                 onChange={(e) => setSectionId(e.target.value)}
-                                                className="w-full p-2 bg-white dark:bg-slate-900 border border-gray-250 dark:border-slate-700 rounded-xl text-xs"
+                                                className="w-full p-2 bg-white dark:bg-night-2 rounded-[14px] text-xs"
                                                 required
                                                 disabled={!courseId || courseId === 'global'}
                                             >
@@ -705,11 +705,11 @@ const AdminEvents: React.FC = () => {
                                             </select>
                                         </div>
                                         <div className="space-y-1">
-                                            <label className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Module (Lesson)</label>
+                                            <label className="text-[10px] font-bold text-stone-500 uppercase tracking-wider">Module (Lesson)</label>
                                             <select 
                                                 value={moduleId} 
                                                 onChange={(e) => setModuleId(e.target.value)}
-                                                className="w-full p-2 bg-white dark:bg-slate-900 border border-gray-250 dark:border-slate-700 rounded-xl text-xs"
+                                                className="w-full p-2 bg-white dark:bg-night-2 rounded-[14px] text-xs"
                                                 required
                                                 disabled={!sectionId}
                                             >
@@ -723,11 +723,11 @@ const AdminEvents: React.FC = () => {
                                 </div>
                             ) : (
                                 <div className="space-y-1">
-                                    <label className="text-xs font-semibold text-gray-600 dark:text-slate-400">Target Course</label>
+                                    <label className="text-xs font-semibold text-stone-600 dark:text-slate-400">Target Course</label>
                                     <select 
                                         value={courseId} 
                                         onChange={(e) => setCourseId(e.target.value)}
-                                        className="w-full p-2.5 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl text-sm"
+                                        className="w-full p-2.5 bg-stone-50 dark:bg-slate-800 border border-stone-200 dark:border-slate-700 rounded-[14px] text-sm"
                                     >
                                         <option value="global">Global (All Students)</option>
                                         {courses.map(c => (
@@ -738,11 +738,11 @@ const AdminEvents: React.FC = () => {
                             )}
 
                             <div className="space-y-1">
-                                <label className="text-xs font-semibold text-gray-600 dark:text-slate-400">Target Plan (Visibility)</label>
+                                <label className="text-xs font-semibold text-stone-600 dark:text-slate-400">Target Plan (Visibility)</label>
                                 <select 
                                     value={visibility} 
                                     onChange={(e) => setVisibility(e.target.value as any)}
-                                    className="w-full p-2.5 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl text-sm"
+                                    className="w-full p-2.5 bg-stone-50 dark:bg-slate-800 border border-stone-200 dark:border-slate-700 rounded-[14px] text-sm"
                                 >
                                     <option value="basic">Basic (All Students)</option>
                                     <option value="pro">Pro (Pro & Sponsored Students Only)</option>
@@ -751,11 +751,11 @@ const AdminEvents: React.FC = () => {
                             </div>
 
                             <div className="space-y-1">
-                                <label className="text-xs font-semibold text-gray-600 dark:text-slate-400">Event Medium</label>
+                                <label className="text-xs font-semibold text-stone-600 dark:text-slate-400">Event Medium</label>
                                 <select 
                                     value={medium} 
                                     onChange={(e) => setMedium(e.target.value as any)}
-                                    className="w-full p-2.5 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl text-sm"
+                                    className="w-full p-2.5 bg-stone-50 dark:bg-slate-800 border border-stone-200 dark:border-slate-700 rounded-[14px] text-sm"
                                 >
                                     <option value="Online">Online / Virtual Meeting</option>
                                     <option value="Physical">Physical / In-Person Campus</option>
@@ -764,23 +764,23 @@ const AdminEvents: React.FC = () => {
 
                             {medium === 'Online' ? (
                                 <div className="space-y-1">
-                                    <label className="text-xs font-semibold text-gray-600 dark:text-slate-400">Google Meet Link</label>
+                                    <label className="text-xs font-semibold text-stone-600 dark:text-slate-400">Google Meet Link</label>
                                     <input 
                                         type="text" 
                                         value={meetLink} 
                                         onChange={(e) => setMeetLink(e.target.value)}
-                                        className="w-full p-2.5 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl text-sm"
+                                        className="w-full p-2.5 bg-stone-50 dark:bg-slate-800 border border-stone-200 dark:border-slate-700 rounded-[14px] text-sm"
                                         placeholder="https://meet.google.com/abc-defg-hij" 
                                     />
                                 </div>
                             ) : (
                                 <div className="space-y-1">
-                                    <label className="text-xs font-semibold text-gray-600 dark:text-slate-400">Physical Location / Room</label>
+                                    <label className="text-xs font-semibold text-stone-600 dark:text-slate-400">Physical Location / Room</label>
                                     <input 
                                         type="text" 
                                         value={location} 
                                         onChange={(e) => setLocation(e.target.value)}
-                                        className="w-full p-2.5 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl text-sm"
+                                        className="w-full p-2.5 bg-stone-50 dark:bg-slate-800 border border-stone-200 dark:border-slate-700 rounded-[14px] text-sm"
                                         placeholder="e.g. Main Auditorium, Cape Town" 
                                     />
                                 </div>
@@ -792,24 +792,24 @@ const AdminEvents: React.FC = () => {
                                     id="premiered" 
                                     checked={premiered} 
                                     onChange={(e) => setPremiered(e.target.checked)}
-                                    className="w-4 h-4 text-violet-600 border-gray-300 rounded focus:ring-violet-500 cursor-pointer"
+                                    className="w-4 h-4 text-violet-600 border-stone-300 rounded focus:ring-brand cursor-pointer"
                                 />
-                                <label htmlFor="premiered" className="text-xs font-semibold text-gray-700 dark:text-slate-300 cursor-pointer select-none">
+                                <label htmlFor="premiered" className="text-xs font-semibold text-stone-700 dark:text-slate-300 cursor-pointer select-none">
                                     Premiere Event (Always show ticking countdown on student portal)
                                 </label>
                             </div>
 
-                            <div className="pt-4 border-t border-gray-100 dark:border-slate-800 flex justify-end gap-3">
+                            <div className="pt-4 border-t border-stone-100 dark:border-slate-800 flex justify-end gap-3">
                                 <button 
                                     type="button" 
                                     onClick={() => setIsModalOpen(false)}
-                                    className="px-4 py-2 border border-gray-200 dark:border-slate-700 text-gray-700 dark:text-slate-300 bg-transparent rounded-xl text-sm font-medium hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+                                    className="px-4 py-2 border border-stone-200 dark:border-slate-700 text-stone-700 dark:text-slate-300 bg-transparent rounded-[14px] text-sm font-medium hover:bg-stone-50 dark:hover:bg-slate-800 transition-colors cursor-pointer"
                                 >
                                     Cancel
                                 </button>
                                 <button 
                                     type="submit"
-                                    className="px-5 py-2 bg-violet-600 hover:bg-violet-750 text-white rounded-xl text-sm font-semibold transition-colors flex items-center gap-2 cursor-pointer shadow-md shadow-violet-200 dark:shadow-none"
+                                    className="px-5 py-2 bg-brand hover:bg-violet-750 text-white rounded-[14px] text-sm font-semibold transition-colors flex items-center gap-2 cursor-pointer shadow-md shadow-violet-200 dark:shadow-none"
                                 >
                                     <Send size={14} /> {editingEvent ? 'Save Changes' : 'Schedule Event'}
                                 </button>

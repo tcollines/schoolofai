@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { afterSignInUrl } from '../src/lib/acquisition';
 import { Link, useLocation } from 'react-router-dom';
+import { AuthShell, AUTH, GoogleIcon, OrDivider } from './auth/AuthShell';
 import { supabaseClient } from '../src/lib/supabaseClient';
 import { ArrowLeft, Mail, Lock, User, Loader2, X, KeyRound, ShieldCheck, Clock, Eye, EyeOff, Brain, Cpu, Sparkles, AlertTriangle } from 'lucide-react';
 
@@ -260,391 +261,145 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onNavigateToSignup, onBa
         }
     };
 
+    const title = step === 'login' ? 'Welcome back' : step === 'google-verify' || step === 'mfa' ? 'Check your email' : step === 'forgot-code' ? 'Check your inbox' : 'Reset your password';
+    const subtitle = step === 'login' ? 'Sign in to continue where you left off.'
+        : step === 'mfa' ? <>We sent a 6-digit code to <strong className="text-ink dark:text-white">{email}</strong>.</>
+        : step === 'google-verify' ? <>We sent a 6-digit code to <strong className="text-ink dark:text-white">{pendingGoogleEmail}</strong>.</>
+        : step === 'forgot-email' ? 'Enter your email address and we will send you a link to reset your password.'
+        : '';
+    const codeInput = (value: string, onChange: (v: string) => void) => (
+        <div>
+            <label htmlFor="otp" className={AUTH.label}>6-digit code</label>
+            <input id="otp" type="text" inputMode="numeric" autoComplete="one-time-code" required maxLength={6} pattern="[0-9]{6}" value={value}
+                onChange={(e) => onChange(e.target.value.replace(/\D/g, ''))}
+                className={`${AUTH.input} text-center font-mono tracking-[0.5em] text-[22px] font-bold`} placeholder="000000" />
+        </div>
+    );
+
     return (
-        <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex items-center justify-center p-4 relative overflow-hidden transition-colors duration-300">
-            {/* Background Orbs */}
-            <div className="absolute top-10 left-10 w-96 h-96 bg-violet-500/10 dark:bg-violet-500/5 rounded-full blur-3xl pointer-events-none"></div>
-            <div className="absolute bottom-10 right-10 w-96 h-96 bg-indigo-500/10 dark:bg-indigo-500/5 rounded-full blur-3xl pointer-events-none"></div>
+        <AuthShell isDark={isDark} onToggleTheme={toggleTheme}>
+            <h2 className="m-0 text-[26px] sm:text-[28px] font-extrabold tracking-[-0.03em]">{title}</h2>
+            {subtitle && <p className="mt-2 mb-0 text-[15px] leading-relaxed text-[#6B6680] dark:text-slate-400">{subtitle}</p>}
 
-            <Link
-                to="/"
-                className="absolute top-8 left-8 text-gray-500 dark:text-slate-400 hover:text-gray-900 dark:hover:text-white flex items-center gap-2 z-20 text-sm font-semibold transition-colors"
-            >
-                <ArrowLeft className="w-5 h-5" />
-                Back to Home
-            </Link>
-
-            {/* Theme Toggle Button */}
-            <button
-                type="button"
-                onClick={toggleTheme}
-                className="absolute top-8 right-8 w-10 h-10 rounded-full bg-white dark:bg-slate-900 border border-gray-250 dark:border-slate-800 shadow-sm flex items-center justify-center cursor-pointer hover:bg-gray-50 dark:hover:bg-slate-850 transition-colors z-20"
-                aria-label="Toggle Theme"
-            >
-                <svg className="w-5 h-5 fill-current text-black dark:text-white" viewBox="0 0 24 24">
-                    <path d="M12 2A10 10 0 0 0 2 12a10 10 0 0 0 10 10 10 10 0 0 0 10-10A10 10 0 0 0 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8v16z"/>
-                </svg>
-            </button>
-
-            {/* Main Overhauled Card Layout */}
-            <div className="w-full max-w-4xl bg-white dark:bg-slate-900 rounded-[32px] overflow-hidden shadow-2xl border border-gray-150 dark:border-slate-800/80 flex flex-col lg:flex-row relative z-10 transition-colors duration-300">
-                
-                {/* Custom styling inject for active tab curves */}
-                <style>{`
-                    .active-tab-curve::before {
-                        content: '';
-                        position: absolute;
-                        top: -20px;
-                        right: 0;
-                        width: 20px;
-                        height: 20px;
-                        background-color: transparent;
-                        border-bottom-right-radius: 20px;
-                        box-shadow: 0 10px 0 0 var(--tab-bg);
-                    }
-                    .active-tab-curve::after {
-                        content: '';
-                        position: absolute;
-                        bottom: -20px;
-                        right: 0;
-                        width: 20px;
-                        height: 20px;
-                        background-color: transparent;
-                        border-top-right-radius: 20px;
-                        box-shadow: 0 -10px 0 0 var(--tab-bg);
-                    }
-                    :root {
-                        --tab-bg: #ffffff;
-                    }
-                    .dark {
-                        --tab-bg: #0f172a;
-                    }
-                `}</style>
-
-                {/* Left side curved vertical tabs */}
-                <div className="hidden lg:flex lg:w-[32%] bg-gradient-to-br from-violet-600 via-violet-750 to-indigo-900 dark:from-violet-950 dark:via-slate-900 dark:to-indigo-950 flex-col justify-center items-end py-16 relative overflow-hidden">
-                    {/* Overlapping diagonal geometry bands */}
-                    <div className="absolute -top-12 -left-12 w-48 h-96 bg-white/5 rounded-[40px] transform -rotate-45 pointer-events-none"></div>
-                    <div className="absolute top-32 -left-20 w-64 h-96 bg-white/5 rounded-[40px] transform -rotate-45 pointer-events-none"></div>
-                    <div className="absolute -bottom-24 -left-12 w-52 h-96 bg-white/5 rounded-[40px] transform -rotate-45 pointer-events-none"></div>
-
-                    <div className="flex flex-col gap-6 w-full items-end z-10 relative">
-                        <button
-                            type="button"
-                            className="w-[82%] py-4 pl-8 pr-4 bg-white dark:bg-slate-900 text-violet-900 dark:text-violet-400 font-extrabold text-sm uppercase tracking-widest rounded-l-full relative active-tab-curve text-left transition-all duration-300 shadow-[-10px_0_15px_-3px_rgba(0,0,0,0.05)]"
-                        >
-                            Login
-                        </button>
-                        <button
-                            type="button"
-                            onClick={onNavigateToSignup}
-                            className="w-[80%] py-4 pl-8 pr-4 bg-transparent text-white/70 hover:text-white font-extrabold text-sm uppercase tracking-widest text-left cursor-pointer transition-all duration-300"
-                        >
-                            Sign Up
-                        </button>
-                    </div>
+            {error && (
+                <div role="alert" className={`${AUTH.error} mt-5`}>
+                    <p className="m-0 flex items-start gap-2"><AlertTriangle className="w-4 h-4 mt-0.5 shrink-0" /> <span>{error}</span></p>
+                    {step === 'login' && /Incorrect email or password/.test(error) && (
+                        <p className="mt-2 mb-0 pl-6">
+                            New here?{' '}
+                            <button type="button" onClick={onNavigateToSignup} className="font-bold underline underline-offset-2 cursor-pointer">Create a free account</button>
+                        </p>
+                    )}
                 </div>
+            )}
 
-                {/* Right side form */}
-                <div className="w-full lg:w-[68%] p-8 sm:p-12 md:px-16 flex flex-col justify-between dark:bg-slate-900">
-                    
-                    {/* Mobile top tab switcher (visible only < lg) */}
-                    <div className="flex lg:hidden justify-center gap-6 mb-8 border-b border-gray-100 dark:border-slate-800 pb-4">
-                        <button
-                            type="button"
-                            className="pb-2 text-sm font-extrabold uppercase tracking-wider border-b-2 border-violet-600 text-violet-600"
-                        >
-                            Login
-                        </button>
-                        <button
-                            type="button"
-                            onClick={onNavigateToSignup}
-                            className="pb-2 text-sm font-extrabold uppercase tracking-wider border-b-2 border-transparent text-gray-400 hover:text-gray-600"
-                        >
-                            Sign Up
-                        </button>
-                    </div>
-
-                    <div className="w-full max-w-md mx-auto my-auto">
-                        {/* Circular Avatar Header */}
-                        <div className="flex flex-col items-center mb-8">
-                            <div className="w-16 h-16 rounded-full bg-gradient-to-br from-violet-500 to-indigo-650 flex items-center justify-center shadow-lg border-2 border-white dark:border-slate-800 mb-3 animate-in zoom-in duration-200">
-                                <User className="text-white w-7 h-7" />
+            {step === 'login' && (
+                <>
+                    <button onClick={handleGoogleLogin} type="button" className={`${AUTH.secondary} mt-5`}><GoogleIcon />Continue with Google</button>
+                    <OrDivider label="or with email" />
+                    <form onSubmit={handleEmailLogin} className="space-y-4">
+                        <div>
+                            <label htmlFor="email" className={AUTH.label}>Email</label>
+                            <div className="relative">
+                                <Mail className="w-[18px] h-[18px] absolute left-4 top-1/2 -translate-y-1/2 text-[#9A94AE] pointer-events-none" />
+                                <input id="email" type="email" required autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} className={`${AUTH.input} pl-11`} placeholder="you@example.com" />
                             </div>
-                            <h2 className="text-xl font-extrabold text-gray-900 dark:text-white tracking-widest uppercase mb-1">
-                                {step === 'login' ? 'Login' : step === 'google-verify' || step === 'mfa' ? 'Verify' : 'Reset Password'}
-                            </h2>
-                            <p className="text-xs text-gray-400 font-semibold uppercase tracking-wider">Welile School of AI</p>
                         </div>
-
-                        {error && (
-                            <div className="bg-red-50 dark:bg-red-950/30 text-red-700 dark:text-red-400 p-4 rounded-xl mb-6 text-sm border border-red-200 dark:border-red-900/30">
-                                <p className="flex items-start gap-2"><AlertTriangle className="w-4 h-4 mt-0.5 shrink-0" /> <span>{error}</span></p>
-                                {step === 'login' && /Incorrect email or password/.test(error) && (
-                                    <p className="mt-2 pl-6">
-                                        New here?{' '}
-                                        <button type="button" onClick={onNavigateToSignup} className="font-bold underline underline-offset-2 cursor-pointer">
-                                            Create a free account
-                                        </button>
-                                    </p>
-                                )}
+                        <div>
+                            <div className="flex items-center justify-between mb-1.5">
+                                <label htmlFor="password" className="text-[13px] font-bold">Password</label>
+                                <button type="button" onClick={() => { setForgotEmail(email); setStep('forgot-email'); setError(null); }} className={AUTH.link}>Forgot password?</button>
                             </div>
-                        )}
-
-                        {step === 'login' && (
-                            <form onSubmit={handleEmailLogin} className="space-y-6">
-                                {/* Email Line Input */}
-                                <div className="relative group border-b border-gray-200 dark:border-slate-850 focus-within:border-violet-500 transition-all duration-300 py-2 text-left">
-                                    <div className="absolute inset-y-0 left-0 pl-1 flex items-center pointer-events-none text-gray-400 group-focus-within:text-violet-500 transition-colors">
-                                        <Mail className="w-5 h-5" />
-                                    </div>
-                                    <input
-                                        type="email"
-                                        required
-                                        value={email}
-                                        onChange={(e) => setEmail(e.target.value)}
-                                        className="block w-full pl-8 pr-3 bg-transparent border-0 outline-none focus:ring-0 text-sm text-gray-900 dark:text-white placeholder-gray-400"
-                                        placeholder="Email"
-                                    />
-                                </div>
-
-                                {/* Password Line Input */}
-                                <div className="relative group border-b border-gray-200 dark:border-slate-850 focus-within:border-violet-500 transition-all duration-300 py-2 text-left">
-                                    <div className="absolute inset-y-0 left-0 pl-1 flex items-center pointer-events-none text-gray-400 group-focus-within:text-violet-500 transition-colors">
-                                        <Lock className="w-5 h-5" />
-                                    </div>
-                                    <input
-                                        type={showPassword ? 'text' : 'password'}
-                                        required
-                                        value={password}
-                                        onChange={(e) => setPassword(e.target.value)}
-                                        className="block w-full pl-8 pr-10 bg-transparent border-0 outline-none focus:ring-0 text-sm text-gray-900 dark:text-white placeholder-gray-400"
-                                        placeholder="Password"
-                                    />
-                                    <button
-                                        type="button"
-                                        onClick={() => setShowPassword(!showPassword)}
-                                        className="absolute inset-y-0 right-1 pr-1 flex items-center text-gray-400 hover:text-gray-655 cursor-pointer"
-                                    >
-                                        {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                                    </button>
-                                </div>
-
-                                {/* Action row matching mockup layout */}
-                                <div className="flex items-center justify-between pt-4">
-                                    <button
-                                        type="button"
-                                        onClick={() => { setForgotEmail(email); setStep('forgot-email'); setError(null); }}
-                                        className="text-xs font-bold text-gray-400 hover:text-violet-600 transition-colors cursor-pointer"
-                                    >
-                                        Forgot Password?
-                                    </button>
-                                    
-                                    <button
-                                        type="submit"
-                                        disabled={loading}
-                                        className="px-8 py-2.5 bg-gradient-to-r from-violet-600 to-indigo-650 hover:from-violet-750 hover:to-indigo-750 text-white rounded-full text-xs font-extrabold tracking-widest uppercase shadow-md hover:shadow-lg transition-all duration-200 cursor-pointer disabled:opacity-50"
-                                    >
-                                        {loading ? 'Logging in...' : 'Login'}
-                                    </button>
-                                </div>
-                            </form>
-                        )}
-
-                        {step === 'mfa' && (
-                            <form onSubmit={handleMfaVerify} className="space-y-6">
-                                <p className="text-xs text-gray-500 text-center mb-2">
-                                    A 2FA verification code has been sent via email to <span className="font-bold text-gray-800 dark:text-slate-200">{email}</span>.
-                                </p>
-                                
-                                <div className="relative group border-b border-gray-200 dark:border-slate-850 focus-within:border-violet-500 transition-all duration-300 py-2">
-                                    <div className="absolute inset-y-0 left-0 pl-1 flex items-center pointer-events-none text-gray-400 group-focus-within:text-violet-500 transition-colors">
-                                        <Lock className="w-5 h-5" />
-                                    </div>
-                                    <input
-                                        type="text"
-                                        required
-                                        maxLength={6}
-                                        pattern="[0-9]{6}"
-                                        value={mfaCode}
-                                        onChange={(e) => setMfaCode(e.target.value.replace(/\D/g, ''))}
-                                        className="block w-full pl-8 pr-3 bg-transparent border-0 outline-none focus:ring-0 text-sm text-gray-900 dark:text-white placeholder-gray-400 text-center font-mono tracking-widest text-lg"
-                                        placeholder="000000"
-                                    />
-                                </div>
-
-                                <div className="flex items-center justify-between pt-4">
-                                    <button
-                                        type="button"
-                                        onClick={() => {
-                                            const code = Math.floor(100000 + Math.random() * 900000).toString();
-                                            setCorrectCode(code);
-                                            setShowGmailToast(true);
-                                            alert('A new verification code has been sent to your Gmail.');
-                                        }}
-                                        className="text-xs font-bold text-violet-650 hover:text-violet-755 cursor-pointer"
-                                    >
-                                        Resend Code
-                                    </button>
-
-                                    <button
-                                        type="submit"
-                                        disabled={loading}
-                                        className="px-8 py-2.5 bg-gradient-to-r from-violet-600 to-indigo-650 hover:from-violet-750 hover:to-indigo-750 text-white rounded-full text-xs font-extrabold tracking-widest uppercase shadow-md hover:shadow-lg transition-all duration-200 cursor-pointer disabled:opacity-50"
-                                    >
-                                        {loading ? 'Verifying...' : 'Verify'}
-                                    </button>
-                                </div>
-                            </form>
-                        )}
-
-                        {step === 'google-verify' && (
-                            <form onSubmit={handleGoogleVerifySubmit} className="space-y-6">
-                                <p className="text-xs text-gray-500 text-center mb-2">
-                                    A 6-digit verification code has been sent to <span className="font-semibold text-gray-800 dark:text-slate-200">{pendingGoogleEmail}</span>.
-                                </p>
-
-                                <div className="relative group border-b border-gray-200 dark:border-slate-850 focus-within:border-violet-500 transition-all duration-300 py-2">
-                                    <div className="absolute inset-y-0 left-0 pl-1 flex items-center pointer-events-none text-gray-400 group-focus-within:text-violet-500 transition-colors">
-                                        <Lock className="w-5 h-5" />
-                                    </div>
-                                    <input
-                                        type="text"
-                                        required
-                                        maxLength={6}
-                                        pattern="[0-9]{6}"
-                                        value={googleVerifyInput}
-                                        onChange={(e) => setGoogleVerifyInput(e.target.value.replace(/\D/g, ''))}
-                                        className="block w-full pl-8 pr-3 bg-transparent border-0 outline-none focus:ring-0 text-sm text-gray-900 dark:text-white placeholder-gray-400 text-center font-mono tracking-widest text-lg"
-                                        placeholder="000000"
-                                    />
-                                </div>
-
-                                <div className="flex items-center justify-between pt-4">
-                                    <button
-                                        type="button"
-                                        onClick={async () => {
-                                            setLoading(true);
-                                            setError(null);
-                                            try {
-                                                const res = await fetch('/api/auth/google-otp', {
-                                                    method: 'POST',
-                                                    headers: { 'Content-Type': 'application/json' },
-                                                    body: JSON.stringify({ email: pendingGoogleEmail })
-                                                });
-                                                if (!res.ok) throw new Error('Failed to resend code');
-                                                alert('Code resent successfully.');
-                                            } catch (err: any) {
-                                                setError(err.message);
-                                            } finally {
-                                                setLoading(false);
-                                            }
-                                        }}
-                                        className="text-xs font-bold text-violet-650 hover:text-violet-755 cursor-pointer"
-                                    >
-                                        Resend Code
-                                    </button>
-
-                                    <button
-                                        type="submit"
-                                        disabled={loading}
-                                        className="px-8 py-2.5 bg-gradient-to-r from-violet-600 to-indigo-650 hover:from-violet-750 hover:to-indigo-750 text-white rounded-full text-xs font-extrabold tracking-widest uppercase shadow-md hover:shadow-lg transition-all duration-200 cursor-pointer disabled:opacity-50"
-                                    >
-                                        {loading ? 'Verifying...' : 'Verify'}
-                                    </button>
-                                </div>
-
-                                <button
-                                    type="button"
-                                    onClick={() => { setStep('login'); setError(null); }}
-                                    className="w-full text-center text-xs text-gray-500 hover:text-gray-900 font-medium cursor-pointer pt-2"
-                                >
-                                    Cancel
-                                </button>
-                            </form>
-                        )}
-
-                        {step === 'forgot-email' && (
-                            <form onSubmit={handleForgotSendCode} className="space-y-6">
-                                <p className="text-xs text-gray-500 text-center mb-2">
-                                    Enter your registered email address and we will email you a link to reset your password.
-                                </p>
-
-                                <div className="relative group border-b border-gray-200 dark:border-slate-850 focus-within:border-violet-500 transition-all duration-300 py-2">
-                                    <div className="absolute inset-y-0 left-0 pl-1 flex items-center pointer-events-none text-gray-400 group-focus-within:text-violet-500 transition-colors">
-                                        <Mail className="w-5 h-5" />
-                                    </div>
-                                    <input
-                                        type="email"
-                                        required
-                                        value={forgotEmail}
-                                        onChange={(e) => setForgotEmail(e.target.value)}
-                                        className="block w-full pl-8 pr-3 bg-transparent border-0 outline-none focus:ring-0 text-sm text-gray-900 dark:text-white placeholder-gray-400"
-                                        placeholder="Email Address"
-                                    />
-                                </div>
-
-                                <div className="flex items-center justify-between pt-4">
-                                    <button
-                                        type="button"
-                                        onClick={() => { setStep('login'); setError(null); }}
-                                        className="text-xs font-bold text-gray-400 hover:text-violet-650 cursor-pointer"
-                                    >
-                                        Back to Login
-                                    </button>
-
-                                    <button
-                                        type="submit"
-                                        disabled={loading}
-                                        className="px-8 py-2.5 bg-gradient-to-r from-violet-600 to-indigo-650 hover:from-violet-750 hover:to-indigo-750 text-white rounded-full text-xs font-extrabold tracking-widest uppercase shadow-md hover:shadow-lg transition-all duration-200 cursor-pointer disabled:opacity-50"
-                                    >
-                                        {loading ? 'Sending...' : 'Send Link'}
-                                    </button>
-                                </div>
-                            </form>
-                        )}
-
-                        {step === 'forgot-code' && (
-                            <div className="space-y-6 text-center">
-                                <p className="text-sm text-gray-600 dark:text-slate-300">
-                                    If an account exists for <span className="font-semibold text-gray-800 dark:text-white">{forgotEmail}</span>,
-                                    we have emailed a link to reset your password. It can take a minute to arrive; check your spam folder too.
-                                </p>
-                                <button
-                                    type="button"
-                                    onClick={() => { setStep('login'); setError(null); }}
-                                    className="text-xs font-bold text-violet-600 hover:text-violet-700 cursor-pointer"
-                                >
-                                    Back to Login
+                            <div className="relative">
+                                <Lock className="w-[18px] h-[18px] absolute left-4 top-1/2 -translate-y-1/2 text-[#9A94AE] pointer-events-none" />
+                                <input id="password" type={showPassword ? 'text' : 'password'} required autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} className={`${AUTH.input} pl-11 pr-12`} placeholder="Your password" />
+                                <button type="button" onClick={() => setShowPassword(!showPassword)} aria-label={showPassword ? 'Hide password' : 'Show password'} className="absolute right-1.5 top-1/2 -translate-y-1/2 w-10 h-10 rounded-[10px] inline-flex items-center justify-center text-[#6B6680] hover:text-brand">
+                                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                                 </button>
                             </div>
-                        )}
+                        </div>
+                        <button type="submit" disabled={loading} className={`${AUTH.primary} !mt-6`}>{loading ? 'Signing in...' : 'Sign in'}</button>
+                    </form>
+                    <p className="mt-6 mb-0 text-center text-[14px] text-[#6B6680] dark:text-slate-400">
+                        New here?{' '}
+                        <button type="button" onClick={onNavigateToSignup} className="font-extrabold text-brand dark:text-violet-300 hover:underline">Register for the free course</button>
+                    </p>
+                </>
+            )}
 
-                        {/* Social Footer Bar matching mockup */}
-                        {step === 'login' && (
-                            <div className="border-t border-gray-100 dark:border-slate-800/80 mt-10 pt-5 flex items-center justify-between text-xs">
-                                <span className="text-gray-400 font-extrabold uppercase tracking-widest text-[10px]">Or Login With</span>
-                                <button
-                                    onClick={handleGoogleLogin}
-                                    type="button"
-                                    className="flex items-center gap-2 px-5 py-2.5 bg-gray-50 dark:bg-slate-900 border border-gray-150 dark:border-slate-800 rounded-full hover:bg-gray-100 dark:hover:bg-slate-850 text-gray-700 dark:text-slate-200 font-bold shadow-sm transition-all cursor-pointer"
-                                >
-                                    <svg className="h-4 w-4" viewBox="0 0 48 48">
-                                        <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
-                                        <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
-                                        <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
-                                        <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
-                                        <path fill="none" d="M0 0h48v48H0z"/>
-                                    </svg>
-                                    Google
-                                </button>
-                            </div>
-                        )}
+            {step === 'mfa' && (
+                <form onSubmit={handleMfaVerify} className="mt-6 space-y-4">
+                    {codeInput(mfaCode, setMfaCode)}
+                    <button type="submit" disabled={loading} className={AUTH.primary}>{loading ? 'Verifying...' : 'Verify'}</button>
+                    <button
+                        type="button"
+                        onClick={() => {
+                            const code = Math.floor(100000 + Math.random() * 900000).toString();
+                            setCorrectCode(code);
+                            setShowGmailToast(true);
+                            alert('A new verification code has been sent to your Gmail.');
+                        }}
+                        className={`${AUTH.link} block mx-auto`}
+                    >Send a new code</button>
+                </form>
+            )}
 
+            {step === 'google-verify' && (
+                <form onSubmit={handleGoogleVerifySubmit} className="mt-6 space-y-4">
+                    {codeInput(googleVerifyInput, setGoogleVerifyInput)}
+                    <button type="submit" disabled={loading} className={AUTH.primary}>{loading ? 'Verifying...' : 'Verify'}</button>
+                    <div className="flex items-center justify-between">
+                        <button type="button" onClick={() => { setStep('login'); setError(null); }} className="text-[13px] font-bold text-[#6B6680] hover:text-ink dark:hover:text-white">Cancel</button>
+                        <button
+                            type="button"
+                            onClick={async () => {
+                                setLoading(true);
+                                setError(null);
+                                try {
+                                    const res = await fetch('/api/auth/google-otp', {
+                                        method: 'POST',
+                                        headers: { 'Content-Type': 'application/json' },
+                                        body: JSON.stringify({ email: pendingGoogleEmail })
+                                    });
+                                    if (!res.ok) throw new Error('Failed to resend code');
+                                    alert('Code resent successfully.');
+                                } catch (err: any) {
+                                    setError(err.message);
+                                } finally {
+                                    setLoading(false);
+                                }
+                            }}
+                            className={AUTH.link}
+                        >Send a new code</button>
                     </div>
-                </div>
+                </form>
+            )}
 
-            </div>
+            {step === 'forgot-email' && (
+                <form onSubmit={handleForgotSendCode} className="mt-6 space-y-4">
+                    <div>
+                        <label htmlFor="forgot-email" className={AUTH.label}>Email</label>
+                        <div className="relative">
+                            <Mail className="w-[18px] h-[18px] absolute left-4 top-1/2 -translate-y-1/2 text-[#9A94AE] pointer-events-none" />
+                            <input id="forgot-email" type="email" required autoComplete="email" value={forgotEmail} onChange={(e) => setForgotEmail(e.target.value)} className={`${AUTH.input} pl-11`} placeholder="you@example.com" />
+                        </div>
+                    </div>
+                    <button type="submit" disabled={loading} className={AUTH.primary}>{loading ? 'Sending...' : 'Send reset link'}</button>
+                    <button type="button" onClick={() => { setStep('login'); setError(null); }} className={`${AUTH.link} flex items-center gap-1.5 mx-auto`}><ArrowLeft size={14} />Back to sign in</button>
+                </form>
+            )}
+
+            {step === 'forgot-code' && (
+                <div className="mt-6 space-y-5">
+                    <div className="rounded-[18px] bg-brand-soft dark:bg-night-3 p-5 flex gap-3">
+                        <Mail className="w-5 h-5 text-brand dark:text-violet-300 shrink-0 mt-0.5" />
+                        <p className="m-0 text-[14px] leading-relaxed text-brand-ink dark:text-slate-200">
+                            If an account exists for <strong>{forgotEmail}</strong>, we have emailed a link to reset your password. It can take a minute to arrive; check your spam folder too.
+                        </p>
+                    </div>
+                    <button type="button" onClick={() => { setStep('login'); setError(null); }} className={AUTH.secondary}><ArrowLeft size={16} />Back to sign in</button>
+                </div>
+            )}
 
             {/* Google Select Account Modal */}
             <GoogleChooserModal
@@ -652,7 +407,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onNavigateToSignup, onBa
                 onClose={() => setShowGoogleChooser(false)}
                 onSelect={handleSelectGoogleAccount}
             />
-        </div>
+        </AuthShell>
     );
 };
 

@@ -346,9 +346,9 @@ const STATUS_SHORT_LABELS: Record<OutreachRegistrationRecord['status'], string> 
 
 const STATUS_BADGE_STYLES: Record<OutreachRegistrationRecord['status'], string> = {
     NEW: 'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/50 dark:text-amber-300 dark:border-amber-800/60',
-    CONTACTED: 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/50 dark:text-blue-300 dark:border-blue-800/60',
-    ENROLLED: 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/50 dark:text-emerald-300 dark:border-emerald-800/60',
-    NOT_INTERESTED: 'bg-gray-100 text-gray-600 border-gray-200 dark:bg-slate-800 dark:text-slate-400 dark:border-slate-700'
+    CONTACTED: 'bg-brand-soft text-brand border-blue-200 dark:bg-blue-950/50 dark:text-blue-300 dark:border-blue-800/60',
+    ENROLLED: 'bg-mint-soft text-mint border-emerald-200 dark:bg-emerald-950/50 dark:text-emerald-300 dark:border-emerald-800/60',
+    NOT_INTERESTED: 'bg-stone-100 text-stone-600 border-stone-200 dark:bg-slate-800 dark:text-slate-400 dark:border-slate-700'
 };
 
 const CHART_COLORS = ['#a855f7', '#7c3aed', '#6366f1', '#10b981', '#f59e0b', '#ec4899', '#3b82f6'];
@@ -1898,13 +1898,13 @@ const AdminRegistrations: React.FC = () => {
     return (
         <div className="space-y-5">
             {/* Top CRM Header Bar */}
-            <div className="bg-white dark:bg-slate-900 px-5 py-4 rounded-2xl shadow-sm border border-gray-200/80 dark:border-slate-800 flex flex-col xl:flex-row xl:items-center justify-between gap-4">
+            <div className="bg-white dark:bg-night-2 px-5 py-4 rounded-[22px] flex flex-col xl:flex-row xl:items-center justify-between gap-4">
                 <div>
                     <div className="flex flex-wrap items-center gap-2.5">
-                        <h2 className="text-lg font-extrabold tracking-tight text-gray-900 dark:text-white">
+                        <h1 className="m-0 text-[28px] font-extrabold tracking-[-0.02em]">
                             Admissions & Outreach Follow-Up CRM
-                        </h2>
-                        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/50">
+                        </h1>
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-mint-soft text-mint dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/50">
                             <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
                             Live Supabase Sync
                         </span>
@@ -1912,8 +1912,8 @@ const AdminRegistrations: React.FC = () => {
                             Provisional Pre-Registration → Follow-Up → Confirmed Student
                         </span>
                     </div>
-                    <p className="text-xs text-gray-500 dark:text-slate-400 mt-1">
-                        Registrations are <strong className="text-gray-700 dark:text-slate-200">provisional seat reservations</strong> until confirmed via follow-up call/WhatsApp • Mode:{' '}
+                    <p className="text-xs text-stone-500 dark:text-slate-400 mt-1">
+                        Registrations are <strong className="text-stone-700 dark:text-slate-200">provisional seat reservations</strong> until confirmed via follow-up call/WhatsApp • Mode:{' '}
                         <span className="font-semibold text-violet-600 dark:text-violet-400">
                             {outreachModeEnabled ? `Outreach (${defaultCampaign?.name})` : 'Normal Student Registration'}
                         </span>
@@ -1924,10 +1924,10 @@ const AdminRegistrations: React.FC = () => {
                     <button
                         type="button"
                         onClick={() => setShowLaunchControlModal(true)}
-                        className={`px-3.5 py-2 rounded-xl border text-xs font-bold flex items-center gap-2 transition-all cursor-pointer shadow-xs ${
+                        className={`px-3.5 py-2 rounded-[14px] border text-xs font-bold flex items-center gap-2 transition-all cursor-pointer ${
                             websiteButtonVisible
-                                ? 'bg-emerald-50 dark:bg-emerald-950/60 border-emerald-300 dark:border-emerald-700 text-emerald-800 dark:text-emerald-200 hover:bg-emerald-100'
-                                : 'bg-gray-900 dark:bg-white text-white dark:text-slate-950 border-gray-900 dark:border-white hover:opacity-90'
+                                ? 'bg-mint-soft dark:bg-emerald-950/60 border-emerald-300 dark:border-mint text-emerald-800 dark:text-emerald-200 hover:bg-mint-soft'
+                                : 'bg-stone-900 dark:bg-white text-white dark:text-slate-950 border-stone-900 dark:border-white hover:opacity-90'
                         }`}
                         title="Activate Registration, Toggle Normal vs Outreach Mode & Manage Mobilizers"
                     >
@@ -1938,7 +1938,7 @@ const AdminRegistrations: React.FC = () => {
                     <button
                         type="button"
                         onClick={() => fetchRegistrations()}
-                        className="px-3 py-2 rounded-xl border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-gray-50 dark:hover:bg-slate-700 text-gray-700 dark:text-slate-200 text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer"
+                        className="px-3 py-2 rounded-[14px] bg-white dark:bg-slate-800 hover:bg-stone-50 dark:hover:bg-slate-700 text-stone-700 dark:text-slate-200 text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer"
                         title="Refresh Live Database"
                     >
                         <RefreshCw size={13} className={loading ? 'animate-spin' : ''} />
@@ -1948,16 +1948,16 @@ const AdminRegistrations: React.FC = () => {
                     <button
                         type="button"
                         onClick={() => setShowStaffModal(true)}
-                        className="px-3 py-2 rounded-xl border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-gray-50 dark:hover:bg-slate-700 text-gray-700 dark:text-slate-200 text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer"
+                        className="px-3 py-2 rounded-[14px] bg-white dark:bg-slate-800 hover:bg-stone-50 dark:hover:bg-slate-700 text-stone-700 dark:text-slate-200 text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer"
                     >
-                        <UserCheck size={14} className="text-emerald-600 dark:text-emerald-400" />
+                        <UserCheck size={14} className="text-mint dark:text-emerald-400" />
                         Staff Roster ({staffRoster.length})
                     </button>
 
                     <button
                         type="button"
                         onClick={() => setShowCampaignModal(true)}
-                        className="px-3 py-2 rounded-xl border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-gray-50 dark:hover:bg-slate-700 text-gray-700 dark:text-slate-200 text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer"
+                        className="px-3 py-2 rounded-[14px] bg-white dark:bg-slate-800 hover:bg-stone-50 dark:hover:bg-slate-700 text-stone-700 dark:text-slate-200 text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer"
                     >
                         <Megaphone size={14} className="text-amber-600 dark:text-amber-400" />
                         Outreaches ({campaigns.length})
@@ -1966,7 +1966,7 @@ const AdminRegistrations: React.FC = () => {
                     <button
                         type="button"
                         onClick={() => setShowQrModal(true)}
-                        className="px-3 py-2 rounded-xl border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-gray-50 dark:hover:bg-slate-700 text-gray-700 dark:text-slate-200 text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer"
+                        className="px-3 py-2 rounded-[14px] bg-white dark:bg-slate-800 hover:bg-stone-50 dark:hover:bg-slate-700 text-stone-700 dark:text-slate-200 text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer"
                     >
                         <QrCode size={14} className="text-violet-600 dark:text-violet-400" />
                         Booth QR
@@ -1975,7 +1975,7 @@ const AdminRegistrations: React.FC = () => {
                     <button
                         type="button"
                         onClick={handleExportCSV}
-                        className="px-3.5 py-2 rounded-xl bg-violet-600 hover:bg-violet-700 text-white text-xs font-semibold flex items-center gap-1.5 shadow-sm transition-colors cursor-pointer"
+                        className="px-3.5 py-2 rounded-[14px] bg-brand hover:bg-brand-mid text-white text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer"
                     >
                         <Download size={14} />
                         Export CSV ({filteredRegistrations.length})
@@ -1987,92 +1987,92 @@ const AdminRegistrations: React.FC = () => {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 <div
                     onClick={() => setStatusFilter(statusFilter === 'NEW' ? 'ALL' : 'NEW')}
-                    className="bg-white dark:bg-slate-900 p-4 rounded-2xl shadow-sm border border-gray-200/80 dark:border-slate-800 border-l-4 border-l-amber-500 cursor-pointer hover:border-amber-400 transition-all"
+                    className="bg-white dark:bg-night-2 p-4 rounded-[22px] border-l-4 border-l-amber-500 cursor-pointer hover:border-amber-400 transition-all"
                 >
-                    <div className="flex items-center justify-between text-xs text-gray-500 dark:text-slate-400 font-medium">
+                    <div className="flex items-center justify-between text-xs text-stone-500 dark:text-slate-400 font-medium">
                         <span>1. Pre-Registered Leads</span>
                         <Users size={15} className="text-amber-500" />
                     </div>
                     <div className="mt-1.5 flex items-baseline gap-2">
-                        <span className="text-2xl font-extrabold text-gray-900 dark:text-white">{kpis.total}</span>
+                        <span className="text-2xl font-extrabold text-stone-900 dark:text-white">{kpis.total}</span>
                         <span className="text-xs font-semibold text-amber-600 dark:text-amber-400">
                             {kpis.awaitingFollowUpCount} awaiting follow-up
                         </span>
                     </div>
-                    <p className="text-[11px] text-gray-400 dark:text-slate-500 mt-1">
+                    <p className="text-[11px] text-stone-400 dark:text-slate-500 mt-1">
                         +{kpis.newThisWeek} captured this week • Click to filter uncontacted
                     </p>
                 </div>
 
                 <div
                     onClick={() => setStatusFilter(statusFilter === 'CONTACTED' ? 'ALL' : 'CONTACTED')}
-                    className="bg-white dark:bg-slate-900 p-4 rounded-2xl shadow-sm border border-gray-200/80 dark:border-slate-800 border-l-4 border-l-blue-500 cursor-pointer hover:border-blue-400 transition-all"
+                    className="bg-white dark:bg-night-2 p-4 rounded-[22px] border-l-4 border-l-blue-500 cursor-pointer hover:border-blue-400 transition-all"
                 >
-                    <div className="flex items-center justify-between text-xs text-gray-500 dark:text-slate-400 font-medium">
+                    <div className="flex items-center justify-between text-xs text-stone-500 dark:text-slate-400 font-medium">
                         <span>2. Follow-Up & Confirmation</span>
                         <Phone size={15} className="text-blue-500" />
                     </div>
                     <div className="mt-1.5 flex items-baseline gap-2">
-                        <span className="text-2xl font-extrabold text-gray-900 dark:text-white">{kpis.followedUpCount}</span>
-                        <span className="text-xs font-semibold text-blue-600 dark:text-blue-400">
+                        <span className="text-2xl font-extrabold text-stone-900 dark:text-white">{kpis.followedUpCount}</span>
+                        <span className="text-xs font-semibold text-brand dark:text-blue-400">
                             in follow-up • {kpis.enrolledCount} confirmed ({kpis.conversionRate}%)
                         </span>
                     </div>
-                    <p className="text-[11px] text-gray-400 dark:text-slate-500 mt-1">
+                    <p className="text-[11px] text-stone-400 dark:text-slate-500 mt-1">
                         Students confirm study & schedule during follow-up
                     </p>
                 </div>
 
-                <div className="bg-white dark:bg-slate-900 p-4 rounded-2xl shadow-sm border border-gray-200/80 dark:border-slate-800 border-l-4 border-l-violet-500">
-                    <div className="flex items-center justify-between text-xs text-gray-500 dark:text-slate-400 font-medium">
+                <div className="bg-white dark:bg-night-2 p-4 rounded-[22px] border-l-4 border-l-violet-500">
+                    <div className="flex items-center justify-between text-xs text-stone-500 dark:text-slate-400 font-medium">
                         <span>3. Provisional Monthly Pipeline</span>
                         <BookOpen size={15} className="text-violet-500" />
                     </div>
                     <div className="mt-1.5 flex items-baseline gap-2">
-                        <span className="text-xl font-extrabold text-gray-900 dark:text-white">
+                        <span className="text-xl font-extrabold text-stone-900 dark:text-white">
                             UGX {kpis.totalFeePipeline.toLocaleString()}
                         </span>
                     </div>
-                    <p className="text-[11px] text-gray-400 dark:text-slate-500 mt-1 truncate" title={kpis.topCourse}>
+                    <p className="text-[11px] text-stone-400 dark:text-slate-500 mt-1 truncate" title={kpis.topCourse}>
                         If all {kpis.total} leads confirm • Top: {kpis.topCourse} ({kpis.topCourseCount})
                     </p>
                 </div>
 
                 <div
                     onClick={() => setStatusFilter(statusFilter === 'ENROLLED' ? 'ALL' : 'ENROLLED')}
-                    className="bg-white dark:bg-slate-900 p-4 rounded-2xl shadow-sm border border-gray-200/80 dark:border-slate-800 border-l-4 border-l-emerald-500 cursor-pointer hover:border-emerald-400 transition-all"
+                    className="bg-white dark:bg-night-2 p-4 rounded-[22px] border-l-4 border-l-emerald-500 cursor-pointer hover:border-emerald-400 transition-all"
                 >
-                    <div className="flex items-center justify-between text-xs text-gray-500 dark:text-slate-400 font-medium">
+                    <div className="flex items-center justify-between text-xs text-stone-500 dark:text-slate-400 font-medium">
                         <span>4. Confirmed & Paid Tuition</span>
                         <CreditCard size={15} className="text-emerald-500" />
                     </div>
                     <div className="mt-1.5 flex items-baseline gap-2">
-                        <span className="text-xl font-extrabold text-emerald-600 dark:text-emerald-400">
+                        <span className="text-xl font-extrabold text-mint dark:text-emerald-400">
                             UGX {kpis.totalCollectedFees.toLocaleString()}
                         </span>
                     </div>
-                    <p className="text-[11px] text-gray-400 dark:text-slate-500 mt-1">
+                    <p className="text-[11px] text-stone-400 dark:text-slate-500 mt-1">
                         Pending on confirmation: UGX {kpis.totalOutstanding.toLocaleString()}
                     </p>
                 </div>
             </div>
 
             {/* Single-Row Unified Command Filter & View Switcher Bar */}
-            <div className="bg-white dark:bg-slate-900 p-3.5 rounded-2xl shadow-sm border border-gray-200/80 dark:border-slate-800 flex flex-col gap-3">
+            <div className="bg-white dark:bg-night-2 p-3.5 rounded-[22px] flex flex-col gap-3">
                 <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-3">
                     {/* Left: Search + Sieve Dropdowns */}
                     <div className="flex flex-wrap items-center gap-2 flex-1">
                         <div className="relative min-w-[220px] flex-1 max-w-xs">
                             <Search
                                 size={14}
-                                className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-slate-500"
+                                className="absolute left-3 top-1/2 -translate-y-1/2 text-stone-400 dark:text-slate-500"
                             />
                             <input
                                 type="text"
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
                                 placeholder="Search student, phone, WSI ref..."
-                                className="w-full pl-9 pr-3 py-2 bg-gray-50 dark:bg-slate-950 border border-gray-200 dark:border-slate-800 rounded-xl text-xs text-gray-900 dark:text-white placeholder:text-gray-400 focus:outline-none focus:border-violet-500"
+                                className="w-full pl-9 pr-3 py-2 bg-stone-50 dark:bg-night border border-stone-200 dark:border-slate-800 rounded-[14px] text-xs text-stone-900 dark:text-white placeholder:text-stone-400 focus:outline-none focus:border-brand"
                             />
                         </div>
 
@@ -2080,7 +2080,7 @@ const AdminRegistrations: React.FC = () => {
                         <select
                             value={dashboardSieve}
                             onChange={(e) => setDashboardSieve(e.target.value)}
-                            className="px-3 py-2 rounded-xl bg-gray-50 dark:bg-slate-950 border border-gray-200 dark:border-slate-800 text-xs font-semibold text-gray-800 dark:text-slate-200 focus:outline-none focus:border-violet-500 cursor-pointer max-w-[230px] truncate"
+                            className="px-3 py-2 rounded-[14px] bg-stone-50 dark:bg-night border border-stone-200 dark:border-slate-800 text-xs font-semibold text-stone-800 dark:text-slate-200 focus:outline-none focus:border-brand cursor-pointer max-w-[230px] truncate"
                             title="Sieve by Outreach Campaign"
                         >
                             <option value="ALL">All Channels ({sieveCounts.all})</option>
@@ -2102,7 +2102,7 @@ const AdminRegistrations: React.FC = () => {
                         <select
                             value={staffSieve}
                             onChange={(e) => setStaffSieve(e.target.value)}
-                            className="px-3 py-2 rounded-xl bg-gray-50 dark:bg-slate-950 border border-gray-200 dark:border-slate-800 text-xs font-semibold text-gray-800 dark:text-slate-200 focus:outline-none focus:border-violet-500 cursor-pointer max-w-[210px] truncate"
+                            className="px-3 py-2 rounded-[14px] bg-stone-50 dark:bg-night border border-stone-200 dark:border-slate-800 text-xs font-semibold text-stone-800 dark:text-slate-200 focus:outline-none focus:border-brand cursor-pointer max-w-[210px] truncate"
                             title="Audit by Staff / Mobilizer"
                         >
                             <option value="ALL">All Registrars ({sieveCounts.all})</option>
@@ -2121,7 +2121,7 @@ const AdminRegistrations: React.FC = () => {
                         <select
                             value={statusFilter}
                             onChange={(e) => setStatusFilter(e.target.value)}
-                            className="px-3 py-2 rounded-xl bg-gray-50 dark:bg-slate-950 border border-gray-200 dark:border-slate-800 text-xs font-semibold text-gray-800 dark:text-slate-200 focus:outline-none focus:border-violet-500 cursor-pointer"
+                            className="px-3 py-2 rounded-[14px] bg-stone-50 dark:bg-night border border-stone-200 dark:border-slate-800 text-xs font-semibold text-stone-800 dark:text-slate-200 focus:outline-none focus:border-brand cursor-pointer"
                             title="Filter by Follow-Up Confirmation Stage"
                         >
                             <option value="ALL">All Stages ({sievedRegistrations.length})</option>
@@ -2136,7 +2136,7 @@ const AdminRegistrations: React.FC = () => {
                         <select
                             value={courseFilter}
                             onChange={(e) => setCourseFilter(e.target.value)}
-                            className="px-3 py-2 rounded-xl bg-gray-50 dark:bg-slate-950 border border-gray-200 dark:border-slate-800 text-xs font-semibold text-gray-800 dark:text-slate-200 focus:outline-none focus:border-violet-500 cursor-pointer max-w-[180px] truncate"
+                            className="px-3 py-2 rounded-[14px] bg-stone-50 dark:bg-night border border-stone-200 dark:border-slate-800 text-xs font-semibold text-stone-800 dark:text-slate-200 focus:outline-none focus:border-brand cursor-pointer max-w-[180px] truncate"
                         >
                             <option value="ALL">All 4 Courses</option>
                             {distinctCourses.map(c => (
@@ -2157,7 +2157,7 @@ const AdminRegistrations: React.FC = () => {
                                     setDateTo('');
                                     setSearchQuery('');
                                 }}
-                                className="px-2.5 py-1.5 rounded-lg text-xs font-semibold text-violet-600 dark:text-violet-400 hover:bg-violet-50 dark:hover:bg-violet-950/40 cursor-pointer"
+                                className="px-2.5 py-1.5 rounded-[12px] text-xs font-semibold text-violet-600 dark:text-violet-400 hover:bg-violet-50 dark:hover:bg-violet-950/40 cursor-pointer"
                             >
                                 Reset
                             </button>
@@ -2165,14 +2165,14 @@ const AdminRegistrations: React.FC = () => {
                     </div>
 
                     {/* Right: Workspace View Switcher Tabs */}
-                    <div className="inline-flex items-center bg-gray-100 dark:bg-slate-950 p-1 rounded-xl border border-gray-200/70 dark:border-slate-800 shrink-0">
+                    <div className="inline-flex items-center bg-stone-100 dark:bg-night p-1 rounded-[14px] border border-stone-200/70 dark:border-slate-800 shrink-0">
                         <button
                             type="button"
                             onClick={() => setActiveWorkspaceView('TABLE')}
-                            className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                            className={`px-3 py-1.5 rounded-[12px] text-xs font-semibold transition-all cursor-pointer ${
                                 activeWorkspaceView === 'TABLE'
-                                    ? 'bg-white dark:bg-slate-800 text-gray-900 dark:text-white shadow-sm'
-                                    : 'text-gray-600 dark:text-slate-400 hover:text-gray-900 dark:hover:text-white'
+                                    ? 'bg-white dark:bg-slate-800 text-stone-900 dark:text-white'
+                                    : 'text-stone-600 dark:text-slate-400 hover:text-stone-900 dark:hover:text-white'
                             }`}
                         >
                             📋 Pipeline Table ({filteredRegistrations.length})
@@ -2180,10 +2180,10 @@ const AdminRegistrations: React.FC = () => {
                         <button
                             type="button"
                             onClick={() => setActiveWorkspaceView('BOARD')}
-                            className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                            className={`px-3 py-1.5 rounded-[12px] text-xs font-semibold transition-all cursor-pointer ${
                                 activeWorkspaceView === 'BOARD'
-                                    ? 'bg-white dark:bg-slate-800 text-gray-900 dark:text-white shadow-sm'
-                                    : 'text-gray-600 dark:text-slate-400 hover:text-gray-900 dark:hover:text-white'
+                                    ? 'bg-white dark:bg-slate-800 text-stone-900 dark:text-white'
+                                    : 'text-stone-600 dark:text-slate-400 hover:text-stone-900 dark:hover:text-white'
                             }`}
                         >
                             🗂️ Follow-Up Board
@@ -2191,10 +2191,10 @@ const AdminRegistrations: React.FC = () => {
                         <button
                             type="button"
                             onClick={() => setActiveWorkspaceView('ANALYTICS')}
-                            className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                            className={`px-3 py-1.5 rounded-[12px] text-xs font-semibold transition-all cursor-pointer ${
                                 activeWorkspaceView === 'ANALYTICS'
-                                    ? 'bg-white dark:bg-slate-800 text-gray-900 dark:text-white shadow-sm'
-                                    : 'text-gray-600 dark:text-slate-400 hover:text-gray-900 dark:hover:text-white'
+                                    ? 'bg-white dark:bg-slate-800 text-stone-900 dark:text-white'
+                                    : 'text-stone-600 dark:text-slate-400 hover:text-stone-900 dark:hover:text-white'
                             }`}
                         >
                             📊 Analytics & Courses
@@ -2202,10 +2202,10 @@ const AdminRegistrations: React.FC = () => {
                         <button
                             type="button"
                             onClick={() => setActiveWorkspaceView('AUDIT')}
-                            className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                            className={`px-3 py-1.5 rounded-[12px] text-xs font-semibold transition-all cursor-pointer ${
                                 activeWorkspaceView === 'AUDIT'
-                                    ? 'bg-white dark:bg-slate-800 text-gray-900 dark:text-white shadow-sm'
-                                    : 'text-gray-600 dark:text-slate-400 hover:text-gray-900 dark:hover:text-white'
+                                    ? 'bg-white dark:bg-slate-800 text-stone-900 dark:text-white'
+                                    : 'text-stone-600 dark:text-slate-400 hover:text-stone-900 dark:hover:text-white'
                             }`}
                         >
                             🛡️ Staff Audit ({staffAuditLeaderboard.length})
@@ -2222,25 +2222,25 @@ const AdminRegistrations: React.FC = () => {
                         return (
                             <div
                                 key={stage}
-                                className="bg-gray-50/80 dark:bg-slate-900/60 rounded-2xl border border-gray-200/80 dark:border-slate-800 p-3.5 flex flex-col max-h-[72vh]"
+                                className="bg-stone-50/80 dark:bg-night-2/60 rounded-[22px] border border-stone-200/80 dark:border-slate-800 p-3.5 flex flex-col max-h-[72vh]"
                             >
-                                <div className="flex items-center justify-between gap-2 pb-3 mb-3 border-b border-gray-200/70 dark:border-slate-800">
+                                <div className="flex items-center justify-between gap-2 pb-3 mb-3 border-b border-stone-200/70 dark:border-slate-800">
                                     <div>
                                         <span className={`inline-block px-2.5 py-0.5 rounded-full text-[11px] font-bold border ${STATUS_BADGE_STYLES[stage]}`}>
                                             {STATUS_SHORT_LABELS[stage]}
                                         </span>
-                                        <p className="text-[10px] text-gray-500 dark:text-slate-400 mt-1">
+                                        <p className="text-[10px] text-stone-500 dark:text-slate-400 mt-1">
                                             {STATUS_STAGE_LABELS[stage]}
                                         </p>
                                     </div>
-                                    <span className="px-2 py-0.5 rounded-lg bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 text-xs font-bold text-gray-700 dark:text-slate-200">
+                                    <span className="px-2 py-0.5 rounded-[12px] bg-white dark:bg-slate-800 text-xs font-bold text-stone-700 dark:text-slate-200">
                                         {stageLeads.length}
                                     </span>
                                 </div>
 
                                 <div className="space-y-2.5 overflow-y-auto pr-1 flex-1">
                                     {stageLeads.length === 0 ? (
-                                        <div className="py-10 text-center text-xs text-gray-400 dark:text-slate-500">
+                                        <div className="py-10 text-center text-xs text-stone-400 dark:text-slate-500">
                                             No leads in this stage
                                         </div>
                                     ) : (
@@ -2254,14 +2254,14 @@ const AdminRegistrations: React.FC = () => {
                                                         setExpandedRowId(reg.id);
                                                         setDrawerTab('CONFIRMATION');
                                                     }}
-                                                    className="bg-white dark:bg-slate-900 p-3.5 rounded-xl border border-gray-200/80 dark:border-slate-800 shadow-xs hover:border-violet-400 dark:hover:border-violet-600 transition-all cursor-pointer space-y-2"
+                                                    className="bg-white dark:bg-night-2 p-3.5 rounded-[14px] hover:border-violet-400 dark:hover:border-violet-600 transition-all cursor-pointer space-y-2"
                                                 >
                                                     <div className="flex items-start justify-between gap-2">
                                                         <div>
-                                                            <div className="font-bold text-xs text-gray-900 dark:text-white">
+                                                            <div className="font-bold text-xs text-stone-900 dark:text-white">
                                                                 {reg.full_name}
                                                             </div>
-                                                            <div className="text-[11px] font-mono text-gray-500 dark:text-slate-400">
+                                                            <div className="text-[11px] font-mono text-stone-500 dark:text-slate-400">
                                                                 {reg.phone} • {reg.class_level_year || 'Student'}
                                                             </div>
                                                         </div>
@@ -2274,7 +2274,7 @@ const AdminRegistrations: React.FC = () => {
                                                         {reg.course_interest} ({pricing.displayFee})
                                                     </div>
 
-                                                    <div className="flex items-center justify-between text-[10px] text-gray-500 dark:text-slate-400 pt-1 border-t border-gray-100 dark:border-slate-800/80">
+                                                    <div className="flex items-center justify-between text-[10px] text-stone-500 dark:text-slate-400 pt-1 border-t border-stone-100 dark:border-slate-800/80">
                                                         <span className="truncate max-w-[130px]" title={registrar}>
                                                             👤 {registrar}
                                                         </span>
@@ -2283,7 +2283,7 @@ const AdminRegistrations: React.FC = () => {
                                                                 href={buildWhatsAppFollowUpUrl(reg)}
                                                                 target="_blank"
                                                                 rel="noreferrer"
-                                                                className="px-2 py-0.5 rounded bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 font-bold hover:bg-emerald-100"
+                                                                className="px-2 py-0.5 rounded bg-mint-soft dark:bg-emerald-950/60 text-mint dark:text-emerald-300 font-bold hover:bg-mint-soft"
                                                                 title="Send WhatsApp Follow-Up to Confirm Seat"
                                                             >
                                                                 WhatsApp
@@ -2292,7 +2292,7 @@ const AdminRegistrations: React.FC = () => {
                                                                 <button
                                                                     type="button"
                                                                     onClick={() => handleStatusChange(reg.id, 'CONTACTED')}
-                                                                    className="px-2 py-0.5 rounded bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 font-bold hover:bg-blue-100 cursor-pointer"
+                                                                    className="px-2 py-0.5 rounded bg-brand-soft dark:bg-blue-950/60 text-brand dark:text-blue-300 font-bold hover:bg-brand-soft cursor-pointer"
                                                                 >
                                                                     Mark Followed Up
                                                                 </button>
@@ -2301,7 +2301,7 @@ const AdminRegistrations: React.FC = () => {
                                                                 <button
                                                                     type="button"
                                                                     onClick={() => openConvertModal(reg)}
-                                                                    className="px-2 py-0.5 rounded bg-violet-600 text-white font-bold hover:bg-violet-700 cursor-pointer"
+                                                                    className="px-2 py-0.5 rounded bg-brand text-white font-bold hover:bg-brand-mid cursor-pointer"
                                                                 >
                                                                     Confirm
                                                                 </button>
@@ -2322,12 +2322,12 @@ const AdminRegistrations: React.FC = () => {
             {/* WORKSPACE VIEW 3: ANALYTICS & OFFICIAL COURSE CATALOG */}
             {activeWorkspaceView === 'ANALYTICS' && (
                 <div className="space-y-5">
-                    <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl shadow-sm border border-gray-200/80 dark:border-slate-800">
+                    <div className="bg-white dark:bg-night-2 p-5 rounded-[22px]">
                         <div className="flex items-center justify-between mb-3">
                             <h3 className="text-xs font-extrabold uppercase tracking-wider text-violet-700 dark:text-violet-300 flex items-center gap-1.5">
                                 <BookOpen size={14} /> Official 5 Courses & Monthly Fee Structure (Click to Filter)
                             </h3>
-                            <span className="text-[11px] font-semibold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/50 px-2.5 py-0.5 rounded-full">
+                            <span className="text-[11px] font-semibold text-mint dark:text-emerald-400 bg-mint-soft dark:bg-emerald-950/50 px-2.5 py-0.5 rounded-full">
                                 No Upfront Payment Required at Registration • Paid Upon Confirmation
                             </span>
                         </div>
@@ -2344,10 +2344,10 @@ const AdminRegistrations: React.FC = () => {
                                             setCourseFilter(courseFilter === c.title ? 'ALL' : c.title);
                                             setActiveWorkspaceView('TABLE');
                                         }}
-                                        className={`p-3.5 rounded-xl border text-left transition-all cursor-pointer flex items-center justify-between gap-2 ${
+                                        className={`p-3.5 rounded-[14px] border text-left transition-all cursor-pointer flex items-center justify-between gap-2 ${
                                             courseFilter === c.title
-                                                ? 'bg-violet-600 text-white border-violet-600'
-                                                : 'bg-gray-50 dark:bg-slate-950/60 border-gray-200 dark:border-slate-800 hover:border-violet-400'
+                                                ? 'bg-brand text-white border-violet-600'
+                                                : 'bg-stone-50 dark:bg-night/60 border-stone-200 dark:border-slate-800 hover:border-violet-400'
                                         }`}
                                     >
                                         <div className="min-w-0">
@@ -2355,12 +2355,12 @@ const AdminRegistrations: React.FC = () => {
                                                 {i + 1}. {c.title}
                                             </div>
                                             <div className={`text-[11px] font-semibold mt-0.5 ${
-                                                courseFilter === c.title ? 'text-violet-100' : 'text-emerald-600 dark:text-emerald-400'
+                                                courseFilter === c.title ? 'text-violet-100' : 'text-mint dark:text-emerald-400'
                                             }`}>
                                                 {c.displayFee}
                                             </div>
                                         </div>
-                                        <span className={`px-2.5 py-1 rounded-lg text-xs font-extrabold shrink-0 ${
+                                        <span className={`px-2.5 py-1 rounded-[12px] text-xs font-extrabold shrink-0 ${
                                             courseFilter === c.title
                                                 ? 'bg-white/20 text-white'
                                                 : 'bg-violet-100 dark:bg-violet-950/60 text-violet-700 dark:text-violet-300'
@@ -2374,11 +2374,11 @@ const AdminRegistrations: React.FC = () => {
                     </div>
 
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
-                        <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl shadow-sm border border-gray-200/80 dark:border-slate-800 lg:col-span-3">
-                            <h3 className="text-sm font-bold text-gray-900 dark:text-white mb-1">
+                        <div className="bg-white dark:bg-night-2 p-5 rounded-[22px] lg:col-span-3">
+                            <h3 className="text-sm font-bold text-stone-900 dark:text-white mb-1">
                                 Daily Registration Trend (Last 30 Days)
                             </h3>
-                            <p className="text-xs text-gray-500 dark:text-slate-400 mb-4">
+                            <p className="text-xs text-stone-500 dark:text-slate-400 mb-4">
                                 Active Sieve: <span className="font-semibold text-violet-600 dark:text-violet-400">{dashboardSieve}</span>
                             </p>
                             <div className="h-52 w-full">
@@ -2416,11 +2416,11 @@ const AdminRegistrations: React.FC = () => {
                             </div>
                         </div>
 
-                        <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl shadow-sm border border-gray-200/80 dark:border-slate-800 lg:col-span-2">
-                            <h3 className="text-sm font-bold text-gray-900 dark:text-white mb-1">
+                        <div className="bg-white dark:bg-night-2 p-5 rounded-[22px] lg:col-span-2">
+                            <h3 className="text-sm font-bold text-stone-900 dark:text-white mb-1">
                                 Registrations by Outreach Campaign / Channel
                             </h3>
-                            <p className="text-xs text-gray-500 dark:text-slate-400 mb-4">
+                            <p className="text-xs text-stone-500 dark:text-slate-400 mb-4">
                                 Compare Nkumba Outreach (Fri 6th Nov) against other outreaches & walk-ins
                             </p>
                             <div className="h-56 w-full">
@@ -2448,11 +2448,11 @@ const AdminRegistrations: React.FC = () => {
                             </div>
                         </div>
 
-                        <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl shadow-sm border border-gray-200/80 dark:border-slate-800">
-                            <h3 className="text-sm font-bold text-gray-900 dark:text-white mb-1">
+                        <div className="bg-white dark:bg-night-2 p-5 rounded-[22px]">
+                            <h3 className="text-sm font-bold text-stone-900 dark:text-white mb-1">
                                 Preferred Payment Plan (When Confirmed)
                             </h3>
-                            <p className="text-xs text-gray-500 dark:text-slate-400 mb-4">
+                            <p className="text-xs text-stone-500 dark:text-slate-400 mb-4">
                                 Monthly vs Weekly vs Full billing preference
                             </p>
                             <div className="h-56 w-full">
@@ -2485,21 +2485,21 @@ const AdminRegistrations: React.FC = () => {
 
             {/* WORKSPACE VIEW 4: STAFF & MOBILIZER ACCOUNTABILITY LEADERBOARD */}
             {activeWorkspaceView === 'AUDIT' && (
-                <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl shadow-sm border border-gray-200/80 dark:border-slate-800 space-y-4">
+                <div className="bg-white dark:bg-night-2 p-5 rounded-[22px] space-y-4">
                     <div className="flex flex-wrap items-center justify-between gap-2">
                         <div>
-                            <h3 className="text-sm font-bold text-gray-900 dark:text-white flex items-center gap-1.5">
-                                <Award size={16} className="text-emerald-600 dark:text-emerald-400" />
+                            <h3 className="text-sm font-bold text-stone-900 dark:text-white flex items-center gap-1.5">
+                                <Award size={16} className="text-mint dark:text-emerald-400" />
                                 Staff & Mobilizer Registration Audit (Who Registered Whom)
                             </h3>
-                            <p className="text-xs text-gray-500 dark:text-slate-400">
+                            <p className="text-xs text-stone-500 dark:text-slate-400">
                                 Click any staff member to filter the pipeline table to their captured registrations
                             </p>
                         </div>
                         <button
                             type="button"
                             onClick={() => setShowStaffModal(true)}
-                            className="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold cursor-pointer"
+                            className="px-3.5 py-2 rounded-[14px] bg-mint hover:bg-mint text-white text-xs font-semibold cursor-pointer"
                         >
                             + Add Staff / Generate Staff QR
                         </button>
@@ -2513,10 +2513,10 @@ const AdminRegistrations: React.FC = () => {
                                     setStaffSieve(staffSieve === stf.staffName ? 'ALL' : stf.staffName);
                                     setActiveWorkspaceView('TABLE');
                                 }}
-                                className={`p-4 rounded-xl border text-xs flex items-center justify-between gap-3 cursor-pointer transition-all ${
+                                className={`p-4 rounded-[14px] border text-xs flex items-center justify-between gap-3 cursor-pointer transition-all ${
                                     staffSieve === stf.staffName
-                                        ? 'bg-emerald-600 text-white border-emerald-600'
-                                        : 'bg-gray-50 dark:bg-slate-950/60 border-gray-200 dark:border-slate-800 hover:border-emerald-400'
+                                        ? 'bg-mint text-white border-mint'
+                                        : 'bg-stone-50 dark:bg-night/60 border-stone-200 dark:border-slate-800 hover:border-emerald-400'
                                 }`}
                             >
                                 <div className="min-w-0">
@@ -2525,13 +2525,13 @@ const AdminRegistrations: React.FC = () => {
                                         <span className={`text-[10px] px-1.5 py-0.5 rounded font-semibold ${
                                             staffSieve === stf.staffName
                                                 ? 'bg-white/20 text-white'
-                                                : 'bg-gray-200 dark:bg-slate-800 text-gray-600 dark:text-slate-400'
+                                                : 'bg-stone-200 dark:bg-slate-800 text-stone-600 dark:text-slate-400'
                                         }`}>
                                             {stf.role}
                                         </span>
                                     </div>
                                     <div className={`text-[11px] mt-1 ${
-                                        staffSieve === stf.staffName ? 'text-emerald-100' : 'text-gray-500 dark:text-slate-400'
+                                        staffSieve === stf.staffName ? 'text-mint-soft' : 'text-stone-500 dark:text-slate-400'
                                     }`}>
                                         Devices: {stf.deviceList.length > 0 ? stf.deviceList.join(', ') : 'Web'} • Deposits: UGX {stf.collectedUgx.toLocaleString()}
                                     </div>
@@ -2547,38 +2547,38 @@ const AdminRegistrations: React.FC = () => {
             )}
 
             {/* WORKSPACE VIEW 1 (DEFAULT): HIGH-DENSITY PIPELINE TABLE (ZERO HORIZONTAL SCROLL) */}
-            <div className={`${activeWorkspaceView === 'TABLE' ? 'block' : 'hidden'} bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-gray-200/80 dark:border-slate-800 overflow-hidden transition-colors`}>
+            <div className={`${activeWorkspaceView === 'TABLE' ? 'block' : 'hidden'} bg-white dark:bg-night-2 rounded-2xl border border-stone-200/80 dark:border-slate-800 overflow-hidden transition-colors`}>
                 <div className="w-full">
                     <table className="w-full text-left border-collapse">
-                        <thead className="bg-gray-50/80 dark:bg-slate-950/60">
-                            <tr className="text-gray-500 dark:text-slate-400 text-[11px] uppercase tracking-wider font-semibold border-b border-gray-200/80 dark:border-slate-800">
+                        <thead className="bg-stone-50/80 dark:bg-night/60">
+                            <tr className="text-stone-500 dark:text-slate-400 text-[11px] uppercase tracking-wider font-semibold border-b border-stone-200/80 dark:border-slate-800">
                                 <th className="py-3 px-3 sm:px-4">Ref / Date</th>
                                 <th
                                     onClick={() => handleSortToggle('full_name')}
-                                    className="py-3 px-3 sm:px-4 cursor-pointer hover:text-gray-900 dark:hover:text-white select-none"
+                                    className="py-3 px-3 sm:px-4 cursor-pointer hover:text-stone-900 dark:hover:text-white select-none"
                                 >
                                     Student & Contact {sortBy === 'full_name' ? (sortOrder === 'asc' ? '↑' : '↓') : ''}
                                 </th>
                                 <th
                                     onClick={() => handleSortToggle('status')}
-                                    className="py-3 px-3 sm:px-4 cursor-pointer hover:text-gray-900 dark:hover:text-white select-none"
+                                    className="py-3 px-3 sm:px-4 cursor-pointer hover:text-stone-900 dark:hover:text-white select-none"
                                 >
                                     Confirmation Stage {sortBy === 'status' ? (sortOrder === 'asc' ? '↑' : '↓') : ''}
                                 </th>
                                 <th className="py-3 px-3 sm:px-4 text-right">Follow-Up & Actions</th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-gray-100 dark:divide-slate-800/80 text-xs">
+                        <tbody className="divide-y divide-stone-100 dark:divide-slate-800/80 text-xs">
                             {loading ? (
                                 <tr>
-                                    <td colSpan={4} className="py-12 text-center text-gray-500 dark:text-slate-400">
+                                    <td colSpan={4} className="py-12 text-center text-stone-500 dark:text-slate-400">
                                         <Loader2 className="w-6 h-6 animate-spin mx-auto mb-2 text-violet-500" />
                                         Loading live outreach registrations...
                                     </td>
                                 </tr>
                             ) : filteredRegistrations.length === 0 ? (
                                 <tr>
-                                    <td colSpan={4} className="py-12 text-center text-gray-500 dark:text-slate-400">
+                                    <td colSpan={4} className="py-12 text-center text-stone-500 dark:text-slate-400">
                                         No student registrations match your current sieve or search filters.
                                     </td>
                                 </tr>
@@ -2603,21 +2603,21 @@ const AdminRegistrations: React.FC = () => {
                                             className={`transition-colors cursor-pointer ${
                                                 isSelected
                                                     ? 'bg-violet-50/70 dark:bg-violet-950/30'
-                                                    : 'hover:bg-gray-50/80 dark:hover:bg-slate-800/40'
+                                                    : 'hover:bg-stone-50/80 dark:hover:bg-slate-800/40'
                                             }`}
                                         >
                                             <td className="py-3 px-3 sm:px-4 align-middle">
                                                 <div className="font-mono text-[11px] font-bold text-violet-700 dark:text-violet-300">
                                                     {cleanRef}
                                                 </div>
-                                                <div className="text-[10px] text-gray-400 dark:text-slate-500">
+                                                <div className="text-[10px] text-stone-400 dark:text-slate-500">
                                                     {reg.registration_date || (reg.created_at ? reg.created_at.split('T')[0] : '')} •{' '}
                                                     {reg.status === 'ENROLLED' ? 'Confirmed ID' : 'Provisional'}
                                                 </div>
                                             </td>
 
                                             <td className="py-3 px-3 sm:px-4 align-middle">
-                                                <div className="font-bold text-gray-900 dark:text-white flex items-center gap-1.5 flex-wrap">
+                                                <div className="font-bold text-stone-900 dark:text-white flex items-center gap-1.5 flex-wrap">
                                                     <span>{reg.full_name}</span>
                                                     {reg.age_range === 'Under 18' && (
                                                         <span className="px-1.5 py-0.2 bg-amber-100 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 rounded text-[10px] font-semibold">
@@ -2625,8 +2625,8 @@ const AdminRegistrations: React.FC = () => {
                                                         </span>
                                                     )}
                                                 </div>
-                                                <div className="text-[11px] text-gray-500 dark:text-slate-400 flex items-center gap-1.5 flex-wrap mt-0.5">
-                                                    <span className="font-mono font-semibold text-gray-700 dark:text-slate-300">{reg.phone}</span>
+                                                <div className="text-[11px] text-stone-500 dark:text-slate-400 flex items-center gap-1.5 flex-wrap mt-0.5">
+                                                    <span className="font-mono font-semibold text-stone-700 dark:text-slate-300">{reg.phone}</span>
                                                     <span>•</span>
                                                     <span className="truncate max-w-[180px] sm:max-w-[240px]">{reg.class_level_year || reg.location || reg.email || '—'}</span>
                                                 </div>
@@ -2646,7 +2646,7 @@ const AdminRegistrations: React.FC = () => {
                                                     }`}
                                                 >
                                                     {STATUS_OPTIONS.map(st => (
-                                                        <option key={st} value={st} className="bg-white dark:bg-slate-900 text-gray-900 dark:text-white">
+                                                        <option key={st} value={st} className="bg-white dark:bg-night-2 text-stone-900 dark:text-white">
                                                             {STATUS_SHORT_LABELS[st]}
                                                         </option>
                                                     ))}
@@ -2659,7 +2659,7 @@ const AdminRegistrations: React.FC = () => {
                                                         href={buildWhatsAppFollowUpUrl(reg)}
                                                         target="_blank"
                                                         rel="noreferrer"
-                                                        className="px-2.5 py-1.5 rounded-lg bg-emerald-50 dark:bg-emerald-950/60 hover:bg-emerald-100 text-emerald-700 dark:text-emerald-300 border border-emerald-200/70 dark:border-emerald-800/60 font-semibold text-[11px] cursor-pointer"
+                                                        className="px-2.5 py-1.5 rounded-[12px] bg-mint-soft dark:bg-emerald-950/60 hover:bg-mint-soft text-mint dark:text-emerald-300 border border-emerald-200/70 dark:border-emerald-800/60 font-semibold text-[11px] cursor-pointer"
                                                         title="Send Follow-Up WhatsApp Message to Confirm Seat"
                                                     >
                                                         WhatsApp
@@ -2667,7 +2667,7 @@ const AdminRegistrations: React.FC = () => {
                                                     <button
                                                         type="button"
                                                         onClick={() => setExpandedRowId(reg.id)}
-                                                        className="px-2.5 py-1.5 rounded-lg border border-violet-200 dark:border-violet-800 bg-violet-50/70 dark:bg-violet-950/50 hover:bg-violet-100 dark:hover:bg-violet-900/60 text-violet-700 dark:text-violet-300 font-bold text-[11px] inline-flex items-center gap-1 cursor-pointer"
+                                                        className="px-2.5 py-1.5 rounded-[12px] border border-violet-200 dark:border-violet-800 bg-violet-50/70 dark:bg-violet-950/50 hover:bg-violet-100 dark:hover:bg-violet-900/60 text-violet-700 dark:text-violet-300 font-bold text-[11px] inline-flex items-center gap-1 cursor-pointer"
                                                         title="View All Student Registration Details"
                                                     >
                                                         <Eye size={13} />
@@ -2676,7 +2676,7 @@ const AdminRegistrations: React.FC = () => {
                                                     <button
                                                         type="button"
                                                         onClick={() => setPrintingRecord({ ...reg, ...s8 })}
-                                                        className="p-1.5 rounded-lg border border-gray-200 dark:border-slate-700 hover:bg-gray-100 dark:hover:bg-slate-800 text-gray-600 dark:text-slate-300 cursor-pointer"
+                                                        className="p-1.5 rounded-[12px] border border-stone-200 dark:border-slate-700 hover:bg-stone-100 dark:hover:bg-slate-800 text-stone-600 dark:text-slate-300 cursor-pointer"
                                                         title="Print Official 8-Section Form"
                                                     >
                                                         <Printer size={13} />
@@ -2684,7 +2684,7 @@ const AdminRegistrations: React.FC = () => {
                                                     <button
                                                         type="button"
                                                         onClick={() => openConvertModal(reg)}
-                                                        className="px-2.5 py-1.5 rounded-lg bg-violet-600 hover:bg-violet-700 text-white font-semibold text-[11px] inline-flex items-center gap-1 shadow-xs cursor-pointer"
+                                                        className="px-2.5 py-1.5 rounded-[12px] bg-brand hover:bg-brand-mid text-white font-semibold text-[11px] inline-flex items-center gap-1 cursor-pointer"
                                                     >
                                                         <UserPlus size={12} />
                                                         {reg.status === 'ENROLLED' ? 'Enrolled' : 'Confirm'}
@@ -2724,9 +2724,9 @@ const AdminRegistrations: React.FC = () => {
                             className="fixed inset-0 bg-black/60 backdrop-blur-xs"
                             onClick={() => setExpandedRowId(null)}
                         />
-                        <div className="relative z-10 w-full max-w-3xl bg-white dark:bg-slate-900 max-h-[92vh] rounded-3xl shadow-2xl border border-gray-200 dark:border-slate-800 flex flex-col overflow-hidden animate-in zoom-in-95 duration-200">
+                        <div className="relative z-10 w-full max-w-3xl bg-white dark:bg-night-2 max-h-[92vh] rounded-[26px] shadow-2xl flex flex-col overflow-hidden animate-in zoom-in-95 duration-200">
                             {/* Centered Modal Header */}
-                            <div className="p-4 sm:p-6 border-b border-gray-200 dark:border-slate-800 bg-gray-50/70 dark:bg-slate-950/60">
+                            <div className="p-4 sm:p-6 border-b border-stone-200 dark:border-slate-800 bg-stone-50/70 dark:bg-night/60">
                                 <div className="flex items-start justify-between gap-3">
                                     <div className="min-w-0">
                                         <div className="flex items-center gap-2 flex-wrap">
@@ -2736,14 +2736,14 @@ const AdminRegistrations: React.FC = () => {
                                             <span className={`px-2.5 py-0.5 rounded-full text-[11px] font-bold border ${STATUS_BADGE_STYLES[reg.status]}`}>
                                                 {STATUS_STAGE_LABELS[reg.status]}
                                             </span>
-                                            <span className="text-[11px] text-gray-500 dark:text-slate-400">
+                                            <span className="text-[11px] text-stone-500 dark:text-slate-400">
                                                 {reg.registration_date || (reg.created_at ? reg.created_at.split('T')[0] : '')}
                                             </span>
                                         </div>
-                                        <h3 className="text-lg sm:text-xl font-extrabold text-gray-900 dark:text-white mt-1.5">
+                                        <h3 className="text-lg sm:text-xl font-extrabold text-stone-900 dark:text-white mt-1.5">
                                             {reg.full_name}
                                         </h3>
-                                        <p className="text-xs text-gray-500 dark:text-slate-400 mt-0.5">
+                                        <p className="text-xs text-stone-500 dark:text-slate-400 mt-0.5">
                                             {reg.phone} • {reg.class_level_year || reg.location || 'Student'} {reg.email ? `• ${reg.email}` : ''}
                                         </p>
                                     </div>
@@ -2751,7 +2751,7 @@ const AdminRegistrations: React.FC = () => {
                                         <button
                                             type="button"
                                             onClick={() => handleDeleteRegistration(reg)}
-                                            className="p-2 rounded-xl text-rose-500 hover:text-rose-700 hover:bg-rose-50 dark:hover:bg-rose-950/50 cursor-pointer"
+                                            className="p-2 rounded-[14px] text-rose-500 hover:text-rose-700 hover:bg-rose-50 dark:hover:bg-rose-950/50 cursor-pointer"
                                             title="Remove Registration"
                                         >
                                             <Trash2 size={16} />
@@ -2759,7 +2759,7 @@ const AdminRegistrations: React.FC = () => {
                                         <button
                                             type="button"
                                             onClick={() => setExpandedRowId(null)}
-                                            className="p-2 rounded-xl text-gray-400 hover:text-gray-700 hover:bg-gray-100 dark:hover:bg-slate-800 cursor-pointer"
+                                            className="p-2 rounded-[14px] text-stone-400 hover:text-stone-700 hover:bg-stone-100 dark:hover:bg-slate-800 cursor-pointer"
                                             title="Close View"
                                         >
                                             <X size={20} />
@@ -2769,28 +2769,28 @@ const AdminRegistrations: React.FC = () => {
 
                                 {/* Key Summary Cards (Selected Course & Schedule, Tuition & Plan, Outreach & Registrar) */}
                                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 mt-4">
-                                    <div className="p-3 rounded-2xl bg-white dark:bg-slate-900 border border-gray-200/80 dark:border-slate-800">
+                                    <div className="p-3 rounded-[22px] bg-white dark:bg-night-2">
                                         <div className="text-[10px] font-bold uppercase tracking-wider text-violet-600 dark:text-violet-400">
                                             Selected Course & Schedule
                                         </div>
-                                        <div className="text-xs font-extrabold text-gray-900 dark:text-white mt-0.5">
+                                        <div className="text-xs font-extrabold text-stone-900 dark:text-white mt-0.5">
                                             {reg.course_interest}
                                         </div>
-                                        <div className="text-[11px] text-gray-500 dark:text-slate-400 mt-0.5">
+                                        <div className="text-[11px] text-stone-500 dark:text-slate-400 mt-0.5">
                                             {(reg.preferred_study_days || []).join(', ') || 'Mon, Wed, Fri'} • {reg.preferred_time_slot || reg.mode_preference || 'Hybrid'}
                                         </div>
                                     </div>
 
-                                    <div className="p-3 rounded-2xl bg-white dark:bg-slate-900 border border-gray-200/80 dark:border-slate-800">
-                                        <div className="text-[10px] font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">
+                                    <div className="p-3 rounded-[22px] bg-white dark:bg-night-2">
+                                        <div className="text-[10px] font-bold uppercase tracking-wider text-mint dark:text-emerald-400">
                                             Tuition & Plan
                                         </div>
-                                        <div className="text-xs font-extrabold text-gray-900 dark:text-white mt-0.5">
+                                        <div className="text-xs font-extrabold text-stone-900 dark:text-white mt-0.5">
                                             {coursePricing.displayFee}
                                         </div>
-                                        <div className="text-[11px] text-gray-500 dark:text-slate-400 mt-0.5">
+                                        <div className="text-[11px] text-stone-500 dark:text-slate-400 mt-0.5">
                                             {paidAmt > 0 ? (
-                                                <span className="text-emerald-600 dark:text-emerald-400 font-semibold">
+                                                <span className="text-mint dark:text-emerald-400 font-semibold">
                                                     Paid: UGX {paidAmt.toLocaleString()} • Bal: UGX {effectiveBal.toLocaleString()}
                                                 </span>
                                             ) : (
@@ -2799,14 +2799,14 @@ const AdminRegistrations: React.FC = () => {
                                         </div>
                                     </div>
 
-                                    <div className="p-3 rounded-2xl bg-white dark:bg-slate-900 border border-gray-200/80 dark:border-slate-800">
+                                    <div className="p-3 rounded-[22px] bg-white dark:bg-night-2">
                                         <div className="text-[10px] font-bold uppercase tracking-wider text-amber-600 dark:text-amber-400">
                                             Outreach & Registrar
                                         </div>
-                                        <div className="text-xs font-extrabold text-gray-900 dark:text-white mt-0.5 truncate" title={reg.outreach_event || 'General / Direct'}>
+                                        <div className="text-xs font-extrabold text-stone-900 dark:text-white mt-0.5 truncate" title={reg.outreach_event || 'General / Direct'}>
                                             {reg.outreach_event || 'General / Direct'}
                                         </div>
-                                        <div className="text-[11px] font-medium text-emerald-700 dark:text-emerald-400 flex items-center gap-1 mt-0.5">
+                                        <div className="text-[11px] font-medium text-mint dark:text-emerald-400 flex items-center gap-1 mt-0.5">
                                             <UserCheck size={12} className="shrink-0" />
                                             <span className="truncate">{registrarName}</span>
                                         </div>
@@ -2814,12 +2814,12 @@ const AdminRegistrations: React.FC = () => {
                                 </div>
 
                                 {/* Quick Follow-Up & Confirmation Bar */}
-                                <div className="flex flex-wrap items-center gap-2 mt-4 pt-3 border-t border-gray-200/70 dark:border-slate-800">
+                                <div className="flex flex-wrap items-center gap-2 mt-4 pt-3 border-t border-stone-200/70 dark:border-slate-800">
                                     <a
                                         href={`tel:${reg.phone}`}
-                                        className="px-3 py-1.5 rounded-xl bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 text-gray-800 dark:text-slate-200 text-xs font-semibold inline-flex items-center gap-1.5 hover:bg-gray-50"
+                                        className="px-3 py-1.5 rounded-[14px] bg-white dark:bg-slate-800 text-stone-800 dark:text-slate-200 text-xs font-semibold inline-flex items-center gap-1.5 hover:bg-stone-50"
                                     >
-                                        <Phone size={13} className="text-blue-600" /> Call {reg.phone}
+                                        <Phone size={13} className="text-brand" /> Call {reg.phone}
                                     </a>
                                     <a
                                         href={buildWhatsAppFollowUpUrl(reg)}
@@ -2830,21 +2830,21 @@ const AdminRegistrations: React.FC = () => {
                                                 handleStatusChange(reg.id, 'CONTACTED');
                                             }
                                         }}
-                                        className="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold inline-flex items-center gap-1.5 shadow-xs"
+                                        className="px-3 py-1.5 rounded-[14px] bg-mint hover:bg-mint text-white text-xs font-semibold inline-flex items-center gap-1.5"
                                     >
                                         💬 WhatsApp Follow-Up
                                     </a>
                                     <button
                                         type="button"
                                         onClick={() => setPrintingRecord({ ...reg, ...s8 })}
-                                        className="px-3 py-1.5 rounded-xl bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 text-gray-700 dark:text-slate-200 text-xs font-semibold inline-flex items-center gap-1.5 cursor-pointer hover:bg-gray-50"
+                                        className="px-3 py-1.5 rounded-[14px] bg-white dark:bg-slate-800 text-stone-700 dark:text-slate-200 text-xs font-semibold inline-flex items-center gap-1.5 cursor-pointer hover:bg-stone-50"
                                     >
                                         <Printer size={13} /> Print 8-Sec PDF
                                     </button>
                                     <button
                                         type="button"
                                         onClick={() => openConvertModal(reg)}
-                                        className="px-3.5 py-1.5 rounded-xl bg-violet-600 hover:bg-violet-700 text-white text-xs font-semibold inline-flex items-center gap-1.5 shadow-xs cursor-pointer sm:ml-auto"
+                                        className="px-3.5 py-1.5 rounded-[14px] bg-brand hover:bg-brand-mid text-white text-xs font-semibold inline-flex items-center gap-1.5 cursor-pointer sm:ml-auto"
                                     >
                                         <UserPlus size={13} />
                                         {reg.status === 'ENROLLED' ? 'Update Enrollment' : 'Confirm & Enroll'}
@@ -2852,14 +2852,14 @@ const AdminRegistrations: React.FC = () => {
                                 </div>
 
                                 {/* Modal Sub-Tabs */}
-                                <div className="grid grid-cols-3 gap-1 bg-gray-200/70 dark:bg-slate-900 p-1 rounded-xl mt-4 text-[11px] sm:text-xs font-semibold">
+                                <div className="grid grid-cols-3 gap-1 bg-stone-200/70 dark:bg-night-2 p-1 rounded-[14px] mt-4 text-[11px] sm:text-xs font-semibold">
                                     <button
                                         type="button"
                                         onClick={() => setDrawerTab('CONFIRMATION')}
-                                        className={`py-1.5 px-2 rounded-lg cursor-pointer transition-all ${
+                                        className={`py-1.5 px-2 rounded-[12px] cursor-pointer transition-all ${
                                             drawerTab === 'CONFIRMATION'
-                                                ? 'bg-white dark:bg-slate-800 text-gray-900 dark:text-white shadow-xs'
-                                                : 'text-gray-600 dark:text-slate-400'
+                                                ? 'bg-white dark:bg-slate-800 text-stone-900 dark:text-white'
+                                                : 'text-stone-600 dark:text-slate-400'
                                         }`}
                                     >
                                         1. Follow-Up & Sec 8
@@ -2867,10 +2867,10 @@ const AdminRegistrations: React.FC = () => {
                                     <button
                                         type="button"
                                         onClick={() => setDrawerTab('OVERVIEW')}
-                                        className={`py-1.5 px-2 rounded-lg cursor-pointer transition-all ${
+                                        className={`py-1.5 px-2 rounded-[12px] cursor-pointer transition-all ${
                                             drawerTab === 'OVERVIEW'
-                                                ? 'bg-white dark:bg-slate-800 text-gray-900 dark:text-white shadow-xs'
-                                                : 'text-gray-600 dark:text-slate-400'
+                                                ? 'bg-white dark:bg-slate-800 text-stone-900 dark:text-white'
+                                                : 'text-stone-600 dark:text-slate-400'
                                         }`}
                                     >
                                         2. All Details (Sec 1–7)
@@ -2878,10 +2878,10 @@ const AdminRegistrations: React.FC = () => {
                                     <button
                                         type="button"
                                         onClick={() => setDrawerTab('AUDIT')}
-                                        className={`py-1.5 px-2 rounded-lg cursor-pointer transition-all ${
+                                        className={`py-1.5 px-2 rounded-[12px] cursor-pointer transition-all ${
                                             drawerTab === 'AUDIT'
-                                                ? 'bg-white dark:bg-slate-800 text-gray-900 dark:text-white shadow-xs'
-                                                : 'text-gray-600 dark:text-slate-400'
+                                                ? 'bg-white dark:bg-slate-800 text-stone-900 dark:text-white'
+                                                : 'text-stone-600 dark:text-slate-400'
                                         }`}
                                     >
                                         3. Staff & Device Audit
@@ -2893,7 +2893,7 @@ const AdminRegistrations: React.FC = () => {
                             <div className="p-4 sm:p-6 overflow-y-auto flex-1 space-y-4 text-xs">
                                 {drawerTab === 'CONFIRMATION' && (
                                     <div className="space-y-4">
-                                        <div className="p-3.5 rounded-xl bg-amber-50/80 dark:bg-amber-950/30 border border-amber-200/80 dark:border-amber-800/50 text-amber-900 dark:text-amber-200">
+                                        <div className="p-3.5 rounded-[14px] bg-amber-50/80 dark:bg-amber-950/30 border border-amber-200/80 dark:border-amber-800/50 text-amber-900 dark:text-amber-200">
                                             <div className="font-bold text-xs mb-1">
                                                 Follow-Up Confirmation Workflow
                                             </div>
@@ -2910,7 +2910,7 @@ const AdminRegistrations: React.FC = () => {
                                                             e.target.value as OutreachRegistrationRecord['status']
                                                         )
                                                     }
-                                                    className="px-3 py-1.5 rounded-lg bg-white dark:bg-slate-900 border border-amber-300 dark:border-amber-700 font-bold text-xs text-gray-900 dark:text-white cursor-pointer"
+                                                    className="px-3 py-1.5 rounded-[12px] bg-white dark:bg-night-2 border-amber-300 dark:border-amber-700 font-bold text-xs text-stone-900 dark:text-white cursor-pointer"
                                                 >
                                                     {STATUS_OPTIONS.map(st => (
                                                         <option key={st} value={st}>{STATUS_STAGE_LABELS[st]}</option>
@@ -2919,13 +2919,13 @@ const AdminRegistrations: React.FC = () => {
                                             </div>
                                         </div>
 
-                                        <div className="bg-gray-50 dark:bg-slate-950/70 p-4 rounded-2xl border border-gray-200 dark:border-slate-800 space-y-3">
+                                        <div className="bg-stone-50 dark:bg-night/70 p-4 rounded-[22px] border border-stone-200 dark:border-slate-800 space-y-3">
                                             <div className="flex items-center justify-between">
                                                 <h4 className="font-extrabold uppercase tracking-wider text-violet-700 dark:text-violet-300 flex items-center gap-1.5">
                                                     <ShieldCheck size={14} /> Section 8: Official Administration Endorsement
                                                 </h4>
                                                 {savedSection8Id === reg.id && (
-                                                    <span className="text-emerald-600 dark:text-emerald-400 font-bold flex items-center gap-1">
+                                                    <span className="text-mint dark:text-emerald-400 font-bold flex items-center gap-1">
                                                         <CheckCircle2 size={13} /> Saved!
                                                     </span>
                                                 )}
@@ -2933,13 +2933,13 @@ const AdminRegistrations: React.FC = () => {
 
                                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                                 <div>
-                                                    <label className="block font-semibold text-gray-600 dark:text-slate-300 mb-1">
+                                                    <label className="block font-semibold text-stone-600 dark:text-slate-300 mb-1">
                                                         Registration Approved By
                                                     </label>
                                                     <select
                                                         value={s8.approved_by}
                                                         onChange={(e) => updateSection8Field(reg.id, 'approved_by', e.target.value)}
-                                                        className="w-full p-2 rounded-xl bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 font-semibold"
+                                                        className="w-full p-2 rounded-[14px] bg-white dark:bg-night-2 font-semibold"
                                                     >
                                                         {APPROVER_PRESETS.map(ap => (
                                                             <option key={ap} value={ap}>{ap}</option>
@@ -2948,13 +2948,13 @@ const AdminRegistrations: React.FC = () => {
                                                 </div>
 
                                                 <div>
-                                                    <label className="block font-semibold text-gray-600 dark:text-slate-300 mb-1">
+                                                    <label className="block font-semibold text-stone-600 dark:text-slate-300 mb-1">
                                                         Position
                                                     </label>
                                                     <select
                                                         value={s8.approver_position}
                                                         onChange={(e) => updateSection8Field(reg.id, 'approver_position', e.target.value)}
-                                                        className="w-full p-2 rounded-xl bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 font-semibold"
+                                                        className="w-full p-2 rounded-[14px] bg-white dark:bg-night-2 font-semibold"
                                                     >
                                                         {POSITION_PRESETS.map(pos => (
                                                             <option key={pos} value={pos}>{pos}</option>
@@ -2963,13 +2963,13 @@ const AdminRegistrations: React.FC = () => {
                                                 </div>
 
                                                 <div className="sm:col-span-2">
-                                                    <label className="block font-semibold text-gray-600 dark:text-slate-300 mb-1">
+                                                    <label className="block font-semibold text-stone-600 dark:text-slate-300 mb-1">
                                                         Assigned Cohort / Instructor
                                                     </label>
                                                     <select
                                                         value={s8.assigned_instructor}
                                                         onChange={(e) => updateSection8Field(reg.id, 'assigned_instructor', e.target.value)}
-                                                        className="w-full p-2 rounded-xl bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 font-semibold"
+                                                        className="w-full p-2 rounded-[14px] bg-white dark:bg-night-2 font-semibold"
                                                     >
                                                         {INSTRUCTOR_CLASS_PRESETS.map(cls => (
                                                             <option key={cls} value={cls}>{cls}</option>
@@ -2978,25 +2978,25 @@ const AdminRegistrations: React.FC = () => {
                                                 </div>
 
                                                 <div>
-                                                    <label className="block font-semibold text-gray-600 dark:text-slate-300 mb-1">
+                                                    <label className="block font-semibold text-stone-600 dark:text-slate-300 mb-1">
                                                         Confirmed Study Schedule
                                                     </label>
                                                     <input
                                                         type="text"
                                                         value={s8.confirmed_schedule}
                                                         onChange={(e) => updateSection8Field(reg.id, 'confirmed_schedule', e.target.value)}
-                                                        className="w-full p-2 rounded-xl bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 font-semibold"
+                                                        className="w-full p-2 rounded-[14px] bg-white dark:bg-night-2 font-semibold"
                                                     />
                                                 </div>
 
                                                 <div>
-                                                    <label className="block font-semibold text-gray-600 dark:text-slate-300 mb-1">
+                                                    <label className="block font-semibold text-stone-600 dark:text-slate-300 mb-1">
                                                         Official Payment Status
                                                     </label>
                                                     <select
                                                         value={s8.admin_payment_status}
                                                         onChange={(e) => updateSection8Field(reg.id, 'admin_payment_status', e.target.value)}
-                                                        className="w-full p-2 rounded-xl bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 font-bold"
+                                                        className="w-full p-2 rounded-[14px] bg-white dark:bg-night-2 font-bold"
                                                     >
                                                         {ADMIN_PAYMENT_STATUS_OPTIONS.map(st => (
                                                             <option key={st} value={st}>{st}</option>
@@ -3005,7 +3005,7 @@ const AdminRegistrations: React.FC = () => {
                                                 </div>
 
                                                 <div className="sm:col-span-2">
-                                                    <label className="block font-semibold text-gray-600 dark:text-slate-300 mb-1">
+                                                    <label className="block font-semibold text-stone-600 dark:text-slate-300 mb-1">
                                                         Follow-Up Call Notes & Registrar Remarks
                                                     </label>
                                                     <textarea
@@ -3013,7 +3013,7 @@ const AdminRegistrations: React.FC = () => {
                                                         value={s8.admin_notes}
                                                         onChange={(e) => updateSection8Field(reg.id, 'admin_notes', e.target.value)}
                                                         placeholder="Record outcome of follow-up call, confirmed start date, or payment promise..."
-                                                        className="w-full p-2.5 rounded-xl bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700"
+                                                        className="w-full p-2.5 rounded-[14px] bg-white dark:bg-night-2"
                                                     />
                                                 </div>
                                             </div>
@@ -3023,7 +3023,7 @@ const AdminRegistrations: React.FC = () => {
                                                     type="button"
                                                     onClick={() => handleSaveSection8(reg.id)}
                                                     disabled={savingSection8Id === reg.id}
-                                                    className="px-4 py-2 rounded-xl bg-violet-600 hover:bg-violet-700 text-white font-bold inline-flex items-center gap-1.5 cursor-pointer disabled:opacity-60"
+                                                    className="px-4 py-2 rounded-[14px] bg-brand hover:bg-brand-mid text-white font-bold inline-flex items-center gap-1.5 cursor-pointer disabled:opacity-60"
                                                 >
                                                     {savingSection8Id === reg.id ? (
                                                         <>
@@ -3042,7 +3042,7 @@ const AdminRegistrations: React.FC = () => {
 
                                 {drawerTab === 'OVERVIEW' && (
                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                        <div className="p-3.5 rounded-xl bg-gray-50 dark:bg-slate-950/60 border border-gray-200 dark:border-slate-800 space-y-1.5">
+                                        <div className="p-3.5 rounded-[14px] bg-stone-50 dark:bg-night/60 border border-stone-200 dark:border-slate-800 space-y-1.5">
                                             <div className="font-bold uppercase text-[10px] text-violet-600 dark:text-violet-400">
                                                 1. Student Information
                                             </div>
@@ -3052,7 +3052,7 @@ const AdminRegistrations: React.FC = () => {
                                             <p><strong>Location:</strong> {reg.location || 'Entebbe / Kampala'}</p>
                                         </div>
 
-                                        <div className="p-3.5 rounded-xl bg-gray-50 dark:bg-slate-950/60 border border-gray-200 dark:border-slate-800 space-y-1.5">
+                                        <div className="p-3.5 rounded-[14px] bg-stone-50 dark:bg-night/60 border border-stone-200 dark:border-slate-800 space-y-1.5">
                                             <div className="font-bold uppercase text-[10px] text-violet-600 dark:text-violet-400">
                                                 2 & 3. Selected Course & Preferred Schedule
                                             </div>
@@ -3062,7 +3062,7 @@ const AdminRegistrations: React.FC = () => {
                                             <p><strong>Tentative Dates:</strong> {reg.expected_start_date || '—'} to {reg.expected_completion_date || '—'}</p>
                                         </div>
 
-                                        <div className="p-3.5 rounded-xl bg-gray-50 dark:bg-slate-950/60 border border-gray-200 dark:border-slate-800 space-y-1.5 sm:col-span-2">
+                                        <div className="p-3.5 rounded-[14px] bg-stone-50 dark:bg-night/60 border border-stone-200 dark:border-slate-800 space-y-1.5 sm:col-span-2">
                                             <div className="font-bold uppercase text-[10px] text-violet-600 dark:text-violet-400">
                                                 4, 5, 6 & 7. Tuition, Payment Plan & Student Pledge
                                             </div>
@@ -3079,8 +3079,8 @@ const AdminRegistrations: React.FC = () => {
 
                                 {drawerTab === 'AUDIT' && (
                                     <div className="space-y-3">
-                                        <div className="p-4 rounded-xl bg-emerald-50/70 dark:bg-emerald-950/25 border border-emerald-200 dark:border-emerald-800/50 space-y-2">
-                                            <div className="font-bold uppercase text-[10px] text-emerald-700 dark:text-emerald-400">
+                                        <div className="p-4 rounded-[14px] bg-mint-soft/70 dark:bg-emerald-950/25 border border-emerald-200 dark:border-emerald-800/50 space-y-2">
+                                            <div className="font-bold uppercase text-[10px] text-mint dark:text-emerald-400">
                                                 Staff & Device Provenance Audit
                                             </div>
                                             <p><strong>Registered By:</strong> {registrarName} ({reg.registered_by_role || 'Outreach Capture'})</p>
@@ -3105,35 +3105,35 @@ const AdminRegistrations: React.FC = () => {
                         className="fixed inset-0 bg-black/60 backdrop-blur-sm"
                         onClick={() => setShowCampaignModal(false)}
                     />
-                    <div className="bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 w-full max-w-2xl rounded-3xl p-6 shadow-2xl relative z-10 text-gray-900 dark:text-white max-h-[90vh] overflow-y-auto">
+                    <div className="bg-white dark:bg-night-2 w-full max-w-2xl rounded-[26px] p-6 shadow-2xl relative z-10 text-stone-900 dark:text-white max-h-[90vh] overflow-y-auto">
                         <button
                             type="button"
                             onClick={() => setShowCampaignModal(false)}
-                            className="absolute top-4 right-4 text-gray-400 hover:text-gray-700 dark:hover:text-white cursor-pointer"
+                            className="absolute top-4 right-4 text-stone-400 hover:text-stone-700 dark:hover:text-white cursor-pointer"
                         >
                             <X size={20} />
                         </button>
 
                         <div className="flex items-center gap-2.5 mb-4">
-                            <div className="w-10 h-10 rounded-xl bg-amber-100 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 flex items-center justify-center">
+                            <div className="w-10 h-10 rounded-[14px] bg-amber-100 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 flex items-center justify-center">
                                 <Megaphone size={20} />
                             </div>
                             <div>
                                 <h3 className="text-lg font-bold">Manage Outreach Campaigns & Registration Dropdowns</h3>
-                                <p className="text-xs text-gray-500 dark:text-slate-400">
+                                <p className="text-xs text-stone-500 dark:text-slate-400">
                                     Outreaches created here immediately populate the dropdown on <code className="font-mono">/register</code> and the dashboard stats sieve.
                                 </p>
                             </div>
                         </div>
 
                         {/* Add New Outreach Campaign Form */}
-                        <form onSubmit={handleAddCampaign} className="p-4 rounded-2xl bg-gray-50 dark:bg-slate-950 border border-gray-200 dark:border-slate-800 space-y-3 mb-5">
+                        <form onSubmit={handleAddCampaign} className="p-4 rounded-[22px] bg-stone-50 dark:bg-night border border-stone-200 dark:border-slate-800 space-y-3 mb-5">
                             <h4 className="text-xs font-extrabold uppercase tracking-wider text-violet-600 dark:text-violet-400 flex items-center gap-1.5">
                                 <Plus size={14} /> Create New Outreach / Registration Channel
                             </h4>
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                 <div className="sm:col-span-2">
-                                    <label className="block text-[11px] font-bold text-gray-500 mb-1">
+                                    <label className="block text-[11px] font-bold text-stone-500 mb-1">
                                         Outreach / Campaign Name (Shown in Dropdown)*
                                     </label>
                                     <input
@@ -3142,22 +3142,22 @@ const AdminRegistrations: React.FC = () => {
                                         value={newCampaignName}
                                         onChange={(e) => setNewCampaignName(e.target.value)}
                                         placeholder="e.g., Uganda Martyrs University Outreach (Fri, 13th Nov 2026)"
-                                        className="w-full p-2.5 rounded-xl bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 text-xs font-bold"
+                                        className="w-full p-2.5 rounded-[14px] bg-white dark:bg-night-2 text-xs font-bold"
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-[11px] font-bold text-gray-500 mb-1">
+                                    <label className="block text-[11px] font-bold text-stone-500 mb-1">
                                         Event Date
                                     </label>
                                     <input
                                         type="date"
                                         value={newCampaignDate}
                                         onChange={(e) => setNewCampaignDate(e.target.value)}
-                                        className="w-full p-2.5 rounded-xl bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 text-xs"
+                                        className="w-full p-2.5 rounded-[14px] bg-white dark:bg-night-2 text-xs"
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-[11px] font-bold text-gray-500 mb-1">
+                                    <label className="block text-[11px] font-bold text-stone-500 mb-1">
                                         Location / Venue
                                     </label>
                                     <input
@@ -3165,17 +3165,17 @@ const AdminRegistrations: React.FC = () => {
                                         value={newCampaignLocation}
                                         onChange={(e) => setNewCampaignLocation(e.target.value)}
                                         placeholder="e.g., Nkumba University, Entebbe"
-                                        className="w-full p-2.5 rounded-xl bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 text-xs"
+                                        className="w-full p-2.5 rounded-[14px] bg-white dark:bg-night-2 text-xs"
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-[11px] font-bold text-gray-500 mb-1">
+                                    <label className="block text-[11px] font-bold text-stone-500 mb-1">
                                         Sieve Category
                                     </label>
                                     <select
                                         value={newCampaignCategory}
                                         onChange={(e) => setNewCampaignCategory(e.target.value as 'OUTREACH' | 'GENERAL')}
-                                        className="w-full p-2.5 rounded-xl bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 text-xs font-bold"
+                                        className="w-full p-2.5 rounded-[14px] bg-white dark:bg-night-2 text-xs font-bold"
                                     >
                                         <option value="OUTREACH">OUTREACH (Campus / Field Event)</option>
                                         <option value="GENERAL">GENERAL (Website / Walk-in)</option>
@@ -3197,7 +3197,7 @@ const AdminRegistrations: React.FC = () => {
                                 <button
                                     type="submit"
                                     disabled={savingCampaigns}
-                                    className="px-4 py-2 rounded-xl bg-violet-600 hover:bg-violet-700 text-white text-xs font-bold flex items-center gap-1.5 cursor-pointer"
+                                    className="px-4 py-2 rounded-[14px] bg-brand hover:bg-brand-mid text-white text-xs font-bold flex items-center gap-1.5 cursor-pointer"
                                 >
                                     <Plus size={14} /> Add to Outreach Dropdown
                                 </button>
@@ -3206,37 +3206,37 @@ const AdminRegistrations: React.FC = () => {
 
                         {/* Existing Campaigns List */}
                         <div className="space-y-2.5">
-                            <h4 className="text-xs font-extrabold uppercase tracking-wider text-gray-500 dark:text-slate-400">
+                            <h4 className="text-xs font-extrabold uppercase tracking-wider text-stone-500 dark:text-slate-400">
                                 Active Dropdown Options ({campaigns.length})
                             </h4>
                             {campaigns.map((camp) => (
                                 <div
                                     key={camp.name}
-                                    className={`p-3.5 rounded-2xl border flex flex-col sm:flex-row sm:items-center justify-between gap-3 ${
+                                    className={`p-3.5 rounded-[22px] border flex flex-col sm:flex-row sm:items-center justify-between gap-3 ${
                                         camp.is_default
                                             ? 'bg-violet-50/70 dark:bg-violet-950/30 border-violet-300 dark:border-violet-800'
-                                            : 'bg-white dark:bg-slate-900 border-gray-200 dark:border-slate-800'
+                                            : 'bg-white dark:bg-night-2 border-stone-200 dark:border-slate-800'
                                     }`}
                                 >
                                     <div>
                                         <div className="flex items-center gap-2 flex-wrap">
-                                            <span className="font-bold text-xs text-gray-900 dark:text-white">
+                                            <span className="font-bold text-xs text-stone-900 dark:text-white">
                                                 {camp.name}
                                             </span>
                                             <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
                                                 camp.category === 'OUTREACH'
                                                     ? 'bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300'
-                                                    : 'bg-blue-100 text-blue-800 dark:bg-blue-950/60 dark:text-blue-300'
+                                                    : 'bg-brand-soft text-blue-800 dark:bg-blue-950/60 dark:text-blue-300'
                                             }`}>
                                                 {camp.category}
                                             </span>
                                             {camp.is_default && (
-                                                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300 flex items-center gap-1">
+                                                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-mint-soft text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300 flex items-center gap-1">
                                                     <Star size={10} className="fill-current" /> Default Active on Form
                                                 </span>
                                             )}
                                         </div>
-                                        <p className="text-[11px] text-gray-500 dark:text-slate-400 mt-0.5">
+                                        <p className="text-[11px] text-stone-500 dark:text-slate-400 mt-0.5">
                                             Date: {camp.event_date} • Location: {camp.location} • Leads: {sieveCounts.byEvent[camp.name] || 0}
                                         </p>
                                     </div>
@@ -3246,7 +3246,7 @@ const AdminRegistrations: React.FC = () => {
                                             <button
                                                 type="button"
                                                 onClick={() => handleSetDefaultCampaign(camp.name)}
-                                                className="px-2.5 py-1.5 rounded-lg border border-violet-200 dark:border-violet-800 text-violet-700 dark:text-violet-300 text-[11px] font-bold hover:bg-violet-50 cursor-pointer"
+                                                className="px-2.5 py-1.5 rounded-[12px] border border-violet-200 dark:border-violet-800 text-violet-700 dark:text-violet-300 text-[11px] font-bold hover:bg-violet-50 cursor-pointer"
                                             >
                                                 Set Default
                                             </button>
@@ -3258,7 +3258,7 @@ const AdminRegistrations: React.FC = () => {
                                                 setShowCampaignModal(false);
                                                 setShowQrModal(true);
                                             }}
-                                            className="px-2.5 py-1.5 rounded-lg border border-gray-200 dark:border-slate-700 text-gray-700 dark:text-slate-300 text-[11px] font-bold hover:bg-gray-100 cursor-pointer flex items-center gap-1"
+                                            className="px-2.5 py-1.5 rounded-[12px] border border-stone-200 dark:border-slate-700 text-stone-700 dark:text-slate-300 text-[11px] font-bold hover:bg-stone-100 cursor-pointer flex items-center gap-1"
                                         >
                                             <QrCode size={12} /> QR
                                         </button>
@@ -3266,7 +3266,7 @@ const AdminRegistrations: React.FC = () => {
                                             <button
                                                 type="button"
                                                 onClick={() => handleDeleteCampaign(camp.name)}
-                                                className="p-1.5 rounded-lg text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 cursor-pointer"
+                                                className="p-1.5 rounded-[12px] text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 cursor-pointer"
                                                 title="Remove Campaign"
                                             >
                                                 <Trash2 size={14} />
@@ -3287,23 +3287,23 @@ const AdminRegistrations: React.FC = () => {
                         className="fixed inset-0 bg-black/60 backdrop-blur-sm"
                         onClick={() => setPrintingRecord(null)}
                     />
-                    <div className="bg-white text-gray-900 w-full max-w-3xl rounded-3xl p-8 shadow-2xl relative z-10 max-h-[92vh] overflow-y-auto border border-gray-200">
-                        <div className="flex items-center justify-between pb-4 mb-6 border-b border-gray-200 print:hidden">
-                            <h3 className="text-sm font-black uppercase tracking-wider text-violet-700">
+                    <div className="bg-white text-stone-900 w-full max-w-3xl rounded-[26px] p-8 shadow-2xl relative z-10 max-h-[92vh] overflow-y-auto">
+                        <div className="flex items-center justify-between pb-4 mb-6 border-b border-stone-200 print:hidden">
+                            <h3 className="text-sm font-extrabold uppercase tracking-wider text-violet-700">
                                 Official Printable Form Preview (Sections 1 – 8)
                             </h3>
                             <div className="flex items-center gap-2">
                                 <button
                                     type="button"
                                     onClick={() => window.print()}
-                                    className="px-4 py-2 rounded-xl bg-violet-600 hover:bg-violet-700 text-white text-xs font-bold flex items-center gap-1.5 cursor-pointer"
+                                    className="px-4 py-2 rounded-[14px] bg-brand hover:bg-brand-mid text-white text-xs font-bold flex items-center gap-1.5 cursor-pointer"
                                 >
                                     <Printer size={14} /> Print / Save PDF
                                 </button>
                                 <button
                                     type="button"
                                     onClick={() => setPrintingRecord(null)}
-                                    className="p-2 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-600 cursor-pointer"
+                                    className="p-2 rounded-[14px] bg-stone-100 hover:bg-stone-200 text-stone-600 cursor-pointer"
                                 >
                                     <X size={16} />
                                 </button>
@@ -3312,23 +3312,23 @@ const AdminRegistrations: React.FC = () => {
 
                         {/* Printable Document Content */}
                         <div className="space-y-4 text-xs leading-relaxed">
-                            <div className="text-center border-b-2 border-gray-900 pb-3">
-                                <h1 className="text-lg font-black uppercase tracking-wide">WELILE SCHOOL OF AI</h1>
-                                <p className="text-xs font-semibold text-gray-600">Katabi, Entebbe, Uganda</p>
+                            <div className="text-center border-b-2 border-stone-900 pb-3">
+                                <h1 className="text-lg font-extrabold uppercase tracking-wide">WELILE SCHOOL OF AI</h1>
+                                <p className="text-xs font-semibold text-stone-600">Katabi, Entebbe, Uganda</p>
                                 <h2 className="text-sm font-extrabold uppercase mt-1 text-violet-800">
                                     STUDENT REGISTRATION, STUDY SCHEDULE & PAYMENT AGREEMENT FORM
                                 </h2>
                             </div>
 
-                            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 p-3 bg-gray-50 rounded-xl border border-gray-200">
-                                <div><span className="font-bold block text-[10px] uppercase text-gray-500">Registration Date</span>{printingRecord.registration_date || (printingRecord.created_at ? printingRecord.created_at.split('T')[0] : '')}</div>
-                                <div><span className="font-bold block text-[10px] uppercase text-gray-500">Student Reg No.</span><span className="font-mono font-bold">{printingRecord.student_reg_no || 'WSI/11/26/001'}</span></div>
-                                <div><span className="font-bold block text-[10px] uppercase text-gray-500">Course / Programme</span>{printingRecord.course_interest}</div>
-                                <div><span className="font-bold block text-[10px] uppercase text-gray-500">Assigned Level</span>{printingRecord.level || 'Intermediate'}</div>
+                            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 p-3 bg-stone-50 rounded-[14px] border border-stone-200">
+                                <div><span className="font-bold block text-[10px] uppercase text-stone-500">Registration Date</span>{printingRecord.registration_date || (printingRecord.created_at ? printingRecord.created_at.split('T')[0] : '')}</div>
+                                <div><span className="font-bold block text-[10px] uppercase text-stone-500">Student Reg No.</span><span className="font-mono font-bold">{printingRecord.student_reg_no || 'WSI/11/26/001'}</span></div>
+                                <div><span className="font-bold block text-[10px] uppercase text-stone-500">Course / Programme</span>{printingRecord.course_interest}</div>
+                                <div><span className="font-bold block text-[10px] uppercase text-stone-500">Assigned Level</span>{printingRecord.level || 'Intermediate'}</div>
                             </div>
 
-                            <div className="border border-gray-200 rounded-xl p-3.5">
-                                <h3 className="font-black uppercase text-xs border-b border-gray-200 pb-1 mb-2">1. STUDENT INFORMATION</h3>
+                            <div className="border border-stone-200 rounded-[14px] p-3.5">
+                                <h3 className="font-extrabold uppercase text-xs border-b border-stone-200 pb-1 mb-2">1. STUDENT INFORMATION</h3>
                                 <div className="grid grid-cols-2 gap-2">
                                     <p><strong>Full Name:</strong> {printingRecord.full_name}</p>
                                     <p><strong>Email Address:</strong> {printingRecord.email || '—'}</p>
@@ -3339,8 +3339,8 @@ const AdminRegistrations: React.FC = () => {
                                 </div>
                             </div>
 
-                            <div className="border border-gray-200 rounded-xl p-3.5">
-                                <h3 className="font-black uppercase text-xs border-b border-gray-200 pb-1 mb-2">2. COURSE & PROGRAMME INFORMATION</h3>
+                            <div className="border border-stone-200 rounded-[14px] p-3.5">
+                                <h3 className="font-extrabold uppercase text-xs border-b border-stone-200 pb-1 mb-2">2. COURSE & PROGRAMME INFORMATION</h3>
                                 <div className="grid grid-cols-2 gap-2">
                                     <p><strong>Course / Programme:</strong> {printingRecord.course_interest}</p>
                                     <p><strong>Level:</strong> {printingRecord.level || 'Intermediate'}</p>
@@ -3351,8 +3351,8 @@ const AdminRegistrations: React.FC = () => {
                                 </div>
                             </div>
 
-                            <div className="border border-gray-200 rounded-xl p-3.5">
-                                <h3 className="font-black uppercase text-xs border-b border-gray-200 pb-1 mb-2">3. STUDY SCHEDULE</h3>
+                            <div className="border border-stone-200 rounded-[14px] p-3.5">
+                                <h3 className="font-extrabold uppercase text-xs border-b border-stone-200 pb-1 mb-2">3. STUDY SCHEDULE</h3>
                                 <div className="grid grid-cols-2 gap-2">
                                     <p><strong>Preferred Study Days:</strong> {(printingRecord.preferred_study_days || []).join(', ')}</p>
                                     <p><strong>Chosen Study Time:</strong> {printingRecord.preferred_time_slot || '—'}</p>
@@ -3362,8 +3362,8 @@ const AdminRegistrations: React.FC = () => {
                                 </div>
                             </div>
 
-                            <div className="border border-gray-200 rounded-xl p-3.5">
-                                <h3 className="font-black uppercase text-xs border-b border-gray-200 pb-1 mb-2">4. FEES & PAYMENT AGREEMENT</h3>
+                            <div className="border border-stone-200 rounded-[14px] p-3.5">
+                                <h3 className="font-extrabold uppercase text-xs border-b border-stone-200 pb-1 mb-2">4. FEES & PAYMENT AGREEMENT</h3>
                                 <div className="grid grid-cols-2 gap-2">
                                     <p><strong>Total Course Fee:</strong> UGX {Number(printingRecord.total_course_fee ?? 600000).toLocaleString()}</p>
                                     <p><strong>Registration Fee:</strong> {printingRecord.registration_fee || 'Not Applicable'}</p>
@@ -3378,9 +3378,9 @@ const AdminRegistrations: React.FC = () => {
                                 </div>
                             </div>
 
-                            <div className="border border-gray-200 rounded-xl p-3.5">
-                                <h3 className="font-black uppercase text-xs border-b border-gray-200 pb-1 mb-2">5 & 6. STUDENT COMMITMENT & DECLARATION</h3>
-                                <p className="mb-2 text-[11px] text-gray-700">
+                            <div className="border border-stone-200 rounded-[14px] p-3.5">
+                                <h3 className="font-extrabold uppercase text-xs border-b border-stone-200 pb-1 mb-2">5 & 6. STUDENT COMMITMENT & DECLARATION</h3>
+                                <p className="mb-2 text-[11px] text-stone-700">
                                     I confirm that the information provided on this form is true and accurate. I agree to follow the study schedule, rules, and payment terms of Welile School of AI.
                                 </p>
                                 <div className="grid grid-cols-3 gap-2">
@@ -3390,8 +3390,8 @@ const AdminRegistrations: React.FC = () => {
                                 </div>
                             </div>
 
-                            <div className="border border-gray-200 rounded-xl p-3.5">
-                                <h3 className="font-black uppercase text-xs border-b border-gray-200 pb-1 mb-2">7. PARENT / GUARDIAN CONSENT</h3>
+                            <div className="border border-stone-200 rounded-[14px] p-3.5">
+                                <h3 className="font-extrabold uppercase text-xs border-b border-stone-200 pb-1 mb-2">7. PARENT / GUARDIAN CONSENT</h3>
                                 <div className="grid grid-cols-2 gap-2">
                                     <p><strong>Parent / Guardian Name:</strong> {printingRecord.guardian_name || 'N/A'}</p>
                                     <p><strong>Phone Number:</strong> {printingRecord.guardian_phone || 'N/A'}</p>
@@ -3400,8 +3400,8 @@ const AdminRegistrations: React.FC = () => {
                                 </div>
                             </div>
 
-                            <div className="border-2 border-gray-900 rounded-xl p-3.5 bg-gray-50">
-                                <h3 className="font-black uppercase text-xs border-b border-gray-300 pb-1 mb-2">8. SCHOOL / ADMINISTRATION USE ONLY</h3>
+                            <div className="border-2 border-stone-900 rounded-[14px] p-3.5 bg-stone-50">
+                                <h3 className="font-extrabold uppercase text-xs border-b border-stone-300 pb-1 mb-2">8. SCHOOL / ADMINISTRATION USE ONLY</h3>
                                 <div className="grid grid-cols-2 gap-2">
                                     <p><strong>Registration Approved By:</strong> {printingRecord.approved_by || '—'}</p>
                                     <p><strong>Position:</strong> {printingRecord.approver_position || '—'}</p>
@@ -3426,49 +3426,49 @@ const AdminRegistrations: React.FC = () => {
                         className="fixed inset-0 bg-black/60 backdrop-blur-sm"
                         onClick={() => setShowStaffModal(false)}
                     />
-                    <div className="bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 w-full max-w-lg rounded-3xl p-6 shadow-2xl relative z-10 text-gray-900 dark:text-white animate-in zoom-in-95 duration-200 max-h-[90vh] overflow-y-auto">
+                    <div className="bg-white dark:bg-night-2 w-full max-w-lg rounded-[26px] p-6 shadow-2xl relative z-10 text-stone-900 dark:text-white animate-in zoom-in-95 duration-200 max-h-[90vh] overflow-y-auto">
                         <button
                             type="button"
                             onClick={() => setShowStaffModal(false)}
-                            className="absolute top-4 right-4 text-gray-400 hover:text-gray-700 dark:hover:text-white cursor-pointer"
+                            className="absolute top-4 right-4 text-stone-400 hover:text-stone-700 dark:hover:text-white cursor-pointer"
                         >
                             <X size={20} />
                         </button>
 
                         <div className="flex items-center gap-3 mb-4">
-                            <div className="w-11 h-11 rounded-2xl bg-emerald-100 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
+                            <div className="w-11 h-11 rounded-[22px] bg-mint-soft dark:bg-emerald-950/60 text-mint dark:text-emerald-400 flex items-center justify-center shrink-0">
                                 <ShieldCheck size={22} />
                             </div>
                             <div>
                                 <h3 className="text-lg font-extrabold">Manage Staff & Mobilizer Audit Roster</h3>
-                                <p className="text-xs text-gray-500 dark:text-slate-400">
-                                    Staff added here appear in the &ldquo;Registered By (Staff Audit)&rdquo; dropdown on <code className="font-mono text-emerald-600 dark:text-emerald-400">/register</code> and can get personal QR attribution links.
+                                <p className="text-xs text-stone-500 dark:text-slate-400">
+                                    Staff added here appear in the &ldquo;Registered By (Staff Audit)&rdquo; dropdown on <code className="font-mono text-mint dark:text-emerald-400">/register</code> and can get personal QR attribution links.
                                 </p>
                             </div>
                         </div>
 
-                        <form onSubmit={handleAddStaff} className="p-4 rounded-2xl bg-gray-50 dark:bg-slate-950/70 border border-gray-200 dark:border-slate-800 space-y-3 mb-4">
-                            <div className="text-xs font-extrabold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">
+                        <form onSubmit={handleAddStaff} className="p-4 rounded-[22px] bg-stone-50 dark:bg-night/70 border border-stone-200 dark:border-slate-800 space-y-3 mb-4">
+                            <div className="text-xs font-extrabold uppercase tracking-wider text-mint dark:text-emerald-400">
                                 + Add New Staff / Mobilizer / Ambassador
                             </div>
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                                 <div>
-                                    <label className="block text-[10px] font-bold uppercase text-gray-500 mb-1">Full Name *</label>
+                                    <label className="block text-[10px] font-bold uppercase text-stone-500 mb-1">Full Name *</label>
                                     <input
                                         type="text"
                                         required
                                         value={newStaffName}
                                         onChange={(e) => setNewStaffName(e.target.value)}
                                         placeholder="e.g. Sarah Namukasa"
-                                        className="w-full p-2.5 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-xl text-xs font-bold"
+                                        className="w-full p-2.5 bg-white dark:bg-night-2 rounded-[14px] text-xs font-bold"
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-[10px] font-bold uppercase text-gray-500 mb-1">Role / Title</label>
+                                    <label className="block text-[10px] font-bold uppercase text-stone-500 mb-1">Role / Title</label>
                                     <select
                                         value={newStaffRole}
                                         onChange={(e) => setNewStaffRole(e.target.value)}
-                                        className="w-full p-2.5 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-xl text-xs font-bold"
+                                        className="w-full p-2.5 bg-white dark:bg-night-2 rounded-[14px] text-xs font-bold"
                                     >
                                         <option value="COO">COO (Chief Operating Officer)</option>
                                         <option value="Outreach Mobilizer">Outreach Mobilizer</option>
@@ -3486,11 +3486,11 @@ const AdminRegistrations: React.FC = () => {
                                     onChange={(e) => setNewStaffPhone(e.target.value.replace(/\D/g, '').slice(0, 10))}
                                     placeholder="Phone (Optional, max 10 digits)"
                                     maxLength={10}
-                                    className="flex-1 p-2.5 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-xl text-xs"
+                                    className="flex-1 p-2.5 bg-white dark:bg-night-2 rounded-[14px] text-xs"
                                 />
                                 <button
                                     type="submit"
-                                    className="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-extrabold flex items-center gap-1.5 cursor-pointer shrink-0 shadow-sm"
+                                    className="px-4 py-2.5 rounded-[14px] bg-mint hover:bg-mint text-white text-xs font-extrabold flex items-center gap-1.5 cursor-pointer shrink-0"
                                 >
                                     <Plus size={14} /> Add to Roster
                                 </button>
@@ -3501,16 +3501,16 @@ const AdminRegistrations: React.FC = () => {
                             {staffRoster.map(st => (
                                 <div
                                     key={st.id}
-                                    className="flex items-center justify-between gap-2 p-3 rounded-xl bg-white dark:bg-slate-800/60 border border-gray-200 dark:border-slate-800"
+                                    className="flex items-center justify-between gap-2 p-3 rounded-[14px] bg-white dark:bg-slate-800/60"
                                 >
                                     <div>
                                         <div className="flex items-center gap-2">
-                                            <span className="text-xs font-extrabold text-gray-900 dark:text-white">{st.name}</span>
-                                            <span className="px-2 py-0.5 rounded-md bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 text-[10px] font-bold">
+                                            <span className="text-xs font-extrabold text-stone-900 dark:text-white">{st.name}</span>
+                                            <span className="px-2 py-0.5 rounded-md bg-mint-soft dark:bg-emerald-950/60 text-mint dark:text-emerald-300 text-[10px] font-bold">
                                                 {st.role}
                                             </span>
                                         </div>
-                                        <div className="text-[10px] text-gray-400 font-mono mt-0.5">
+                                        <div className="text-[10px] text-stone-400 font-mono mt-0.5">
                                             ID: {st.id} {st.phone ? `• ${st.phone}` : ''}
                                         </div>
                                     </div>
@@ -3522,7 +3522,7 @@ const AdminRegistrations: React.FC = () => {
                                                 setShowStaffModal(false);
                                                 setShowQrModal(true);
                                             }}
-                                            className="px-2.5 py-1.5 rounded-lg bg-violet-50 dark:bg-violet-950/50 text-violet-700 dark:text-violet-300 text-[11px] font-bold flex items-center gap-1 cursor-pointer hover:bg-violet-100"
+                                            className="px-2.5 py-1.5 rounded-[12px] bg-violet-50 dark:bg-violet-950/50 text-violet-700 dark:text-violet-300 text-[11px] font-bold flex items-center gap-1 cursor-pointer hover:bg-violet-100"
                                             title="Generate personal QR link for this staff member"
                                         >
                                             <QrCode size={12} /> Staff QR
@@ -3530,7 +3530,7 @@ const AdminRegistrations: React.FC = () => {
                                         <button
                                             type="button"
                                             onClick={() => handleDeleteStaff(st.id)}
-                                            className="p-1.5 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/40 cursor-pointer"
+                                            className="p-1.5 rounded-[12px] text-stone-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/40 cursor-pointer"
                                             title="Remove from roster"
                                         >
                                             <Trash2 size={14} />
@@ -3550,22 +3550,22 @@ const AdminRegistrations: React.FC = () => {
                         className="fixed inset-0 bg-black/60 backdrop-blur-sm"
                         onClick={() => setConvertingLead(null)}
                     />
-                    <div className="bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 w-full max-w-md rounded-3xl p-6 shadow-2xl relative z-10 text-gray-900 dark:text-white animate-in zoom-in-95 duration-200">
+                    <div className="bg-white dark:bg-night-2 w-full max-w-md rounded-[26px] p-6 shadow-2xl relative z-10 text-stone-900 dark:text-white animate-in zoom-in-95 duration-200">
                         <button
                             type="button"
                             onClick={() => setConvertingLead(null)}
-                            className="absolute top-4 right-4 text-gray-400 hover:text-gray-700 dark:hover:text-white cursor-pointer"
+                            className="absolute top-4 right-4 text-stone-400 hover:text-stone-700 dark:hover:text-white cursor-pointer"
                         >
                             <X size={20} />
                         </button>
 
                         <div className="flex items-center gap-2.5 mb-2">
-                            <div className="w-10 h-10 rounded-xl bg-violet-100 dark:bg-violet-950/60 text-violet-600 dark:text-violet-400 flex items-center justify-center">
+                            <div className="w-10 h-10 rounded-[14px] bg-violet-100 dark:bg-violet-950/60 text-violet-600 dark:text-violet-400 flex items-center justify-center">
                                 <UserPlus size={20} />
                             </div>
                             <div>
                                 <h3 className="text-lg font-bold">Convert Lead to Enrolled Student</h3>
-                                <p className="text-xs text-gray-500 dark:text-slate-400">
+                                <p className="text-xs text-stone-500 dark:text-slate-400">
                                     Creates/links student profile & enrolls them in their chosen course
                                 </p>
                             </div>
@@ -3573,7 +3573,7 @@ const AdminRegistrations: React.FC = () => {
 
                         <form onSubmit={handleConvertToStudent} className="space-y-4 mt-4">
                             <div>
-                                <label className="block text-xs font-bold text-gray-500 dark:text-slate-400 mb-1">
+                                <label className="block text-xs font-bold text-stone-500 dark:text-slate-400 mb-1">
                                     Student Full Name
                                 </label>
                                 <input
@@ -3581,13 +3581,13 @@ const AdminRegistrations: React.FC = () => {
                                     required
                                     value={convertName}
                                     onChange={(e) => setConvertName(e.target.value)}
-                                    className="w-full p-2.5 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl text-sm"
+                                    className="w-full p-2.5 bg-stone-50 dark:bg-slate-800 border border-stone-200 dark:border-slate-700 rounded-[14px] text-sm"
                                 />
                             </div>
 
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                 <div>
-                                    <label className="block text-xs font-bold text-gray-500 dark:text-slate-400 mb-1">
+                                    <label className="block text-xs font-bold text-stone-500 dark:text-slate-400 mb-1">
                                         Student Email
                                     </label>
                                     <input
@@ -3595,30 +3595,30 @@ const AdminRegistrations: React.FC = () => {
                                         required
                                         value={convertEmail}
                                         onChange={(e) => setConvertEmail(e.target.value)}
-                                        className="w-full p-2.5 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl text-sm"
+                                        className="w-full p-2.5 bg-stone-50 dark:bg-slate-800 border border-stone-200 dark:border-slate-700 rounded-[14px] text-sm"
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-xs font-bold text-gray-500 dark:text-slate-400 mb-1">
+                                    <label className="block text-xs font-bold text-stone-500 dark:text-slate-400 mb-1">
                                         Phone Number
                                     </label>
                                     <input
                                         type="text"
                                         value={convertPhone}
                                         onChange={(e) => setConvertPhone(e.target.value)}
-                                        className="w-full p-2.5 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl text-sm"
+                                        className="w-full p-2.5 bg-stone-50 dark:bg-slate-800 border border-stone-200 dark:border-slate-700 rounded-[14px] text-sm"
                                     />
                                 </div>
                             </div>
 
                             <div>
-                                <label className="block text-xs font-bold text-gray-500 dark:text-slate-400 mb-1">
+                                <label className="block text-xs font-bold text-stone-500 dark:text-slate-400 mb-1">
                                     Enroll in Course (Live Courses Table)
                                 </label>
                                 <select
                                     value={convertCourseId}
                                     onChange={(e) => setConvertCourseId(e.target.value)}
-                                    className="w-full p-2.5 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl text-sm"
+                                    className="w-full p-2.5 bg-stone-50 dark:bg-slate-800 border border-stone-200 dark:border-slate-700 rounded-[14px] text-sm"
                                 >
                                     <option value="">— Create Student Profile Only (No Course Yet) —</option>
                                     {courses.map(c => (
@@ -3627,19 +3627,19 @@ const AdminRegistrations: React.FC = () => {
                                         </option>
                                     ))}
                                 </select>
-                                <p className="text-[11px] text-gray-400 mt-1">
+                                <p className="text-[11px] text-stone-400 mt-1">
                                     Lead requested: <span className="font-semibold text-violet-500">{convertingLead.course_interest}</span>
                                 </p>
                             </div>
 
                             <div>
-                                <label className="block text-xs font-bold text-gray-500 dark:text-slate-400 mb-1">
+                                <label className="block text-xs font-bold text-stone-500 dark:text-slate-400 mb-1">
                                     Account Role
                                 </label>
                                 <select
                                     value={convertRole}
                                     onChange={(e) => setConvertRole(e.target.value)}
-                                    className="w-full p-2.5 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl text-sm"
+                                    className="w-full p-2.5 bg-stone-50 dark:bg-slate-800 border border-stone-200 dark:border-slate-700 rounded-[14px] text-sm"
                                 >
                                     <option value="INDIVIDUAL">Individual Learner (INDIVIDUAL)</option>
                                     <option value="CORPORATE">Corporate Sponsored (CORPORATE)</option>
@@ -3648,9 +3648,9 @@ const AdminRegistrations: React.FC = () => {
 
                             {convertFeedback && (
                                 <div
-                                    className={`p-3 rounded-xl text-xs font-bold flex items-center gap-2 ${
+                                    className={`p-3 rounded-[14px] text-xs font-bold flex items-center gap-2 ${
                                         convertFeedback.type === 'success'
-                                            ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300 border border-emerald-200'
+                                            ? 'bg-mint-soft text-mint dark:bg-emerald-950/50 dark:text-emerald-300 border border-emerald-200'
                                             : 'bg-red-50 text-red-700 dark:bg-red-950/50 dark:text-red-300 border border-red-200'
                                     }`}
                                 >
@@ -3663,14 +3663,14 @@ const AdminRegistrations: React.FC = () => {
                                 <button
                                     type="button"
                                     onClick={() => setConvertingLead(null)}
-                                    className="px-4 py-2.5 rounded-xl bg-gray-100 dark:bg-slate-800 text-xs font-bold text-gray-600 dark:text-slate-300 cursor-pointer"
+                                    className="px-4 py-2.5 rounded-[14px] bg-stone-100 dark:bg-slate-800 text-xs font-bold text-stone-600 dark:text-slate-300 cursor-pointer"
                                 >
                                     Cancel
                                 </button>
                                 <button
                                     type="submit"
                                     disabled={isConverting}
-                                    className="px-5 py-2.5 rounded-xl bg-violet-600 hover:bg-violet-700 text-white text-xs font-bold flex items-center gap-1.5 shadow-md cursor-pointer disabled:opacity-60"
+                                    className="px-5 py-2.5 rounded-[14px] bg-brand hover:bg-brand-mid text-white text-xs font-bold flex items-center gap-1.5 shadow-md cursor-pointer disabled:opacity-60"
                                 >
                                     {isConverting ? (
                                         <>
@@ -3695,34 +3695,34 @@ const AdminRegistrations: React.FC = () => {
                         className="fixed inset-0 bg-black/60 backdrop-blur-sm"
                         onClick={() => setShowQrModal(false)}
                     />
-                    <div className="bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 w-full max-w-md rounded-3xl p-6 shadow-2xl relative z-10 text-gray-900 dark:text-white animate-in zoom-in-95 duration-200">
+                    <div className="bg-white dark:bg-night-2 w-full max-w-md rounded-[26px] p-6 shadow-2xl relative z-10 text-stone-900 dark:text-white animate-in zoom-in-95 duration-200">
                         <button
                             type="button"
                             onClick={() => setShowQrModal(false)}
-                            className="absolute top-4 right-4 text-gray-400 hover:text-gray-700 dark:hover:text-white cursor-pointer"
+                            className="absolute top-4 right-4 text-stone-400 hover:text-stone-700 dark:hover:text-white cursor-pointer"
                         >
                             <X size={20} />
                         </button>
 
                         <div className="text-center space-y-2">
-                            <div className="w-12 h-12 rounded-2xl bg-violet-100 dark:bg-violet-950/60 text-violet-600 dark:text-violet-400 flex items-center justify-center mx-auto">
+                            <div className="w-12 h-12 rounded-[22px] bg-violet-100 dark:bg-violet-950/60 text-violet-600 dark:text-violet-400 flex items-center justify-center mx-auto">
                                 <QrCode size={24} />
                             </div>
                             <h3 className="text-lg font-extrabold">Outreach Booth Registration QR</h3>
-                            <p className="text-xs text-gray-500 dark:text-slate-400">
+                            <p className="text-xs text-stone-500 dark:text-slate-400">
                                 Print or display this QR code at the outreach table so students can scan & register with the campaign pre-selected.
                             </p>
                         </div>
 
                         <div className="mt-4 space-y-3">
                             <div>
-                                <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-400 dark:text-slate-500 mb-1">
+                                <label className="block text-[11px] font-bold uppercase tracking-wider text-stone-400 dark:text-slate-500 mb-1">
                                     Select Outreach Campaign for QR Tag
                                 </label>
                                 <select
                                     value={qrEventName}
                                     onChange={(e) => setQrEventName(e.target.value)}
-                                    className="w-full p-2.5 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl text-xs font-bold"
+                                    className="w-full p-2.5 bg-stone-50 dark:bg-slate-800 border border-stone-200 dark:border-slate-700 rounded-[14px] text-xs font-bold"
                                 >
                                     {distinctEvents.map(ev => (
                                         <option key={ev} value={ev}>{ev}</option>
@@ -3731,13 +3731,13 @@ const AdminRegistrations: React.FC = () => {
                             </div>
 
                             <div>
-                                <label className="block text-[11px] font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400 mb-1">
+                                <label className="block text-[11px] font-bold uppercase tracking-wider text-mint dark:text-emerald-400 mb-1">
                                     Select Staff / Mobilizer for QR Audit Attribution (Optional)
                                 </label>
                                 <select
                                     value={qrStaffName}
                                     onChange={(e) => setQrStaffName(e.target.value)}
-                                    className="w-full p-2.5 bg-gray-50 dark:bg-slate-800 border border-emerald-200 dark:border-emerald-900/50 rounded-xl text-xs font-bold"
+                                    className="w-full p-2.5 bg-stone-50 dark:bg-slate-800 border border-emerald-200 dark:border-emerald-900/50 rounded-[14px] text-xs font-bold"
                                 >
                                     <option value="">— General Booth QR (No Specific Staff Pre-tagged) —</option>
                                     {staffRoster.map(st => (
@@ -3748,7 +3748,7 @@ const AdminRegistrations: React.FC = () => {
                                 </select>
                             </div>
 
-                            <div className="bg-white p-4 rounded-2xl border border-gray-200 flex flex-col items-center justify-center shadow-inner">
+                            <div className="bg-white p-4 rounded-[22px] flex flex-col items-center justify-center shadow-inner">
                                 <img
                                     src={qrCodeImageUrl}
                                     alt="Welile Outreach Registration QR Code"
@@ -3760,18 +3760,18 @@ const AdminRegistrations: React.FC = () => {
                                     </span>
                                 )}
                                 {qrStaffName.trim() && (
-                                    <span className="mt-1 px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[11px] font-extrabold">
+                                    <span className="mt-1 px-2.5 py-0.5 rounded-full bg-mint-soft text-emerald-800 text-[11px] font-extrabold">
                                         👤 Attributed to: {qrStaffName.trim()}
                                     </span>
                                 )}
                             </div>
 
-                            <div className="flex items-center gap-2 bg-gray-50 dark:bg-slate-950 p-2.5 rounded-xl border border-gray-200 dark:border-slate-800">
+                            <div className="flex items-center gap-2 bg-stone-50 dark:bg-night p-2.5 rounded-[14px] border border-stone-200 dark:border-slate-800">
                                 <input
                                     type="text"
                                     readOnly
                                     value={publicRegisterUrl}
-                                    className="flex-1 bg-transparent text-[11px] font-mono text-gray-600 dark:text-slate-300 focus:outline-none truncate"
+                                    className="flex-1 bg-transparent text-[11px] font-mono text-stone-600 dark:text-slate-300 focus:outline-none truncate"
                                 />
                                 <button
                                     type="button"
@@ -3780,7 +3780,7 @@ const AdminRegistrations: React.FC = () => {
                                         setCopiedLink(true);
                                         setTimeout(() => setCopiedLink(false), 2000);
                                     }}
-                                    className="px-3 py-1.5 rounded-lg bg-violet-600 hover:bg-violet-700 text-white text-xs font-bold flex items-center gap-1 cursor-pointer shrink-0"
+                                    className="px-3 py-1.5 rounded-[12px] bg-brand hover:bg-brand-mid text-white text-xs font-bold flex items-center gap-1 cursor-pointer shrink-0"
                                 >
                                     {copiedLink ? <Check size={13} /> : <Copy size={13} />}
                                     {copiedLink ? 'Copied' : 'Copy'}
@@ -3791,14 +3791,14 @@ const AdminRegistrations: React.FC = () => {
                                 <button
                                     type="button"
                                     onClick={() => window.print()}
-                                    className="flex-1 py-2.5 rounded-xl border border-gray-200 dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-800 text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer"
+                                    className="flex-1 py-2.5 rounded-[14px] border border-stone-200 dark:border-slate-700 hover:bg-stone-50 dark:hover:bg-slate-800 text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer"
                                 >
                                     <Printer size={14} /> Print Flyer QR
                                 </button>
                                 <button
                                     type="button"
                                     onClick={() => setShowQrModal(false)}
-                                    className="flex-1 py-2.5 rounded-xl bg-gray-900 dark:bg-white text-white dark:text-gray-900 text-xs font-bold cursor-pointer"
+                                    className="flex-1 py-2.5 rounded-[14px] bg-stone-900 dark:bg-white text-white dark:text-stone-900 text-xs font-bold cursor-pointer"
                                 >
                                     Done
                                 </button>
@@ -3815,17 +3815,17 @@ const AdminRegistrations: React.FC = () => {
                         className="fixed inset-0 bg-black/60 backdrop-blur-xs"
                         onClick={() => setShowLaunchControlModal(false)}
                     />
-                    <div className="bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 w-full max-w-2xl rounded-3xl p-6 shadow-2xl relative z-10 text-gray-900 dark:text-white max-h-[92vh] overflow-y-auto animate-in zoom-in-95 duration-200 space-y-5">
-                        <div className="flex items-start justify-between gap-3 pb-4 border-b border-gray-200 dark:border-slate-800">
+                    <div className="bg-white dark:bg-night-2 w-full max-w-2xl rounded-[26px] p-6 shadow-2xl relative z-10 text-stone-900 dark:text-white max-h-[92vh] overflow-y-auto animate-in zoom-in-95 duration-200 space-y-5">
+                        <div className="flex items-start justify-between gap-3 pb-4 border-b border-stone-200 dark:border-slate-800">
                             <div className="flex items-center gap-3">
-                                <div className="w-11 h-11 rounded-2xl bg-violet-100 dark:bg-violet-950/60 text-violet-600 dark:text-violet-400 flex items-center justify-center shrink-0">
+                                <div className="w-11 h-11 rounded-[22px] bg-violet-100 dark:bg-violet-950/60 text-violet-600 dark:text-violet-400 flex items-center justify-center shrink-0">
                                     <Sparkles size={22} />
                                 </div>
                                 <div>
                                     <h3 className="text-base font-extrabold">
                                         Activate Registration
                                     </h3>
-                                    <p className="text-xs text-gray-500 dark:text-slate-400 mt-0.5">
+                                    <p className="text-xs text-stone-500 dark:text-slate-400 mt-0.5">
                                         Activate standard student registration on the website, or switch to an Outreach Event when running field mobilization.
                                     </p>
                                 </div>
@@ -3833,23 +3833,23 @@ const AdminRegistrations: React.FC = () => {
                             <button
                                 type="button"
                                 onClick={() => setShowLaunchControlModal(false)}
-                                className="p-2 rounded-xl text-gray-400 hover:text-gray-700 hover:bg-gray-100 dark:hover:bg-slate-800 cursor-pointer"
+                                className="p-2 rounded-[14px] text-stone-400 hover:text-stone-700 hover:bg-stone-100 dark:hover:bg-slate-800 cursor-pointer"
                             >
                                 <X size={18} />
                             </button>
                         </div>
 
                         {/* STEP 1: PUBLIC WEBSITE REGISTRATION BUTTON VISIBILITY */}
-                        <div className="p-4 rounded-2xl bg-gray-50 dark:bg-slate-950/70 border border-gray-200 dark:border-slate-800 space-y-3">
+                        <div className="p-4 rounded-[22px] bg-stone-50 dark:bg-night/70 border border-stone-200 dark:border-slate-800 space-y-3">
                             <div className="flex items-center justify-between gap-3">
                                 <div>
                                     <span className="text-[11px] font-extrabold uppercase tracking-wider text-violet-600 dark:text-violet-400">
                                         1 • Public Website Registration Button
                                     </span>
-                                    <h4 className="text-sm font-bold text-gray-900 dark:text-white mt-0.5">
+                                    <h4 className="text-sm font-bold text-stone-900 dark:text-white mt-0.5">
                                         Activate Hero Registration Button on Public Website
                                     </h4>
-                                    <p className="text-xs text-gray-500 dark:text-slate-400 mt-0.5">
+                                    <p className="text-xs text-stone-500 dark:text-slate-400 mt-0.5">
                                         When OFF, the secondary hero button is hidden while &ldquo;Register Now&rdquo; in the navbar, the footer link, and <code className="font-mono text-violet-600 dark:text-violet-400">/register</code> remain active.
                                     </p>
                                 </div>
@@ -3857,20 +3857,20 @@ const AdminRegistrations: React.FC = () => {
                                 <button
                                     type="button"
                                     onClick={() => handleSaveLaunchSettings(!websiteButtonVisible)}
-                                    className={`px-4 py-2.5 rounded-xl text-xs font-extrabold flex items-center gap-2 shrink-0 cursor-pointer transition-all shadow-xs ${
+                                    className={`px-4 py-2.5 rounded-[14px] text-xs font-extrabold flex items-center gap-2 shrink-0 cursor-pointer transition-all ${
                                         websiteButtonVisible
-                                            ? 'bg-emerald-600 hover:bg-emerald-700 text-white'
-                                            : 'bg-gray-200 dark:bg-slate-800 hover:bg-gray-300 dark:hover:bg-slate-700 text-gray-800 dark:text-slate-200'
+                                            ? 'bg-mint hover:bg-mint text-white'
+                                            : 'bg-stone-200 dark:bg-slate-800 hover:bg-stone-300 dark:hover:bg-slate-700 text-stone-800 dark:text-slate-200'
                                     }`}
                                 >
-                                    <span className={`w-2.5 h-2.5 rounded-full ${websiteButtonVisible ? 'bg-white' : 'bg-gray-500'}`} />
+                                    <span className={`w-2.5 h-2.5 rounded-full ${websiteButtonVisible ? 'bg-white' : 'bg-stone-500'}`} />
                                     {websiteButtonVisible ? 'ACTIVE (Visible on Website)' : 'OFF (Hidden on Website)'}
                                 </button>
                             </div>
 
                             {websiteButtonVisible && (
-                                <div className="pt-2 border-t border-gray-200/70 dark:border-slate-800">
-                                    <label className="block text-[11px] font-bold text-gray-500 dark:text-slate-400 mb-1">
+                                <div className="pt-2 border-t border-stone-200/70 dark:border-slate-800">
+                                    <label className="block text-[11px] font-bold text-stone-500 dark:text-slate-400 mb-1">
                                         Website Hero Button Label
                                     </label>
                                     <input
@@ -3878,22 +3878,22 @@ const AdminRegistrations: React.FC = () => {
                                         value={websiteButtonLabel}
                                         onChange={(e) => setWebsiteButtonLabel(e.target.value)}
                                         placeholder={outreachModeEnabled ? 'Join an Outreach Event' : 'Register for AI Classes'}
-                                        className="w-full p-2.5 rounded-xl bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 text-xs font-bold"
+                                        className="w-full p-2.5 rounded-[14px] bg-white dark:bg-night-2 text-xs font-bold"
                                     />
                                 </div>
                             )}
                         </div>
 
                         {/* STEP 2: NORMAL REGISTRATION (DEFAULT) VS OUTREACH EVENT MODE */}
-                        <div className="p-4 rounded-2xl bg-gray-50 dark:bg-slate-950/70 border border-gray-200 dark:border-slate-800 space-y-3">
+                        <div className="p-4 rounded-[22px] bg-stone-50 dark:bg-night/70 border border-stone-200 dark:border-slate-800 space-y-3">
                             <div>
                                 <span className="text-[11px] font-extrabold uppercase tracking-wider text-violet-600 dark:text-violet-400">
                                     2 • Registration Type
                                 </span>
-                                <h4 className="text-sm font-bold text-gray-900 dark:text-white mt-0.5">
+                                <h4 className="text-sm font-bold text-stone-900 dark:text-white mt-0.5">
                                     Choose Normal Registration or Create / Select an Outreach
                                 </h4>
-                                <p className="text-xs text-gray-500 dark:text-slate-400 mt-0.5">
+                                <p className="text-xs text-stone-500 dark:text-slate-400 mt-0.5">
                                     Ideally keep this on <strong>Normal Student Registration</strong> (no outreach or staff fields). Select <strong>Outreach Event</strong> only when running an outreach with mobilizers.
                                 </p>
                             </div>
@@ -3907,17 +3907,17 @@ const AdminRegistrations: React.FC = () => {
                                             setWebsiteButtonLabel('Register for AI Classes');
                                         }
                                     }}
-                                    className={`p-3.5 rounded-2xl border text-left transition-all cursor-pointer ${
+                                    className={`p-3.5 rounded-[22px] border text-left transition-all cursor-pointer ${
                                         !outreachModeEnabled
-                                            ? 'bg-violet-600 text-white border-violet-600 shadow-sm'
-                                            : 'bg-white dark:bg-slate-900 text-gray-700 dark:text-slate-300 border-gray-200 dark:border-slate-800 hover:border-violet-400'
+                                            ? 'bg-brand text-white border-violet-600'
+                                            : 'bg-white dark:bg-night-2 text-stone-700 dark:text-slate-300 border-stone-200 dark:border-slate-800 hover:border-violet-400'
                                     }`}
                                 >
                                     <div className="text-xs font-extrabold flex items-center justify-between">
                                         <span>🎓 Normal Student Registration</span>
                                         {!outreachModeEnabled && <Check size={14} />}
                                     </div>
-                                    <p className={`text-[11px] mt-1 ${!outreachModeEnabled ? 'text-violet-100' : 'text-gray-500 dark:text-slate-400'}`}>
+                                    <p className={`text-[11px] mt-1 ${!outreachModeEnabled ? 'text-violet-100' : 'text-stone-500 dark:text-slate-400'}`}>
                                         Standard registration without outreach or staff mobilizer fields (Recommended Default)
                                     </p>
                                 </button>
@@ -3930,17 +3930,17 @@ const AdminRegistrations: React.FC = () => {
                                             setWebsiteButtonLabel('Join an Outreach Event');
                                         }
                                     }}
-                                    className={`p-3.5 rounded-2xl border text-left transition-all cursor-pointer ${
+                                    className={`p-3.5 rounded-[22px] border text-left transition-all cursor-pointer ${
                                         outreachModeEnabled
-                                            ? 'bg-emerald-600 text-white border-emerald-600 shadow-sm'
-                                            : 'bg-white dark:bg-slate-900 text-gray-700 dark:text-slate-300 border-gray-200 dark:border-slate-800 hover:border-emerald-400'
+                                            ? 'bg-mint text-white border-mint'
+                                            : 'bg-white dark:bg-night-2 text-stone-700 dark:text-slate-300 border-stone-200 dark:border-slate-800 hover:border-emerald-400'
                                     }`}
                                 >
                                     <div className="text-xs font-extrabold flex items-center justify-between">
                                         <span>📣 Create / Select an Outreach</span>
                                         {outreachModeEnabled && <Check size={14} />}
                                     </div>
-                                    <p className={`text-[11px] mt-1 ${outreachModeEnabled ? 'text-emerald-100' : 'text-gray-500 dark:text-slate-400'}`}>
+                                    <p className={`text-[11px] mt-1 ${outreachModeEnabled ? 'text-mint-soft' : 'text-stone-500 dark:text-slate-400'}`}>
                                         Reveals outreach campaign & people registering (mobilizers/staff)
                                     </p>
                                 </button>
@@ -3951,13 +3951,13 @@ const AdminRegistrations: React.FC = () => {
                         {outreachModeEnabled && (
                             <div className="space-y-4 animate-in fade-in duration-200">
                                 {/* ACTIVE OUTREACH CAMPAIGN */}
-                                <div className="p-4 rounded-2xl bg-amber-50/50 dark:bg-slate-950/70 border border-amber-200/80 dark:border-slate-800 space-y-3">
+                                <div className="p-4 rounded-[22px] bg-amber-50/50 dark:bg-night/70 border border-amber-200/80 dark:border-slate-800 space-y-3">
                                     <div className="flex items-center justify-between gap-2">
                                         <div>
                                             <span className="text-[11px] font-extrabold uppercase tracking-wider text-amber-600 dark:text-amber-400">
                                                 Outreach Event • Select or Create Outreach
                                             </span>
-                                            <h4 className="text-sm font-bold text-gray-900 dark:text-white mt-0.5">
+                                            <h4 className="text-sm font-bold text-stone-900 dark:text-white mt-0.5">
                                                 Active Outreach Campaign for Registration
                                             </h4>
                                         </div>
@@ -3976,7 +3976,7 @@ const AdminRegistrations: React.FC = () => {
                                     <select
                                         value={activeOutreachName}
                                         onChange={(e) => setActiveOutreachName(e.target.value)}
-                                        className="w-full p-2.5 rounded-xl bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 text-xs font-bold"
+                                        className="w-full p-2.5 rounded-[14px] bg-white dark:bg-night-2 text-xs font-bold"
                                     >
                                         {campaigns.map(c => (
                                             <option key={c.name} value={c.name}>
@@ -3987,13 +3987,13 @@ const AdminRegistrations: React.FC = () => {
                                 </div>
 
                                 {/* MOBILIZATION TEAM (PEOPLE REGISTERING STUDENTS) */}
-                                <div className="p-4 rounded-2xl bg-emerald-50/40 dark:bg-slate-950/70 border border-emerald-200/80 dark:border-slate-800 space-y-3">
+                                <div className="p-4 rounded-[22px] bg-mint-soft/40 dark:bg-night/70 border border-emerald-200/80 dark:border-slate-800 space-y-3">
                                     <div className="flex items-center justify-between gap-2">
                                         <div>
-                                            <span className="text-[11px] font-extrabold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">
+                                            <span className="text-[11px] font-extrabold uppercase tracking-wider text-mint dark:text-emerald-400">
                                                 Mobilization Team • People Registering Students
                                             </span>
-                                            <h4 className="text-sm font-bold text-gray-900 dark:text-white mt-0.5">
+                                            <h4 className="text-sm font-bold text-stone-900 dark:text-white mt-0.5">
                                                 Select Staff & Mobilizers on Duty for This Outreach
                                             </h4>
                                         </div>
@@ -4003,20 +4003,20 @@ const AdminRegistrations: React.FC = () => {
                                                 setShowLaunchControlModal(false);
                                                 setShowStaffModal(true);
                                             }}
-                                            className="text-xs font-bold text-emerald-600 dark:text-emerald-400 hover:underline cursor-pointer"
+                                            className="text-xs font-bold text-mint dark:text-emerald-400 hover:underline cursor-pointer"
                                         >
                                             + Add New Staff Member
                                         </button>
                                     </div>
 
                                     <div>
-                                        <label className="block text-[11px] font-bold text-gray-500 dark:text-slate-400 mb-1">
+                                        <label className="block text-[11px] font-bold text-stone-500 dark:text-slate-400 mb-1">
                                             Default Pre-selected Booth Registrar on <code className="font-mono">/register</code>
                                         </label>
                                         <select
                                             value={defaultRegistrarName}
                                             onChange={(e) => setDefaultRegistrarName(e.target.value)}
-                                            className="w-full p-2.5 rounded-xl bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 text-xs font-bold"
+                                            className="w-full p-2.5 rounded-[14px] bg-white dark:bg-night-2 text-xs font-bold"
                                         >
                                             {staffRoster.map(st => (
                                                 <option key={st.id} value={st.name}>
@@ -4033,10 +4033,10 @@ const AdminRegistrations: React.FC = () => {
                                                 <div
                                                     key={st.id}
                                                     onClick={() => toggleStaffIdInLaunch(st.id)}
-                                                    className={`p-2.5 rounded-xl border text-xs flex items-center justify-between gap-2 cursor-pointer transition-all ${
+                                                    className={`p-2.5 rounded-[14px] border text-xs flex items-center justify-between gap-2 cursor-pointer transition-all ${
                                                         isChecked
-                                                            ? 'bg-white dark:bg-slate-900 border-emerald-300 dark:border-emerald-800/70'
-                                                            : 'bg-gray-100/60 dark:bg-slate-900/40 border-gray-200 dark:border-slate-800 opacity-60'
+                                                            ? 'bg-white dark:bg-night-2 border-emerald-300 dark:border-emerald-800/70'
+                                                            : 'bg-stone-100/60 dark:bg-night-2/40 border-stone-200 dark:border-slate-800 opacity-60'
                                                     }`}
                                                 >
                                                     <div className="flex items-center gap-2.5">
@@ -4044,11 +4044,11 @@ const AdminRegistrations: React.FC = () => {
                                                             type="checkbox"
                                                             checked={isChecked}
                                                             onChange={() => {}}
-                                                            className="rounded text-emerald-600 focus:ring-emerald-500"
+                                                            className="rounded text-mint focus:ring-emerald-500"
                                                         />
                                                         <div>
-                                                            <span className="font-bold text-gray-900 dark:text-white">{st.name}</span>
-                                                            <span className="ml-2 px-1.5 py-0.5 rounded bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 text-[10px] font-semibold">
+                                                            <span className="font-bold text-stone-900 dark:text-white">{st.name}</span>
+                                                            <span className="ml-2 px-1.5 py-0.5 rounded bg-mint-soft dark:bg-emerald-950/60 text-mint dark:text-emerald-300 text-[10px] font-semibold">
                                                                 {st.role}
                                                             </span>
                                                         </div>
@@ -4062,7 +4062,7 @@ const AdminRegistrations: React.FC = () => {
                                                             setShowLaunchControlModal(false);
                                                             setShowQrModal(true);
                                                         }}
-                                                        className="px-2 py-1 rounded-lg bg-violet-50 dark:bg-violet-950/50 text-violet-700 dark:text-violet-300 text-[10px] font-bold hover:bg-violet-100 cursor-pointer flex items-center gap-1"
+                                                        className="px-2 py-1 rounded-[12px] bg-violet-50 dark:bg-violet-950/50 text-violet-700 dark:text-violet-300 text-[10px] font-bold hover:bg-violet-100 cursor-pointer flex items-center gap-1"
                                                     >
                                                         <QrCode size={11} /> QR Link
                                                     </button>
@@ -4074,14 +4074,14 @@ const AdminRegistrations: React.FC = () => {
                             </div>
                         )}
 
-                        <div className="flex items-center justify-between gap-3 pt-2 border-t border-gray-200 dark:border-slate-800">
+                        <div className="flex items-center justify-between gap-3 pt-2 border-t border-stone-200 dark:border-slate-800">
                             <div className="text-xs">
                                 {savedLaunchSettings ? (
-                                    <span className="text-emerald-600 dark:text-emerald-400 font-bold flex items-center gap-1">
+                                    <span className="text-mint dark:text-emerald-400 font-bold flex items-center gap-1">
                                         <CheckCircle2 size={14} /> Live Registration Settings Saved!
                                     </span>
                                 ) : (
-                                    <span className="text-gray-500 dark:text-slate-400">
+                                    <span className="text-stone-500 dark:text-slate-400">
                                         Current mode: <strong className="text-violet-600 dark:text-violet-400">{outreachModeEnabled ? 'Outreach Event' : 'Normal Registration'}</strong>
                                     </span>
                                 )}
@@ -4090,7 +4090,7 @@ const AdminRegistrations: React.FC = () => {
                                 <button
                                     type="button"
                                     onClick={() => setShowLaunchControlModal(false)}
-                                    className="px-4 py-2 rounded-xl border border-gray-200 dark:border-slate-700 text-xs font-semibold text-gray-600 dark:text-slate-300 cursor-pointer"
+                                    className="px-4 py-2 rounded-[14px] border border-stone-200 dark:border-slate-700 text-xs font-semibold text-stone-600 dark:text-slate-300 cursor-pointer"
                                 >
                                     Close
                                 </button>
@@ -4098,7 +4098,7 @@ const AdminRegistrations: React.FC = () => {
                                     type="button"
                                     onClick={() => handleSaveLaunchSettings()}
                                     disabled={savingLaunchSettings}
-                                    className="px-5 py-2.5 rounded-xl bg-violet-600 hover:bg-violet-700 text-white text-xs font-bold flex items-center gap-1.5 shadow-sm cursor-pointer disabled:opacity-60"
+                                    className="px-5 py-2.5 rounded-[14px] bg-brand hover:bg-brand-mid text-white text-xs font-bold flex items-center gap-1.5 cursor-pointer disabled:opacity-60"
                                 >
                                     {savingLaunchSettings ? (
                                         <>

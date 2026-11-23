@@ -18,50 +18,66 @@ import { hasFullAccess, lockReason, lessonsAreOpen } from '../../src/lib/courseA
 import { INK, PAPER, Logo, ProgressRing, ThemeButton } from './learnUi';
 import LiveTodayBar from './LiveTodayBar';
 import { InstallChip, useInstallTracking } from './InstallApp';
+import MobileTabBar from '../layouts/MobileTabBar';
 import { exemptItemIds, loadAttendedLectures } from '../../src/lib/liveClass';
 
 const Outline: React.FC<{ progress: ProgressMap; base: string; fullAccess: boolean; onNavigate?: () => void }> = ({ progress, base, fullAccess, onNavigate }) => {
     const { pathname } = useLocation();
     const kindIcon = (k: string) => (k === 'video' ? PlayCircle : k === 'quiz' ? HelpCircle : FileText);
     return (
-        <nav aria-label="Course outline" className="py-4">
-            {MODULES.map(m => (
-                <div key={m.id} className="mb-4">
-                    <p className="px-5 text-xs font-semibold uppercase tracking-wide text-stone-500 dark:text-slate-400">
-                        {m.number === 0 ? 'Start here' : `Module ${m.number}`}
-                    </p>
-                    <p className="px-5 text-sm font-semibold leading-snug mb-1">{m.title}</p>
-                    <ul>
-                        {m.items.map(i => {
-                            const Icon = kindIcon(i.kind);
-                            const active = pathname === `${base}/item/${i.id}`;
-                            const done = progress[i.id]?.status === 'completed';
-                            const locked = lockReason(i.id, progress, fullAccess) !== null;
-                            return (
-                                <li key={i.id}>
-                                    <Link
-                                        to={`${base}/item/${i.id}`}
-                                        onClick={onNavigate}
-                                        aria-current={active ? 'page' : undefined}
-                                        className={`flex items-start gap-2.5 px-5 py-2.5 text-[14px] leading-snug min-h-[44px] border-l-4 ${active ? 'bg-violet-50 dark:bg-violet-950/40 border-violet-700 font-semibold' : 'border-transparent hover:bg-stone-100 dark:hover:bg-slate-800/60'}`}
-                                    >
-                                        {done ? <CheckCircle2 size={17} className="text-emerald-600 shrink-0 mt-0.5" /> : <Circle size={17} className="text-stone-300 dark:text-slate-600 shrink-0 mt-0.5" />}
-                                        <span className="flex-1">{i.title}</span>
-                                        {locked ? <Lock size={14} className="text-stone-400 dark:text-slate-500 shrink-0 mt-1" /> : <Icon size={14} className="text-stone-400 dark:text-slate-500 shrink-0 mt-1" />}
-                                    </Link>
-                                </li>
-                            );
-                        })}
-                    </ul>
-                </div>
-            ))}
+        <nav aria-label="Course outline" className="p-3 flex flex-col gap-2">
+            {MODULES.map(m => {
+                const done = m.items.filter(i => progress[i.id]?.status === 'completed').length;
+                const hasActive = m.items.some(i => pathname === `${base}/item/${i.id}`);
+                return (
+                    <details key={m.id} open={hasActive || undefined} className="group rounded-[16px] bg-panel dark:bg-night-3/60 open:bg-white dark:open:bg-night-2">
+                        <summary className="list-none cursor-pointer flex items-center gap-3 px-3.5 py-3 min-h-[52px] rounded-[16px]">
+                            <span className={`w-9 h-9 rounded-[11px] shrink-0 inline-flex items-center justify-center text-[13px] font-extrabold ${done === m.items.length ? 'bg-mint-soft text-mint' : 'bg-brand-soft text-brand dark:bg-night dark:text-violet-300'}`}>
+                                {done === m.items.length ? <CheckCircle2 size={17} /> : m.number}
+                            </span>
+                            <span className="flex-1 min-w-0">
+                                <span className="block text-[11px] font-bold uppercase tracking-[0.1em] text-[#6B6680] dark:text-slate-400">{m.number === 0 ? 'Start here' : `Module ${m.number}`} · {done}/{m.items.length}</span>
+                                <span className="block text-[14px] font-bold leading-snug truncate">{m.title}</span>
+                            </span>
+                        </summary>
+                        <ul className="px-1.5 pb-2">
+                            {m.items.map(i => {
+                                const Icon = kindIcon(i.kind);
+                                const active = pathname === `${base}/item/${i.id}`;
+                                const itemDone = progress[i.id]?.status === 'completed';
+                                const locked = lockReason(i.id, progress, fullAccess) !== null;
+                                return (
+                                    <li key={i.id}>
+                                        <Link
+                                            to={`${base}/item/${i.id}`}
+                                            onClick={onNavigate}
+                                            aria-current={active ? 'page' : undefined}
+                                            className={`relative flex items-start gap-2.5 px-3 py-2.5 rounded-[12px] text-[13.5px] leading-snug min-h-[44px] ${active ? 'bg-brand-soft dark:bg-night-3 text-brand-ink dark:text-white font-bold' : 'hover:bg-panel dark:hover:bg-night-3/60'}`}
+                                        >
+                                            {active && <span aria-hidden="true" className="absolute left-0 top-2.5 bottom-2.5 w-[3px] rounded-full bg-brand" />}
+                                            {itemDone ? <CheckCircle2 size={17} className="text-mint shrink-0 mt-px" /> : <Circle size={17} className="text-[#C9C3DA] dark:text-slate-600 shrink-0 mt-px" />}
+                                            <span className="flex-1">{i.title}</span>
+                                            <span className="shrink-0 mt-0.5 flex items-center gap-1.5 text-[11px] font-semibold text-[#6B6680] dark:text-slate-500">
+                                                {i.minutes}m
+                                                {locked ? <Lock size={13} /> : <Icon size={13} />}
+                                            </span>
+                                        </Link>
+                                    </li>
+                                );
+                            })}
+                        </ul>
+                    </details>
+                );
+            })}
             <Link
                 to={`${base}/final`}
                 onClick={onNavigate}
-                className={`flex items-center gap-2.5 px-5 py-3 text-[14px] font-semibold border-l-4 ${pathname === `${base}/final` ? 'bg-violet-50 dark:bg-violet-950/40 border-violet-700' : 'border-transparent hover:bg-stone-100 dark:hover:bg-slate-800/60'}`}
+                className={`flex items-center gap-3 px-3.5 py-3 min-h-[52px] rounded-[16px] text-[14px] font-bold ${pathname === `${base}/final` ? 'bg-lime-200 text-ink' : 'bg-lime-100 text-lime-900 hover:bg-lime-200'}`}
             >
-                {progress['final']?.status === 'completed' ? <CheckCircle2 size={17} className="text-emerald-600" /> : <Award size={17} className="text-stone-400" />}
-                Final assessment
+                <span className="w-9 h-9 rounded-[11px] bg-white/70 inline-flex items-center justify-center">
+                    {progress['final']?.status === 'completed' ? <CheckCircle2 size={17} className="text-mint" /> : <Award size={17} />}
+                </span>
+                <span className="flex-1">Final assessment<span className="block text-[11px] font-semibold opacity-80">20 questions · pass with 80%</span></span>
             </Link>
         </nav>
     );
@@ -164,53 +180,68 @@ const LearnRoute: React.FC<Props> = ({ session, userProfile }) => {
     if (!ready) {
         return (
             <div className={`min-h-screen ${PAPER} flex items-center justify-center`}>
-                <Loader2 className="animate-spin text-violet-700" size={32} aria-label="Loading your course" />
+                <Loader2 className="animate-spin text-brand" size={32} aria-label="Loading your course" />
             </div>
         );
     }
 
     const state = completionState(progress, uid);
     const onHome = pathname === base || pathname === `${base}/`;
+    // The phone tab bar shows on the course home, live and certificate pages; lessons and the final test stay full screen.
+    const showTabs = onHome || pathname.startsWith(`${base}/live`) || pathname.startsWith(`${base}/certificate`);
+
+    const navChip = (to: string, label: string, Icon: React.ElementType, active: boolean, hideLabel = 'sm') => (
+        <Link to={to} aria-label={label} aria-current={active ? 'page' : undefined}
+            className={`press h-11 inline-flex items-center gap-2 px-3 rounded-[14px] text-[13px] font-bold ${active ? 'bg-brand text-white' : 'bg-white dark:bg-night-2 text-ink dark:text-slate-200 hover:text-brand'}`}>
+            <Icon size={17} /><span className={`hidden ${hideLabel}:inline`}>{label}</span>
+        </Link>
+    );
 
     return (
         <LearnContext.Provider value={ctx}>
             <div className={`min-h-screen ${PAPER} ${INK}`}>
-                <header className="sticky top-0 z-40 bg-[#faf8f5]/95 dark:bg-slate-950/95 backdrop-blur border-b border-stone-200 dark:border-slate-800">
-                    <div className="px-3 sm:px-5 h-16 flex items-center gap-2 sm:gap-4">
+                <header className="frost sticky top-0 z-40">
+                    <div className="max-w-[1480px] mx-auto px-3 sm:px-5 h-[72px] flex items-center gap-2 sm:gap-3">
                         {!onHome && (
-                            <button onClick={() => setDrawer(true)} aria-label="Open course outline" className="lg:hidden p-2.5 rounded-lg hover:bg-stone-100 dark:hover:bg-slate-800">
-                                <ListTree size={20} />
+                            <button onClick={() => setDrawer(true)} aria-label="Open course outline" className="press lg:hidden w-11 h-11 inline-flex items-center justify-center rounded-[14px] bg-white dark:bg-night-2">
+                                <ListTree size={19} />
                             </button>
                         )}
                         <Logo to={base} className="h-9" />
-                        <p className="hidden md:block font-serif font-semibold truncate">{COURSE.short}</p>
+                        <div className="hidden md:flex flex-col min-w-0 pl-2">
+                            <span className="text-[11px] font-bold uppercase tracking-[0.12em] text-[#6B6680] dark:text-slate-400">Free course</span>
+                            <span className="text-[15px] font-extrabold tracking-[-0.01em] truncate">{COURSE.short}</span>
+                        </div>
                         <div className="flex-1" />
-                        <div className="hidden sm:block"><ProgressRing pct={state.pct} size={40} stroke={5} /></div>
-                        <Link to={`${base}/live`} aria-label="Live classes" className="flex items-center gap-2 p-2.5 sm:px-3 rounded-lg text-sm font-medium hover:bg-stone-100 dark:hover:bg-slate-800">
-                            <CalendarClock size={18} /><span className="hidden sm:inline">Live</span>
-                        </Link>
-                        <Link to={`${base}/certificate`} aria-label="Certificate" className="flex items-center gap-2 p-2.5 sm:px-3 rounded-lg text-sm font-medium hover:bg-stone-100 dark:hover:bg-slate-800">
-                            <Award size={18} /><span className="hidden sm:inline">Certificate</span>
-                        </Link>
-                        <Link to="/dashboard" aria-label="Exit to dashboard" className="flex items-center gap-2 p-2.5 sm:px-3 rounded-lg text-sm font-medium hover:bg-stone-100 dark:hover:bg-slate-800">
-                            <LayoutDashboard size={18} /><span className="hidden lg:inline">Dashboard</span>
-                        </Link>
-                        <InstallChip />
-                        <ThemeButton />
+                        <div className="hidden sm:flex items-center gap-2.5 h-11 pl-1.5 pr-3.5 rounded-[14px] bg-white dark:bg-night-2">
+                            <ProgressRing pct={state.pct} size={34} stroke={4} />
+                            <span className="text-[12px] font-bold leading-tight">{state.done}/{state.total}<span className="block font-semibold text-[#6B6680] dark:text-slate-400">done</span></span>
+                        </div>
+                        {navChip(`${base}/live`, 'Live', CalendarClock, pathname === `${base}/live`)}
+                        {navChip(`${base}/certificate`, 'Certificate', Award, pathname === `${base}/certificate`)}
+                        <span className="hidden lg:contents">
+                            {navChip('/dashboard', 'Dashboard', LayoutDashboard, false, 'lg')}
+                            <InstallChip />
+                            <ThemeButton />
+                        </span>
                     </div>
-                    <div className="h-1 bg-stone-200 dark:bg-slate-800" role="progressbar" aria-valuenow={state.pct} aria-valuemin={0} aria-valuemax={100} aria-label="Course progress">
-                        <div className="h-full bg-violet-700 transition-all duration-500" style={{ width: `${state.pct}%` }} />
+                    <div className="h-1 bg-brand-soft dark:bg-night-3" role="progressbar" aria-valuenow={state.pct} aria-valuemin={0} aria-valuemax={100} aria-label="Course progress">
+                        <div className="h-full bg-brand transition-all duration-500 rounded-r-full" style={{ width: `${state.pct}%` }} />
                     </div>
                     <LiveTodayBar />
                 </header>
 
-                <div className="flex">
+                <div className="max-w-[1480px] mx-auto flex items-start gap-5 px-0 lg:px-5 lg:pt-5">
                     {!onHome && (
-                        <aside className="hidden lg:block w-80 shrink-0 sticky top-[65px] h-[calc(100vh-65px)] overflow-y-auto border-r border-stone-200 dark:border-slate-800 bg-white/60 dark:bg-slate-900/40">
+                        <aside className="hidden lg:block w-[320px] shrink-0 sticky top-[96px] max-h-[calc(100vh-116px)] overflow-y-auto no-scrollbar rounded-[24px] bg-white dark:bg-night-2">
+                            <div className="px-5 pt-5 pb-1">
+                                <p className="m-0 text-[11px] font-bold uppercase tracking-[0.12em] text-[#6B6680] dark:text-slate-400">Course outline</p>
+                                <p className="m-0 mt-1 text-[13px] font-semibold">{state.pct}% complete</p>
+                            </div>
                             <Outline progress={progress} base={base} fullAccess={fullAccess} />
                         </aside>
                     )}
-                    <main className="flex-1 min-w-0">
+                    <main className={`flex-1 min-w-0 ${showTabs ? 'pb-32 lg:pb-16' : 'pb-16'}`}>
                         <Routes>
                             <Route index element={<CourseHome />} />
                             <Route path="item/:itemId" element={<ItemPage />} />
@@ -222,17 +253,22 @@ const LearnRoute: React.FC<Props> = ({ session, userProfile }) => {
                     </main>
                 </div>
 
+                {showTabs && <MobileTabBar />}
+
                 {/* mobile outline drawer */}
                 {drawer && (
                     <div className="lg:hidden fixed inset-0 z-50 flex" role="dialog" aria-modal="true" aria-label="Course outline">
-                        <div className="w-[85%] max-w-sm bg-[#faf8f5] dark:bg-slate-950 h-full overflow-y-auto shadow-2xl">
-                            <div className="flex items-center justify-between px-5 h-16 border-b border-stone-200 dark:border-slate-800 sticky top-0 bg-[#faf8f5] dark:bg-slate-950">
-                                <p className="font-serif font-semibold">Course outline</p>
-                                <button onClick={() => setDrawer(false)} aria-label="Close outline" className="p-2 rounded-lg hover:bg-stone-100 dark:hover:bg-slate-800"><X size={20} /></button>
+                        <div className="w-[88%] max-w-sm bg-panel dark:bg-night h-full overflow-y-auto shadow-2xl rounded-r-[28px]">
+                            <div className="frost flex items-center justify-between px-5 h-[68px] sticky top-0 z-10">
+                                <div>
+                                    <p className="m-0 text-[11px] font-bold uppercase tracking-[0.12em] text-[#6B6680]">Course outline</p>
+                                    <p className="m-0 text-[15px] font-extrabold">{state.pct}% complete</p>
+                                </div>
+                                <button onClick={() => setDrawer(false)} aria-label="Close outline" className="press w-11 h-11 inline-flex items-center justify-center rounded-[14px] bg-white dark:bg-night-2"><X size={19} /></button>
                             </div>
                             <Outline progress={progress} base={base} fullAccess={fullAccess} onNavigate={() => setDrawer(false)} />
                         </div>
-                        <button className="flex-1 bg-black/40" aria-label="Close outline" onClick={() => setDrawer(false)} />
+                        <button className="flex-1 bg-[#16122B]/40" aria-label="Close outline" onClick={() => setDrawer(false)} />
                     </div>
                 )}
             </div>

@@ -153,10 +153,10 @@ const AdminEnrollments: React.FC = () => {
             return sortOrder === 'asc' ? comparison : -comparison;
         });
 
-    if (loading) return <div className="p-8 text-center text-gray-500 dark:text-slate-400">Loading directory...</div>;
+    if (loading) return <div className="p-8 text-center text-stone-500 dark:text-slate-400">Loading directory...</div>;
 
     return (
-        <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-gray-150 dark:border-slate-800 overflow-hidden transition-colors">
+        <div className="bg-white dark:bg-night-2 rounded-[22px] overflow-hidden transition-colors">
             <style>{`
                 .student-row {
                     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -180,20 +180,20 @@ const AdminEnrollments: React.FC = () => {
                     box-shadow: 0 4px 12px rgba(124, 58, 237, 0.35);
                 }
             `}</style>
-            <div className="p-6 border-b border-gray-150 dark:border-slate-800 flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div className="p-6 border-b border-stone-150 dark:border-slate-800 flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
-                    <h2 className="text-lg font-bold text-gray-900 dark:text-white">Student Directory</h2>
-                    <p className="text-xs text-gray-555 dark:text-slate-400 mt-0.5">Total: {filteredUsers.length} registered</p>
+                    <h2 className="text-[17px] font-extrabold">Student Directory</h2>
+                    <p className="text-xs text-stone-555 dark:text-slate-400 mt-0.5">Total: {filteredUsers.length} registered</p>
                 </div>
                 
                 <div className="flex flex-wrap items-center gap-3 w-full md:w-auto">
                     {/* Plan Filter */}
-                    <div className="flex items-center gap-1.5 bg-gray-50 dark:bg-slate-950 border border-gray-200 dark:border-slate-850 px-3 py-2 rounded-xl text-[11px] font-medium text-gray-600 dark:text-slate-350">
-                        <span className="text-gray-400 dark:text-slate-500">Plan:</span>
+                    <div className="flex items-center gap-1.5 bg-stone-50 dark:bg-night border border-stone-200 dark:border-slate-850 px-3 py-2 rounded-[14px] text-[11px] font-medium text-stone-600 dark:text-slate-350">
+                        <span className="text-stone-400 dark:text-slate-500">Plan:</span>
                         <select 
                             value={planFilter}
                             onChange={(e) => setPlanFilter(e.target.value)}
-                            className="bg-transparent border-none text-gray-800 dark:text-slate-200 font-bold focus:outline-none focus:ring-0 cursor-pointer dark:bg-slate-950"
+                            className="bg-transparent border-none text-stone-800 dark:text-slate-200 font-bold focus:outline-none focus:ring-0 cursor-pointer dark:bg-night"
                         >
                             <option value="ALL">All Plans</option>
                             <option value="INDIVIDUAL">Basic</option>
@@ -205,12 +205,12 @@ const AdminEnrollments: React.FC = () => {
                     </div>
 
                     {/* Sort By Selector */}
-                    <div className="flex items-center gap-1.5 bg-gray-50 dark:bg-slate-950 border border-gray-200 dark:border-slate-850 px-3 py-2 rounded-xl text-[11px] font-medium text-gray-600 dark:text-slate-350">
-                        <span className="text-gray-400 dark:text-slate-500">Sort By:</span>
+                    <div className="flex items-center gap-1.5 bg-stone-50 dark:bg-night border border-stone-200 dark:border-slate-850 px-3 py-2 rounded-[14px] text-[11px] font-medium text-stone-600 dark:text-slate-350">
+                        <span className="text-stone-400 dark:text-slate-500">Sort By:</span>
                         <select 
                             value={sortBy}
                             onChange={(e) => setSortBy(e.target.value)}
-                            className="bg-transparent border-none text-gray-800 dark:text-slate-200 font-bold focus:outline-none focus:ring-0 cursor-pointer dark:bg-slate-950 mr-0.5"
+                            className="bg-transparent border-none text-stone-800 dark:text-slate-200 font-bold focus:outline-none focus:ring-0 cursor-pointer dark:bg-night mr-0.5"
                         >
                             <option value="name">Name</option>
                             <option value="email">Email</option>
@@ -219,7 +219,7 @@ const AdminEnrollments: React.FC = () => {
                         </select>
                         <button
                             onClick={() => setSortOrder(prev => prev === 'asc' ? 'desc' : 'asc')}
-                            className="text-gray-500 hover:text-gray-900 dark:hover:text-white transition-colors ml-1 font-bold text-xs"
+                            className="text-stone-500 hover:text-stone-900 dark:hover:text-white transition-colors ml-1 font-bold text-xs"
                             title="Toggle Sort Order"
                         >
                             {sortOrder === 'asc' ? '↑' : '↓'}
@@ -228,13 +228,13 @@ const AdminEnrollments: React.FC = () => {
 
                     {/* Student Search Engine Input */}
                     <div className="relative max-w-xs w-full">
-                        <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 dark:text-slate-500" size={14} />
+                        <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-stone-400 dark:text-slate-500" size={14} />
                         <input
                             type="text"
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                             placeholder="Search by name or email..."
-                            className="w-full pl-10 pr-4 py-2 bg-gray-50 dark:bg-slate-950 border border-gray-200 dark:border-slate-850 rounded-xl text-xs text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-slate-650 focus:outline-none focus:border-violet-500 transition-all shadow-sm"
+                            className="w-full pl-10 pr-4 py-2 bg-stone-50 dark:bg-night border border-stone-200 dark:border-slate-850 rounded-[14px] text-xs text-stone-900 dark:text-white placeholder:text-stone-400 dark:placeholder:text-slate-650 focus:outline-none focus:border-brand transition-all"
                         />
                     </div>
                 </div>
@@ -242,26 +242,26 @@ const AdminEnrollments: React.FC = () => {
             
             <div className={`overflow-x-auto transition-all duration-150 ${activeDropdownId ? 'pb-44' : 'pb-4'}`}>
                 <table className="w-full text-left border-collapse">
-                    <thead className="bg-gray-50 dark:bg-slate-950/60 transition-colors">
-                        <tr className="text-gray-500 dark:text-slate-400 text-xs uppercase tracking-wider font-semibold">
-                            <th className="py-4 px-6 border-b border-gray-150 dark:border-slate-800">Name</th>
-                            <th className="py-4 px-6 border-b border-gray-150 dark:border-slate-800">Email</th>
-                            <th className="py-4 px-6 border-b border-gray-150 dark:border-slate-800">Subscription Plan</th>
-                            <th className="py-4 px-6 border-b border-gray-150 dark:border-slate-800 text-right">Wallet Balance</th>
-                            <th className="py-4 px-6 border-b border-gray-150 dark:border-slate-800 text-center">Actions</th>
+                    <thead className="bg-stone-50 dark:bg-night/60 transition-colors">
+                        <tr className="text-stone-500 dark:text-slate-400 text-xs uppercase tracking-wider font-semibold">
+                            <th className="py-4 px-6 border-b border-stone-150 dark:border-slate-800">Name</th>
+                            <th className="py-4 px-6 border-b border-stone-150 dark:border-slate-800">Email</th>
+                            <th className="py-4 px-6 border-b border-stone-150 dark:border-slate-800">Subscription Plan</th>
+                            <th className="py-4 px-6 border-b border-stone-150 dark:border-slate-800 text-right">Wallet Balance</th>
+                            <th className="py-4 px-6 border-b border-stone-150 dark:border-slate-800 text-center">Actions</th>
                         </tr>
                     </thead>
-                    <tbody className="divide-y divide-gray-100 dark:divide-slate-800/80">
+                    <tbody className="divide-y divide-stone-100 dark:divide-slate-800/80">
                         {filteredUsers.length === 0 ? (
                             <tr>
-                                <td colSpan={5} className="py-12 text-center text-gray-400 dark:text-slate-500 text-sm font-medium">
+                                <td colSpan={5} className="py-12 text-center text-stone-400 dark:text-slate-500 text-sm font-medium">
                                     No students found matching "{searchQuery}"
                                 </td>
                             </tr>
                         ) : (
                             filteredUsers.map(u => (
-                                <tr key={u.id} className="student-row hover:bg-gray-50/50 dark:hover:bg-slate-850/30 transition-colors">
-                                    <td className="py-4 px-6 font-bold text-gray-900 dark:text-white flex items-center gap-3">
+                                <tr key={u.id} className="student-row hover:bg-stone-50/50 dark:hover:bg-slate-850/30 transition-colors">
+                                    <td className="py-4 px-6 font-bold text-stone-900 dark:text-white flex items-center gap-3">
                                         <div className="avatar-container w-8 h-8 rounded-full overflow-hidden bg-violet-100 dark:bg-violet-950 text-violet-700 dark:text-violet-300 shrink-0 flex items-center justify-center text-xs font-bold border border-violet-200 dark:border-violet-850">
                                             {u.avatar ? (
                                                 <img 
@@ -279,15 +279,15 @@ const AdminEnrollments: React.FC = () => {
                                         </div>
                                         {u.name}
                                     </td>
-                                    <td className="py-4 px-6 text-gray-650 dark:text-slate-300 text-sm">{u.email}</td>
+                                    <td className="py-4 px-6 text-stone-650 dark:text-slate-300 text-sm">{u.email}</td>
                                     <td className="py-4 px-6">
                                         <span className={`px-3 py-1 rounded-full text-xs font-bold inline-block ${
                                             u.role === UserRole.INDIVIDUAL ? 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300 border border-slate-200 dark:border-slate-700' :
-                                            u.role === UserRole.PLUS ? 'bg-blue-100 text-blue-700 dark:bg-blue-950/40 dark:text-blue-300 border border-blue-200 dark:border-blue-900/50' :
+                                            u.role === UserRole.PLUS ? 'bg-brand-soft text-brand dark:bg-blue-950/40 dark:text-blue-300 border border-blue-200 dark:border-blue-900/50' :
                                             u.role === UserRole.PRO ? 'bg-violet-100 text-violet-700 dark:bg-violet-950/40 dark:text-violet-300 border border-violet-200 dark:border-violet-900/50' :
                                             u.role === UserRole.PREMIUM ? 'bg-amber-100 text-amber-700 dark:bg-amber-950/40 dark:text-amber-300 border border-amber-200 dark:border-amber-900/50' :
-                                            u.role === UserRole.SPONSORED ? 'bg-indigo-100 text-indigo-700 dark:bg-indigo-950/40 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-900/50' :
-                                            'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-900/50'
+                                            u.role === UserRole.SPONSORED ? 'bg-brand-soft text-brand dark:bg-indigo-950/40 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-900/50' :
+                                            'bg-mint-soft text-mint dark:bg-emerald-950/40 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-900/50'
                                         }`}>
                                             {u.role === UserRole.INDIVIDUAL ? 'BASIC' : u.role}
                                         {u.role === UserRole.SPONSORED && u.companyName && (
@@ -298,29 +298,29 @@ const AdminEnrollments: React.FC = () => {
                                         </span>
 
                                          {u.pending_role && (
-                                             <div className="mt-2 text-xs bg-yellow-50 dark:bg-yellow-950/20 text-yellow-800 dark:text-yellow-400 p-2.5 rounded-xl border border-yellow-100 dark:border-yellow-900/30 flex flex-col gap-1.5 items-start max-w-[190px]">
+                                             <div className="mt-2 text-xs bg-yellow-50 dark:bg-yellow-950/20 text-yellow-800 dark:text-yellow-400 p-2.5 rounded-[14px] border border-yellow-100 dark:border-yellow-900/30 flex flex-col gap-1.5 items-start max-w-[190px]">
                                                  <span className="font-bold">Pending: {u.pending_role}</span>
                                                  {u.pending_role === 'SPONSORED' && u.companyName && (
-                                                     <span className="text-[10px] font-semibold text-indigo-700 bg-indigo-50 dark:bg-indigo-950/30 px-1.5 py-0.5 rounded">
+                                                     <span className="text-[10px] font-semibold text-brand bg-brand-soft dark:bg-indigo-950/30 px-1.5 py-0.5 rounded">
                                                          Co: {u.companyName}
                                                      </span>
                                                  )}
-                                                 <span className="text-[10px] text-gray-500 dark:text-slate-400 font-mono break-all select-all">TxID: {u.pending_txid}</span>
+                                                 <span className="text-[10px] text-stone-500 dark:text-slate-400 font-mono break-all select-all">TxID: {u.pending_txid}</span>
                                                  {u.pending_screenshot && u.pending_screenshot.startsWith('data:image') && (
-                                                     <a href={u.pending_screenshot} target="_blank" rel="noreferrer" className="text-[10px] text-purple-600 hover:underline flex items-center gap-1 font-semibold">
+                                                     <a href={u.pending_screenshot} target="_blank" rel="noreferrer" className="text-[10px] text-brand hover:underline flex items-center gap-1 font-semibold">
                                                          View Receipt Image
                                                      </a>
                                                  )}
                                                  <div className="flex gap-1.5 mt-1 w-full">
                                                      <button 
                                                          onClick={() => handleApproveUpgrade(u)}
-                                                         className="flex-1 px-2 py-1 bg-green-600 hover:bg-green-700 text-white rounded-lg text-[10px] font-bold cursor-pointer text-center transition-colors"
+                                                         className="flex-1 px-2 py-1 bg-mint hover:bg-mint text-white rounded-[12px] text-[10px] font-bold cursor-pointer text-center transition-colors"
                                                      >
                                                          Verify
                                                      </button>
                                                      <button 
                                                          onClick={() => handleDeclineUpgrade(u)}
-                                                         className="flex-1 px-2 py-1 bg-red-600 hover:bg-red-700 text-white rounded-lg text-[10px] font-bold cursor-pointer text-center transition-colors"
+                                                         className="flex-1 px-2 py-1 bg-red-600 hover:bg-red-700 text-white rounded-[12px] text-[10px] font-bold cursor-pointer text-center transition-colors"
                                                      >
                                                          Decline
                                                      </button>
@@ -328,7 +328,7 @@ const AdminEnrollments: React.FC = () => {
                                              </div>
                                         )}
                                     </td>
-                                     <td className="py-4 px-6 text-right font-semibold text-gray-900 dark:text-white">
+                                     <td className="py-4 px-6 text-right font-semibold text-stone-900 dark:text-white">
                                          {formatAmount(u.walletBalance || 0)}
                                      </td>
                                     <td className="py-4 px-6 text-center">
@@ -336,15 +336,15 @@ const AdminEnrollments: React.FC = () => {
                                             <div className="relative">
                                                 <button
                                                     onClick={() => setActiveDropdownId(activeDropdownId === u.id ? null : u.id)}
-                                                    className="px-3 py-1.5 bg-gray-50 dark:bg-slate-800 hover:bg-gray-100 dark:hover:bg-slate-750 border border-gray-250 dark:border-slate-700 rounded-xl text-xs font-bold text-gray-700 dark:text-slate-200 flex items-center gap-1.5 transition-colors cursor-pointer shadow-sm"
+                                                    className="px-3 py-1.5 bg-stone-50 dark:bg-slate-800 hover:bg-stone-100 dark:hover:bg-slate-750 border border-stone-250 dark:border-slate-700 rounded-[14px] text-xs font-bold text-stone-700 dark:text-slate-200 flex items-center gap-1.5 transition-colors cursor-pointer"
                                                 >
-                                                    Actions <ChevronDown size={14} className="text-gray-400" />
+                                                    Actions <ChevronDown size={14} className="text-stone-400" />
                                                 </button>
 
                                                 {activeDropdownId === u.id && (
                                                     <>
                                                         <div className="fixed inset-0 z-30" onClick={() => setActiveDropdownId(null)} />
-                                                        <div className="absolute right-0 mt-1.5 w-48 bg-white dark:bg-slate-950 border border-gray-200 dark:border-slate-850 rounded-2xl shadow-xl py-1.5 z-40 animate-in fade-in slide-in-from-top-1 duration-100 text-left">
+                                                        <div className="absolute right-0 mt-1.5 w-48 bg-white dark:bg-night rounded-[22px] shadow-xl py-1.5 z-40 animate-in fade-in slide-in-from-top-1 duration-100 text-left">
                                                             <button
                                                                 onClick={async () => {
                                                                     setActiveDropdownId(null);
@@ -368,11 +368,11 @@ const AdminEnrollments: React.FC = () => {
                                                                         bio
                                                                     });
                                                                 }}
-                                                                className="w-full px-4 py-2 text-xs text-violet-650 dark:text-violet-400 hover:bg-gray-50 dark:hover:bg-slate-850 transition-colors flex items-center gap-2 cursor-pointer font-bold border-b border-gray-150 dark:border-slate-800/60"
+                                                                className="w-full px-4 py-2 text-xs text-violet-650 dark:text-violet-400 hover:bg-stone-50 dark:hover:bg-slate-850 transition-colors flex items-center gap-2 cursor-pointer font-bold border-b border-stone-150 dark:border-slate-800/60"
                                                              >
                                                                 <Eye size={12} /> View Full Details
                                                              </button>
-                                                             <div className="px-3 py-1 mt-1 text-[10px] font-extrabold text-gray-400 dark:text-slate-500 uppercase tracking-wider">
+                                                             <div className="px-3 py-1 mt-1 text-[10px] font-extrabold text-stone-400 dark:text-slate-500 uppercase tracking-wider">
                                                                 Change Plan
                                                             </div>
                                                             {[
@@ -409,8 +409,8 @@ const AdminEnrollments: React.FC = () => {
                                                                             alert('Failed to update subscription plan.');
                                                                         }
                                                                     }}
-                                                                    className={`w-full px-4 py-2 text-xs flex items-center justify-between hover:bg-gray-50 dark:hover:bg-slate-850 transition-colors cursor-pointer ${
-                                                                        u.role === opt.value ? 'text-violet-600 dark:text-violet-400 font-bold' : 'text-gray-700 dark:text-slate-300'
+                                                                    className={`w-full px-4 py-2 text-xs flex items-center justify-between hover:bg-stone-50 dark:hover:bg-slate-850 transition-colors cursor-pointer ${
+                                                                        u.role === opt.value ? 'text-violet-600 dark:text-violet-400 font-bold' : 'text-stone-700 dark:text-slate-300'
                                                                     }`}
                                                                 >
                                                                     <span>{opt.label}</span>
@@ -418,7 +418,7 @@ const AdminEnrollments: React.FC = () => {
                                                                 </button>
                                                             ))}
 
-                                                            <div className="border-t border-gray-100 dark:border-slate-800 my-1"></div>
+                                                            <div className="border-t border-stone-100 dark:border-slate-800 my-1"></div>
 
                                                             <button
                                                                 onClick={async () => {
@@ -444,12 +444,12 @@ const AdminEnrollments: React.FC = () => {
                                                                         alert("Failed to update wallet balance.");
                                                                     }
                                                                 }}
-                                                                className="w-full px-4 py-2 text-xs text-gray-700 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-slate-850 transition-colors flex items-center gap-2 cursor-pointer font-semibold"
+                                                                className="w-full px-4 py-2 text-xs text-stone-700 dark:text-slate-300 hover:bg-stone-50 dark:hover:bg-slate-850 transition-colors flex items-center gap-2 cursor-pointer font-semibold"
                                                             >
                                                                 Allocate Balance
                                                             </button>
 
-                                                            <div className="border-t border-gray-100 dark:border-slate-800 my-1"></div>
+                                                            <div className="border-t border-stone-100 dark:border-slate-800 my-1"></div>
 
                                                             <button
                                                                 onClick={async () => {
@@ -498,40 +498,40 @@ const AdminEnrollments: React.FC = () => {
             {selectedUpgradeUser && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
                     <div className="fixed inset-0 bg-black/70 backdrop-blur-sm" onClick={() => setSelectedUpgradeUser(null)} />
-                    <div className="bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 w-full max-w-md rounded-3xl p-6 shadow-2xl relative z-10 animate-in zoom-in-95 duration-200 text-gray-900 dark:text-white max-h-[90vh] overflow-y-auto">
+                    <div className="bg-white dark:bg-night-2 w-full max-w-md rounded-[26px] p-6 shadow-2xl relative z-10 animate-in zoom-in-95 duration-200 text-stone-900 dark:text-white max-h-[90vh] overflow-y-auto">
                         <button
                             type="button"
                             onClick={() => setSelectedUpgradeUser(null)}
-                            className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 dark:hover:text-white cursor-pointer"
+                            className="absolute top-4 right-4 text-stone-400 hover:text-stone-600 dark:hover:text-white cursor-pointer"
                         >
                             <X size={20} />
                         </button>
 
-                        <h3 className="text-xl font-bold text-center mb-6 border-b border-gray-100 dark:border-slate-800 pb-3 text-gray-900 dark:text-white">
+                        <h3 className="text-xl font-bold text-center mb-6 border-b border-stone-100 dark:border-slate-800 pb-3 text-stone-900 dark:text-white">
                             Configure Instructor Settings
                         </h3>
 
                         <div className="space-y-4 text-left">
                             <div>
-                                <span className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Instructor Name</span>
-                                <p className="font-bold text-sm text-gray-800 dark:text-slate-205">{selectedUpgradeUser.name}</p>
+                                <span className="block text-[10px] font-bold text-stone-400 uppercase tracking-wider mb-1">Instructor Name</span>
+                                <p className="font-bold text-sm text-stone-800 dark:text-slate-205">{selectedUpgradeUser.name}</p>
                             </div>
 
                             <div>
-                                <span className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Email Address</span>
-                                <p className="font-bold text-sm text-gray-800 dark:text-slate-205">{selectedUpgradeUser.email}</p>
+                                <span className="block text-[10px] font-bold text-stone-400 uppercase tracking-wider mb-1">Email Address</span>
+                                <p className="font-bold text-sm text-stone-800 dark:text-slate-205">{selectedUpgradeUser.email}</p>
                             </div>
 
-                            <div className="border-t border-gray-100 dark:border-slate-800/80 my-4"></div>
+                            <div className="border-t border-stone-100 dark:border-slate-800/80 my-4"></div>
 
                             <div>
-                                <label className="block text-[10px] font-bold text-gray-605 dark:text-slate-400 uppercase tracking-wider mb-2">Biography</label>
+                                <label className="block text-[10px] font-bold text-stone-605 dark:text-slate-400 uppercase tracking-wider mb-2">Biography</label>
                                 <textarea
                                     value={instBio}
                                     onChange={(e) => setInstBio(e.target.value)}
                                     placeholder="Brief background or bio (optional)..."
                                     rows={2}
-                                    className="w-full bg-gray-50 dark:bg-slate-955 border border-gray-200 dark:border-slate-800 rounded-xl px-4 py-2.5 text-sm text-gray-900 dark:text-white focus:outline-none focus:border-violet-500 resize-none"
+                                    className="w-full bg-stone-50 dark:bg-slate-955 border border-stone-200 dark:border-slate-800 rounded-[14px] px-4 py-2.5 text-sm text-stone-900 dark:text-white focus:outline-none focus:border-brand resize-none"
                                 />
                             </div>
 
@@ -568,7 +568,7 @@ const AdminEnrollments: React.FC = () => {
                                         alert('Failed to initialize instructor setup details.');
                                     }
                                 }}
-                                className="w-full py-3 mt-4 bg-violet-600 hover:bg-violet-700 text-white font-bold rounded-xl transition-all cursor-pointer shadow-lg shadow-violet-900/20"
+                                className="w-full py-3 mt-4 bg-brand hover:bg-brand-mid text-white font-bold rounded-[14px] transition-all cursor-pointer shadow-lg shadow-violet-900/20"
                             >
                                 Save & Promote to Instructor
                             </button>
@@ -581,7 +581,7 @@ const AdminEnrollments: React.FC = () => {
                 <div className="fixed inset-0 z-[110] flex items-center justify-center p-4">
                     <div className="fixed inset-0 bg-black/70 backdrop-blur-sm" onClick={() => !verifyBusy && setDeleteAdminTarget(null)} />
                     <form
-                        className="bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 w-full max-w-md rounded-3xl p-6 shadow-2xl relative z-10 text-left text-gray-900 dark:text-white space-y-4"
+                        className="bg-white dark:bg-night-2 w-full max-w-md rounded-[26px] p-6 shadow-2xl relative z-10 text-left text-stone-900 dark:text-white space-y-4"
                         onSubmit={async (e) => {
                             e.preventDefault();
                             setVerifyBusy(true);
@@ -616,11 +616,11 @@ const AdminEnrollments: React.FC = () => {
                         }}
                     >
                         <h3 className="text-lg font-bold">Security Authentication Required</h3>
-                        <p className="text-xs text-gray-500 dark:text-slate-400">
+                        <p className="text-xs text-stone-500 dark:text-slate-400">
                             You are about to delete the administrator account {deleteAdminTarget.name || deleteAdminTarget.email}. This is irreversible. Enter YOUR OWN account password to continue.
                         </p>
                         {verifyError && (
-                            <div className="text-xs font-medium text-red-600 dark:text-red-300 bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-800/40 p-3 rounded-2xl">{verifyError}</div>
+                            <div className="text-xs font-medium text-red-600 dark:text-red-300 bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-800/40 p-3 rounded-[22px]">{verifyError}</div>
                         )}
                         <input
                             type="password"
@@ -630,11 +630,11 @@ const AdminEnrollments: React.FC = () => {
                             value={verifyPassword}
                             onChange={(e) => setVerifyPassword(e.target.value)}
                             placeholder="Your password"
-                            className="w-full bg-gray-50 dark:bg-slate-950 border border-gray-200 dark:border-slate-800 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-red-500"
+                            className="w-full bg-stone-50 dark:bg-night border border-stone-200 dark:border-slate-800 rounded-[14px] px-4 py-2.5 text-sm focus:outline-none focus:border-red-500"
                         />
                         <div className="flex gap-3">
-                            <button type="button" disabled={verifyBusy} onClick={() => setDeleteAdminTarget(null)} className="flex-1 py-2.5 rounded-xl border border-gray-200 dark:border-slate-700 text-sm font-bold cursor-pointer">Cancel</button>
-                            <button type="submit" disabled={verifyBusy} className="flex-1 py-2.5 rounded-xl bg-red-600 hover:bg-red-700 text-white text-sm font-bold cursor-pointer disabled:opacity-50">{verifyBusy ? 'Verifying...' : 'Verify & Delete'}</button>
+                            <button type="button" disabled={verifyBusy} onClick={() => setDeleteAdminTarget(null)} className="flex-1 py-2.5 rounded-[14px] border border-stone-200 dark:border-slate-700 text-sm font-bold cursor-pointer">Cancel</button>
+                            <button type="submit" disabled={verifyBusy} className="flex-1 py-2.5 rounded-[14px] bg-red-600 hover:bg-red-700 text-white text-sm font-bold cursor-pointer disabled:opacity-50">{verifyBusy ? 'Verifying...' : 'Verify & Delete'}</button>
                         </div>
                     </form>
                 </div>
@@ -642,19 +642,19 @@ const AdminEnrollments: React.FC = () => {
             {/* View Student Details Modal */}
             {selectedDetailUser && (
                 <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4 text-left">
-                    <div className="bg-white dark:bg-slate-900 border border-gray-150 dark:border-slate-800 rounded-3xl w-full max-w-lg overflow-hidden shadow-2xl p-6 relative">
+                    <div className="bg-white dark:bg-night-2 rounded-[26px] w-full max-w-lg overflow-hidden shadow-2xl p-6 relative">
                         <div className="flex justify-between items-center mb-6">
-                            <h3 className="text-xl font-bold text-gray-900 dark:text-white">User Profile Details</h3>
+                            <h3 className="text-xl font-bold text-stone-900 dark:text-white">User Profile Details</h3>
                             <button 
                                 onClick={() => setSelectedDetailUser(null)} 
-                                className="p-1.5 text-gray-400 hover:text-gray-650 dark:hover:text-slate-350 rounded-full hover:bg-gray-100 dark:hover:bg-slate-800 cursor-pointer"
+                                className="p-1.5 text-stone-400 hover:text-stone-650 dark:hover:text-slate-350 rounded-full hover:bg-stone-100 dark:hover:bg-slate-800 cursor-pointer"
                             >
                                 <X size={20} />
                             </button>
                         </div>
                         
                         <div className="space-y-4">
-                            <div className="flex items-center gap-4 p-4 bg-gray-50 dark:bg-slate-850 rounded-2xl border border-gray-100 dark:border-slate-800">
+                            <div className="flex items-center gap-4 p-4 bg-stone-50 dark:bg-slate-850 rounded-[22px] border border-stone-100 dark:border-slate-800">
                                 <div className="w-16 h-16 rounded-full overflow-hidden bg-violet-100 dark:bg-violet-950 text-violet-750 dark:text-violet-300 flex items-center justify-center text-xl font-bold border border-violet-200 dark:border-violet-850">
                                     {selectedDetailUser.avatar ? (
                                         <img src={selectedDetailUser.avatar} alt={selectedDetailUser.name} className="w-full h-full object-cover" />
@@ -663,31 +663,31 @@ const AdminEnrollments: React.FC = () => {
                                     )}
                                 </div>
                                 <div>
-                                    <h4 className="text-lg font-black text-gray-900 dark:text-white">{selectedDetailUser.name}</h4>
-                                    <p className="text-xs text-gray-500 dark:text-slate-400">{selectedDetailUser.email}</p>
+                                    <h4 className="text-lg font-extrabold text-stone-900 dark:text-white">{selectedDetailUser.name}</h4>
+                                    <p className="text-xs text-stone-500 dark:text-slate-400">{selectedDetailUser.email}</p>
                                 </div>
                             </div>
                             
                             <div className="grid grid-cols-2 gap-4">
-                                <div className="p-4 bg-gray-50 dark:bg-slate-850 border border-gray-100 dark:border-slate-800 rounded-2xl">
-                                    <p className="text-[10px] text-gray-400 dark:text-slate-500 uppercase font-extrabold mb-1">User ID</p>
-                                    <p className="text-sm font-bold text-gray-800 dark:text-white font-mono break-all">{selectedDetailUser.id}</p>
+                                <div className="p-4 bg-stone-50 dark:bg-slate-850 border border-stone-100 dark:border-slate-800 rounded-[22px]">
+                                    <p className="text-[10px] text-stone-400 dark:text-slate-500 uppercase font-extrabold mb-1">User ID</p>
+                                    <p className="text-sm font-bold text-stone-800 dark:text-white font-mono break-all">{selectedDetailUser.id}</p>
                                 </div>
-                                <div className="p-4 bg-gray-50 dark:bg-slate-850 border border-gray-100 dark:border-slate-800 rounded-2xl">
-                                    <p className="text-[10px] text-gray-400 dark:text-slate-500 uppercase font-extrabold mb-1">Subscription Plan</p>
-                                    <p className="text-sm font-bold text-gray-800 dark:text-white uppercase">{selectedDetailUser.role || 'BASIC'}</p>
+                                <div className="p-4 bg-stone-50 dark:bg-slate-850 border border-stone-100 dark:border-slate-800 rounded-[22px]">
+                                    <p className="text-[10px] text-stone-400 dark:text-slate-500 uppercase font-extrabold mb-1">Subscription Plan</p>
+                                    <p className="text-sm font-bold text-stone-800 dark:text-white uppercase">{selectedDetailUser.role || 'BASIC'}</p>
                                 </div>
                             </div>
 
                             <div className="grid grid-cols-2 gap-4">
-                                <div className="p-4 bg-gray-50 dark:bg-slate-850 border border-gray-100 dark:border-slate-800 rounded-2xl">
-                                    <p className="text-[10px] text-gray-400 dark:text-slate-500 uppercase font-extrabold mb-1">Wallet Balance</p>
-                                    <p className="text-sm font-bold text-gray-800 dark:text-white">{formatAmount(selectedDetailUser.walletBalance || 0)}</p>
+                                <div className="p-4 bg-stone-50 dark:bg-slate-850 border border-stone-100 dark:border-slate-800 rounded-[22px]">
+                                    <p className="text-[10px] text-stone-400 dark:text-slate-500 uppercase font-extrabold mb-1">Wallet Balance</p>
+                                    <p className="text-sm font-bold text-stone-800 dark:text-white">{formatAmount(selectedDetailUser.walletBalance || 0)}</p>
                                 </div>
                             </div>
 
                             {(selectedDetailUser.role === 'INSTRUCTOR' || selectedDetailUser.role === 'ADMIN') && (
-                                <div className="p-4 bg-violet-50/50 dark:bg-violet-950/10 border border-violet-100 dark:border-violet-900/30 rounded-2xl space-y-2">
+                                <div className="p-4 bg-violet-50/50 dark:bg-violet-950/10 border border-violet-100 dark:border-violet-900/30 rounded-[22px] space-y-2">
                                     <p className="text-[10px] text-violet-650 dark:text-violet-400 uppercase font-extrabold">Instructor Metadata</p>
                                     <div className="text-xs text-slate-700 dark:text-slate-300">
                                         <p><span className="font-bold">Bio:</span> {selectedDetailUser.bio || 'No bio provided.'}</p>
@@ -699,7 +699,7 @@ const AdminEnrollments: React.FC = () => {
                         <div className="mt-6 flex justify-end">
                             <button
                                 onClick={() => setSelectedDetailUser(null)}
-                                className="px-5 py-2.5 bg-gray-900 dark:bg-slate-100 text-white dark:text-gray-900 rounded-xl text-sm font-bold hover:bg-gray-800 cursor-pointer shadow-md"
+                                className="px-5 py-2.5 bg-stone-900 dark:bg-slate-100 text-white dark:text-stone-900 rounded-[14px] text-sm font-bold hover:bg-stone-800 cursor-pointer shadow-md"
                             >
                                 Close
                             </button>

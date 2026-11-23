@@ -39,9 +39,9 @@ const FinalExam: React.FC = () => {
 
     if (!state.allItemsDone && !state.finalPassed) {
         return (
-            <div className="max-w-xl mx-auto px-4 py-12 text-center">
+            <div className="max-w-xl mx-auto px-4 py-10 my-6 text-center rounded-[24px] bg-white dark:bg-night-2">
                 <Lock className="mx-auto text-stone-400" size={40} />
-                <h1 className="font-serif text-2xl font-semibold mt-4">The final assessment is locked</h1>
+                <h1 className="text-2xl font-extrabold tracking-[-0.02em] mt-4">The final assessment is locked</h1>
                 <p className={`mt-2 ${MUTED}`}>Complete every lesson and pass each module quiz first. You have finished {state.done} of {state.total} items.</p>
                 <Link to={base} className={`${BTN_PRIMARY} mt-6`}>Back to the course</Link>
             </div>
@@ -50,9 +50,9 @@ const FinalExam: React.FC = () => {
 
     if ((state.finalPassed || exam?.passed) && !justPassed) {
         return (
-            <div className="max-w-xl mx-auto px-4 py-12 text-center">
-                <Award className="mx-auto text-violet-700" size={44} />
-                <h1 className="font-serif text-3xl font-semibold mt-4">You passed the final assessment</h1>
+            <div className="max-w-xl mx-auto px-4 py-10 my-6 text-center rounded-[24px] bg-white dark:bg-night-2">
+                <Award className="mx-auto text-brand" size={44} />
+                <h1 className="text-3xl font-extrabold tracking-[-0.02em] mt-4">You passed the final assessment</h1>
                 <p className={`mt-2 ${MUTED}`}>{cert ? 'Your certificate is ready.' : 'One last step: confirm your name and collect your certificate.'}</p>
                 <Link to={`${base}/certificate`} className={`${BTN_PRIMARY} mt-6`}>{cert ? 'View certificate' : 'Get your certificate'}</Link>
             </div>
@@ -60,14 +60,14 @@ const FinalExam: React.FC = () => {
     }
 
     if (loading || (!exam && !error)) {
-        return <div className="flex justify-center py-20"><Loader2 className="animate-spin text-violet-700" aria-label="Loading the assessment" /></div>;
+        return <div className="flex justify-center py-20"><Loader2 className="animate-spin text-brand" aria-label="Loading the assessment" /></div>;
     }
 
     if (error || !exam || !exam.attemptId) {
         return (
-            <div className="max-w-xl mx-auto px-4 py-12 text-center">
+            <div className="max-w-xl mx-auto px-4 py-10 my-6 text-center rounded-[24px] bg-white dark:bg-night-2">
                 <Lock className="mx-auto text-stone-400" size={40} />
-                <h1 className="font-serif text-2xl font-semibold mt-4">Final assessment</h1>
+                <h1 className="text-2xl font-extrabold tracking-[-0.02em] mt-4">Final assessment</h1>
                 <p className={`mt-2 ${MUTED}`}>{error || 'The final assessment is not available right now.'}</p>
                 <button onClick={() => void load()} className={`${BTN_PRIMARY} mt-6`}>Try again</button>
             </div>
@@ -82,7 +82,7 @@ const FinalExam: React.FC = () => {
 
     return (
         <div className="max-w-3xl mx-auto px-4 sm:px-6 py-8">
-            <div className={`${CARD} rounded-2xl p-5 mb-6`}>
+            <div className={`${CARD} p-5 mb-6`}>
                 <p className="font-semibold">Before you begin</p>
                 <ul className={`mt-2 text-sm space-y-1 ${MUTED} list-disc list-inside`}>
                     <li>{exam.questions.length} questions, {exam.passMark}% to pass.</li>

@@ -12,18 +12,18 @@ interface PRow { stage: string; followup: string; live_count?: number; certifica
 interface Agent { name: string; registered: number; accounts: number; completed: number; active: boolean; }
 interface TrafficMini { total_visits?: number; total_page_views: number; unique_visitors: number; welile_tech_clicks: number; welile_tech_unique: number; live_link_clicks: number; app_launches: number; }
 
-const card = 'bg-white dark:bg-slate-900 rounded-2xl border border-gray-100 dark:border-slate-800 shadow-sm';
+const card = 'bg-white dark:bg-night-2 rounded-[22px]';
 const when = (iso: string) => new Date(iso).toLocaleString('en-GB', { weekday: 'long', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit', timeZone: 'Africa/Kampala' }) + ' EAT';
 
-const Stat: React.FC<{ label: string; value: number | string; sub?: string; to?: string; icon: React.ElementType; tone?: string }> = ({ label, value, sub, to, icon: Icon, tone = 'text-violet-600 bg-violet-50 dark:bg-violet-950/40' }) => {
+const Stat: React.FC<{ label: string; value: number | string; sub?: string; to?: string; icon: React.ElementType; tone?: string; lime?: boolean }> = ({ label, value, sub, to, icon: Icon, tone = 'text-brand bg-brand-soft dark:bg-night-3 dark:text-violet-300', lime }) => {
     const inner = (
-        <div className={`${card} p-4 h-full ${to ? 'hover:ring-2 hover:ring-violet-300 transition' : ''}`}>
-            <div className="flex items-center justify-between"><span className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-slate-400">{label}</span><span className={`w-8 h-8 rounded-lg flex items-center justify-center ${tone}`}><Icon size={16} /></span></div>
-            <p className="text-3xl font-extrabold mt-2">{value}</p>
-            {sub && <p className="text-xs text-gray-500 dark:text-slate-400 mt-1">{sub}</p>}
+        <div className={`${lime ? 'bg-lime-100 text-lime-900' : card} rounded-[22px] p-4 h-full ${to ? 'lift' : ''}`}>
+            <div className="flex items-center justify-between gap-2"><span className={`text-[12px] font-bold ${lime ? 'text-lime-800' : 'text-[#6B6680] dark:text-slate-400'}`}>{label}</span><span className={`w-8 h-8 rounded-[10px] flex items-center justify-center ${lime ? 'bg-white/70 text-lime-900' : tone}`}><Icon size={15} /></span></div>
+            <p className="m-0 mt-1.5 text-[26px] font-extrabold tracking-[-0.02em] tabular-nums">{value}</p>
+            {sub && <p className={`m-0 mt-0.5 text-[11px] font-semibold ${lime ? 'text-lime-800' : 'text-[#6B6680] dark:text-slate-400'}`}>{sub}</p>}
         </div>
     );
-    return to ? <Link to={to} className="block">{inner}</Link> : inner;
+    return to ? <Link to={to} className="block no-underline text-inherit">{inner}</Link> : inner;
 };
 
 /** Landing page for admins: a summary of everything happening, as cards that open the right page. */
@@ -80,99 +80,137 @@ const AdminDashboard: React.FC = () => {
         { label: 'Completed & certified', n: by.completed, to: '/free-course?stage=Completed' },
     ];
 
+    const today = new Date().toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', timeZone: 'Africa/Kampala' });
+
     return (
-        <div className="space-y-6">
-            <div className="flex flex-wrap items-start justify-between gap-3">
-                <div><h1 className="text-2xl font-bold">Dashboard</h1><p className="text-sm text-gray-500 dark:text-slate-400">Everything happening at Welile School of AI. Updates every minute.</p></div>
-                <button onClick={() => void load()} className="inline-flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium bg-violet-600 hover:bg-violet-700 text-white"><RefreshCw size={16} className={loading ? 'animate-spin' : ''} /> Refresh</button>
+        <div className="flex flex-col gap-[18px]">
+            <div className="flex flex-wrap items-center gap-3">
+                <div className="flex-1 min-w-[260px]">
+                    <h1 className="m-0 text-[28px] font-extrabold tracking-[-0.02em]">Dashboard</h1>
+                    <p className="m-0 mt-1 text-[13px] text-[#6B6680] dark:text-slate-400">{today} · updates every minute</p>
+                </div>
+                <button onClick={() => void load()} className="press h-11 px-4 rounded-[12px] bg-white dark:bg-night-2 text-[13px] font-bold inline-flex items-center gap-2"><RefreshCw size={16} className={loading ? 'animate-spin' : ''} />Refresh</button>
             </div>
 
-            {error && <p role="alert" className="text-sm text-red-600">{error}</p>}
-            {!s && !error && <div className="flex items-center gap-2 text-gray-500"><Loader2 className="animate-spin" size={18} /> Loading...</div>}
+            {error && <p role="alert" className="m-0 rounded-[14px] bg-[#FDECE8] text-[#A3321F] p-3.5 text-[14px]">{error}</p>}
+            {!s && !error && <div className="flex items-center gap-2 text-[#6B6680]"><Loader2 className="animate-spin" size={18} /> Loading…</div>}
 
             {s && (
                 <>
-                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+                    <section className="relative overflow-hidden rounded-[24px] bg-brand text-white px-6 sm:px-7 py-6 flex flex-wrap items-center gap-5">
+                        <span aria-hidden="true" className="absolute -right-16 -top-24 w-[280px] h-[280px] rounded-full bg-brand-mid" />
+                        <div className="relative flex-1 min-w-[280px]">
+                            <p className="m-0 text-[12px] font-extrabold tracking-[0.12em] uppercase text-[#D9CCFF]">Today</p>
+                            <h2 className="m-0 mt-1.5 text-[22px] sm:text-[24px] font-extrabold tracking-[-0.02em]">
+                                {s.new_today} new {s.new_today === 1 ? 'student' : 'students'}{s.next_session ? ` · next live class ${when(s.next_session.starts_at)}` : ''}
+                            </h2>
+                            <p className="m-0 mt-1.5 text-[14px] text-[#E6DEFF]">{by.toContact} {by.toContact === 1 ? 'person is' : 'people are'} waiting for a follow-up call.</p>
+                        </div>
+                        <div className="relative flex flex-wrap gap-2.5">
+                            <Link to="/free-course?stage=Registered" className="press h-11 px-4 rounded-[12px] bg-white text-brand text-[13px] font-extrabold inline-flex items-center gap-2 no-underline"><Phone size={15} />Follow up</Link>
+                            {s.next_session?.meet_link
+                                ? <a href={s.next_session.meet_link} target="_blank" rel="noreferrer" className="press h-11 px-4 rounded-[12px] bg-lime-200 text-ink text-[13px] font-extrabold inline-flex items-center gap-2 no-underline"><CalendarClock size={15} />Open live class</a>
+                                : <Link to="/live-classes" className="press h-11 px-4 rounded-[12px] bg-lime-200 text-ink text-[13px] font-extrabold inline-flex items-center gap-2 no-underline"><CalendarClock size={15} />Live classes</Link>}
+                        </div>
+                    </section>
+
+                    <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3">
                         <Stat label="Students" value={s.students} sub={`${s.new_today} today · ${s.new_7d} this week`} icon={Users} to="/enrollments" />
-                        <Stat label="Registered, free course" value={by.all} sub={`${by.noAccount} without an account`} icon={UserPlus} to="/free-course?stage=Registered" />
-                        <Stat label="Studying now" value={by.studying + by.live} sub={`${s.active_7d} active in 7 days`} icon={GraduationCap} to="/free-course?stage=Studying" tone="text-emerald-600 bg-emerald-50 dark:bg-emerald-950/40" />
-                        <Stat label="Certificates" value={s.certificates} sub={`${by.completed} completed · click to view`} icon={Award} to="/free-course?stage=Completed" tone="text-amber-600 bg-amber-50 dark:bg-amber-950/40" />
+                        <Stat label="Free course" value={by.all} sub={`${by.noAccount} without an account`} icon={UserPlus} to="/free-course?stage=Registered" />
+                        <Stat label="Studying now" value={by.studying + by.live} sub={`${s.active_7d} active in 7 days`} icon={GraduationCap} to="/free-course?stage=Studying" tone="text-mint bg-mint-soft" />
+                        <Stat label="Live classes ahead" value={s.sessions_ahead} sub={`${s.live_joined} tracked joins`} icon={CalendarClock} to="/live-classes" />
+                        <Stat label="Reminders sent" value={s.reminders_7d} sub={`7 days · ${s.opted_out} opted out`} icon={Bell} to="/live-classes" />
+                        <Stat label="Certificates" value={s.certificates} sub={`${by.completed} completed`} icon={Award} to="/free-course?stage=Completed" lime />
                     </div>
 
-                    <div className="grid lg:grid-cols-3 gap-4">
-                        <div className={`${card} p-5 lg:col-span-2`}>
-                            <div className="flex items-center justify-between"><h2 className="font-bold">Free course: where everyone is</h2><Link to="/free-course" className="text-sm font-semibold text-violet-700">Open full explorer</Link></div>
-                            <p className="text-xs text-gray-500 mt-0.5">Click any stage below to see the exact students at that stage.</p>
-                            <div className="mt-3 space-y-2">
-                                {funnel.map(f => (
-                                    <Link key={f.label} to={f.to} className="block rounded-lg p-1.5 -mx-1.5 hover:bg-violet-50/70 dark:hover:bg-slate-800/60 transition-colors">
-                                        <div className="flex justify-between text-sm"><span className="font-medium">{f.label}</span><span className="font-bold text-violet-700 dark:text-violet-300">{f.n} →</span></div>
-                                        <div className="h-2 rounded-full bg-gray-100 dark:bg-slate-800 mt-1"><div className="h-2 rounded-full bg-violet-500" style={{ width: `${Math.min(100, (f.n / Math.max(1, by.all)) * 100)}%` }} /></div>
+                    <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)] gap-4">
+                        <section className={`${card} p-[22px]`}>
+                            <div className="flex flex-wrap items-center justify-between gap-2 mb-1">
+                                <h2 className="m-0 text-[16px] font-extrabold">Free course: where everyone is</h2>
+                                <Link to="/free-course" className="press h-9 px-3 rounded-[10px] bg-brand-soft dark:bg-night-3 text-brand dark:text-violet-300 text-[12px] font-extrabold inline-flex items-center gap-1.5 no-underline">Open explorer <ArrowUpRight size={14} /></Link>
+                            </div>
+                            <p className="m-0 mb-3 text-[12px] text-[#6B6680] dark:text-slate-400">AI Fundamentals · click a stage to see those students</p>
+                            <div className="flex flex-col gap-1">
+                                {funnel.map((f, i) => (
+                                    <Link key={f.label} to={f.to} className="grid grid-cols-[minmax(0,190px)_minmax(0,1fr)_56px] items-center gap-3 rounded-[12px] px-2 py-2 -mx-2 hover:bg-panel dark:hover:bg-night-3/60 no-underline text-inherit">
+                                        <span className="text-[13px] text-[#4A4560] dark:text-slate-300 truncate">{f.label}</span>
+                                        <span className="h-2.5 rounded-full bg-[#F1EFF6] dark:bg-night-3 overflow-hidden"><span className={`block h-full rounded-full ${i === funnel.length - 1 ? 'bg-lime-500' : 'bg-[#9C7BF0]'}`} style={{ width: `${Math.min(100, (f.n / Math.max(1, by.all)) * 100)}%` }} /></span>
+                                        <span className="text-[13px] font-extrabold text-right tabular-nums">{f.n}</span>
                                     </Link>
                                 ))}
                             </div>
-                            <p className="mt-3 text-sm"><b>{by.toContact}</b> {by.toContact === 1 ? 'person has' : 'people have'} not been followed up yet. <Link to="/free-course?stage=Registered" className="font-semibold text-violet-700">Follow up</Link></p>
-                        </div>
-
-                        <div className={`${card} p-5 flex flex-col justify-between`}>
-                            <div>
-                                <h2 className="font-bold">New students, last 14 days</h2>
-                                <div className="flex items-end gap-1 h-28 mt-4" aria-label="New students per day">
-                                    {(s.signups_daily || []).map((n, i) => <div key={i} title={`${n}`} className="flex-1 rounded-sm bg-violet-300 dark:bg-violet-700" style={{ height: `${Math.max(4, (n / max) * 100)}%`, opacity: n ? 1 : 0.35 }} />)}
-                                </div>
-                                <p className="text-xs text-gray-500 mt-2">{s.new_7d} new in the last 7 days</p>
+                        </section>
+                        <section className={`${card} p-[22px] flex flex-col`}>
+                            <div className="flex items-center justify-between gap-2 mb-3">
+                                <h2 className="m-0 text-[16px] font-extrabold">New students, last 14 days</h2>
+                                <span className="px-2.5 py-1 rounded-full bg-mint-soft text-[#0F5A35] text-[11px] font-extrabold">{s.new_7d} this week</span>
                             </div>
-                            {traffic && (
-                                <Link to="/analytics" className="mt-4 block rounded-xl bg-violet-50/80 dark:bg-violet-950/30 border border-violet-100 dark:border-violet-900/50 p-3.5 hover:ring-2 hover:ring-violet-300 transition">
-                                    <div className="flex items-center justify-between text-xs font-bold text-violet-700 dark:text-violet-300">
-                                        <span className="flex items-center gap-1.5"><BarChart3 size={14} /> Traffic &amp; Welile Tech (30d)</span>
-                                        <ArrowUpRight size={14} />
-                                    </div>
-                                    <div className="grid grid-cols-3 gap-2 mt-2 text-center">
-                                        <div><p className="text-lg font-extrabold">{traffic.total_visits ?? traffic.total_page_views}</p><p className="text-[10px] text-gray-500">total visits</p></div>
-                                        <div><p className="text-lg font-extrabold">{traffic.unique_visitors}</p><p className="text-[10px] text-gray-500">unique</p></div>
-                                        <div><p className="text-lg font-extrabold text-violet-700 dark:text-violet-300">{traffic.welile_tech_clicks}</p><p className="text-[10px] text-gray-500">welile.com</p></div>
-                                    </div>
-                                </Link>
-                            )}
-                        </div>
+                            <div className="flex-1 min-h-[160px] flex items-end gap-1.5" role="img" aria-label="New students per day, last 14 days">
+                                {(s.signups_daily || []).map((n, i, arr) => (
+                                    <div key={i} title={`${n}`} className={`flex-1 rounded-t-[6px] rounded-b-[3px] ${i === arr.length - 1 ? 'bg-brand' : 'bg-[#C9B8F5] dark:bg-brand-mid'}`} style={{ height: `${Math.max(4, (n / max) * 100)}%`, opacity: n ? 1 : 0.4 }} />
+                                ))}
+                            </div>
+                        </section>
                     </div>
 
-                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-                        <Stat label="Next live class" value={s.next_session ? '' : 'None'} sub={s.next_session ? `${s.next_session.title}, ${when(s.next_session.starts_at)}` : 'Create the next sessions in Live Classes'} icon={CalendarClock} to="/live-classes" tone="text-sky-600 bg-sky-50 dark:bg-sky-950/40" />
-                        <Stat label="Live classes ahead" value={s.sessions_ahead} sub={`${s.live_joined} tracked live joins`} icon={CalendarClock} to="/live-classes" tone="text-sky-600 bg-sky-50 dark:bg-sky-950/40" />
-                        <Stat label="Reminders sent" value={s.reminders_7d} sub={`last 7 days · ${s.opted_out} opted out`} icon={Bell} to="/live-classes" tone="text-sky-600 bg-sky-50 dark:bg-sky-950/40" />
-                        <Stat label="App installs & traffic" value={s.installs} sub={traffic ? `${traffic.total_page_views} views · ${traffic.welile_tech_clicks} welile.com` : 'people with the app'} icon={Smartphone} to="/analytics" tone="text-sky-600 bg-sky-50 dark:bg-sky-950/40" />
-                    </div>
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                        <section className={`${card} p-[22px]`}>
+                            <div className="flex items-center justify-between gap-2 mb-3">
+                                <h2 className="m-0 text-[16px] font-extrabold">Traffic and Welile Tech</h2>
+                                <span className="px-2.5 py-1 rounded-full bg-[#F1EFF6] dark:bg-night-3 text-[11px] font-extrabold">30 days</span>
+                            </div>
+                            {traffic ? (
+                                <div className="grid grid-cols-2 gap-2.5">
+                                    {[
+                                        ['Visits', traffic.total_visits ?? traffic.total_page_views],
+                                        ['Unique visitors', traffic.unique_visitors],
+                                        ['welile.com clicks', traffic.welile_tech_clicks],
+                                        ['App installs', s.installs],
+                                    ].map(([l, v]) => (
+                                        <div key={String(l)} className="rounded-[14px] bg-panel dark:bg-night-3/60 p-3"><p className="m-0 text-[11px] font-bold text-[#6B6680] dark:text-slate-400">{l}</p><p className="m-0 mt-0.5 text-[20px] font-extrabold tabular-nums">{v}</p></div>
+                                    ))}
+                                </div>
+                            ) : <p className="m-0 text-[13px] text-[#6B6680]">No traffic data yet.</p>}
+                            <Link to="/analytics" className="mt-3 inline-flex items-center gap-1.5 text-[13px] font-bold text-brand dark:text-violet-300 no-underline hover:underline">Open Traffic & Clicks <ArrowUpRight size={14} /></Link>
+                        </section>
 
-                    <div className="grid lg:grid-cols-2 gap-4">
-                        <div className={`${card} p-5`}>
-                            <div className="flex items-center justify-between gap-2">
-                                <h2 className="font-bold flex items-center gap-2"><Handshake size={18} className="text-violet-600" /> Agents</h2>
-                                <div className="flex items-center gap-3 text-sm font-semibold">
-                                    <Link to="/agents" className="text-violet-700 hover:underline">Monitor agents</Link>
-                                    <Link to="/staff" className="text-gray-500 hover:text-gray-800 dark:text-slate-400">Manage</Link>
+                        <section className={`${card} overflow-hidden`}>
+                            <div className="flex items-center justify-between gap-2 p-[22px] pb-3">
+                                <h2 className="m-0 text-[16px] font-extrabold flex items-center gap-2"><Handshake size={17} className="text-brand dark:text-violet-300" />Top agents</h2>
+                                <div className="flex items-center gap-3 text-[13px] font-bold">
+                                    <Link to="/agents" className="text-brand dark:text-violet-300 no-underline hover:underline">Monitor</Link>
+                                    <Link to="/staff" className="text-[#6B6680] no-underline hover:underline">Manage</Link>
                                 </div>
                             </div>
-                            <p className="text-sm text-gray-500 mt-1">{s.agents} active agents · {s.agent_regs_7d} registrations this week · {s.leads_7d} sign-ups through links</p>
-                            <table className="w-full text-sm mt-3">
-                                <thead><tr className="text-left text-xs uppercase text-gray-500"><th className="py-1">Top agents</th><th>Registered</th><th>Accounts</th><th>Completed</th></tr></thead>
-                                <tbody>
-                                    {topAgents.map(a => <tr key={a.name} className="border-t border-gray-100 dark:border-slate-800"><td className="py-2 font-medium">{a.name}</td><td className="font-semibold">{a.registered}</td><td>{a.accounts}</td><td>{a.completed}</td></tr>)}
-                                    {topAgents.length === 0 && <tr><td colSpan={4} className="py-3 text-gray-500">No agents yet. Make a student an agent in Staff & Links.</td></tr>}
-                                </tbody>
-                            </table>
-                        </div>
-                        <div className={`${card} p-5`}>
-                            <h2 className="font-bold flex items-center gap-2"><Phone size={18} className="text-violet-600" /> Follow up</h2>
-                            <p className="text-sm text-gray-500 mt-1">The Welile team turns registrations into studying students.</p>
-                            <div className="grid grid-cols-3 gap-3 mt-4 text-center">
-                                <div className="rounded-xl bg-amber-50 dark:bg-amber-950/30 p-3"><p className="text-2xl font-extrabold">{by.noAccount}</p><p className="text-xs text-gray-600 dark:text-slate-300">no account yet</p></div>
-                                <div className="rounded-xl bg-violet-50 dark:bg-violet-950/30 p-3"><p className="text-2xl font-extrabold">{by.account + by.inCourse}</p><p className="text-xs text-gray-600 dark:text-slate-300">not started</p></div>
-                                <div className="rounded-xl bg-emerald-50 dark:bg-emerald-950/30 p-3"><p className="text-2xl font-extrabold">{by.toContact}</p><p className="text-xs text-gray-600 dark:text-slate-300">to contact</p></div>
+                            <p className="m-0 px-[22px] pb-3 text-[12px] text-[#6B6680] dark:text-slate-400">{s.agents} active agents · {s.agent_regs_7d} registrations this week · {s.leads_7d} link sign-ups</p>
+                            <div role="table" aria-label="Top agents">
+                                <div role="row" className="grid grid-cols-[minmax(0,2fr)_repeat(3,minmax(0,1fr))] gap-3 px-[22px] py-2.5 bg-[#FAF9FE] dark:bg-night-3/40 text-[10px] font-extrabold tracking-[0.08em] uppercase text-[#6B6680]"><span>Agent</span><span>Reg.</span><span>Accounts</span><span>Done</span></div>
+                                {topAgents.map(a => (
+                                    <div role="row" key={a.name} className="grid grid-cols-[minmax(0,2fr)_repeat(3,minmax(0,1fr))] gap-3 items-center px-[22px] py-2.5 border-t border-[#F4F2F9] dark:border-night-3 text-[13px]">
+                                        <span className="flex items-center gap-2.5 min-w-0"><span className="w-8 h-8 rounded-full bg-brand-soft dark:bg-night-3 text-brand dark:text-violet-300 text-[11px] font-extrabold inline-flex items-center justify-center shrink-0">{a.name.split(' ').map(w => w[0]).join('').slice(0, 2)}</span><span className="font-bold truncate">{a.name}</span></span>
+                                        <span className="font-extrabold">{a.registered}</span><span>{a.accounts}</span><span>{a.completed}</span>
+                                    </div>
+                                ))}
+                                {topAgents.length === 0 && <p className="m-0 px-[22px] py-4 text-[13px] text-[#6B6680]">No agents yet. Make a student an agent in Staff & Links.</p>}
                             </div>
-                            <Link to="/free-course" className="inline-block mt-4 px-4 py-2.5 rounded-lg text-sm font-semibold bg-violet-600 hover:bg-violet-700 text-white">Open registrations</Link>
-                        </div>
+                        </section>
+
+                        <section className={`${card} p-[22px] flex flex-col`}>
+                            <h2 className="m-0 text-[16px] font-extrabold flex items-center gap-2"><Phone size={17} className="text-brand dark:text-violet-300" />Follow up</h2>
+                            <p className="m-0 mt-1 text-[12px] text-[#6B6680] dark:text-slate-400">The Welile team turns registrations into studying students.</p>
+                            <div className="grid grid-cols-3 gap-2.5 mt-4 text-center">
+                                <div className="rounded-[14px] bg-[#FFF4CC] text-[#5C4400] p-3"><p className="m-0 text-[22px] font-extrabold">{by.noAccount}</p><p className="m-0 text-[11px] font-semibold">no account yet</p></div>
+                                <div className="rounded-[14px] bg-brand-soft dark:bg-night-3 text-brand-ink dark:text-violet-200 p-3"><p className="m-0 text-[22px] font-extrabold">{by.account + by.inCourse}</p><p className="m-0 text-[11px] font-semibold">not started</p></div>
+                                <div className="rounded-[14px] bg-mint-soft text-[#0F5A35] p-3"><p className="m-0 text-[22px] font-extrabold">{by.toContact}</p><p className="m-0 text-[11px] font-semibold">to contact</p></div>
+                            </div>
+                            <div className="mt-auto pt-4">
+                                <div className="rounded-[16px] bg-night text-white p-3.5 flex items-center gap-3">
+                                    <span className="w-2.5 h-2.5 rounded-full bg-[#F0533A] shrink-0" aria-hidden="true" />
+                                    <span className="flex-1 min-w-0 text-[13px] leading-snug"><strong>Next live class</strong><br /><span className="text-[#C9C3E6]">{s.next_session ? `${s.next_session.title}, ${when(s.next_session.starts_at)}` : 'None scheduled yet'}</span></span>
+                                    <Link to="/live-classes" className="press h-9 px-3 rounded-[10px] bg-lime-200 text-ink text-[12px] font-extrabold inline-flex items-center no-underline shrink-0">Open</Link>
+                                </div>
+                            </div>
+                        </section>
                     </div>
                 </>
             )}

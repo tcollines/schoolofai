@@ -144,16 +144,16 @@ const ProfileSetup: React.FC = () => {
 
     return (
         <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col items-center justify-center p-4">
-            <div className="w-full max-w-lg bg-white dark:bg-slate-900 rounded-3xl p-8 shadow-xl border border-gray-100 dark:border-slate-800">
+            <div className="w-full max-w-lg bg-white dark:bg-night-2 rounded-[26px] p-8 shadow-xl">
                 <div className="mb-8 text-center">
-                    <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Set up your profile</h2>
-                    <p className="text-sm text-gray-500 dark:text-slate-400">
+                    <h2 className="text-2xl font-bold text-stone-900 dark:text-white mb-2">Set up your profile</h2>
+                    <p className="text-sm text-stone-500 dark:text-slate-400">
                         Tell us a bit about yourself to personalize your experience.
                     </p>
                 </div>
 
                 {error && (
-                    <div className="bg-red-50 dark:bg-red-950/30 text-red-650 dark:text-red-400 p-4 rounded-xl mb-6 text-sm">
+                    <div className="bg-red-50 dark:bg-red-950/30 text-red-650 dark:text-red-400 p-4 rounded-[14px] mb-6 text-sm">
                         <AlertTriangle className="inline-block w-4 h-4 mr-1 align-middle" />️ {error}
                     </div>
                 )}
@@ -161,13 +161,13 @@ const ProfileSetup: React.FC = () => {
                 <form onSubmit={handleSaveProfile} className="space-y-6">
                     <div className="flex flex-col items-center justify-center mb-6">
                         <div className="relative cursor-pointer group" onClick={() => fileInputRef.current?.click()}>
-                            <div className="w-24 h-24 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center border-2 border-dashed border-gray-300 dark:border-slate-700 hover:border-violet-500 transition-colors overflow-hidden">
+                            <div className="w-24 h-24 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center border-2 border-dashed border-stone-300 dark:border-slate-700 hover:border-violet-500 transition-colors overflow-hidden">
                                 {uploadingAvatar ? (
                                     <Loader2 className="w-8 h-8 animate-spin text-violet-500" />
                                 ) : avatarUrl ? (
                                     <img src={avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
                                 ) : (
-                                    <User className="w-10 h-10 text-gray-400 group-hover:text-violet-500 transition-colors" />
+                                    <User className="w-10 h-10 text-stone-400 group-hover:text-violet-500 transition-colors" />
                                 )}
                             </div>
                             
@@ -184,46 +184,46 @@ const ProfileSetup: React.FC = () => {
                             accept="image/*"
                             className="hidden"
                         />
-                        <span className="text-xs text-gray-500 mt-3 font-medium">Click to upload avatar</span>
+                        <span className="text-xs text-stone-500 mt-3 font-medium">Click to upload avatar</span>
                     </div>
 
                     <div className="space-y-2">
-                        <label className="block text-sm font-semibold text-gray-700 dark:text-slate-300">Bio <span className="text-red-500">*</span></label>
+                        <label className="block text-sm font-semibold text-stone-700 dark:text-slate-300">Bio <span className="text-red-500">*</span></label>
                         <textarea
                             required
                             rows={3}
                             value={bio}
                             onChange={(e) => setBio(e.target.value)}
                             placeholder="I'm a software engineer looking to learn..."
-                            className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950 border border-gray-200 dark:border-slate-800 rounded-xl outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500 text-sm text-gray-900 dark:text-white transition-all resize-none"
+                            className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950 border border-stone-200 dark:border-slate-800 rounded-[14px] outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500 text-sm text-stone-900 dark:text-white transition-all resize-none"
                         />
                     </div>
 
                     <div className="space-y-2">
-                        <label className="block text-sm font-semibold text-gray-700 dark:text-slate-300">Interests <span className="text-red-500">*</span></label>
+                        <label className="block text-sm font-semibold text-stone-700 dark:text-slate-300">Interests <span className="text-red-500">*</span></label>
                         <input
                             type="text"
                             required
                             value={interests}
                             onChange={(e) => setInterests(e.target.value)}
                             placeholder="e.g., Programming, Design, Business"
-                            className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950 border border-gray-200 dark:border-slate-800 rounded-xl outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500 text-sm text-gray-900 dark:text-white transition-all"
+                            className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950 border border-stone-200 dark:border-slate-800 rounded-[14px] outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500 text-sm text-stone-900 dark:text-white transition-all"
                         />
                     </div>
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div className="space-y-2">
-                            <label className="block text-sm font-semibold text-gray-700 dark:text-slate-300" htmlFor="nationality">Country <span className="text-red-500">*</span></label>
+                            <label className="block text-sm font-semibold text-stone-700 dark:text-slate-300" htmlFor="nationality">Country <span className="text-red-500">*</span></label>
                             <CountrySelect id="nationality" required value={nationality} onChange={setNationality} placeholder="Search your country" />
                         </div>
                         <div className="space-y-2">
-                            <label className="block text-sm font-semibold text-gray-700 dark:text-slate-300">Date of Birth <span className="text-red-500">*</span></label>
+                            <label className="block text-sm font-semibold text-stone-700 dark:text-slate-300">Date of Birth <span className="text-red-500">*</span></label>
                             <input
                                 type="date"
                                 required
                                 value={dateOfBirth}
                                 onChange={(e) => setDateOfBirth(e.target.value)}
-                                className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950 border border-gray-200 dark:border-slate-800 rounded-xl outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500 text-sm text-gray-900 dark:text-white transition-all"
+                                className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950 border border-stone-200 dark:border-slate-800 rounded-[14px] outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500 text-sm text-stone-900 dark:text-white transition-all"
                             />
                         </div>
                     </div>

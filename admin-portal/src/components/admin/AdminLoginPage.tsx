@@ -97,139 +97,81 @@ const AdminLoginPage: React.FC<AdminLoginPageProps> = ({ onLoginSuccess, onBackT
         setNotice('If an account exists for that email, a password reset link has been sent.');
     };
 
+    const field = 'w-full h-[52px] rounded-[14px] border-2 border-transparent bg-panel dark:bg-night-3 pl-11 pr-4 text-[15px] text-ink dark:text-white placeholder-[#9A94AE] outline-none focus:border-brand transition-colors';
+
     return (
-        <div className="min-h-screen bg-slate-50 dark:bg-[#090d16] text-slate-800 dark:text-slate-100 flex flex-col justify-between p-6 relative overflow-hidden font-sans transition-colors duration-300">
-            {/* Background elements */}
-            <div className="absolute top-[-10%] right-[-10%] w-[50%] h-[50%] rounded-full bg-violet-200/40 dark:bg-violet-900/10 blur-[120px] pointer-events-none"></div>
-            <div className="absolute bottom-[-15%] left-[-15%] w-[60%] h-[60%] rounded-full bg-emerald-200/30 dark:bg-emerald-900/10 blur-[150px] pointer-events-none"></div>
-
-            {/* Top Bar: Back Button + Theme Toggle */}
-            <div className="max-w-7xl w-full mx-auto flex items-center justify-between">
-                <button
-                    onClick={onBackToStudentPortal}
-                    className="flex items-center gap-0 sm:gap-2 text-xs font-bold text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white bg-white/70 dark:bg-slate-900/50 hover:bg-white dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-800 px-2.5 sm:px-4 py-2.5 rounded-xl transition-all cursor-pointer shadow-sm"
-                >
-                    <ArrowLeft size={14} className="sm:hidden" />
-                    <span className="hidden sm:inline">Back to Portal</span>
-                </button>
-
-                {/* Light/Dark Mode Toggle */}
-                <button
-                    onClick={toggleTheme}
-                    className="group flex items-center gap-2 text-xs font-bold px-4 py-2.5 rounded-xl border transition-all cursor-pointer shadow-sm
-                        text-slate-500 dark:text-slate-400 
-                        hover:text-amber-600 dark:hover:text-amber-300
-                        bg-white/70 dark:bg-slate-900/50 
-                        hover:bg-amber-50 dark:hover:bg-slate-800 
-                        border-slate-200 dark:border-slate-800
-                        transition-colors duration-300"
-                    aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
-                >
-                    {isDark ? (
-                        <>
-                            <Sun size={14} className="transition-transform group-hover:rotate-45 duration-500" />
-                            Light Mode
-                        </>
-                    ) : (
-                        <>
-                            <Moon size={14} className="transition-transform group-hover:-rotate-12 duration-300" />
-                            Dark Mode
-                        </>
-                    )}
-                </button>
-            </div>
-
-            {/* Card Container */}
-            <div className="flex-1 flex items-center justify-center py-12">
-                <div className="bg-white/70 dark:bg-slate-900/40 backdrop-blur-md rounded-3xl border border-slate-200 dark:border-slate-800/80 p-8 w-full max-w-md shadow-2xl shadow-slate-200/50 dark:shadow-black/20 relative transition-colors duration-300">
-                    <div className="text-center mb-8">
-                        {/* Shield Icon Accent */}
-                        <div className="mx-auto w-12 h-12 bg-violet-100 dark:bg-violet-950/50 border border-violet-300 dark:border-violet-800/60 text-violet-500 dark:text-violet-400 rounded-2xl flex items-center justify-center mb-4 shadow-lg shadow-violet-100 dark:shadow-violet-950/20 transition-colors duration-300">
-                            <KeyRound size={22} className="animate-pulse" />
-                        </div>
-                        <h2 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white transition-colors duration-300">
-                            {isInstructor ? 'Instructor Console' : 'Admin Console'}
-                        </h2>
-                        <p className="text-slate-500 dark:text-slate-400 text-xs mt-1.5 uppercase tracking-wider font-semibold">
-                            {isInstructor ? 'Instructor Access Portal' : 'Administrative Access Portal'}
+        <div className="min-h-[100dvh] bg-panel dark:bg-night text-ink dark:text-white p-3 sm:p-4 flex font-sans">
+            <div className="w-full max-w-[1240px] mx-auto flex flex-col lg:flex-row gap-3 sm:gap-4">
+                {/* brand panel */}
+                <section className="relative overflow-hidden rounded-[28px] sm:rounded-[32px] bg-night text-white p-7 sm:p-9 lg:w-[52%] flex flex-col min-h-[300px] lg:min-h-0">
+                    <div aria-hidden="true" className="absolute inset-0 overflow-hidden pointer-events-none">
+                        <span className="absolute -right-24 -top-28 w-[360px] h-[360px] rounded-full bg-night-3" />
+                        <span className="absolute -left-20 -bottom-40 w-[380px] h-[380px] rounded-full bg-night-2" />
+                    </div>
+                    <div className="relative flex items-center gap-3">
+                        <span className="w-11 h-11 rounded-[13px] bg-brand inline-flex items-center justify-center text-[20px] font-extrabold">W</span>
+                        <span className="leading-tight"><span className="block text-[17px] font-extrabold">{isInstructor ? 'Welile Instructor' : 'Welile Admin'}</span><span className="block text-[12px] text-[#B9B2CC]">School of AI</span></span>
+                    </div>
+                    <div className="relative flex-1" />
+                    <div className="relative mt-8">
+                        <p className="m-0 inline-flex items-center gap-2 h-8 px-3 rounded-full bg-night-3 text-[12px] font-extrabold text-lime-200"><ShieldAlert size={14} />{isInstructor ? 'Instructors only' : 'Staff and instructors only'}</p>
+                        <h1 className="mt-4 mb-0 text-[34px] sm:text-[44px] leading-[1.05] font-extrabold tracking-[-0.03em]">{isInstructor ? <>Teach and run<br /><span className="text-lime-200">your classes.</span></> : <>Run the school<br /><span className="text-lime-200">from one place.</span></>}</h1>
+                        <p className="mt-3.5 mb-0 max-w-[460px] text-[15px] leading-relaxed text-[#CFC8DC]">
+                            {isInstructor ? 'Course Setup, Cohorts, Exam Setup and Ongoing Events.' : 'Students, payments, live classes, agents and courses. Instructors see only Course Setup, Cohorts, Exam Setup and Ongoing Events.'}
                         </p>
                     </div>
+                </section>
 
-                    {error && (
-                        <div className="mb-6 bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-800/40 text-red-600 dark:text-red-300 p-3.5 rounded-2xl text-xs flex gap-2.5 items-start transition-colors duration-300">
-                            <ShieldAlert size={16} className="shrink-0 mt-0.5" />
-                            <span className="font-medium">{error}</span>
-                        </div>
-                    )}
-
-                    {notice && (
-                        <div className="mb-6 bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-800/40 text-emerald-700 dark:text-emerald-300 p-3.5 rounded-2xl text-xs flex gap-2.5 items-start transition-colors duration-300">
-                            <CheckCircle2 size={16} className="shrink-0 mt-0.5" />
-                            <span className="font-medium">{notice}</span>
-                        </div>
-                    )}
-
-                    <form onSubmit={handleSubmit} className="space-y-4">
-                        {/* Email Input */}
-                        <div className="space-y-1.5">
-                            <label className="text-xs font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider">Console Email</label>
-                            <div className="relative">
-                                <Mail size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500" />
-                                <input
-                                    type="email"
-                                    required
-                                    value={email}
-                                    onChange={(e) => setEmail(e.target.value)}
-                                    placeholder="you@example.com"
-                                    className="w-full bg-white dark:bg-slate-950/50 border border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 focus:border-violet-500 text-slate-900 dark:text-white pl-11 pr-4 py-3 rounded-2xl outline-none transition-all text-sm placeholder:text-slate-400 dark:placeholder:text-slate-600"
-                                />
-                            </div>
-                        </div>
-
-                        {/* Password Input */}
-                        <div className="space-y-1.5">
-                            <label className="text-xs font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider">Console Password</label>
-                            <div className="relative">
-                                <Lock size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500" />
-                                <input
-                                    type="password"
-                                    required
-                                    value={password}
-                                    onChange={(e) => setPassword(e.target.value)}
-                                    placeholder="••••••••"
-                                    className="w-full bg-white dark:bg-slate-950/50 border border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 focus:border-violet-500 text-slate-900 dark:text-white pl-11 pr-4 py-3 rounded-2xl outline-none transition-all text-sm placeholder:text-slate-400 dark:placeholder:text-slate-600"
-                                />
-                            </div>
-                        </div>
-
-                        <div className="flex justify-end">
-                            <button type="button" onClick={handleForgotPassword} className="text-xs font-semibold text-violet-600 dark:text-violet-400 hover:underline cursor-pointer">
-                                Forgot password?
-                            </button>
-                        </div>
-
-                        {/* Submit Button */}
-                        <button
-                            type="submit"
-                            disabled={loading}
-                            className="w-full bg-violet-600 hover:bg-violet-700 dark:hover:bg-violet-750 text-white font-bold py-3.5 px-4 rounded-2xl transition-colors cursor-pointer shadow-lg shadow-violet-200 dark:shadow-violet-950/20 text-sm flex items-center justify-center gap-2 mt-2 disabled:opacity-50 disabled:cursor-not-allowed"
-                        >
-                            {loading ? (
-                                <>
-                                    <Loader2 size={16} className="animate-spin" /> Verifying Access
-                                </>
-                            ) : (isInstructor ? 'Authenticate Instructor' : 'Authenticate Console')}
+                {/* form panel */}
+                <section className="relative flex-1 rounded-[28px] sm:rounded-[32px] bg-white dark:bg-night-2 p-6 sm:p-9 flex flex-col">
+                    <div className="flex items-center justify-between">
+                        <button type="button" onClick={onBackToStudentPortal} className="press h-10 px-3.5 rounded-[12px] bg-panel dark:bg-night-3 text-[13px] font-bold inline-flex items-center gap-2">
+                            <ArrowLeft size={15} />Student site
                         </button>
-                    </form>
-                </div>
-            </div>
+                        <button type="button" onClick={toggleTheme} aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'} className="press w-10 h-10 rounded-[12px] bg-panel dark:bg-night-3 inline-flex items-center justify-center text-[#6B6680] dark:text-slate-300">
+                            {isDark ? <Sun size={17} /> : <Moon size={17} />}
+                        </button>
+                    </div>
+                    <div className="w-full max-w-[400px] mx-auto my-auto py-8">
+                        <h2 className="m-0 text-[30px] font-extrabold tracking-[-0.03em]">{isInstructor ? 'Instructor sign in' : 'Admin sign in'}</h2>
+                        <p className="mt-1.5 mb-0 text-[14px] text-[#6B6680] dark:text-slate-400">Use your Welile staff account.</p>
 
-            {/* Footer */}
-            <div className="text-center py-4 text-[10px] text-slate-400 dark:text-slate-600 font-medium transition-colors duration-300">
-                {isInstructor 
-                    ? 'Welile School Instructor Access Area • Authorized Credentials Only.'
-                    : 'Welile School Administrative Access Area • Authorized Credentials Only.'
-                }
+                        {error && (
+                            <div role="alert" className="mt-5 rounded-[14px] bg-[#FDECE8] dark:bg-red-950/30 text-[#A3321F] dark:text-red-300 p-3.5 text-[14px] flex gap-2.5 items-start">
+                                <ShieldAlert size={16} className="shrink-0 mt-0.5" /><span>{error}</span>
+                            </div>
+                        )}
+                        {notice && (
+                            <div role="status" className="mt-5 rounded-[14px] bg-mint-soft dark:bg-emerald-950/30 text-[#0E5A35] dark:text-emerald-300 p-3.5 text-[14px] flex gap-2.5 items-start">
+                                <CheckCircle2 size={16} className="shrink-0 mt-0.5" /><span>{notice}</span>
+                            </div>
+                        )}
+
+                        <form onSubmit={handleSubmit} className="mt-6 space-y-4">
+                            <div>
+                                <label htmlFor="adm-email" className="block text-[13px] font-bold mb-1.5">Email</label>
+                                <div className="relative">
+                                    <Mail size={17} className="absolute left-4 top-1/2 -translate-y-1/2 text-[#9A94AE] pointer-events-none" />
+                                    <input id="adm-email" type="email" required autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@welile.com" className={field} />
+                                </div>
+                            </div>
+                            <div>
+                                <div className="flex items-center justify-between mb-1.5">
+                                    <label htmlFor="adm-pass" className="text-[13px] font-bold">Password</label>
+                                    <button type="button" onClick={handleForgotPassword} className="text-[13px] font-bold text-brand dark:text-violet-300 hover:underline">Forgot password?</button>
+                                </div>
+                                <div className="relative">
+                                    <Lock size={17} className="absolute left-4 top-1/2 -translate-y-1/2 text-[#9A94AE] pointer-events-none" />
+                                    <input id="adm-pass" type="password" required autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Your password" className={field} />
+                                </div>
+                            </div>
+                            <button type="submit" disabled={loading} className="press w-full h-[52px] rounded-[14px] bg-brand hover:bg-brand-mid text-white text-[15px] font-extrabold inline-flex items-center justify-center gap-2 disabled:opacity-60 !mt-6">
+                                {loading ? <><Loader2 size={17} className="animate-spin" />Checking access…</> : 'Sign in'}
+                            </button>
+                        </form>
+                        <p className="mt-6 mb-0 text-center text-[12px] text-[#6B6680] dark:text-slate-400">Authorised Welile staff only. Every sign-in is checked against your account role.</p>
+                    </div>
+                </section>
             </div>
         </div>
     );

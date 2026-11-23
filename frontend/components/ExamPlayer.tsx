@@ -126,27 +126,27 @@ const ExamPlayer: React.FC<ExamPlayerProps> = ({ quiz, courseTitle, onClose, onS
     };
 
     return (
-        <div ref={containerRef} className={`fixed inset-0 z-[100] flex flex-col h-screen ${started ? 'bg-gray-50' : 'bg-slate-900 items-center justify-center p-4'}`}>
+        <div ref={containerRef} className={`fixed inset-0 z-[100] flex flex-col h-screen ${started ? 'bg-stone-50' : 'bg-slate-900 items-center justify-center p-4'}`}>
             {!started ? (
-                <div className="bg-white rounded-3xl max-w-2xl w-full p-8 text-center shadow-2xl">
-                    <div className="w-20 h-20 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center mx-auto mb-6">
+                <div className="bg-white rounded-[26px] max-w-2xl w-full p-8 text-center shadow-2xl">
+                    <div className="w-20 h-20 bg-brand-soft text-brand rounded-full flex items-center justify-center mx-auto mb-6">
                         <ShieldAlert size={40} />
                     </div>
-                    <h1 className="text-3xl font-bold text-gray-900 mb-2">{quiz.title}</h1>
-                    <p className="text-gray-500 mb-8">{courseTitle}</p>
+                    <h1 className="text-3xl font-bold text-stone-900 mb-2">{quiz.title}</h1>
+                    <p className="text-stone-500 mb-8">{courseTitle}</p>
 
                     <div className="grid grid-cols-2 gap-4 mb-8 text-left">
-                        <div className="bg-gray-50 p-4 rounded-xl border border-gray-100">
-                            <div className="text-gray-500 text-sm mb-1 font-medium">Questions</div>
+                        <div className="bg-stone-50 p-4 rounded-[14px] border border-stone-100">
+                            <div className="text-stone-500 text-sm mb-1 font-medium">Questions</div>
                             <div className="font-bold text-xl">{quiz.questions.length}</div>
                         </div>
-                        <div className="bg-gray-50 p-4 rounded-xl border border-gray-100">
-                            <div className="text-gray-500 text-sm mb-1 font-medium">Time Limit</div>
+                        <div className="bg-stone-50 p-4 rounded-[14px] border border-stone-100">
+                            <div className="text-stone-500 text-sm mb-1 font-medium">Time Limit</div>
                             <div className="font-bold text-xl">{quiz.timeLimit} Minutes</div>
                         </div>
                     </div>
 
-                    <div className="bg-red-50 border border-red-200 p-4 rounded-xl text-left mb-8 flex gap-3">
+                    <div className="bg-red-50 border border-red-200 p-4 rounded-[14px] text-left mb-8 flex gap-3">
                         <AlertTriangle className="text-red-600 shrink-0" />
                         <div>
                             <h4 className="font-bold text-red-900 mb-1">Strict Exam Rules</h4>
@@ -161,10 +161,10 @@ const ExamPlayer: React.FC<ExamPlayerProps> = ({ quiz, courseTitle, onClose, onS
                     </div>
 
                     <div className="flex gap-4 justify-center">
-                        <button onClick={onClose} className="px-6 py-3 rounded-xl font-bold text-gray-600 hover:bg-gray-100 transition-colors">
+                        <button onClick={onClose} className="px-6 py-3 rounded-[14px] font-bold text-stone-600 hover:bg-stone-100 transition-colors">
                             Cancel
                         </button>
-                        <button onClick={startExam} className="px-8 py-3 rounded-xl font-bold text-white bg-indigo-600 hover:bg-indigo-700 transition-colors shadow-lg shadow-indigo-200">
+                        <button onClick={startExam} className="px-8 py-3 rounded-[14px] font-bold text-white bg-brand hover:bg-brand transition-colors shadow-lg shadow-indigo-200">
                             Start Exam Now
                         </button>
                     </div>
@@ -172,47 +172,47 @@ const ExamPlayer: React.FC<ExamPlayerProps> = ({ quiz, courseTitle, onClose, onS
             ) : (
                 <>
                     {/* Header */}
-                    <div className="bg-white border-b border-gray-200 p-4 flex justify-between items-center shrink-0 shadow-sm">
+                    <div className="bg-white border-b border-stone-200 p-4 flex justify-between items-center shrink-0 shadow-sm">
                         <div>
-                            <h2 className="font-bold text-lg text-gray-900">{quiz.title}</h2>
-                            <p className="text-xs text-gray-500">{courseTitle}</p>
+                            <h2 className="font-bold text-lg text-stone-900">{quiz.title}</h2>
+                            <p className="text-xs text-stone-500">{courseTitle}</p>
                         </div>
                         <div className="flex items-center gap-4">
                             <span className="bg-red-100 text-red-700 px-3 py-1 text-xs font-bold uppercase rounded-full flex items-center gap-1">
                                 <AlertTriangle size={14} /> Strict Mode
                             </span>
-                            <div className={`flex items-center gap-2 px-4 py-2 rounded-xl font-bold text-lg ${timeLeft < 60 ? 'bg-red-100 text-red-700 animate-pulse' : 'bg-gray-100 text-gray-800'}`}>
+                            <div className={`flex items-center gap-2 px-4 py-2 rounded-[14px] font-bold text-lg ${timeLeft < 60 ? 'bg-red-100 text-red-700 animate-pulse' : 'bg-stone-100 text-stone-800'}`}>
                                 <Clock size={20} />
                                 {formatTime(timeLeft)}
                             </div>
-                            <button onClick={autoSubmit} className="bg-indigo-600 text-white px-6 py-2 rounded-xl font-bold hover:bg-indigo-700 transition-colors">
+                            <button onClick={autoSubmit} className="bg-brand text-white px-6 py-2 rounded-[14px] font-bold hover:bg-brand transition-colors">
                                 Submit
                             </button>
                         </div>
                     </div>
 
                     {/* Questions */}
-                    <div className="flex-1 overflow-y-auto p-8 bg-gray-50">
+                    <div className="flex-1 overflow-y-auto p-8 bg-stone-50">
                         <div className="max-w-3xl mx-auto space-y-8 pb-20">
                             {quiz.questions.map((q, idx) => (
-                                <div key={q.id} className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-                                    <h3 className="font-bold text-lg mb-4 text-gray-900">
-                                        <span className="text-indigo-600 mr-2">{idx + 1}.</span>
+                                <div key={q.id} className="bg-white p-6 rounded-[22px]">
+                                    <h3 className="font-bold text-lg mb-4 text-stone-900">
+                                        <span className="text-brand mr-2">{idx + 1}.</span>
                                         {q.text}
                                     </h3>
 
                                     {q.type === 'multiple_choice' && (
                                         <div className="space-y-3">
                                             {q.options?.map((opt: string, optIdx: number) => (
-                                                <label key={optIdx} className={`flex items-center gap-3 p-4 border rounded-xl cursor-pointer transition-colors ${answers[q.id] === optIdx ? 'border-indigo-500 bg-indigo-50 ring-1 ring-indigo-500' : 'border-gray-200 hover:bg-gray-50'}`}>
+                                                <label key={optIdx} className={`flex items-center gap-3 p-4 border rounded-[14px] cursor-pointer transition-colors ${answers[q.id] === optIdx ? 'border-indigo-500 bg-brand-soft ring-1 ring-indigo-500' : 'border-stone-200 hover:bg-stone-50'}`}>
                                                     <input 
                                                         type="radio" 
                                                         name={q.id}
-                                                        className="w-5 h-5 text-indigo-600"
+                                                        className="w-5 h-5 text-brand"
                                                         checked={answers[q.id] === optIdx}
                                                         onChange={() => setAnswers({...answers, [q.id]: optIdx})}
                                                     />
-                                                    <span className="font-medium text-gray-700">{opt}</span>
+                                                    <span className="font-medium text-stone-700">{opt}</span>
                                                 </label>
                                             ))}
                                         </div>
@@ -220,13 +220,13 @@ const ExamPlayer: React.FC<ExamPlayerProps> = ({ quiz, courseTitle, onClose, onS
 
                                     {q.type === 'true_false' && (
                                         <div className="flex gap-4">
-                                            <label className={`flex-1 flex items-center justify-center gap-2 p-4 border rounded-xl cursor-pointer transition-colors ${answers[q.id] === true ? 'border-indigo-500 bg-indigo-50 ring-1 ring-indigo-500' : 'border-gray-200 hover:bg-gray-50'}`}>
+                                            <label className={`flex-1 flex items-center justify-center gap-2 p-4 border rounded-[14px] cursor-pointer transition-colors ${answers[q.id] === true ? 'border-indigo-500 bg-brand-soft ring-1 ring-indigo-500' : 'border-stone-200 hover:bg-stone-50'}`}>
                                                 <input type="radio" className="hidden" checked={answers[q.id] === true} onChange={() => setAnswers({...answers, [q.id]: true})} />
-                                                <span className="font-bold text-gray-700">True</span>
+                                                <span className="font-bold text-stone-700">True</span>
                                             </label>
-                                            <label className={`flex-1 flex items-center justify-center gap-2 p-4 border rounded-xl cursor-pointer transition-colors ${answers[q.id] === false ? 'border-indigo-500 bg-indigo-50 ring-1 ring-indigo-500' : 'border-gray-200 hover:bg-gray-50'}`}>
+                                            <label className={`flex-1 flex items-center justify-center gap-2 p-4 border rounded-[14px] cursor-pointer transition-colors ${answers[q.id] === false ? 'border-indigo-500 bg-brand-soft ring-1 ring-indigo-500' : 'border-stone-200 hover:bg-stone-50'}`}>
                                                 <input type="radio" className="hidden" checked={answers[q.id] === false} onChange={() => setAnswers({...answers, [q.id]: false})} />
-                                                <span className="font-bold text-gray-700">False</span>
+                                                <span className="font-bold text-stone-700">False</span>
                                             </label>
                                         </div>
                                     )}
@@ -234,13 +234,13 @@ const ExamPlayer: React.FC<ExamPlayerProps> = ({ quiz, courseTitle, onClose, onS
                                     {(q.type === 'short_answer' || q.type === 'essay') && (
                                         <div className="space-y-1">
                                             <textarea 
-                                                className="w-full p-4 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 min-h-[140px]"
+                                                className="w-full p-4 border border-stone-200 rounded-[14px] outline-none focus:ring-2 focus:ring-indigo-500 min-h-[140px]"
                                                 placeholder={q.type === 'essay' ? "Write your detailed essay response here..." : "Type your answer here..."}
                                                 value={answers[q.id] || ''}
                                                 onChange={e => setAnswers({...answers, [q.id]: e.target.value})}
                                             />
                                             {q.type === 'essay' && (
-                                                <div className="text-right text-xs text-gray-400">
+                                                <div className="text-right text-xs text-stone-400">
                                                     Character count: {(answers[q.id] || '').length} characters
                                                 </div>
                                             )}

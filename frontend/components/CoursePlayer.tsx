@@ -210,7 +210,7 @@ const CoursePlayer: React.FC<CoursePlayerProps> = ({ module, courseTitle, onBack
                     <button
                         type="button"
                         onClick={() => setQaTab('notes')}
-                        className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                        className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-[14px] text-xs font-bold transition-all cursor-pointer ${
                             qaTab === 'notes'
                                 ? 'bg-white dark:bg-slate-900 text-violet-700 dark:text-violet-400 shadow-xs'
                                 : 'text-stone-600 hover:text-stone-800 dark:hover:text-slate-200'
@@ -222,7 +222,7 @@ const CoursePlayer: React.FC<CoursePlayerProps> = ({ module, courseTitle, onBack
                     <button
                         type="button"
                         onClick={() => setQaTab('qa')}
-                        className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                        className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-[14px] text-xs font-bold transition-all cursor-pointer ${
                             qaTab === 'qa'
                                 ? 'bg-white dark:bg-slate-900 text-violet-700 dark:text-violet-400 shadow-xs'
                                 : 'text-stone-600 hover:text-stone-800 dark:hover:text-slate-200'
@@ -239,7 +239,7 @@ const CoursePlayer: React.FC<CoursePlayerProps> = ({ module, courseTitle, onBack
                     {qaTab === 'notes' ? (
                         <div className="flex flex-col gap-6 h-full text-left">
                             {/* Personal Notes Section */}
-                            <div className="flex flex-col gap-2 bg-stone-50/50 dark:bg-slate-950/40 p-4 rounded-2xl border border-stone-100 dark:border-slate-800">
+                            <div className="flex flex-col gap-2 bg-stone-50/50 dark:bg-slate-950/40 p-4 rounded-[22px] border border-stone-100 dark:border-slate-800">
                                 <div className="flex items-center justify-between">
                                     <h4 className="text-xs font-bold text-stone-900 dark:text-white uppercase tracking-wider">My Personal Notes</h4>
                                     <span className="text-xs font-medium text-stone-500">
@@ -249,7 +249,7 @@ const CoursePlayer: React.FC<CoursePlayerProps> = ({ module, courseTitle, onBack
                                     </span>
                                 </div>
                                 <textarea
-                                    className="w-full h-32 p-3 text-xs bg-white dark:bg-slate-900 border border-stone-100 dark:border-slate-800 rounded-xl focus:outline-none focus:ring-1 focus:ring-violet-500 dark:text-slate-200 resize-none"
+                                    className="w-full h-32 p-3 text-xs bg-white dark:bg-night-2 rounded-[14px] focus:outline-none focus:ring-1 focus:ring-violet-500 dark:text-slate-200 resize-none"
                                     placeholder="Take notes here while watching the lesson... (Auto-saves as you type)"
                                     value={noteText}
                                     onChange={handleNoteChange}
@@ -257,7 +257,7 @@ const CoursePlayer: React.FC<CoursePlayerProps> = ({ module, courseTitle, onBack
                                 <button
                                     type="button"
                                     onClick={() => handleSaveNote(noteText)}
-                                    className="mt-1 self-end px-3 py-1.5 bg-violet-700 hover:bg-violet-800 text-white rounded-lg text-xs font-bold transition-colors cursor-pointer"
+                                    className="mt-1 self-end px-3 py-1.5 bg-violet-700 hover:bg-brand-mid text-white rounded-[12px] text-xs font-bold transition-colors cursor-pointer"
                                 >
                                     Save Note
                                 </button>
@@ -284,7 +284,7 @@ const CoursePlayer: React.FC<CoursePlayerProps> = ({ module, courseTitle, onBack
                                     </div>
                                 ) : (
                                     questionsList.map((q) => (
-                                        <div key={q.id} className="space-y-3 bg-stone-50/50 dark:bg-slate-950/40 p-4 rounded-2xl border border-stone-100 dark:border-slate-800">
+                                        <div key={q.id} className="space-y-3 bg-stone-50/50 dark:bg-slate-950/40 p-4 rounded-[22px] border border-stone-100 dark:border-slate-800">
                                             <div className="flex items-center gap-2">
                                                 <img src={q.avatarUrl} alt={q.author} className="w-6 h-6 rounded-full object-cover" />
                                                 <div className="text-left">
@@ -319,12 +319,12 @@ const CoursePlayer: React.FC<CoursePlayerProps> = ({ module, courseTitle, onBack
                                                             placeholder="Write a reply..." 
                                                             value={newReplyText}
                                                             onChange={(e) => setNewReplyText(e.target.value)}
-                                                            className="flex-1 bg-white dark:bg-slate-900 border border-stone-200 dark:border-slate-800 rounded-lg px-2 py-1 text-xs text-stone-800 dark:text-white outline-none focus:border-violet-500"
+                                                            className="flex-1 bg-white dark:bg-night-2 rounded-[12px] px-2 py-1 text-xs text-stone-800 dark:text-white outline-none focus:border-violet-500"
                                                         />
                                                         <button 
                                                             type="button"
                                                             onClick={() => handleAddReply(q.id)}
-                                                            className="bg-violet-700 hover:bg-violet-800 text-white px-2 py-1 rounded-lg text-xs font-bold cursor-pointer"
+                                                            className="bg-violet-700 hover:bg-brand-mid text-white px-2 py-1 rounded-[12px] text-xs font-bold cursor-pointer"
                                                         >
                                                             Reply
                                                         </button>
@@ -361,7 +361,7 @@ const CoursePlayer: React.FC<CoursePlayerProps> = ({ module, courseTitle, onBack
                                     placeholder="Ask a question..."
                                     value={newQuestionText}
                                     onChange={(e) => setNewQuestionText(e.target.value)}
-                                    className="flex-1 bg-stone-50 dark:bg-slate-950 border border-stone-200 dark:border-slate-800 rounded-xl px-3 py-2 text-xs text-stone-800 dark:text-white placeholder:text-stone-500 focus:outline-none focus:border-violet-500 transition-all"
+                                    className="flex-1 bg-stone-50 dark:bg-slate-950 border border-stone-200 dark:border-slate-800 rounded-[14px] px-3 py-2 text-xs text-stone-800 dark:text-white placeholder:text-stone-500 focus:outline-none focus:border-violet-500 transition-all"
                                     onKeyDown={(e) => {
                                         if (e.key === 'Enter') handleAddQuestion();
                                     }}
@@ -369,7 +369,7 @@ const CoursePlayer: React.FC<CoursePlayerProps> = ({ module, courseTitle, onBack
                                 <button
                                     type="button"
                                     onClick={handleAddQuestion}
-                                    className="bg-violet-700 hover:bg-violet-800 text-white px-3 py-2 rounded-xl text-xs font-bold shadow-sm cursor-pointer"
+                                    className="bg-violet-700 hover:bg-brand-mid text-white px-3 py-2 rounded-[14px] text-xs font-bold shadow-sm cursor-pointer"
                                 >
                                     Post
                                 </button>
@@ -516,7 +516,7 @@ const CoursePlayer: React.FC<CoursePlayerProps> = ({ module, courseTitle, onBack
                     <ArrowLeft size={20} className="text-stone-600 dark:text-slate-300" />
                 </button>
                 <div className="min-w-0 flex-1 sm:flex-none">
-                    <h2 className="text-lg font-semibold text-stone-900 dark:text-white line-clamp-1 font-serif">{module.title}</h2>
+                    <h2 className="text-lg font-extrabold text-stone-900 dark:text-white line-clamp-1 tracking-[-0.02em]">{module.title}</h2>
                     <p className="text-xs text-stone-600 dark:text-slate-400 line-clamp-1">{courseTitle} • {module.duration}</p>
                 </div>
                 
@@ -528,7 +528,7 @@ const CoursePlayer: React.FC<CoursePlayerProps> = ({ module, courseTitle, onBack
                             className={`flex items-center justify-center gap-2 w-full sm:w-auto px-5 py-2.5 rounded-full font-semibold text-sm transition-all ${
                                 isLocked
                                     ? 'bg-stone-100 dark:bg-slate-800 text-stone-500 dark:text-slate-600 cursor-not-allowed'
-                                    : 'bg-violet-700 text-white hover:bg-violet-800 shadow-sm'
+                                    : 'bg-violet-700 text-white hover:bg-brand-mid shadow-sm'
                             }`}
                         >
                             {isLocked 
@@ -542,16 +542,16 @@ const CoursePlayer: React.FC<CoursePlayerProps> = ({ module, courseTitle, onBack
             <div className="flex-1 flex flex-col lg:flex-row overflow-y-auto lg:overflow-hidden relative dark:bg-slate-950">
                 {module.type === 'quiz' ? (
                     <div className="flex-1 bg-stone-50 dark:bg-slate-950 overflow-y-auto p-4 sm:p-8">
-                        <div className="max-w-2xl mx-auto bg-white dark:bg-slate-900 p-5 sm:p-8 rounded-2xl shadow-sm border border-stone-100 dark:border-slate-800">
+                        <div className="max-w-2xl mx-auto bg-white dark:bg-night-2 p-5 sm:p-8 rounded-[22px]">
                             {/* Quiz Header */}
                             <div className="flex justify-between items-center pb-4 mb-6 border-b border-stone-100 dark:border-slate-800">
                                 <div>
                                     <span className="bg-violet-100 dark:bg-violet-950/30 text-violet-700 dark:text-violet-400 text-xs px-2.5 py-1 rounded-full font-bold uppercase tracking-wider">Module Quiz</span>
-                                    <h1 className="text-2xl font-semibold text-stone-900 dark:text-white mt-2 font-serif">{module.title}</h1>
+                                    <h1 className="text-2xl font-extrabold text-stone-900 dark:text-white mt-2 tracking-[-0.02em]">{module.title}</h1>
                                 </div>
                                 
                                 {/* Quiz Timer */}
-                                <div className={`flex items-center gap-2 px-4 py-2 rounded-2xl border font-mono font-bold text-sm ${
+                                <div className={`flex items-center gap-2 px-4 py-2 rounded-[22px] border font-mono font-bold text-sm ${
                                     timeRemaining < 30 
                                         ? 'bg-red-50 dark:bg-red-950/20 border-red-200 text-red-600 dark:text-red-400 animate-pulse' 
                                         : 'bg-stone-50 dark:bg-slate-800 border-stone-100 dark:border-slate-700 text-stone-700 dark:text-slate-300'
@@ -561,15 +561,15 @@ const CoursePlayer: React.FC<CoursePlayerProps> = ({ module, courseTitle, onBack
                                 </div>
                             </div>                            {/* Quiz Result Message */}
                             {quizSubmitted && quizScore && (
-                                <div className={`p-4 mb-6 rounded-2xl border flex items-start gap-3 ${
+                                <div className={`p-4 mb-6 rounded-[22px] border flex items-start gap-3 ${
                                     quizScore.percentage >= 80
-                                        ? 'bg-green-50 dark:bg-green-950/20 border-green-200 text-green-800 dark:text-green-300'
+                                        ? 'bg-mint-soft dark:bg-green-950/20 border-green-200 text-green-800 dark:text-green-300'
                                         : quizScore.percentage >= 50
                                             ? 'bg-amber-50 dark:bg-amber-950/20 border-amber-200 text-amber-800 dark:text-amber-300'
                                             : 'bg-red-50 dark:bg-red-950/20 border-red-200 text-red-800 dark:text-red-300'
                                 }`}>
                                     {quizScore.percentage >= 80 ? (
-                                        <CheckCircle className="shrink-0 text-green-600" size={20} />
+                                        <CheckCircle className="shrink-0 text-mint" size={20} />
                                     ) : (
                                         <XCircle className="shrink-0 text-red-600" size={20} />
                                     )}
@@ -585,9 +585,9 @@ const CoursePlayer: React.FC<CoursePlayerProps> = ({ module, courseTitle, onBack
                                         </p>
                                         <button 
                                             onClick={handleRetake}
-                                            className={`mt-3 text-xs px-3.5 py-1.5 rounded-lg font-bold transition-colors cursor-pointer text-white ${
+                                            className={`mt-3 text-xs px-3.5 py-1.5 rounded-[12px] font-bold transition-colors cursor-pointer text-white ${
                                                 quizScore.percentage >= 80
-                                                    ? 'bg-green-600 hover:bg-green-700'
+                                                    ? 'bg-mint hover:bg-mint'
                                                     : quizScore.percentage >= 50
                                                         ? 'bg-amber-600 hover:bg-amber-700'
                                                         : 'bg-red-600 hover:bg-red-700'
@@ -604,10 +604,10 @@ const CoursePlayer: React.FC<CoursePlayerProps> = ({ module, courseTitle, onBack
                                 {(module.quizQuestions || []).map((q, qIdx) => (
                                     <div 
                                         key={q.id || qIdx} 
-                                        className={`p-5 rounded-2xl border transition-all ${
+                                        className={`p-5 rounded-[22px] border transition-all ${
                                             quizSubmitted 
                                                 ? (selectedAnswers[qIdx] === q.correctAnswer)
-                                                    ? 'bg-green-50/10 border-green-200'
+                                                    ? 'bg-mint-soft/10 border-green-200'
                                                     : 'bg-red-50/10 border-red-200'
                                                 : 'bg-white dark:bg-slate-900 border-stone-100 dark:border-slate-800'
                                         }`}
@@ -629,7 +629,7 @@ const CoursePlayer: React.FC<CoursePlayerProps> = ({ module, courseTitle, onBack
                                                             ? 'border-green-500 bg-green-500/10 text-green-900 dark:text-green-200' 
                                                             : 'border-red-500 bg-red-500/10 text-red-900 dark:text-red-200';
                                                     } else if (isCorrectAnswer) {
-                                                        optionStyle = 'border-green-500/50 bg-green-500/5 text-green-700 dark:text-green-400';
+                                                        optionStyle = 'border-green-500/50 bg-green-500/5 text-mint dark:text-green-400';
                                                     }
                                                 } else if (isSelected) {
                                                     optionStyle = 'border-violet-500 bg-violet-500/10 text-violet-900 dark:text-violet-200';
@@ -642,7 +642,7 @@ const CoursePlayer: React.FC<CoursePlayerProps> = ({ module, courseTitle, onBack
                                                         onClick={() => {
                                                             setSelectedAnswers(prev => ({ ...prev, [qIdx]: oIdx }));
                                                         }}
-                                                        className={`w-full p-3.5 rounded-xl border text-left text-sm font-semibold transition-all flex items-center gap-3 cursor-pointer disabled:cursor-default ${optionStyle}`}
+                                                        className={`w-full p-3.5 rounded-[14px] border text-left text-sm font-semibold transition-all flex items-center gap-3 cursor-pointer disabled:cursor-default ${optionStyle}`}
                                                     >
                                                         <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs border font-bold shrink-0 ${
                                                             isSelected 
@@ -654,7 +654,7 @@ const CoursePlayer: React.FC<CoursePlayerProps> = ({ module, courseTitle, onBack
                                                         <span className="flex-1 leading-tight">{option}</span>
                                                         
                                                         {quizSubmitted && isSelected && (
-                                                            isCorrectAnswer ? <CheckCircle size={18} className="text-green-600 shrink-0" /> : <XCircle size={18} className="text-red-600 shrink-0" />
+                                                            isCorrectAnswer ? <CheckCircle size={18} className="text-mint shrink-0" /> : <XCircle size={18} className="text-red-600 shrink-0" />
                                                         )}
                                                     </button>
                                                 );
@@ -669,10 +669,10 @@ const CoursePlayer: React.FC<CoursePlayerProps> = ({ module, courseTitle, onBack
                                 <button
                                     onClick={() => handleQuizSubmit()}
                                     disabled={Object.keys(selectedAnswers).length < (module.quizQuestions || []).length}
-                                    className={`w-full py-4 rounded-2xl font-bold transition-all mt-8 cursor-pointer ${
+                                    className={`w-full py-4 rounded-[22px] font-bold transition-all mt-8 cursor-pointer ${
                                         Object.keys(selectedAnswers).length < (module.quizQuestions || []).length
                                             ? 'bg-stone-100 dark:bg-slate-800 text-stone-500 dark:text-slate-600 cursor-not-allowed border border-transparent'
-                                            : 'bg-violet-700 text-white hover:bg-violet-800 shadow-sm shadow-purple-100'
+                                            : 'bg-violet-700 text-white hover:bg-brand-mid shadow-sm shadow-purple-100'
                                     }`}
                                 >
                                     Submit Quiz Answers
@@ -693,7 +693,7 @@ const CoursePlayer: React.FC<CoursePlayerProps> = ({ module, courseTitle, onBack
                                                 <iframe
                                                     src={`https://www.youtube.com/embed/${ytId}?autoplay=1&rel=0`}
                                                     title={module.title}
-                                                    className="w-full h-full rounded-xl shadow-2xl"
+                                                    className="w-full h-full rounded-[14px] shadow-2xl"
                                                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                                                     allowFullScreen
                                                 ></iframe>
@@ -708,7 +708,7 @@ const CoursePlayer: React.FC<CoursePlayerProps> = ({ module, courseTitle, onBack
                                                     controls 
                                                     autoPlay 
                                                     onEnded={() => setIsVideoComplete(true)}
-                                                    className="w-full max-h-[75vh] rounded-xl shadow-2xl object-contain outline-none bg-black"
+                                                    className="w-full max-h-[75vh] rounded-[14px] shadow-2xl object-contain outline-none bg-black"
                                                 >
                                                     Your browser does not support the video tag.
                                                 </video>
@@ -741,15 +741,15 @@ const CoursePlayer: React.FC<CoursePlayerProps> = ({ module, courseTitle, onBack
                 ) : module.type === 'audio' ? (
                     <>
                         <div className="lg:flex-[2.5] bg-stone-50 dark:bg-slate-950 flex flex-col items-center justify-center p-5 sm:p-8 relative lg:h-full">
-                            <div className="max-w-md w-full bg-white dark:bg-slate-900 p-8 rounded-2xl shadow-sm border border-stone-100 dark:border-slate-800 text-center space-y-6">
+                            <div className="max-w-md w-full bg-white dark:bg-night-2 p-8 rounded-[22px] text-center space-y-6">
                                 <div className="mx-auto w-24 h-24 rounded-full bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 flex items-center justify-center shadow-sm animate-pulse">
                                     <Headphones size={44} />
                                 </div>
                                 <div>
-                                    <h1 className="text-2xl font-semibold text-stone-900 dark:text-white mb-2 font-serif">{module.title}</h1>
+                                    <h1 className="text-2xl font-extrabold text-stone-900 dark:text-white mb-2 tracking-[-0.02em]">{module.title}</h1>
                                     <p className="text-sm text-stone-600 dark:text-slate-400">Audio Lesson • {module.duration}</p>
                                 </div>
-                                <div className="bg-stone-50 dark:bg-slate-800 p-6 rounded-2xl border border-stone-100 dark:border-slate-800">
+                                <div className="bg-stone-50 dark:bg-slate-800 p-6 rounded-[22px] border border-stone-100 dark:border-slate-800">
                                     {module.audioUrl ? (
                                         <audio 
                                             src={module.audioUrl} 
@@ -775,7 +775,7 @@ const CoursePlayer: React.FC<CoursePlayerProps> = ({ module, courseTitle, onBack
                         <div className="flex-1 bg-stone-50 dark:bg-slate-950 overflow-y-auto p-6 md:p-10">
                             <div className="max-w-4xl mx-auto space-y-6">
                                 {/* Live Class Callout Header */}
-                                <div className="bg-violet-800 rounded-2xl p-6 md:p-8 text-white shadow-sm relative overflow-hidden">
+                                <div className="bg-violet-800 rounded-[22px] p-6 md:p-8 text-white shadow-sm relative overflow-hidden">
                                     <div className="relative z-10 space-y-4">
                                         <div className="flex flex-wrap items-center gap-2">
                                             <span className="px-3 py-1 bg-white/20 backdrop-blur-md rounded-full text-xs font-bold uppercase tracking-wider flex items-center gap-1.5">
@@ -789,7 +789,7 @@ const CoursePlayer: React.FC<CoursePlayerProps> = ({ module, courseTitle, onBack
                                             )}
                                         </div>
 
-                                        <h1 className="text-2xl md:text-3xl font-semibold tracking-tight font-serif">
+                                        <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight tracking-[-0.02em]">
                                             {module.title}
                                         </h1>
 
@@ -798,7 +798,7 @@ const CoursePlayer: React.FC<CoursePlayerProps> = ({ module, courseTitle, onBack
                                         </p>
 
                                         {(module.scheduledDate || module.scheduledTime) && (
-                                            <div className="flex items-center gap-2 text-xs font-semibold text-white bg-white/15 px-3.5 py-2 rounded-xl w-fit">
+                                            <div className="flex items-center gap-2 text-xs font-semibold text-white bg-white/15 px-3.5 py-2 rounded-[14px] w-fit">
                                                 <Calendar size={13} />
                                                 <span>{module.sessionNumber ? `Session #${module.sessionNumber}: ` : ''}{module.scheduledDate} {module.scheduledTime ? `@ ${module.scheduledTime}` : ''}</span>
                                             </div>
@@ -811,14 +811,14 @@ const CoursePlayer: React.FC<CoursePlayerProps> = ({ module, courseTitle, onBack
                                                     href={module.meetLink}
                                                     target="_blank"
                                                     rel="noopener noreferrer"
-                                                    className="px-7 py-3.5 bg-white hover:bg-violet-50 text-violet-800 font-bold rounded-2xl shadow-sm flex items-center justify-center gap-2 text-sm transition-all transform hover:scale-105 active:scale-95 cursor-pointer"
+                                                    className="px-7 py-3.5 bg-white hover:bg-violet-50 text-violet-800 font-bold rounded-[22px] shadow-sm flex items-center justify-center gap-2 text-sm transition-all transform hover:scale-105 active:scale-95 cursor-pointer"
                                                 >
                                                     <Radio size={16} className="animate-pulse" />
                                                     <span>Join Google Meet Call Now</span>
                                                     <ExternalLink size={15} />
                                                 </a>
 
-                                                <div className="bg-white/15 px-4 py-2.5 rounded-2xl border border-white/15 flex items-center justify-between gap-3 text-xs">
+                                                <div className="bg-white/15 px-4 py-2.5 rounded-[22px] border border-white/15 flex items-center justify-between gap-3 text-xs">
                                                     <span className="font-mono text-emerald-300 truncate max-w-xs">{module.meetLink}</span>
                                                     <button
                                                         type="button"
@@ -827,7 +827,7 @@ const CoursePlayer: React.FC<CoursePlayerProps> = ({ module, courseTitle, onBack
                                                             setCopiedPlayerMeet(true);
                                                             setTimeout(() => setCopiedPlayerMeet(false), 1500);
                                                         }}
-                                                        className="px-2.5 py-1 bg-white/15 hover:bg-white/25 rounded-lg font-semibold flex items-center gap-1 cursor-pointer shrink-0"
+                                                        className="px-2.5 py-1 bg-white/15 hover:bg-white/25 rounded-[12px] font-semibold flex items-center gap-1 cursor-pointer shrink-0"
                                                     >
                                                         {copiedPlayerMeet ? <Check size={12} className="text-emerald-300" /> : <Copy size={12} />}
                                                         {copiedPlayerMeet ? 'Copied' : 'Copy'}
@@ -839,10 +839,10 @@ const CoursePlayer: React.FC<CoursePlayerProps> = ({ module, courseTitle, onBack
                                 </div>
 
                                 {/* Attendance PIN Verification Card */}
-                                <div className="bg-white dark:bg-slate-900 rounded-2xl p-6 border border-stone-100 dark:border-slate-800 shadow-sm space-y-4">
+                                <div className="bg-white dark:bg-night-2 rounded-[22px] p-6 space-y-4">
                                     <div className="flex items-center justify-between">
                                         <div className="flex items-center gap-2.5">
-                                            <div className="w-10 h-10 rounded-xl bg-violet-50 dark:bg-violet-950/50 text-violet-700 dark:text-violet-400 flex items-center justify-center">
+                                            <div className="w-10 h-10 rounded-[14px] bg-violet-50 dark:bg-violet-950/50 text-violet-700 dark:text-violet-400 flex items-center justify-center">
                                                 <Key size={18} />
                                             </div>
                                             <div>
@@ -852,20 +852,20 @@ const CoursePlayer: React.FC<CoursePlayerProps> = ({ module, courseTitle, onBack
                                         </div>
 
                                         {pinSuccess && (
-                                            <span className="px-3 py-1 bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 font-bold text-xs rounded-full border border-emerald-200 dark:border-emerald-800 flex items-center gap-1">
+                                            <span className="px-3 py-1 bg-mint-soft dark:bg-emerald-950/60 text-mint dark:text-emerald-400 font-bold text-xs rounded-full border border-emerald-200 dark:border-emerald-800 flex items-center gap-1">
                                                 <CheckCircle size={13} /> Attended & Verified
                                             </span>
                                         )}
                                     </div>
 
                                     {pinSuccess ? (
-                                        <div className="p-4 bg-emerald-50/70 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-900/40 rounded-2xl flex items-center gap-3">
+                                        <div className="p-4 bg-mint-soft/70 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-900/40 rounded-[22px] flex items-center gap-3">
                                             <div className="w-8 h-8 rounded-full bg-emerald-500 text-white flex items-center justify-center shrink-0">
                                                 <Check size={16} />
                                             </div>
                                             <div className="text-xs text-emerald-800 dark:text-emerald-300">
                                                 <p className="font-bold">Your attendance has been recorded for this live lecture!</p>
-                                                <p className="text-emerald-600 dark:text-emerald-400">Lesson marked as completed. You may continue to the next topic.</p>
+                                                <p className="text-mint dark:text-emerald-400">Lesson marked as completed. You may continue to the next topic.</p>
                                             </div>
                                         </div>
                                     ) : (
@@ -879,12 +879,12 @@ const CoursePlayer: React.FC<CoursePlayerProps> = ({ module, courseTitle, onBack
                                                         if (pinError) setPinError('');
                                                     }}
                                                     placeholder="Enter Attendance PIN (e.g. WEL-8492)"
-                                                    className="flex-1 p-3 bg-stone-50 dark:bg-slate-800 border border-stone-200 dark:border-slate-700 rounded-xl text-sm font-mono font-bold uppercase text-stone-900 dark:text-white outline-none focus:ring-2 focus:ring-violet-500"
+                                                    className="flex-1 p-3 bg-stone-50 dark:bg-slate-800 border border-stone-200 dark:border-slate-700 rounded-[14px] text-sm font-mono font-bold uppercase text-stone-900 dark:text-white outline-none focus:ring-2 focus:ring-violet-500"
                                                 />
                                                 <button
                                                     type="button"
                                                     onClick={handleVerifyPin}
-                                                    className="px-6 py-3 bg-violet-700 hover:bg-violet-800 text-white font-bold rounded-xl text-xs flex items-center justify-center gap-1.5 transition-colors shadow-sm cursor-pointer"
+                                                    className="px-6 py-3 bg-violet-700 hover:bg-brand-mid text-white font-bold rounded-[14px] text-xs flex items-center justify-center gap-1.5 transition-colors shadow-sm cursor-pointer"
                                                 >
                                                     <CheckCircle size={14} /> Verify Attendance
                                                 </button>
@@ -901,7 +901,7 @@ const CoursePlayer: React.FC<CoursePlayerProps> = ({ module, courseTitle, onBack
 
                                 {/* Lecture Notes / Summary */}
                                 {module.content && (
-                                    <div className="bg-white dark:bg-slate-900 rounded-2xl p-6 border border-stone-100 dark:border-slate-800 shadow-sm space-y-3">
+                                    <div className="bg-white dark:bg-night-2 rounded-[22px] p-6 space-y-3">
                                         <h3 className="font-bold text-stone-900 dark:text-white text-base">Lecture Agenda & Key Concepts</h3>
                                         <div className="prose prose-violet dark:prose-invert max-w-none text-stone-700 dark:text-slate-300 text-sm leading-relaxed">
                                             {renderFormattedContent(module.content)}
@@ -916,14 +916,14 @@ const CoursePlayer: React.FC<CoursePlayerProps> = ({ module, courseTitle, onBack
                     </>
                 ) : module.type === 'document' ? (
                     <div className="flex-1 bg-stone-50 dark:bg-slate-950 overflow-y-auto p-4 sm:p-8">
-                        <div className="max-w-4xl mx-auto bg-white dark:bg-slate-900 p-5 sm:p-8 md:p-10 rounded-2xl shadow-sm border border-stone-100 dark:border-slate-800 min-h-full flex flex-col">
+                        <div className="max-w-4xl mx-auto bg-white dark:bg-night-2 p-5 sm:p-8 md:p-10 rounded-[22px] min-h-full flex flex-col">
                             <div className="flex flex-wrap items-center justify-between gap-4 mb-8 pb-6 border-b border-stone-100 dark:border-slate-800">
                                 <div className="flex items-center gap-3">
-                                    <div className="p-3 bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 rounded-xl">
+                                    <div className="p-3 bg-brand-soft dark:bg-indigo-950/40 text-brand dark:text-indigo-400 rounded-[14px]">
                                         <File size={28} />
                                     </div>
                                     <div>
-                                        <h1 className="text-3xl font-semibold text-stone-900 dark:text-white font-serif">{module.title}</h1>
+                                        <h1 className="m-0 text-[26px] sm:text-[30px] font-extrabold text-ink dark:text-white tracking-[-0.02em]">{module.title}</h1>
                                         <p className="text-sm text-stone-600 dark:text-slate-400 mt-1">Reference Document & Material</p>
                                     </div>
                                 </div>
@@ -933,7 +933,7 @@ const CoursePlayer: React.FC<CoursePlayerProps> = ({ module, courseTitle, onBack
                                         download={module.fileName || 'handout'}
                                         target="_blank"
                                         rel="noopener noreferrer"
-                                        className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-xl text-xs font-bold transition-all shadow-sm shadow-indigo-100 dark:shadow-none shrink-0"
+                                        className="flex items-center gap-2 bg-brand hover:bg-brand text-white px-5 py-2.5 rounded-[14px] text-xs font-bold transition-all shadow-sm shadow-indigo-100 dark:shadow-none shrink-0"
                                     >
                                         <File size={14} /> Download Document
                                     </a>
@@ -942,7 +942,7 @@ const CoursePlayer: React.FC<CoursePlayerProps> = ({ module, courseTitle, onBack
 
                             {/* Embed PDF or show standard file preview */}
                             {module.fileUrl ? (
-                                <div className="mb-8 border border-stone-200 dark:border-slate-800 rounded-2xl overflow-hidden bg-stone-50 dark:bg-slate-950 flex-1 min-h-[450px] flex flex-col">
+                                <div className="mb-8 border border-stone-200 dark:border-slate-800 rounded-[22px] overflow-hidden bg-stone-50 dark:bg-slate-950 flex-1 min-h-[450px] flex flex-col">
                                     {module.fileUrl.endsWith('.pdf') || module.fileName?.endsWith('.pdf') ? (
                                         <iframe 
                                             src={module.fileUrl} 
@@ -971,14 +971,14 @@ const CoursePlayer: React.FC<CoursePlayerProps> = ({ module, courseTitle, onBack
                     </div>
                 ) : (
                     <div className="flex-1 bg-stone-50 dark:bg-slate-950 overflow-y-auto p-4 sm:p-8">
-                        <div className="max-w-3xl mx-auto bg-white dark:bg-slate-900 p-5 sm:p-10 rounded-2xl shadow-sm border border-stone-100 dark:border-slate-800 min-h-full">
+                        <div className="max-w-3xl mx-auto bg-white dark:bg-night-2 p-5 sm:p-10 rounded-[22px] min-h-full">
                             <div className="flex items-center justify-between mb-8 pb-6 border-b border-stone-100 dark:border-slate-800">
                                 <div className="flex items-center gap-3">
-                                    <div className="p-3 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 rounded-xl">
+                                    <div className="p-3 bg-mint-soft dark:bg-emerald-950/40 text-mint dark:text-emerald-400 rounded-[14px]">
                                         <FileText size={28} />
                                     </div>
                                     <div>
-                                        <h1 className="text-3xl font-semibold text-stone-900 dark:text-white font-serif">{module.title}</h1>
+                                        <h1 className="m-0 text-[26px] sm:text-[30px] font-extrabold text-ink dark:text-white tracking-[-0.02em]">{module.title}</h1>
                                         <p className="text-stone-600 dark:text-slate-400 mt-1">Reading Material</p>
                                     </div>
                                 </div>

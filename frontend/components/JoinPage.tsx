@@ -5,10 +5,11 @@ import { supabase } from '../src/lib/supabaseClient';
 import { setReferral, logReferralClick, setFreeCourseIntent } from '../src/lib/acquisition';
 import { OFFICIAL_COURSE_CATALOG } from '../src/lib/outreachSync';
 import { BTN_PRIMARY, CARD, INK, Logo, MUTED, PAPER, ThemeButton } from './learn/learnUi';
+import { MiniOrb } from './ui/welile';
 
 const FREE_TITLE = 'AI Fundamentals (free)';
 const FREE_SLUG = 'ai-fundamentals';
-const INPUT = 'w-full rounded-xl border border-stone-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-4 py-3 text-base focus:outline-none focus-visible:ring-2 focus-visible:ring-violet-500';
+const INPUT = 'w-full h-[52px] rounded-[14px] border-2 border-transparent bg-panel dark:bg-night-3 px-4 text-[15px] focus:outline-none focus:border-brand transition-colors';
 
 /** Very short sign-up form behind a sales agent's personal link: /join/<agent>. Free course first, other courses selectable. */
 const JoinPage: React.FC = () => {
@@ -77,33 +78,43 @@ const JoinPage: React.FC = () => {
 
     return (
         <div className={`min-h-screen ${PAPER} ${INK}`}>
-            <header className="max-w-md mx-auto px-4 pt-5 flex items-center justify-between"><Logo className="h-10" /><ThemeButton /></header>
-            <main className="max-w-md mx-auto px-4 py-6">
-                <h1 className="font-serif text-3xl font-semibold leading-tight">Open your free account</h1>
-                <p className={`mt-2 ${MUTED}`}>{agent ? <>{agent} invited you. </> : null}It takes one minute. Start with <b>AI Fundamentals</b>, free, on any phone, with a free certificate.</p>
+            <header className="max-w-[1080px] mx-auto px-4 pt-4 flex items-center justify-between"><Logo className="h-10" /><ThemeButton /></header>
+            <main className="max-w-[1080px] mx-auto px-3 sm:px-4 py-4 grid grid-cols-1 lg:grid-cols-[1fr_480px] gap-4 items-start">
+                <section className="relative overflow-hidden rounded-[28px] bg-night text-white p-6 sm:p-9 lg:sticky lg:top-4">
+                    <span aria-hidden="true" className="absolute -right-16 -top-20 w-[260px] h-[260px] rounded-full bg-night-3" />
+                    <div className="relative flex items-center gap-3">
+                        <MiniOrb size={56} />
+                        {agent && <p className="m-0 px-3.5 py-2 rounded-full bg-night-3 text-[13px] font-bold text-lime-200">{agent} invited you</p>}
+                    </div>
+                    <h1 className="relative mt-5 mb-0 text-[30px] sm:text-[38px] leading-[1.08] font-extrabold tracking-[-0.03em]">Open your free account</h1>
+                    <p className="relative mt-3 mb-0 text-[15px] leading-relaxed text-[#CFC8DC]">It takes one minute. Start with <b className="text-white">AI Fundamentals</b>, free, on any phone, with a free certificate.</p>
+                    <ul className="relative mt-5 p-0 list-none flex flex-wrap gap-2">
+                        {['6 short modules', 'Live classes Mon, Wed, Fri', 'Free certificate'].map(t => <li key={t} className="px-3 py-2 rounded-[12px] bg-night-2 text-[13px] font-semibold text-[#E6E1EE]">{t}</li>)}
+                    </ul>
+                </section>
 
-                <form onSubmit={submit} className={`${CARD} rounded-2xl p-5 mt-5 space-y-4`} noValidate>
-                    <div><label htmlFor="j-name" className="block text-sm font-semibold mb-1.5">Full name</label><input id="j-name" value={form.name} onChange={set('name')} autoComplete="name" className={INPUT} /></div>
-                    <div><label htmlFor="j-email" className="block text-sm font-semibold mb-1.5">Email</label><input id="j-email" type="email" inputMode="email" value={form.email} onChange={set('email')} autoComplete="email" className={INPUT} /></div>
-                    <div><label htmlFor="j-phone" className="block text-sm font-semibold mb-1.5">Phone (WhatsApp)</label><input id="j-phone" type="tel" inputMode="tel" value={form.phone} onChange={set('phone')} autoComplete="tel" placeholder="07XX XXX XXX" className={INPUT} /></div>
-                    <div><label htmlFor="j-loc" className="block text-sm font-semibold mb-1.5">Where are you based?</label><input id="j-loc" value={form.location} onChange={set('location')} autoComplete="address-level2" placeholder="Town or district, e.g. Kampala" className={INPUT} /></div>
+                <form onSubmit={submit} className={`${CARD} p-5 sm:p-7 space-y-4`} noValidate>
+                    <div><label htmlFor="j-name" className="block text-[13px] font-bold mb-1.5">Full name</label><input id="j-name" value={form.name} onChange={set('name')} autoComplete="name" className={INPUT} /></div>
+                    <div><label htmlFor="j-email" className="block text-[13px] font-bold mb-1.5">Email</label><input id="j-email" type="email" inputMode="email" value={form.email} onChange={set('email')} autoComplete="email" className={INPUT} /></div>
+                    <div><label htmlFor="j-phone" className="block text-[13px] font-bold mb-1.5">Phone (WhatsApp)</label><input id="j-phone" type="tel" inputMode="tel" value={form.phone} onChange={set('phone')} autoComplete="tel" placeholder="07XX XXX XXX" className={INPUT} /></div>
+                    <div><label htmlFor="j-loc" className="block text-[13px] font-bold mb-1.5">Where are you based?</label><input id="j-loc" value={form.location} onChange={set('location')} autoComplete="address-level2" placeholder="Town or district, e.g. Kampala" className={INPUT} /></div>
                     <div>
-                        <label htmlFor="j-pass" className="block text-sm font-semibold mb-1.5">Create a password</label>
+                        <label htmlFor="j-pass" className="block text-[13px] font-bold mb-1.5">Create a password</label>
                         <div className="relative">
                             <input id="j-pass" type={show ? 'text' : 'password'} value={form.password} onChange={set('password')} autoComplete="new-password" className={`${INPUT} pr-12`} />
-                            <button type="button" onClick={() => setShow(s => !s)} aria-label={show ? 'Hide password' : 'Show password'} className="absolute right-2 top-1/2 -translate-y-1/2 p-2 text-stone-500">{show ? <EyeOff size={18} /> : <Eye size={18} />}</button>
+                            <button type="button" onClick={() => setShow(s => !s)} aria-label={show ? 'Hide password' : 'Show password'} className="absolute right-1.5 top-1/2 -translate-y-1/2 w-10 h-10 rounded-[10px] inline-flex items-center justify-center text-[#6B6680] hover:text-brand">{show ? <EyeOff size={18} /> : <Eye size={18} />}</button>
                         </div>
                     </div>
                     <div>
-                        <label htmlFor="j-course" className="block text-sm font-semibold mb-1.5">I want to learn</label>
+                        <label htmlFor="j-course" className="block text-[13px] font-bold mb-1.5">I want to learn</label>
                         <select id="j-course" value={form.course} onChange={set('course')} className={INPUT}>{courses.map(c => <option key={c} value={c}>{c}</option>)}</select>
                         {!isFree && <p className={`mt-2 text-sm ${MUTED}`}>You will get the free AI Fundamentals course too. Our team will contact you about {form.course}.</p>}
                     </div>
-                    <label className="flex items-start gap-3 text-sm cursor-pointer"><input type="checkbox" checked={form.consent} onChange={set('consent')} className="mt-0.5 accent-violet-700 w-5 h-5 shrink-0" /><span>Welile School of AI may contact me about my programme.</span></label>
+                    <label className="flex items-start gap-3 text-sm cursor-pointer"><input type="checkbox" checked={form.consent} onChange={set('consent')} className="mt-0.5 accent-[#5B2BC4] w-5 h-5 shrink-0" /><span>Welile School of AI may contact me about my programme.</span></label>
 
-                    <label className="flex items-start gap-3 text-sm cursor-pointer"><input type="checkbox" checked={form.emailOptIn} onChange={set('emailOptIn')} className="mt-0.5 accent-violet-700 w-5 h-5 shrink-0" /><span>Email me live-class reminders and course updates. You can change this any time.</span></label>
+                    <label className="flex items-start gap-3 text-sm cursor-pointer"><input type="checkbox" checked={form.emailOptIn} onChange={set('emailOptIn')} className="mt-0.5 accent-[#5B2BC4] w-5 h-5 shrink-0" /><span>Email me live-class reminders and course updates. You can change this any time.</span></label>
 
-                    {exists && <p role="alert" className="text-sm rounded-lg bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900 p-3">This email already has an account. <a href="/login" className="font-semibold underline">Sign in</a> and open your free course.</p>}
+                    {exists && <p role="alert" className="text-sm rounded-[14px] bg-[#FFF3D6] dark:bg-amber-950/30 text-[#6B4A00] dark:text-amber-200 p-3.5">This email already has an account. <a href="/login" className="font-semibold underline">Sign in</a> and open your free course.</p>}
                     {error && <p role="alert" className="text-sm text-red-600 flex items-start gap-2"><AlertTriangle size={16} className="mt-0.5 shrink-0" />{error}</p>}
                     <button type="submit" disabled={busy} className={`${BTN_PRIMARY} w-full`}>{busy ? <><Loader2 className="animate-spin" size={18} /> Creating...</> : <><UserPlus size={18} /> Create my account</>}</button>
                     <p className={`text-xs text-center ${MUTED}`}>You will get an email to confirm your address. Already registered? <a href="/login" className="underline">Sign in</a></p>

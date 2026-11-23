@@ -218,7 +218,7 @@ const AdminExams: React.FC<AdminExamsProps> = ({ isInstructor = false }) => {
             <div className="flex items-center justify-center min-h-[300px]">
                 <div className="flex flex-col items-center gap-3">
                     <RefreshCw className="animate-spin text-violet-600 dark:text-violet-400 w-8 h-8" />
-                    <span className="text-sm text-gray-500 dark:text-slate-400 font-medium">Loading exams...</span>
+                    <span className="text-sm text-stone-500 dark:text-slate-400 font-medium">Loading exams...</span>
                 </div>
             </div>
         );
@@ -226,14 +226,14 @@ const AdminExams: React.FC<AdminExamsProps> = ({ isInstructor = false }) => {
 
     return (
         <div className="space-y-6">
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center bg-white dark:bg-slate-900 p-6 rounded-3xl shadow-sm border border-gray-150 dark:border-slate-800 gap-4">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center bg-white dark:bg-night-2 p-6 rounded-[26px] gap-4">
                 <div>
-                    <h2 className="text-lg font-bold text-gray-900 dark:text-white">Examination Management</h2>
-                    <p className="text-xs text-gray-500 dark:text-slate-400 mt-1">Configure and publish strict exams with anti-cheat measures</p>
+                    <h1 className="m-0 text-[28px] font-extrabold tracking-[-0.02em]">Exam setup</h1>
+                    <p className="text-xs text-stone-500 dark:text-slate-400 mt-1">Configure and publish strict exams with anti-cheat measures</p>
                 </div>
                 <button 
                     onClick={handleNewExam}
-                    className="bg-violet-600 hover:bg-violet-700 text-white px-4 py-2.5 rounded-xl flex items-center gap-2 text-sm font-bold shadow-md shadow-violet-200 dark:shadow-none transition-colors cursor-pointer"
+                    className="bg-brand hover:bg-brand-mid text-white px-4 py-2.5 rounded-[14px] flex items-center gap-2 text-sm font-bold shadow-md shadow-violet-200 dark:shadow-none transition-colors cursor-pointer"
                 >
                     <Plus size={18} /> New Exam Wizard
                 </button>
@@ -241,18 +241,18 @@ const AdminExams: React.FC<AdminExamsProps> = ({ isInstructor = false }) => {
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {coursesWithExams.length === 0 && (
-                    <div className="col-span-full py-16 text-center text-gray-400 dark:text-slate-500 bg-white dark:bg-slate-900 rounded-3xl border border-dashed border-gray-200 dark:border-slate-800">
+                    <div className="col-span-full py-16 text-center text-stone-400 dark:text-slate-500 bg-white dark:bg-night-2 rounded-[26px] border-dashed">
                         No exams have been created yet.
                     </div>
                 )}
                 {coursesWithExams.map(c => (
-                    <div key={c.id} className="bg-white dark:bg-slate-900 rounded-3xl p-6 border border-gray-150 dark:border-slate-800 shadow-sm hover:shadow-xl hover:transform hover:-translate-y-1 hover:border-welile-purple dark:hover:border-purple-600 transition-all duration-300 relative overflow-hidden flex flex-col justify-between min-h-[190px]">
+                    <div key={c.id} className="bg-white dark:bg-night-2 rounded-[26px] p-6 hover:shadow-xl hover:transform hover:-translate-y-1 hover:border-welile-purple dark:hover:border-brand transition-all duration-300 relative overflow-hidden flex flex-col justify-between min-h-[190px]">
                         <div>
                             <div className="flex justify-between items-start mb-2.5">
-                                <span className={`text-[10px] uppercase font-extrabold px-2 py-0.5 rounded-full border shadow-xs tracking-wider shrink-0 ${
+                                <span className={`text-[10px] uppercase font-extrabold px-2 py-0.5 rounded-full border tracking-wider shrink-0 ${
                                     c.quiz?.isDraft 
                                         ? 'bg-amber-100 text-amber-700 border-amber-200 dark:bg-amber-950/30 dark:text-amber-400 dark:border-amber-900/50' 
-                                        : 'bg-emerald-100 text-emerald-700 border-emerald-200 dark:bg-emerald-950/30 dark:text-emerald-400 dark:border-emerald-900/50'
+                                        : 'bg-mint-soft text-mint border-emerald-200 dark:bg-emerald-950/30 dark:text-emerald-400 dark:border-emerald-900/50'
                                 }`}>
                                     {c.quiz?.isDraft ? 'Draft' : 'Published'}
                                 </span>
@@ -263,28 +263,28 @@ const AdminExams: React.FC<AdminExamsProps> = ({ isInstructor = false }) => {
                                     </span>
                                 )}
                             </div>
-                            <h3 className="font-bold text-gray-900 dark:text-white text-base mt-2 mb-1 line-clamp-2">{c.quiz?.title}</h3>
+                            <h3 className="font-bold text-stone-900 dark:text-white text-base mt-2 mb-1 line-clamp-2">{c.quiz?.title}</h3>
                             <p className="text-xs text-violet-650 dark:text-violet-400 mb-4 font-semibold">Course: {c.title}</p>
                         </div>
                         
-                        <div className="flex items-center justify-between border-t border-gray-100 dark:border-slate-800 pt-4 mt-auto">
-                            <div className="flex gap-2 text-[11px] text-gray-500 dark:text-slate-400 font-bold">
-                                <span className="bg-gray-100 dark:bg-slate-800 px-2 py-1 rounded-md">{c.quiz?.questions.length} Questions</span>
-                                <span className="bg-gray-100 dark:bg-slate-800 px-2 py-1 rounded-md">{c.quiz?.timeLimit} Mins</span>
+                        <div className="flex items-center justify-between border-t border-stone-100 dark:border-slate-800 pt-4 mt-auto">
+                            <div className="flex gap-2 text-[11px] text-stone-500 dark:text-slate-400 font-bold">
+                                <span className="bg-stone-100 dark:bg-slate-800 px-2 py-1 rounded-md">{c.quiz?.questions.length} Questions</span>
+                                <span className="bg-stone-100 dark:bg-slate-800 px-2 py-1 rounded-md">{c.quiz?.timeLimit} Mins</span>
                             </div>
                             
                             <div className="flex gap-1.5">
                                 {c.quiz?.isDraft && (
                                     <button
                                         onClick={() => handlePublishDirectly(c.id, c.quiz!)}
-                                        className="bg-emerald-50 hover:bg-emerald-100 text-emerald-700 dark:bg-emerald-950/30 dark:hover:bg-emerald-900/30 dark:text-emerald-400 border border-emerald-250 dark:border-emerald-900/50 text-[11px] px-2.5 py-1.5 rounded-xl font-extrabold transition-colors cursor-pointer"
+                                        className="bg-mint-soft hover:bg-mint-soft text-mint dark:bg-emerald-950/30 dark:hover:bg-emerald-900/30 dark:text-emerald-400 border border-emerald-250 dark:border-emerald-900/50 text-[11px] px-2.5 py-1.5 rounded-[14px] font-extrabold transition-colors cursor-pointer"
                                     >
                                         Publish
                                     </button>
                                 )}
                                 <button
                                     onClick={() => handleEditExam(c)}
-                                    className="bg-gray-50 hover:bg-gray-100 text-gray-700 dark:bg-slate-800 dark:hover:bg-slate-700 dark:text-slate-300 border border-gray-200 dark:border-slate-700 text-[11px] px-2.5 py-1.5 rounded-xl font-extrabold transition-colors cursor-pointer flex items-center gap-1"
+                                    className="bg-stone-50 hover:bg-stone-100 text-stone-700 dark:bg-slate-800 dark:hover:bg-slate-700 dark:text-slate-300 border border-stone-200 dark:border-slate-700 text-[11px] px-2.5 py-1.5 rounded-[14px] font-extrabold transition-colors cursor-pointer flex items-center gap-1"
                                 >
                                     <Edit2 size={12} /> Edit
                                 </button>
@@ -297,97 +297,97 @@ const AdminExams: React.FC<AdminExamsProps> = ({ isInstructor = false }) => {
             {/* Exam Setup Wizard Modal */}
             {isWizardOpen && (
                 <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
-                    <div className="bg-white dark:bg-slate-900 rounded-3xl w-full max-w-3xl overflow-hidden shadow-2xl flex flex-col max-h-[90vh]">
-                        <div className="p-6 border-b border-gray-100 dark:border-slate-800 flex justify-between items-center bg-gray-50/50 dark:bg-slate-900/50">
-                            <h2 className="text-xl font-bold text-gray-900 dark:text-white">
+                    <div className="bg-white dark:bg-night-2 rounded-[26px] w-full max-w-3xl overflow-hidden shadow-2xl flex flex-col max-h-[90vh]">
+                        <div className="p-6 border-b border-stone-100 dark:border-slate-800 flex justify-between items-center bg-stone-50/50 dark:bg-night-2/50">
+                            <h2 className="text-[20px] font-extrabold tracking-[-0.01em]">
                                 {isEditing ? 'Edit Exam' : 'Exam Setup Wizard'}
                             </h2>
-                            <button onClick={() => setIsWizardOpen(false)} className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-slate-350 rounded-full hover:bg-gray-100 dark:hover:bg-slate-800 cursor-pointer">
+                            <button onClick={() => setIsWizardOpen(false)} className="p-2 text-stone-400 hover:text-stone-600 dark:hover:text-slate-350 rounded-full hover:bg-stone-100 dark:hover:bg-slate-800 cursor-pointer">
                                 <X size={20} />
                             </button>
                         </div>
 
-                        <div className="bg-gray-100 dark:bg-slate-800 h-1.5 w-full">
-                            <div className="h-full bg-violet-600 transition-all duration-300" style={{ width: `${(step / 3) * 100}%` }}></div>
+                        <div className="bg-stone-100 dark:bg-slate-800 h-1.5 w-full">
+                            <div className="h-full bg-brand transition-all duration-300" style={{ width: `${(step / 3) * 100}%` }}></div>
                         </div>
 
                         <div className="p-8 overflow-y-auto flex-1 space-y-6">
                             {step === 1 && (
                                 <div className="space-y-5 animate-in fade-in slide-in-from-right-4 duration-300">
-                                    <h3 className="text-lg font-bold border-b border-gray-100 dark:border-slate-800 pb-2 text-gray-800 dark:text-slate-100">Step 1: Configuration</h3>
+                                    <h3 className="text-lg font-bold border-b border-stone-100 dark:border-slate-800 pb-2 text-stone-800 dark:text-slate-100">Step 1: Configuration</h3>
                                     <div>
-                                        <label className="block text-xs font-bold text-gray-700 dark:text-slate-300 uppercase tracking-wider mb-2">Select Course</label>
+                                        <label className="block text-xs font-bold text-stone-700 dark:text-slate-300 uppercase tracking-wider mb-2">Select Course</label>
                                         <select 
                                             value={examCourseId} 
                                             onChange={e => setExamCourseId(e.target.value)} 
                                             disabled={isEditing}
-                                            className="w-full p-3 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-violet-500 outline-none text-sm text-gray-900 dark:text-white transition-all disabled:opacity-60"
+                                            className="w-full p-3 bg-stone-50 dark:bg-slate-800 border border-stone-200 dark:border-slate-700 rounded-[14px] focus:ring-2 focus:ring-brand outline-none text-sm text-stone-900 dark:text-white transition-all disabled:opacity-60"
                                         >
                                             <option value="">-- Choose Course --</option>
                                             {filteredCourses.map(c => <option key={c.id} value={c.id}>{c.title}</option>)}
                                         </select>
                                         {isEditing && (
-                                            <span className="text-[10px] text-gray-505 dark:text-slate-400 mt-1 block">Course selection cannot be changed when editing an exam.</span>
+                                            <span className="text-[10px] text-stone-505 dark:text-slate-400 mt-1 block">Course selection cannot be changed when editing an exam.</span>
                                         )}
                                     </div>
                                     <div>
-                                        <label className="block text-xs font-bold text-gray-700 dark:text-slate-300 uppercase tracking-wider mb-2">Exam Title</label>
-                                        <input value={quizTitle} onChange={e => setQuizTitle(e.target.value)} className="w-full p-3 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-violet-500 text-sm text-gray-900 dark:text-white outline-none transition-all" placeholder="e.g. Final Certification Exam" />
+                                        <label className="block text-xs font-bold text-stone-700 dark:text-slate-300 uppercase tracking-wider mb-2">Exam Title</label>
+                                        <input value={quizTitle} onChange={e => setQuizTitle(e.target.value)} className="w-full p-3 bg-stone-50 dark:bg-slate-800 border border-stone-200 dark:border-slate-700 rounded-[14px] focus:ring-2 focus:ring-brand text-sm text-stone-900 dark:text-white outline-none transition-all" placeholder="e.g. Final Certification Exam" />
                                     </div>
                                 </div>
                             )}
 
                             {step === 2 && (
                                 <div className="space-y-5 animate-in fade-in slide-in-from-right-4 duration-300">
-                                    <h3 className="text-lg font-bold border-b border-gray-100 dark:border-slate-800 pb-2 text-gray-800 dark:text-slate-100">Step 2: Anti-Cheat Rules</h3>
-                                    <div className="bg-orange-50 dark:bg-orange-950/20 border border-orange-200 dark:border-orange-900/30 p-4 rounded-2xl flex gap-3 text-orange-800 dark:text-orange-400">
+                                    <h3 className="text-lg font-bold border-b border-stone-100 dark:border-slate-800 pb-2 text-stone-800 dark:text-slate-100">Step 2: Anti-Cheat Rules</h3>
+                                    <div className="bg-orange-50 dark:bg-orange-950/20 border border-orange-200 dark:border-orange-900/30 p-4 rounded-[22px] flex gap-3 text-orange-800 dark:text-orange-400">
                                         <AlertTriangle size={24} className="shrink-0 mt-0.5" />
                                         <div>
                                             <p className="font-bold mb-1 text-sm">Strict Exam Environment</p>
                                             <p className="text-xs leading-relaxed">Enabling strict mode will force the student's browser into full-screen. If they attempt to switch tabs or minimize the window, the exam will automatically submit their current answers immediately.</p>
                                         </div>
                                     </div>
-                                    <div className="flex items-center gap-3.5 p-4 border border-gray-200 dark:border-slate-800 rounded-2xl cursor-pointer hover:bg-gray-50 dark:hover:bg-slate-800 text-gray-900 dark:text-slate-205" onClick={() => setPreventTabChange(!preventTabChange)}>
-                                        <div className={`w-6 h-6 rounded flex items-center justify-center border shrink-0 transition-colors ${preventTabChange ? 'bg-violet-600 border-violet-600' : 'border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-800'}`}>
+                                    <div className="flex items-center gap-3.5 p-4 border border-stone-200 dark:border-slate-800 rounded-[22px] cursor-pointer hover:bg-stone-50 dark:hover:bg-slate-800 text-stone-900 dark:text-slate-205" onClick={() => setPreventTabChange(!preventTabChange)}>
+                                        <div className={`w-6 h-6 rounded flex items-center justify-center border shrink-0 transition-colors ${preventTabChange ? 'bg-brand border-violet-600' : 'border-stone-300 dark:border-slate-600 bg-white dark:bg-slate-800'}`}>
                                             {preventTabChange && <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" /></svg>}
                                         </div>
                                         <div>
-                                            <p className="font-bold text-sm text-gray-900 dark:text-white">Enable Fullscreen & Auto-Submit on Tab Change</p>
-                                            <p className="text-xs text-gray-400 mt-0.5">Highly recommended for certification exams.</p>
+                                            <p className="font-bold text-sm text-stone-900 dark:text-white">Enable Fullscreen & Auto-Submit on Tab Change</p>
+                                            <p className="text-xs text-stone-400 mt-0.5">Highly recommended for certification exams.</p>
                                         </div>
                                     </div>
                                     <div>
-                                        <label className="block text-xs font-bold text-gray-700 dark:text-slate-300 uppercase tracking-wider mb-2">Time Limit (Minutes)</label>
-                                        <input type="number" value={timeLimit} onChange={e => setTimeLimit(Number(e.target.value))} className="w-full p-3 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 text-sm text-gray-900 dark:text-white rounded-xl focus:ring-2 focus:ring-violet-500 outline-none transition-all" min={1} />
+                                        <label className="block text-xs font-bold text-stone-700 dark:text-slate-300 uppercase tracking-wider mb-2">Time Limit (Minutes)</label>
+                                        <input type="number" value={timeLimit} onChange={e => setTimeLimit(Number(e.target.value))} className="w-full p-3 bg-stone-50 dark:bg-slate-800 border border-stone-200 dark:border-slate-700 text-sm text-stone-900 dark:text-white rounded-[14px] focus:ring-2 focus:ring-brand outline-none transition-all" min={1} />
                                     </div>
                                 </div>
                             )}
 
                             {step === 3 && (
                                 <div className="space-y-5 animate-in fade-in slide-in-from-right-4 duration-300">
-                                    <h3 className="text-lg font-bold border-b border-gray-100 dark:border-slate-800 pb-2 text-gray-800 dark:text-slate-100 flex justify-between items-center">
+                                    <h3 className="text-lg font-bold border-b border-stone-100 dark:border-slate-800 pb-2 text-stone-800 dark:text-slate-100 flex justify-between items-center">
                                         Step 3: Questions
-                                        <button onClick={handleAddQuestion} className="text-xs bg-violet-100 dark:bg-violet-950 text-violet-700 dark:text-violet-400 border border-violet-200 dark:border-violet-900/50 px-3 py-1.5 rounded-xl font-bold hover:bg-violet-200/80 cursor-pointer">+ Add Question</button>
+                                        <button onClick={handleAddQuestion} className="text-xs bg-violet-100 dark:bg-violet-950 text-violet-700 dark:text-violet-400 border border-violet-200 dark:border-violet-900/50 px-3 py-1.5 rounded-[14px] font-bold hover:bg-violet-200/80 cursor-pointer">+ Add Question</button>
                                     </h3>
                                     
                                     {questions.length === 0 && (
-                                        <div className="text-center py-10 text-gray-400 dark:text-slate-500 border-2 border-dashed border-gray-250 dark:border-slate-850 rounded-2xl">
+                                        <div className="text-center py-10 text-stone-400 dark:text-slate-500 border-2 border-dashed border-stone-250 dark:border-slate-850 rounded-[22px]">
                                             No questions added yet.
                                         </div>
                                     )}
 
                                     {questions.map((q, idx) => (
-                                        <div key={q.id} className="p-5 border border-gray-200 dark:border-slate-800 rounded-2xl bg-white dark:bg-slate-900/60 shadow-sm relative group/q">
+                                        <div key={q.id} className="p-5 rounded-[22px] bg-white dark:bg-night-2/60 relative group/q">
                                             <button 
                                                 onClick={() => handleRemoveQuestion(idx)}
-                                                className="absolute top-4 right-4 p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/20 rounded-lg cursor-pointer transition-colors"
+                                                className="absolute top-4 right-4 p-1.5 text-stone-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/20 rounded-[12px] cursor-pointer transition-colors"
                                                 title="Delete Question"
                                             >
                                                 <X size={16} />
                                             </button>
 
                                             <div className="flex justify-between items-center mb-4 pr-8">
-                                                <h4 className="font-extrabold text-sm text-gray-700 dark:text-slate-350">Question {idx + 1}</h4>
+                                                <h4 className="font-extrabold text-sm text-stone-700 dark:text-slate-350">Question {idx + 1}</h4>
                                                 <select 
                                                     value={q.type} 
                                                     onChange={e => {
@@ -397,7 +397,7 @@ const AdminExams: React.FC<AdminExamsProps> = ({ isInstructor = false }) => {
                                                         newQ[idx].correctAnswer = e.target.value === 'true_false' ? true : e.target.value === 'short_answer' ? '' : 0;
                                                         setQuestions(newQ);
                                                     }} 
-                                                    className="p-2 text-xs bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 text-gray-900 dark:text-white rounded-lg outline-none focus:border-violet-500"
+                                                    className="p-2 text-xs bg-stone-50 dark:bg-slate-800 border border-stone-200 dark:border-slate-700 text-stone-900 dark:text-white rounded-[12px] outline-none focus:border-brand"
                                                 >
                                                     <option value="multiple_choice">Multiple Choice</option>
                                                     <option value="true_false">True / False</option>
@@ -412,13 +412,13 @@ const AdminExams: React.FC<AdminExamsProps> = ({ isInstructor = false }) => {
                                                     newQ[idx].text = e.target.value;
                                                     setQuestions(newQ);
                                                 }} 
-                                                className="w-full p-3 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 text-sm text-gray-900 dark:text-white rounded-xl mb-4 outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-500/20" 
+                                                className="w-full p-3 bg-stone-50 dark:bg-slate-800 border border-stone-200 dark:border-slate-700 text-sm text-stone-900 dark:text-white rounded-[14px] mb-4 outline-none focus:border-brand focus:ring-2 focus:ring-brand" 
                                                 placeholder="Type the question here..." 
                                             />
                                             
                                             {q.type === 'multiple_choice' && (
                                                 <div className="space-y-2.5">
-                                                    <label className="block text-[11px] font-bold text-gray-500 dark:text-slate-400 uppercase tracking-wider">Configure Options & Select Correct Answer:</label>
+                                                    <label className="block text-[11px] font-bold text-stone-500 dark:text-slate-400 uppercase tracking-wider">Configure Options & Select Correct Answer:</label>
                                                     {q.options.map((opt: string, optIdx: number) => (
                                                         <div key={optIdx} className="flex items-center gap-3">
                                                             <input 
@@ -430,7 +430,7 @@ const AdminExams: React.FC<AdminExamsProps> = ({ isInstructor = false }) => {
                                                                     newQ[idx].correctAnswer = optIdx;
                                                                     setQuestions(newQ);
                                                                 }} 
-                                                                className="w-4 h-4 text-violet-600 focus:ring-violet-500 dark:border-slate-700 bg-white dark:bg-slate-800 cursor-pointer" 
+                                                                className="w-4 h-4 text-violet-600 focus:ring-brand dark:border-slate-700 bg-white dark:bg-slate-800 cursor-pointer" 
                                                             />
                                                             <input 
                                                                 value={opt} 
@@ -439,7 +439,7 @@ const AdminExams: React.FC<AdminExamsProps> = ({ isInstructor = false }) => {
                                                                     newQ[idx].options[optIdx] = e.target.value;
                                                                     setQuestions(newQ);
                                                                 }} 
-                                                                className="flex-1 p-2 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 text-sm text-gray-900 dark:text-white rounded-lg outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500/25" 
+                                                                className="flex-1 p-2 bg-stone-50 dark:bg-slate-800 border border-stone-200 dark:border-slate-700 text-sm text-stone-900 dark:text-white rounded-[12px] outline-none focus:border-brand focus:ring-1 focus:ring-brand" 
                                                                 placeholder={`Option ${optIdx + 1}`} 
                                                             />
                                                         </div>
@@ -449,9 +449,9 @@ const AdminExams: React.FC<AdminExamsProps> = ({ isInstructor = false }) => {
 
                                             {q.type === 'true_false' && (
                                                 <div className="space-y-1">
-                                                    <label className="block text-[11px] font-bold text-gray-500 dark:text-slate-400 uppercase tracking-wider mb-2">Select Correct Answer:</label>
+                                                    <label className="block text-[11px] font-bold text-stone-500 dark:text-slate-400 uppercase tracking-wider mb-2">Select Correct Answer:</label>
                                                     <select 
-                                                        className="p-2.5 border border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-slate-800 text-sm text-gray-900 dark:text-white rounded-lg w-full outline-none focus:border-violet-500" 
+                                                        className="p-2.5 border border-stone-200 dark:border-slate-700 bg-stone-50 dark:bg-slate-800 text-sm text-stone-900 dark:text-white rounded-[12px] w-full outline-none focus:border-brand" 
                                                         value={q.correctAnswer ? 'true' : 'false'} 
                                                         onChange={e => {
                                                             const newQ = [...questions];
@@ -467,7 +467,7 @@ const AdminExams: React.FC<AdminExamsProps> = ({ isInstructor = false }) => {
 
                                             {q.type === 'short_answer' && (
                                                 <div className="space-y-1">
-                                                    <label className="block text-[11px] font-bold text-gray-500 dark:text-slate-400 uppercase tracking-wider mb-2">Correct Answer Keyphrase:</label>
+                                                    <label className="block text-[11px] font-bold text-stone-500 dark:text-slate-400 uppercase tracking-wider mb-2">Correct Answer Keyphrase:</label>
                                                     <input 
                                                         value={q.correctAnswer || ''} 
                                                         onChange={e => {
@@ -475,7 +475,7 @@ const AdminExams: React.FC<AdminExamsProps> = ({ isInstructor = false }) => {
                                                             newQ[idx].correctAnswer = e.target.value;
                                                             setQuestions(newQ);
                                                         }} 
-                                                        className="w-full p-2.5 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 text-sm text-gray-900 dark:text-white rounded-lg outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500/25" 
+                                                        className="w-full p-2.5 bg-stone-50 dark:bg-slate-800 border border-stone-200 dark:border-slate-700 text-sm text-stone-900 dark:text-white rounded-[12px] outline-none focus:border-brand focus:ring-1 focus:ring-brand" 
                                                         placeholder="Enter correct phrase or keywords..." 
                                                     />
                                                 </div>
@@ -483,7 +483,7 @@ const AdminExams: React.FC<AdminExamsProps> = ({ isInstructor = false }) => {
 
                                             {q.type === 'essay' && (
                                                 <div className="space-y-2">
-                                                    <label className="block text-[11px] font-bold text-gray-500 dark:text-slate-400 uppercase tracking-wider mb-1">Grading Guidelines / Sample Answer (Optional):</label>
+                                                    <label className="block text-[11px] font-bold text-stone-500 dark:text-slate-400 uppercase tracking-wider mb-1">Grading Guidelines / Sample Answer (Optional):</label>
                                                     <textarea 
                                                         value={q.gradingGuide || ''} 
                                                         onChange={e => {
@@ -491,7 +491,7 @@ const AdminExams: React.FC<AdminExamsProps> = ({ isInstructor = false }) => {
                                                             newQ[idx].gradingGuide = e.target.value;
                                                             setQuestions(newQ);
                                                         }} 
-                                                        className="w-full p-2.5 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 text-sm text-gray-900 dark:text-white rounded-xl outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500/25 h-20 resize-y" 
+                                                        className="w-full p-2.5 bg-stone-50 dark:bg-slate-800 border border-stone-200 dark:border-slate-700 text-sm text-stone-900 dark:text-white rounded-[14px] outline-none focus:border-brand focus:ring-1 focus:ring-brand h-20 resize-y" 
                                                         placeholder="Enter grading guidelines or sample essay outline for reference..." 
                                                     />
                                                 </div>
@@ -502,11 +502,11 @@ const AdminExams: React.FC<AdminExamsProps> = ({ isInstructor = false }) => {
                             )}
                         </div>
 
-                        <div className="p-6 border-t border-gray-100 dark:border-slate-800 bg-gray-50/50 dark:bg-slate-900/50 flex justify-between items-center">
+                        <div className="p-6 border-t border-stone-100 dark:border-slate-800 bg-stone-50/50 dark:bg-night-2/50 flex justify-between items-center">
                             <button 
                                 onClick={handlePrev}
                                 disabled={step === 1}
-                                className={`px-6 py-2.5 rounded-xl font-bold flex items-center gap-2 transition-all text-sm ${step === 1 ? 'opacity-0 cursor-default pointer-events-none' : 'bg-white hover:bg-gray-50 dark:bg-slate-800 dark:hover:bg-slate-700 text-gray-700 dark:text-slate-300 border border-gray-200 dark:border-slate-700 cursor-pointer'}`}
+                                className={`px-6 py-2.5 rounded-[14px] font-bold flex items-center gap-2 transition-all text-sm ${step === 1 ? 'opacity-0 cursor-default pointer-events-none' : 'bg-white hover:bg-stone-50 dark:bg-slate-800 dark:hover:bg-slate-700 text-stone-700 dark:text-slate-300 border border-stone-200 dark:border-slate-700 cursor-pointer'}`}
                             >
                                 <ArrowLeft size={18} /> Back
                             </button>
@@ -514,7 +514,7 @@ const AdminExams: React.FC<AdminExamsProps> = ({ isInstructor = false }) => {
                             <div className="flex gap-2">
                                 <button
                                     onClick={() => handleSave(true)}
-                                    className="px-5 py-2.5 bg-gray-200 hover:bg-gray-300 dark:bg-slate-800 dark:hover:bg-slate-700 text-gray-800 dark:text-slate-200 rounded-xl font-bold text-sm transition-colors cursor-pointer"
+                                    className="px-5 py-2.5 bg-stone-200 hover:bg-stone-300 dark:bg-slate-800 dark:hover:bg-slate-700 text-stone-800 dark:text-slate-200 rounded-[14px] font-bold text-sm transition-colors cursor-pointer"
                                 >
                                     Save as Draft
                                 </button>
@@ -522,14 +522,14 @@ const AdminExams: React.FC<AdminExamsProps> = ({ isInstructor = false }) => {
                                 {step < 3 ? (
                                     <button 
                                         onClick={handleNext}
-                                        className="px-6 py-2.5 bg-violet-600 text-white rounded-xl font-bold flex items-center gap-2 hover:bg-violet-700 shadow-md shadow-violet-200 dark:shadow-none transition-colors cursor-pointer text-sm"
+                                        className="px-6 py-2.5 bg-brand text-white rounded-[14px] font-bold flex items-center gap-2 hover:bg-brand-mid shadow-md shadow-violet-200 dark:shadow-none transition-colors cursor-pointer text-sm"
                                     >
                                         Next <ArrowRight size={18} />
                                     </button>
                                 ) : (
                                     <button 
                                         onClick={() => handleSave(false)}
-                                        className="px-6 py-2.5 bg-emerald-600 text-white rounded-xl font-bold flex items-center gap-2 hover:bg-emerald-700 shadow-md shadow-emerald-200 dark:shadow-none transition-colors cursor-pointer text-sm"
+                                        className="px-6 py-2.5 bg-mint text-white rounded-[14px] font-bold flex items-center gap-2 hover:bg-mint shadow-md shadow-emerald-200 dark:shadow-none transition-colors cursor-pointer text-sm"
                                     >
                                         <Save size={18} /> Publish Exam
                                     </button>
@@ -541,20 +541,20 @@ const AdminExams: React.FC<AdminExamsProps> = ({ isInstructor = false }) => {
             )}
 
             {/* Certificates & Exam Submissions Management Section */}
-            <div className="mt-8 bg-white dark:bg-slate-900 rounded-3xl shadow-sm border border-gray-150 dark:border-slate-800 overflow-hidden">
-                <div className="p-6 border-b border-gray-150 dark:border-slate-800 flex justify-between items-center bg-gray-50/50 dark:bg-slate-900/50">
+            <div className="mt-8 bg-white dark:bg-night-2 rounded-[26px] overflow-hidden">
+                <div className="p-6 border-b border-stone-150 dark:border-slate-800 flex justify-between items-center bg-stone-50/50 dark:bg-night-2/50">
                     <div>
-                        <h2 className="text-lg font-bold text-gray-900 dark:text-white">Exam Submissions & Certificates</h2>
-                        <p className="text-xs text-gray-500 dark:text-slate-400 mt-1">Review student answers, grade essays, and issue verified course credentials</p>
+                        <h2 className="text-[17px] font-extrabold">Exam Submissions & Certificates</h2>
+                        <p className="text-xs text-stone-500 dark:text-slate-400 mt-1">Review student answers, grade essays, and issue verified course credentials</p>
                     </div>
-                    <div className="text-xs font-bold text-gray-550 dark:text-slate-400">
+                    <div className="text-xs font-bold text-stone-550 dark:text-slate-400">
                         Total: {filteredEnrollments.filter(e => e.exam_completed).length} completed exams
                     </div>
                 </div>
                 <div className="overflow-x-auto">
                     <table className="w-full text-left border-collapse">
-                        <thead className="bg-gray-50 dark:bg-slate-800/50">
-                            <tr className="text-gray-500 dark:text-slate-400 text-xs uppercase tracking-wider font-semibold border-b border-gray-150 dark:border-slate-800">
+                        <thead className="bg-stone-50 dark:bg-slate-800/50">
+                            <tr className="text-stone-500 dark:text-slate-400 text-xs uppercase tracking-wider font-semibold border-b border-stone-150 dark:border-slate-800">
                                 <th className="py-4 px-6">Student</th>
                                 <th className="py-4 px-6">Course</th>
                                 <th className="py-4 px-6 text-center">Quiz Score</th>
@@ -565,10 +565,10 @@ const AdminExams: React.FC<AdminExamsProps> = ({ isInstructor = false }) => {
                                 <th className="py-4 px-6 text-center">Actions</th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-gray-100 dark:divide-slate-800">
+                        <tbody className="divide-y divide-stone-100 dark:divide-slate-800">
                             {filteredEnrollments.filter(e => e.exam_completed).length === 0 ? (
                                 <tr>
-                                    <td colSpan={8} className="py-12 px-6 text-center text-gray-550 dark:text-slate-450 text-sm">
+                                    <td colSpan={8} className="py-12 px-6 text-center text-stone-550 dark:text-slate-450 text-sm">
                                         No exam completions or issued certificates found.
                                     </td>
                                 </tr>
@@ -583,19 +583,19 @@ const AdminExams: React.FC<AdminExamsProps> = ({ isInstructor = false }) => {
                                     const fScore = e.final_score !== undefined ? Number(e.final_score) : Math.round((qScore * 0.3) + (exScore * 0.7));
 
                                     return (
-                                        <tr key={`${e.user_id}-${e.course_id}`} className="hover:bg-gray-50 dark:hover:bg-slate-850/40 transition-colors">
-                                            <td className="py-4 px-6 font-medium text-gray-900 dark:text-white">
+                                        <tr key={`${e.user_id}-${e.course_id}`} className="hover:bg-stone-50 dark:hover:bg-slate-850/40 transition-colors">
+                                            <td className="py-4 px-6 font-medium text-stone-900 dark:text-white">
                                                 <div className="flex flex-col">
                                                     <span className="font-bold">{student.name}</span>
-                                                    <span className="text-xs text-gray-500 dark:text-slate-450 font-normal">{student.email}</span>
+                                                    <span className="text-xs text-stone-500 dark:text-slate-450 font-normal">{student.email}</span>
                                                 </div>
                                             </td>
-                                            <td className="py-4 px-6 text-gray-700 dark:text-slate-300 text-sm font-semibold">{course.title}</td>
+                                            <td className="py-4 px-6 text-stone-700 dark:text-slate-300 text-sm font-semibold">{course.title}</td>
                                             
                                             {/* Quiz Score with inline edit trigger */}
                                             <td className="py-4 px-6 text-center">
                                                 <div className="flex items-center justify-center gap-1.5 group/score">
-                                                    <span className="px-2.5 py-1 bg-gray-50 dark:bg-slate-800 text-gray-700 dark:text-slate-350 font-bold rounded-lg text-xs border dark:border-slate-700">
+                                                    <span className="px-2.5 py-1 bg-stone-50 dark:bg-slate-800 text-stone-700 dark:text-slate-350 font-bold rounded-[12px] text-xs border dark:border-slate-700">
                                                         {qScore}%
                                                     </span>
                                                     <button 
@@ -607,7 +607,7 @@ const AdminExams: React.FC<AdminExamsProps> = ({ isInstructor = false }) => {
                                                             quizScore: qScore,
                                                             examScore: exScore
                                                         })}
-                                                        className="p-1 text-gray-400 hover:text-violet-650 dark:hover:text-violet-400 rounded hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors opacity-0 group-hover/score:opacity-100 focus:opacity-100 cursor-pointer"
+                                                        className="p-1 text-stone-400 hover:text-violet-650 dark:hover:text-violet-400 rounded hover:bg-stone-100 dark:hover:bg-slate-800 transition-colors opacity-0 group-hover/score:opacity-100 focus:opacity-100 cursor-pointer"
                                                         title="Edit Scores"
                                                     >
                                                         <Edit2 size={12} />
@@ -618,7 +618,7 @@ const AdminExams: React.FC<AdminExamsProps> = ({ isInstructor = false }) => {
                                             {/* Exam Score with inline edit trigger */}
                                             <td className="py-4 px-6 text-center">
                                                 <div className="flex items-center justify-center gap-1.5 group/score">
-                                                    <span className="px-2.5 py-1 bg-indigo-50 dark:bg-indigo-950/20 text-indigo-700 dark:text-indigo-400 font-bold rounded-lg text-xs border border-indigo-100 dark:border-indigo-900/30">
+                                                    <span className="px-2.5 py-1 bg-brand-soft dark:bg-indigo-950/20 text-brand dark:text-indigo-400 font-bold rounded-[12px] text-xs border border-brand-soft dark:border-indigo-900/30">
                                                         {exScore}%
                                                     </span>
                                                     <button 
@@ -630,7 +630,7 @@ const AdminExams: React.FC<AdminExamsProps> = ({ isInstructor = false }) => {
                                                             quizScore: qScore,
                                                             examScore: exScore
                                                         })}
-                                                        className="p-1 text-gray-400 hover:text-violet-650 dark:hover:text-violet-400 rounded hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors opacity-0 group-hover/score:opacity-100 focus:opacity-100 cursor-pointer"
+                                                        className="p-1 text-stone-400 hover:text-violet-650 dark:hover:text-violet-400 rounded hover:bg-stone-100 dark:hover:bg-slate-800 transition-colors opacity-0 group-hover/score:opacity-100 focus:opacity-100 cursor-pointer"
                                                         title="Edit Scores"
                                                     >
                                                         <Edit2 size={12} />
@@ -640,14 +640,14 @@ const AdminExams: React.FC<AdminExamsProps> = ({ isInstructor = false }) => {
 
                                             {/* Calculated Final Score */}
                                             <td className="py-4 px-6 text-center">
-                                                <span className="px-2.5 py-1 bg-purple-50 dark:bg-purple-955/20 text-purple-700 dark:text-purple-400 font-extrabold rounded-lg text-xs border border-purple-100 dark:border-purple-900/30">
+                                                <span className="px-2.5 py-1 bg-brand-soft dark:bg-purple-955/20 text-brand dark:text-purple-400 font-extrabold rounded-[12px] text-xs border border-brand-soft dark:border-purple-900/30">
                                                     {fScore}%
                                                 </span>
                                             </td>
 
                                             <td className="py-4 px-6 text-center">
                                                 {e.exam_marks_released ? (
-                                                    <span className="inline-flex items-center gap-1 text-xs text-green-600 dark:text-green-400 font-bold bg-green-50 dark:bg-green-950/30 px-2.5 py-1 rounded-full border border-green-200 dark:border-green-900/50">
+                                                    <span className="inline-flex items-center gap-1 text-xs text-mint dark:text-green-400 font-bold bg-mint-soft dark:bg-green-950/30 px-2.5 py-1 rounded-full border border-green-200 dark:border-green-900/50">
                                                         <Check size={12} /> Released
                                                     </span>
                                                 ) : (
@@ -660,7 +660,7 @@ const AdminExams: React.FC<AdminExamsProps> = ({ isInstructor = false }) => {
                                                                 alert("Failed to release exam marks.");
                                                             }
                                                         }}
-                                                        className="px-2.5 py-1 bg-amber-50 hover:bg-amber-100 text-amber-700 dark:bg-amber-955/20 dark:hover:bg-amber-900/30 border border-amber-250 dark:border-amber-900/40 rounded-lg text-xs font-bold transition-colors cursor-pointer animate-pulse"
+                                                        className="px-2.5 py-1 bg-amber-50 hover:bg-amber-100 text-amber-700 dark:bg-amber-955/20 dark:hover:bg-amber-900/30 border border-amber-250 dark:border-amber-900/40 rounded-[12px] text-xs font-bold transition-colors cursor-pointer animate-pulse"
                                                     >
                                                         Release Marks
                                                     </button>
@@ -694,16 +694,16 @@ const AdminExams: React.FC<AdminExamsProps> = ({ isInstructor = false }) => {
                                                                     reader.readAsDataURL(file);
                                                                 }
                                                             }}
-                                                            className="text-xs text-gray-500 file:mr-2 file:py-1 file:px-2 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-purple-50 dark:file:bg-purple-950/30 file:text-purple-700 dark:file:text-purple-400 hover:file:bg-purple-100 cursor-pointer w-full"
+                                                            className="text-xs text-stone-500 file:mr-2 file:py-1 file:px-2 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-brand-soft dark:file:bg-purple-950/30 file:text-brand dark:file:text-purple-400 hover:file:bg-brand-soft cursor-pointer w-full"
                                                         />
-                                                        <span className="text-[10px] text-gray-400">Or paste Certificate URL:</span>
+                                                        <span className="text-[10px] text-stone-400">Or paste Certificate URL:</span>
                                                         <input 
                                                             type="text" 
                                                             placeholder="https://..."
                                                             onChange={(event) => {
                                                                 (e as any).uploaded_cert_data = event.target.value;
                                                             }}
-                                                            className="p-1.5 border dark:border-slate-705 rounded text-xs w-full bg-white dark:bg-slate-800 text-gray-900 dark:text-white outline-none focus:ring-1 focus:ring-purple-500"
+                                                            className="p-1.5 rounded text-xs w-full bg-white dark:bg-slate-800 text-stone-900 dark:text-white outline-none focus:ring-1 focus:ring-purple-500"
                                                         />
                                                     </div>
                                                 )}
@@ -711,7 +711,7 @@ const AdminExams: React.FC<AdminExamsProps> = ({ isInstructor = false }) => {
                                             <td className="py-4 px-6 text-center">
                                                 <div className="flex flex-col gap-1.5 items-center justify-center">
                                                     {e.is_certificate_verified ? (
-                                                        <span className="text-xs text-green-600 dark:text-green-400 font-bold flex items-center justify-center gap-1">
+                                                        <span className="text-xs text-mint dark:text-green-400 font-bold flex items-center justify-center gap-1">
                                                             <Check className="inline-block w-4 h-4 mr-1 align-middle" /> Verified & Issued
                                                         </span>
                                                     ) : (
@@ -729,7 +729,7 @@ const AdminExams: React.FC<AdminExamsProps> = ({ isInstructor = false }) => {
                                                                     alert("Failed to verify certificate.");
                                                                 }
                                                             }}
-                                                            className="px-3 py-1 bg-purple-650 hover:bg-purple-750 text-white rounded-lg text-xs font-bold transition-colors cursor-pointer w-full text-center"
+                                                            className="px-3 py-1 bg-purple-650 hover:bg-purple-750 text-white rounded-[12px] text-xs font-bold transition-colors cursor-pointer w-full text-center"
                                                         >
                                                             Verify & Upload
                                                         </button>
@@ -743,7 +743,7 @@ const AdminExams: React.FC<AdminExamsProps> = ({ isInstructor = false }) => {
                                                             quizScore: qScore,
                                                             examScore: exScore
                                                         })}
-                                                        className="px-3 py-1 bg-white hover:bg-gray-50 dark:bg-slate-800 dark:hover:bg-slate-700 text-gray-700 dark:text-slate-300 border border-gray-250 dark:border-slate-700 rounded-lg text-xs font-bold transition-colors cursor-pointer w-full flex items-center justify-center gap-1"
+                                                        className="px-3 py-1 bg-white hover:bg-stone-50 dark:bg-slate-800 dark:hover:bg-slate-700 text-stone-700 dark:text-slate-300 rounded-[12px] text-xs font-bold transition-colors cursor-pointer w-full flex items-center justify-center gap-1"
                                                     >
                                                         <Edit2 size={10} /> Edit Grades
                                                     </button>
@@ -761,60 +761,60 @@ const AdminExams: React.FC<AdminExamsProps> = ({ isInstructor = false }) => {
             {/* Edit Scores / Grading Dialog Modal */}
             {editingScores && (
                 <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
-                    <div className="bg-white dark:bg-slate-900 rounded-3xl w-full max-w-md overflow-hidden shadow-2xl border border-gray-150 dark:border-slate-800">
-                        <div className="p-6 border-b border-gray-150 dark:border-slate-800 flex justify-between items-center bg-gray-50/50 dark:bg-slate-900/50">
-                            <h3 className="text-base font-bold text-gray-900 dark:text-white">Grade & Edit Scores</h3>
-                            <button onClick={() => setEditingScores(null)} className="p-1.5 text-gray-400 hover:text-gray-600 dark:hover:text-slate-350 rounded-full hover:bg-gray-100 dark:hover:bg-slate-800 cursor-pointer">
+                    <div className="bg-white dark:bg-night-2 rounded-[26px] w-full max-w-md overflow-hidden shadow-2xl">
+                        <div className="p-6 border-b border-stone-150 dark:border-slate-800 flex justify-between items-center bg-stone-50/50 dark:bg-night-2/50">
+                            <h3 className="text-base font-bold text-stone-900 dark:text-white">Grade & Edit Scores</h3>
+                            <button onClick={() => setEditingScores(null)} className="p-1.5 text-stone-400 hover:text-stone-600 dark:hover:text-slate-350 rounded-full hover:bg-stone-100 dark:hover:bg-slate-800 cursor-pointer">
                                 <X size={18} />
                             </button>
                         </div>
                         <div className="p-6 space-y-4">
                             <div>
-                                <p className="text-xs font-bold text-gray-500 dark:text-slate-400 uppercase tracking-wider">Student</p>
-                                <p className="text-sm font-bold text-gray-900 dark:text-white mt-0.5">{editingScores.studentName}</p>
+                                <p className="text-xs font-bold text-stone-500 dark:text-slate-400 uppercase tracking-wider">Student</p>
+                                <p className="text-sm font-bold text-stone-900 dark:text-white mt-0.5">{editingScores.studentName}</p>
                             </div>
                             <div>
-                                <p className="text-xs font-bold text-gray-500 dark:text-slate-400 uppercase tracking-wider">Course</p>
-                                <p className="text-sm font-semibold text-gray-700 dark:text-slate-300 mt-0.5">{editingScores.courseTitle}</p>
+                                <p className="text-xs font-bold text-stone-500 dark:text-slate-400 uppercase tracking-wider">Course</p>
+                                <p className="text-sm font-semibold text-stone-700 dark:text-slate-300 mt-0.5">{editingScores.courseTitle}</p>
                             </div>
                             
                             <div className="grid grid-cols-2 gap-4 pt-2">
                                 <div>
-                                    <label className="block text-xs font-bold text-gray-700 dark:text-slate-300 uppercase tracking-wider mb-2">Quiz Score (%)</label>
+                                    <label className="block text-xs font-bold text-stone-700 dark:text-slate-300 uppercase tracking-wider mb-2">Quiz Score (%)</label>
                                     <input 
                                         type="number" 
                                         min={0}
                                         max={100}
                                         value={editingScores.quizScore} 
                                         onChange={e => setEditingScores({ ...editingScores, quizScore: Math.min(100, Math.max(0, Number(e.target.value))) })}
-                                        className="w-full p-2.5 bg-gray-50 dark:bg-slate-800 border border-gray-250 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-purple-500 text-sm text-gray-900 dark:text-white outline-none"
+                                        className="w-full p-2.5 bg-stone-50 dark:bg-slate-800 border border-stone-250 dark:border-slate-700 rounded-[14px] focus:ring-2 focus:ring-purple-500 text-sm text-stone-900 dark:text-white outline-none"
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-xs font-bold text-gray-700 dark:text-slate-300 uppercase tracking-wider mb-2">Exam Score (%)</label>
+                                    <label className="block text-xs font-bold text-stone-700 dark:text-slate-300 uppercase tracking-wider mb-2">Exam Score (%)</label>
                                     <input 
                                         type="number" 
                                         min={0}
                                         max={100}
                                         value={editingScores.examScore} 
                                         onChange={e => setEditingScores({ ...editingScores, examScore: Math.min(100, Math.max(0, Number(e.target.value))) })}
-                                        className="w-full p-2.5 bg-gray-50 dark:bg-slate-800 border border-gray-250 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-purple-500 text-sm text-gray-900 dark:text-white outline-none"
+                                        className="w-full p-2.5 bg-stone-50 dark:bg-slate-800 border border-stone-250 dark:border-slate-700 rounded-[14px] focus:ring-2 focus:ring-purple-500 text-sm text-stone-900 dark:text-white outline-none"
                                     />
                                 </div>
                             </div>
                             
-                            <div className="bg-purple-50 dark:bg-purple-950/20 border border-purple-100 dark:border-purple-900/40 p-3.5 rounded-2xl flex items-center justify-between mt-2">
+                            <div className="bg-brand-soft dark:bg-purple-950/20 border border-brand-soft dark:border-purple-900/40 p-3.5 rounded-[22px] flex items-center justify-between mt-2">
                                 <span className="text-xs font-bold text-purple-900 dark:text-purple-300">Recalculated Final Score:</span>
-                                <span className="text-sm font-extrabold text-purple-700 dark:text-purple-400 font-mono">
+                                <span className="text-sm font-extrabold text-brand dark:text-purple-400 font-mono">
                                     {Math.round((editingScores.quizScore * 0.3) + (editingScores.examScore * 0.7))}%
                                 </span>
                             </div>
                         </div>
-                        <div className="p-4 border-t border-gray-150 dark:border-slate-800 bg-gray-50/50 dark:bg-slate-900/50 flex justify-end gap-2">
-                            <button onClick={() => setEditingScores(null)} className="px-4 py-2 bg-white hover:bg-gray-50 dark:bg-slate-800 dark:hover:bg-slate-700 text-gray-700 dark:text-slate-300 border border-gray-200 dark:border-slate-700 rounded-xl font-bold text-xs cursor-pointer">
+                        <div className="p-4 border-t border-stone-150 dark:border-slate-800 bg-stone-50/50 dark:bg-night-2/50 flex justify-end gap-2">
+                            <button onClick={() => setEditingScores(null)} className="px-4 py-2 bg-white hover:bg-stone-50 dark:bg-slate-800 dark:hover:bg-slate-700 text-stone-700 dark:text-slate-300 rounded-[14px] font-bold text-xs cursor-pointer">
                                 Cancel
                             </button>
-                            <button onClick={handleSaveScores} className="px-4 py-2 bg-purple-650 hover:bg-purple-750 text-white rounded-xl font-bold text-xs cursor-pointer">
+                            <button onClick={handleSaveScores} className="px-4 py-2 bg-purple-650 hover:bg-purple-750 text-white rounded-[14px] font-bold text-xs cursor-pointer">
                                 Save changes
                             </button>
                         </div>

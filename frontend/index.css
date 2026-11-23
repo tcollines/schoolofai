@@ -2,3 +2,55 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* ---------- Welile redesign: shared effects ---------- */
+:root { color-scheme: light; }
+.dark { color-scheme: dark; }
+
+/* Frosted chrome: content scrolls underneath */
+.frost { background: rgba(247, 246, 252, 0.72); -webkit-backdrop-filter: blur(20px) saturate(180%); backdrop-filter: blur(20px) saturate(180%); }
+.dark .frost { background: rgba(22, 18, 43, 0.72); }
+.frost-white { background: rgba(255, 255, 255, 0.78); -webkit-backdrop-filter: blur(20px) saturate(180%); backdrop-filter: blur(20px) saturate(180%); }
+.dark .frost-white { background: rgba(34, 27, 64, 0.8); }
+.frost-dark { background: rgba(30, 27, 46, 0.55); -webkit-backdrop-filter: blur(20px) saturate(160%); backdrop-filter: blur(20px) saturate(160%); }
+
+/* Instant press feedback on pointer-down */
+.press { transition: transform 120ms ease-out, background-color 120ms ease-out; }
+.press:active { transform: scale(0.97); }
+.lift { transition: transform 180ms ease-out, box-shadow 180ms ease-out; }
+.lift:hover { transform: translateY(-3px); box-shadow: 0 16px 36px rgba(76, 52, 150, 0.14); }
+
+/* Sidebar width animation */
+.sb-anim { transition: width 300ms cubic-bezier(0.32, 0.72, 0, 1); }
+
+/* Hidden scrollbars for horizontal carousels */
+.no-scrollbar { scrollbar-width: none; -ms-overflow-style: none; }
+.no-scrollbar::-webkit-scrollbar { display: none; }
+
+/* Orb character */
+.orb-eye { display: block; width: 34px; height: 54px; border-radius: 20px; background: #fff; box-shadow: 0 0 28px rgba(255, 255, 255, 0.6); animation: orb-blink 5.5s infinite; transform-origin: center; }
+.orb-eye.sm { width: 20px; height: 32px; border-radius: 12px; }
+.orb-eye.xs { width: 10px; height: 16px; border-radius: 6px; box-shadow: none; }
+.orb-eye.wild { animation: orb-jitter 0.16s infinite; }
+@keyframes orb-blink { 0%, 92%, 100% { transform: scaleY(1); } 95% { transform: scaleY(0.12); } }
+@keyframes orb-jitter { 0% { transform: translate(0, 0) rotate(0); } 25% { transform: translate(2px, -2px) rotate(3deg); } 50% { transform: translate(-2px, 1px) rotate(-3deg); } 75% { transform: translate(1px, 2px); } 100% { transform: translate(0, 0); } }
+.floaty { animation: floaty 6s ease-in-out infinite; }
+@keyframes floaty { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+.breathe { animation: breathe 5s ease-in-out infinite; }
+@keyframes breathe { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
+
+details > summary::-webkit-details-marker { display: none; }
+details[open] .faq-chev { transform: rotate(45deg); }
+.faq-chev { transition: transform 200ms ease-out; }
+
+@media (prefers-reduced-motion: reduce) {
+  .press, .lift, .sb-anim, .faq-chev { transition: none; }
+  .press:active, .lift:hover { transform: none; }
+  .orb-eye, .orb-eye.wild, .floaty, .breathe { animation: none; }
+}
+@media (prefers-reduced-transparency: reduce) {
+  .frost, .frost-white, .frost-dark { -webkit-backdrop-filter: none; backdrop-filter: none; background: #F7F6FC; }
+  .dark .frost, .dark .frost-white { background: #16122B; }
+}
+
+@keyframes tour-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }

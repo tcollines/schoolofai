@@ -7,7 +7,7 @@ interface Answer { id: string; body: string; author_name: string | null; created
 interface Question { id: string; user_id: string; item_id: string; asker_name: string | null; body: string; is_public: boolean; created_at: string; learn_answers: Answer[] }
 interface RatingRow { course_slug: string; rating: number; comment: string | null; created_at: string }
 
-const card = 'bg-white dark:bg-slate-900 rounded-2xl border border-gray-100 dark:border-slate-800 shadow-sm';
+const card = 'bg-white dark:bg-night-2 rounded-[22px]';
 const itemTitle = (id: string) => ALL_ITEMS.find(i => i.id === id)?.title || id;
 const when = (iso: string) => new Date(iso).toLocaleString('en-GB', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
 
@@ -87,10 +87,10 @@ const AdminLearnQA: React.FC = () => {
         <>
             <div className={`${card} p-5`}>
                 <div className="flex flex-wrap items-center justify-between gap-3">
-                    <h2 className="font-bold flex items-center gap-2"><MessageCircle size={18} /> Q&amp;A ({unanswered} waiting)</h2>
+                    <h2 className="m-0 text-[16px] font-extrabold flex items-center gap-2"><MessageCircle size={18} /> Q&amp;A ({unanswered} waiting)</h2>
                     <div className="flex gap-1 text-sm">
                         {(['open', 'all'] as const).map(f => (
-                            <button key={f} onClick={() => setFilter(f)} className={`px-3 py-1.5 rounded-lg font-medium ${filter === f ? 'bg-violet-100 dark:bg-violet-950 text-violet-800 dark:text-violet-200' : 'text-gray-500 hover:bg-gray-100 dark:hover:bg-slate-800'}`}>
+                            <button key={f} onClick={() => setFilter(f)} className={`px-3 py-1.5 rounded-[12px] font-medium ${filter === f ? 'bg-violet-100 dark:bg-violet-950 text-violet-800 dark:text-violet-200' : 'text-stone-500 hover:bg-stone-100 dark:hover:bg-slate-800'}`}>
                                 {f === 'open' ? 'Unanswered' : 'All'}
                             </button>
                         ))}
@@ -98,17 +98,17 @@ const AdminLearnQA: React.FC = () => {
                 </div>
                 {error && <p role="alert" className="mt-3 text-sm text-red-600">{error}</p>}
                 {qaMissing ? (
-                    <p className="mt-3 text-sm text-gray-500">The Q&amp;A tables are not in the database yet. Apply migration 20261112000000_learn_qa.sql.</p>
+                    <p className="mt-3 text-sm text-stone-500">The Q&amp;A tables are not in the database yet. Apply migration 20261112000000_learn_qa.sql.</p>
                 ) : shown.length === 0 ? (
-                    <p className="mt-3 text-sm text-gray-500">{filter === 'open' ? 'No unanswered questions.' : 'No questions yet.'}</p>
+                    <p className="mt-3 text-sm text-stone-500">{filter === 'open' ? 'No unanswered questions.' : 'No questions yet.'}</p>
                 ) : (
                     <ul className="mt-4 space-y-4">
                         {shown.map(q => (
-                            <li key={q.id} className="rounded-xl border border-gray-100 dark:border-slate-800 p-4">
-                                <p className="text-xs text-gray-500">{itemTitle(q.item_id)} · {q.asker_name || 'Learner'} · {when(q.created_at)}</p>
+                            <li key={q.id} className="rounded-[14px] border border-stone-100 dark:border-slate-800 p-4">
+                                <p className="text-xs text-stone-500">{itemTitle(q.item_id)} · {q.asker_name || 'Learner'} · {when(q.created_at)}</p>
                                 <p className="mt-1.5 text-sm whitespace-pre-wrap">{q.body}</p>
                                 {q.learn_answers.map(a => (
-                                    <div key={a.id} className="mt-2 rounded-lg bg-violet-50 dark:bg-violet-950/30 p-3 text-sm">
+                                    <div key={a.id} className="mt-2 rounded-[12px] bg-violet-50 dark:bg-violet-950/30 p-3 text-sm">
                                         <p className="text-xs font-semibold text-violet-800 dark:text-violet-200">{a.author_name || 'Team'} · {when(a.created_at)}</p>
                                         <p className="mt-0.5 whitespace-pre-wrap">{a.body}</p>
                                     </div>
@@ -119,16 +119,16 @@ const AdminLearnQA: React.FC = () => {
                                     onChange={e => setDrafts(d => ({ ...d, [q.id]: e.target.value }))}
                                     placeholder={q.learn_answers.length ? 'Add another answer' : 'Write an answer'}
                                     aria-label="Answer"
-                                    className="mt-3 w-full rounded-lg border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-2.5 text-sm"
+                                    className="mt-3 w-full rounded-[12px] bg-white dark:bg-night-2 p-2.5 text-sm"
                                 />
                                 <div className="mt-2 flex flex-wrap items-center gap-2">
-                                    <button onClick={() => void answer(q)} disabled={busy === q.id || !(drafts[q.id] || '').trim()} className="px-4 py-2 rounded-lg bg-violet-700 hover:bg-violet-800 text-white text-sm font-semibold disabled:opacity-50">Post answer</button>
-                                    <button onClick={() => void togglePublic(q)} disabled={busy === q.id} className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg border border-gray-200 dark:border-slate-700 text-sm font-medium hover:bg-gray-50 dark:hover:bg-slate-800">
+                                    <button onClick={() => void answer(q)} disabled={busy === q.id || !(drafts[q.id] || '').trim()} className="px-4 py-2 rounded-[12px] bg-violet-700 hover:bg-brand-mid text-white text-sm font-semibold disabled:opacity-50">Post answer</button>
+                                    <button onClick={() => void togglePublic(q)} disabled={busy === q.id} className="inline-flex items-center gap-1.5 px-3 py-2 rounded-[12px] border border-stone-200 dark:border-slate-700 text-sm font-medium hover:bg-stone-50 dark:hover:bg-slate-800">
                                         {q.is_public ? <><Lock size={14} /> Make private</> : <><Globe2 size={14} /> Share with all learners</>}
                                     </button>
-                                    <button onClick={() => void remove(q)} disabled={busy === q.id} aria-label="Delete question" className="ml-auto p-2 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-slate-800"><Trash2 size={16} /></button>
+                                    <button onClick={() => void remove(q)} disabled={busy === q.id} aria-label="Delete question" className="ml-auto p-2 rounded-[12px] text-stone-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-slate-800"><Trash2 size={16} /></button>
                                 </div>
-                                <p className="mt-1 text-xs text-gray-500">{q.is_public ? 'Visible to every learner on this lesson.' : 'Visible only to the person who asked.'}</p>
+                                <p className="mt-1 text-xs text-stone-500">{q.is_public ? 'Visible to every learner on this lesson.' : 'Visible only to the person who asked.'}</p>
                             </li>
                         ))}
                     </ul>
@@ -136,24 +136,24 @@ const AdminLearnQA: React.FC = () => {
             </div>
 
             <div className={`${card} p-5`}>
-                <h2 className="font-bold flex items-center gap-2"><Star size={18} className="text-amber-500" /> Lesson ratings (lowest first)</h2>
+                <h2 className="m-0 text-[16px] font-extrabold flex items-center gap-2"><Star size={18} className="text-amber-500" /> Lesson ratings (lowest first)</h2>
                 {perLesson.length === 0 ? (
-                    <p className="mt-3 text-sm text-gray-500">No lesson ratings yet.</p>
+                    <p className="mt-3 text-sm text-stone-500">No lesson ratings yet.</p>
                 ) : (
-                    <ul className="mt-3 divide-y divide-gray-100 dark:divide-slate-800">
+                    <ul className="mt-3 divide-y divide-stone-100 dark:divide-slate-800">
                         {perLesson.map(l => (
                             <li key={l.id} className="py-2.5 text-sm">
                                 <div className="flex items-center gap-3">
                                     <span className="flex-1 min-w-0 truncate">{l.title}</span>
                                     <span className="font-semibold">{l.avg.toFixed(1)} / 5</span>
-                                    <span className="text-gray-500 w-16 text-right">{l.count} rating{l.count === 1 ? '' : 's'}</span>
+                                    <span className="text-stone-500 w-16 text-right">{l.count} rating{l.count === 1 ? '' : 's'}</span>
                                     {l.comments.length > 0 && (
                                         <button onClick={() => setOpenComments(openComments === l.id ? null : l.id)} className="text-violet-700 dark:text-violet-300 font-medium">{l.comments.length} comment{l.comments.length === 1 ? '' : 's'}</button>
                                     )}
                                 </div>
                                 {openComments === l.id && (
                                     <ul className="mt-2 space-y-1.5 pl-3 border-l-2 border-violet-200 dark:border-violet-900">
-                                        {l.comments.map((c, i) => <li key={i} className="text-gray-600 dark:text-slate-300">{c.rating}★ {c.comment}</li>)}
+                                        {l.comments.map((c, i) => <li key={i} className="text-stone-600 dark:text-slate-300">{c.rating}★ {c.comment}</li>)}
                                     </ul>
                                 )}
                             </li>

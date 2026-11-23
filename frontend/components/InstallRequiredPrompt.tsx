@@ -61,12 +61,12 @@ const InstallRequiredPrompt: React.FC<{ uid?: string; email?: string }> = ({ uid
 
     return (
         <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center bg-black/50 p-4" role="dialog" aria-modal="true" aria-label="Install the Welile app">
-            <div className="bg-white dark:bg-slate-900 text-[#1c1917] dark:text-slate-100 rounded-2xl shadow-2xl p-6 max-w-sm w-full">
-                <div className="w-12 h-12 rounded-xl bg-violet-100 dark:bg-violet-950/60 text-violet-800 dark:text-violet-300 flex items-center justify-center mb-3"><Smartphone size={24} /></div>
+            <div className="bg-white dark:bg-slate-900 text-ink dark:text-slate-100 rounded-[22px] shadow-2xl p-6 max-w-sm w-full">
+                <div className="w-12 h-12 rounded-[14px] bg-violet-100 dark:bg-violet-950/60 text-violet-800 dark:text-violet-300 flex items-center justify-center mb-3"><Smartphone size={24} /></div>
                 <p className="text-lg font-semibold">Install the Welile app</p>
                 <p className="mt-1 text-[15px] text-stone-600 dark:text-slate-300">Put Welile on your phone so the admin panel and live classes are one tap away. This reminder goes away once the app is installed.</p>
                 {canPrompt ? (
-                    <button onClick={install} className="mt-4 w-full min-h-[48px] rounded-xl bg-violet-700 hover:bg-violet-800 text-white font-semibold">Install now</button>
+                    <button onClick={install} className="mt-4 w-full min-h-[48px] rounded-[14px] bg-violet-700 hover:bg-brand-mid text-white font-semibold">Install now</button>
                 ) : ios ? (
                     <ol className="mt-4 space-y-2 text-[15px] list-decimal list-inside text-stone-700 dark:text-slate-200">
                         <li>Open this page in <b>Safari</b>.</li>
@@ -76,7 +76,7 @@ const InstallRequiredPrompt: React.FC<{ uid?: string; email?: string }> = ({ uid
                 ) : (
                     <p className="mt-4 text-[15px] text-stone-700 dark:text-slate-200">Open the browser menu (⋮) and choose <b>Install app</b> or <b>Add to Home screen</b>. If you don't see it, open this site in Chrome.</p>
                 )}
-                <button onClick={() => setSnoozed(true)} className="mt-2 w-full min-h-[44px] rounded-xl text-sm text-stone-500 dark:text-slate-400 hover:bg-stone-100 dark:hover:bg-slate-800">Remind me next time</button>
+                <button onClick={() => setSnoozed(true)} className="mt-2 w-full min-h-[44px] rounded-[14px] text-sm text-stone-500 dark:text-slate-400 hover:bg-stone-100 dark:hover:bg-slate-800">Remind me next time</button>
             </div>
         </div>
     );

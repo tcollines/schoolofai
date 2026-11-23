@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Bell, Menu, Sun, Moon, ArrowLeft, Hand, Building2 } from 'lucide-react';
+import { Search, Bell, Sun, Moon, ArrowLeft, Building2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { UserProfile, Course } from '../types';
 import { useTranslation } from './translations';
@@ -20,6 +20,10 @@ interface HeaderProps {
   showProfile?: boolean;
   profilePosition?: 'left' | 'right';
   courses?: Course[];
+  /** Phone header: a page title, or (when undefined) the Home greeting with the student's name. */
+  mobileTitle?: string;
+  /** Phone header: show a back button to this path. */
+  mobileBack?: string;
 }
 
 const Header: React.FC<HeaderProps> = ({
@@ -30,7 +34,9 @@ const Header: React.FC<HeaderProps> = ({
   showNotifications = true,
   showProfile = true,
   profilePosition = 'right',
-  courses = []
+  courses = [],
+  mobileTitle,
+  mobileBack
 }) => {
   const { t } = useTranslation();
   const isCompact = !showWelcome;
@@ -158,189 +164,123 @@ const Header: React.FC<HeaderProps> = ({
     }
   };
 
+  const activeCompanyName = user.companyName || (user as any).company_name || localStorage.getItem('user_company_name') || (user.role === 'SPONSORED' ? 'Corporate Partner' : '');
+  const isCorporateUser = user.role === 'SPONSORED' || localStorage.getItem('user_plan') === 'corporate' || (!!activeCompanyName && user.role !== 'ADMIN' && user.role !== 'INSTRUCTOR');
+  const planText = isCorporateUser ? (activeCompanyName || 'Corporate Partner') : user.role === 'ADMIN' ? 'Instructor' : user.role === 'PRO' ? 'Pro plan' : user.role === 'PREMIUM' ? 'Premium plan' : 'Basic plan';
+  const initials = (user.name || '?').trim().split(/\s+/).slice(0, 2).map(w => w[0]).join('').toUpperCase();
+
+  const AvatarImg = ({ size }: { size: number }) => (!avatar || avatarError) ? (
+    <span className="rounded-full bg-brand text-white font-extrabold inline-flex items-center justify-center shrink-0" style={{ width: size, height: size, fontSize: size * 0.34 }}>{initials}</span>
+  ) : (
+    <span className="rounded-full overflow-hidden shrink-0 inline-block" style={{ width: size, height: size }}>
+      <img src={avatar} alt="" onError={() => setAvatarError(true)} className="w-full h-full object-cover"
+        style={{ transform: `scale(${avatarScale}) translate(${avatarPosX}px, ${avatarPosY}px)`, transformOrigin: 'center center' }} />
+    </span>
+  );
+
+  const greeting = () => { const h = new Date().getHours(); return h < 12 ? 'Good morning' : h < 17 ? 'Good afternoon' : 'Good evening'; };
+
+  const iconBtn = 'press relative w-11 h-11 rounded-full bg-white dark:bg-night-2 text-ink dark:text-slate-200 inline-flex items-center justify-center shadow-[0_1px_3px_rgba(30,27,46,0.06)] hover:bg-[#F7F5FD] dark:hover:bg-night-3 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand';
+
   return (
-    <header className="flex items-center justify-between sticky top-0 bg-[#faf8f5]/95 dark:bg-slate-950/95 backdrop-blur-md border-b border-gray-200/30 dark:border-slate-800/30 z-30 w-full px-4 lg:px-8 py-3.5 transition-colors duration-200">
-      <div className="flex items-center gap-3">
-
-        <button
-          onClick={onMenuClick}
-          className="lg:hidden p-2 text-gray-600 dark:text-slate-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-250 dark:hover:bg-slate-800 rounded-lg transition-colors"
-        >
-          <Menu size={24} />
-        </button>
-        {showProfile && profilePosition === 'left' && (
-          !avatar || avatarError ? (
-            <div className="w-8 h-8 rounded-full border-2 border-white dark:border-slate-800 shadow-sm overflow-hidden bg-gray-100 dark:bg-slate-800 flex items-center justify-center shrink-0">
-              <DefaultAvatar />
-            </div>
-          ) : (
-            <div className="w-8 h-8 rounded-full border-2 border-white dark:border-slate-800 shadow-sm overflow-hidden shrink-0">
-              <img
-                src={avatar}
-                alt="Profile"
-                onError={() => setAvatarError(true)}
-                className="w-full h-full object-cover"
-                style={{
-                  transform: `scale(${avatarScale}) translate(${avatarPosX}px, ${avatarPosY}px)`,
-                  transformOrigin: 'center center'
-                }}
-              />
-            </div>
-          )
+    <header className="frost sticky top-0 z-30 w-full flex items-center gap-3 px-4 lg:px-0 py-3 lg:py-0 lg:pb-3 lg:pt-0">
+      {/* Phone: no menu button. Home shows a greeting, other pages show their title. */}
+      <div className="lg:hidden flex items-center gap-3 min-w-0 flex-1">
+        {mobileBack && (
+          <button type="button" onClick={() => navigate(mobileBack)} aria-label="Back" className={iconBtn}><ArrowLeft size={20} /></button>
         )}
-        {showWelcome && (
-          <div>
-            <div className="flex flex-wrap items-center gap-2.5">
-              <h1 className="font-serif text-xl lg:text-2xl font-semibold text-[#1c1917] dark:text-white">
-                {t('welcome_back')}, {user.name.split(' ')[0]}
-              </h1>
-              <span className={`text-[10px] uppercase font-extrabold px-2 py-0.5 rounded-full border shadow-xs tracking-wider shrink-0 ${
-                user.role === 'PRO' 
-                  ? 'bg-amber-100 text-amber-700 dark:bg-amber-955/40 dark:text-amber-300 border-amber-200 dark:border-amber-900/30'
-                  : user.role === 'PLUS'
-                  ? 'bg-violet-100 text-violet-700 dark:bg-violet-955/40 dark:text-violet-300 border-violet-200 dark:border-violet-900/30'
-                  : user.role === 'SPONSORED'
-                  ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300 border-emerald-250 dark:border-emerald-900/30'
-                  : 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300 border-slate-200 dark:border-slate-700'
-              }`}>
-                {user.role === 'PRO' ? 'Pro Plan' : user.role === 'PLUS' ? 'Plus Plan' : user.role === 'SPONSORED' ? 'Sponsored' : 'Basic Plan'}
-              </span>
-            </div>
-            {user.role === 'SPONSORED' && (
-              <p className="text-gray-500 dark:text-slate-400 text-xs lg:text-sm mt-1 hidden sm:block">
-                Company Sponsored • {user.companyName}
-              </p>
-            )}
-          </div>
-        )}
-      </div>
-
-      <div className="flex items-center gap-4 lg:gap-6">
-        {showSearch && (
-          <div className="relative hidden md:block">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-            <input
-              type="text"
-              placeholder={t('search_courses')}
-              value={searchTerm}
-              onChange={(e) => {
-                setSearchTerm(e.target.value);
-                setShowSuggestions(true);
-              }}
-              onKeyDown={handleSearch}
-              onFocus={() => setShowSuggestions(true)}
-              onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
-              className="pl-10 pr-4 py-2.5 bg-white dark:bg-slate-900 border border-gray-100 dark:border-slate-800 text-gray-900 dark:text-white rounded-full text-sm w-64 focus:outline-none focus:ring-2 focus:ring-purple-500/20 shadow-sm"
-            />
-            
-            {showSuggestions && searchTerm.trim() && suggestedCourses.length > 0 && (
-               <div className="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-slate-900 border border-gray-100 dark:border-slate-800 shadow-xl rounded-2xl overflow-hidden z-50 max-h-80 overflow-y-auto">
-                 {suggestedCourses.map(course => (
-                   <div 
-                     key={course.id} 
-                     className="px-4 py-3 hover:bg-gray-50 dark:hover:bg-slate-800/50 cursor-pointer border-b border-gray-50 dark:border-slate-800/30 last:border-0 transition-colors flex items-center gap-3"
-                     onClick={() => {
-                        navigate(`/discover/${course.id}`);
-                        setSearchTerm('');
-                        setShowSuggestions(false);
-                     }}
-                   >
-                      <div className="w-10 h-10 rounded-lg overflow-hidden shrink-0 bg-gray-50 dark:bg-slate-800">
-                        <img 
-                            src={course.image} 
-                            alt={course.title} 
-                            className="w-full h-full object-cover" 
-                            style={{
-                                objectPosition: `${course.imagePositionX ?? 50}% ${course.imagePositionY ?? 50}%`,
-                                transform: `scale(${course.imageScale ?? 1})`,
-                                transformOrigin: `${course.imagePositionX ?? 50}% ${course.imagePositionY ?? 50}%`
-                            }}
-                        />
-                      </div>
-                     <div>
-                        <p className="font-semibold text-sm text-gray-900 dark:text-white line-clamp-1">{course.title}</p>
-                        <p className="text-xs text-gray-500 dark:text-slate-400">{course.category}</p>
-                     </div>
-                   </div>
-                 ))}
-               </div>
-            )}
-          </div>
-        )}
-
-        {/* Currency Switcher */}
-        <button 
-          onClick={toggleCurrency}
-          className="px-3 py-2 bg-white dark:bg-slate-900 rounded-full border border-gray-100 dark:border-slate-800 hover:bg-gray-50 dark:hover:bg-slate-800 shadow-sm text-xs font-bold text-gray-700 dark:text-slate-300 transition-colors flex items-center gap-1.5 cursor-pointer"
-          title="Toggle Currency"
-        >
-          <span className="w-2 h-2 rounded-full bg-purple-500"></span>
-          <span>{currency}</span>
-        </button>
-
-        {/* Theme Toggle Shortcut */}
-        <button 
-          onClick={toggleTheme}
-          className="p-2 lg:p-2.5 bg-white dark:bg-slate-900 rounded-full border border-gray-100 dark:border-slate-800 hover:bg-gray-50 dark:hover:bg-slate-800 shadow-sm text-gray-700 dark:text-slate-300 transition-colors"
-          title="Toggle Theme"
-        >
-          {isDark ? <Sun size={20} /> : <Moon size={20} />}
-        </button>
-
-        {showNotifications && (
-          <button 
-            onClick={() => navigate('/notifications')}
-            className="relative p-2 lg:p-2.5 bg-white dark:bg-slate-900 rounded-full border border-gray-100 dark:border-slate-800 hover:bg-gray-50 dark:hover:bg-slate-800 shadow-sm cursor-pointer"
-            title="Notifications"
-          >
-            <Bell size={20} className="text-gray-700 dark:text-slate-300" />
-            {unreadCount > 0 && (
-              <span className="absolute top-2 right-2.5 w-2 h-2 bg-red-500 rounded-full border-2 border-white dark:border-slate-900"></span>
-            )}
+        {mobileTitle === undefined ? (
+          <button type="button" onClick={() => navigate('/profile')} aria-label={`Your profile, ${user.name}`} className="press flex items-center gap-3 min-w-0 bg-transparent border-0 p-0 text-left cursor-pointer">
+            <AvatarImg size={44} />
+            <span className="min-w-0 leading-tight">
+              <span className="block text-[12px] font-semibold text-stone-600 dark:text-slate-400">{greeting()}</span>
+              <span className="block text-[17px] font-extrabold tracking-[-0.01em] text-ink dark:text-white truncate">{user.name}</span>
+            </span>
           </button>
+        ) : (
+          // Pages already show their own heading, so the bar shows the brand (no repeated title)
+          <span className="flex items-center gap-2.5 min-w-0" aria-label={mobileTitle || 'Welile School of AI'}>
+            <span className="w-10 h-10 rounded-[12px] bg-brand text-white inline-flex items-center justify-center text-[17px] font-extrabold shrink-0" aria-hidden="true">W</span>
+            <span className="leading-tight min-w-0" aria-hidden="true">
+              <span className="block text-[14px] font-extrabold tracking-[-0.01em] truncate">Welile</span>
+              <span className="block text-[11px] font-semibold text-stone-600 dark:text-slate-400 truncate">School of AI</span>
+            </span>
+          </span>
         )}
-
-        {showProfile && profilePosition === 'right' && (() => {
-          const activeCompanyName = user.companyName || (user as any).company_name || localStorage.getItem('user_company_name') || (user.role === 'SPONSORED' ? 'Corporate Partner' : '');
-          const isCorporateUser = user.role === 'SPONSORED' || localStorage.getItem('user_plan') === 'corporate' || (!!activeCompanyName && user.role !== 'ADMIN' && user.role !== 'INSTRUCTOR');
-
-          return (
-            <div className="flex items-center gap-2.5 pl-2 shrink-0">
-              <div className="text-right hidden sm:block">
-                <p className="text-sm font-bold text-gray-900 dark:text-white leading-tight">{user.name}</p>
-                {isCorporateUser ? (
-                  <p className="text-[11px] font-bold text-violet-600 dark:text-violet-400 flex items-center justify-end gap-1" title={activeCompanyName || 'Corporate Plan'}>
-                    <Building2 size={11} className="shrink-0" />
-                    <span className="truncate max-w-[150px]">{activeCompanyName || 'Corporate Partner'}</span>
-                  </p>
-                ) : (
-                  <p className="text-[10px] font-semibold text-gray-500 dark:text-slate-400 capitalize">
-                    {user.role === 'ADMIN' ? 'Instructor' : user.role === 'PRO' ? 'Pro Plan' : user.role === 'PREMIUM' ? 'Premium Plan' : 'Individual Plan'}
-                  </p>
-                )}
-              </div>
-            {!avatar || avatarError ? (
-              <div className="w-8 h-8 lg:w-10 lg:h-10 rounded-full border-2 border-white dark:border-slate-800 shadow-md overflow-hidden bg-gray-100 dark:bg-slate-800 flex items-center justify-center shrink-0">
-                <DefaultAvatar />
-              </div>
-            ) : (
-              <div className="w-8 h-8 lg:w-10 lg:h-10 rounded-full border-2 border-white dark:border-slate-800 shadow-md overflow-hidden shrink-0">
-                <img
-                  src={avatar}
-                  alt="Profile"
-                  onError={() => setAvatarError(true)}
-                  className="w-full h-full object-cover"
-                  style={{
-                    transform: `scale(${avatarScale}) translate(${avatarPosX}px, ${avatarPosY}px)`,
-                    transformOrigin: 'center center'
-                  }}
-                />
-              </div>
-            )}
-            </div>
-          );
-        })()}
       </div>
+
+      {showWelcome && (
+        <div className="hidden md:block">
+          <h1 className="m-0 text-xl font-extrabold tracking-tight">{t('welcome_back')}, {user.name.split(' ')[0]}</h1>
+          {isCorporateUser && <p className="m-0 text-xs text-stone-600 dark:text-slate-400 flex items-center gap-1"><Building2 size={12} />{activeCompanyName}</p>}
+        </div>
+      )}
+
+      {showSearch && (
+        <div className="relative hidden md:block flex-1 max-w-[560px]">
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-stone-500 pointer-events-none" size={18} />
+          <input
+            type="search"
+            aria-label={t('search_courses')}
+            placeholder={t('search_courses') || 'Search for a course or lesson'}
+            value={searchTerm}
+            onChange={(e) => { setSearchTerm(e.target.value); setShowSuggestions(true); }}
+            onKeyDown={handleSearch}
+            onFocus={() => setShowSuggestions(true)}
+            onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
+            className="w-full h-12 pl-11 pr-4 rounded-[14px] border-0 bg-white dark:bg-night-2 text-[14px] text-ink dark:text-white placeholder:text-stone-500 focus:outline-none focus:ring-2 focus:ring-brand shadow-[0_1px_3px_rgba(30,27,46,0.05)]"
+          />
+          {showSuggestions && searchTerm.trim() && suggestedCourses.length > 0 && (
+            <div className="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-night-2 shadow-[0_20px_50px_rgba(30,27,46,0.18)] rounded-[18px] overflow-hidden z-50 max-h-80 overflow-y-auto p-1.5">
+              {suggestedCourses.map(course => (
+                <button type="button" key={course.id}
+                  className="press w-full text-left px-3 py-2.5 rounded-xl hover:bg-panel dark:hover:bg-night-3 flex items-center gap-3"
+                  onClick={() => { navigate(`/discover/${course.id}`); setSearchTerm(''); setShowSuggestions(false); }}>
+                  <span className="w-10 h-10 rounded-[10px] overflow-hidden shrink-0 bg-panel dark:bg-night-3">
+                    <img src={course.image} alt="" className="w-full h-full object-cover"
+                      style={{ objectPosition: `${course.imagePositionX ?? 50}% ${course.imagePositionY ?? 50}%`, transform: `scale(${course.imageScale ?? 1})`, transformOrigin: `${course.imagePositionX ?? 50}% ${course.imagePositionY ?? 50}%` }} />
+                  </span>
+                  <span className="min-w-0">
+                    <span className="block font-bold text-sm line-clamp-1">{course.title}</span>
+                    <span className="block text-xs text-stone-600 dark:text-slate-400">{course.category}</span>
+                  </span>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      <div className="hidden lg:block flex-1" />
+
+      <button onClick={toggleCurrency} title="Switch currency" aria-label={`Currency: ${currency}. Switch currency`}
+        className="press hidden lg:inline-flex items-center gap-2 h-11 px-4 rounded-full bg-white dark:bg-night-2 text-[13px] font-extrabold text-ink dark:text-slate-200 shadow-[0_1px_3px_rgba(30,27,46,0.06)]">
+        <span className="w-2 h-2 rounded-full bg-brand" aria-hidden="true" />{currency}
+      </button>
+
+      <button onClick={toggleTheme} title={isDark ? 'Switch to light mode' : 'Switch to dark mode'} aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'} className={`${iconBtn} hidden lg:inline-flex`}>
+        {isDark ? <Sun size={19} /> : <Moon size={19} />}
+      </button>
+
+      {showNotifications && (
+        <button onClick={() => navigate('/notifications')} title="Notifications" aria-label={unreadCount > 0 ? `Notifications, ${unreadCount} new` : 'Notifications'} className={iconBtn}>
+          <Bell size={20} />
+          {unreadCount > 0 && (
+            <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 rounded-full bg-[#F0533A] text-white text-[10px] font-extrabold inline-flex items-center justify-center border-2 border-panel dark:border-night">{unreadCount > 9 ? '9+' : unreadCount}</span>
+          )}
+        </button>
+      )}
+
+      {showProfile && (
+        <button type="button" onClick={() => navigate('/profile')} aria-label={`Your profile, ${user.name}`}
+          className="press hidden lg:inline-flex items-center gap-2.5 h-11 pl-1 pr-1 sm:pr-3.5 rounded-full bg-white dark:bg-night-2 shadow-[0_1px_3px_rgba(30,27,46,0.06)]">
+          <AvatarImg size={36} />
+          <span className="hidden sm:block text-left leading-tight">
+            <span className="block text-[13px] font-extrabold text-ink dark:text-white max-w-[140px] truncate">{user.name}</span>
+            <span className="block text-[11px] font-semibold text-stone-600 dark:text-slate-400 max-w-[140px] truncate">{planText}</span>
+          </span>
+        </button>
+      )}
     </header>
   );
 };

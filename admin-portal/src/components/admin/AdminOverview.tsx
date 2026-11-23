@@ -144,127 +144,127 @@ const AdminOverview: React.FC = () => {
     return (
         <div className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-4">
-                    <div className="w-12 h-12 bg-blue-100 text-blue-600 rounded-xl flex items-center justify-center">
+                <div className="bg-white p-6 rounded-[22px] flex items-center gap-4">
+                    <div className="w-12 h-12 bg-brand-soft text-brand rounded-[14px] flex items-center justify-center">
                         <Users size={24} />
                     </div>
                     <div>
-                        <p className="text-sm text-gray-500 font-medium">Total Students</p>
-                        <p className="text-2xl font-bold text-gray-900">{users.length}</p>
+                        <p className="text-sm text-stone-500 font-medium">Total Students</p>
+                        <p className="text-2xl font-bold text-stone-900">{users.length}</p>
                     </div>
                 </div>
 
-                <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-4">
-                    <div className="w-12 h-12 bg-purple-100 text-purple-600 rounded-xl flex items-center justify-center">
+                <div className="bg-white p-6 rounded-[22px] flex items-center gap-4">
+                    <div className="w-12 h-12 bg-brand-soft text-brand rounded-[14px] flex items-center justify-center">
                         <BookOpen size={24} />
                     </div>
                     <div>
-                        <p className="text-sm text-gray-500 font-medium">Active Courses</p>
-                        <p className="text-2xl font-bold text-gray-900">{courses.length}</p>
+                        <p className="text-sm text-stone-500 font-medium">Active Courses</p>
+                        <p className="text-2xl font-bold text-stone-900">{courses.length}</p>
                     </div>
                 </div>
 
-                <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-4">
-                    <div className="w-12 h-12 bg-green-100 text-green-600 rounded-xl flex items-center justify-center">
+                <div className="bg-white p-6 rounded-[22px] flex items-center gap-4">
+                    <div className="w-12 h-12 bg-mint-soft text-mint rounded-[14px] flex items-center justify-center">
                         <TrendingUp size={24} />
                     </div>
                     <div>
-                        <p className="text-sm text-gray-500 font-medium">Paid Subscriptions</p>
-                        <p className="text-2xl font-bold text-gray-900">{paidUsers}</p>
+                        <p className="text-sm text-stone-500 font-medium">Paid Subscriptions</p>
+                        <p className="text-2xl font-bold text-stone-900">{paidUsers}</p>
                     </div>
                 </div>
 
-                <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-4">
-                    <div className="w-12 h-12 bg-yellow-100 text-yellow-600 rounded-xl flex items-center justify-center">
+                <div className="bg-white p-6 rounded-[22px] flex items-center gap-4">
+                    <div className="w-12 h-12 bg-yellow-100 text-yellow-600 rounded-[14px] flex items-center justify-center">
                         <DollarSign size={24} />
                     </div>
                     <div>
-                        <p className="text-sm text-gray-500 font-medium">Monthly Rev (Est)</p>
-                        <p className="text-2xl font-bold text-gray-900">{formatAmount(totalRevenue)}</p>
+                        <p className="text-sm text-stone-500 font-medium">Monthly Rev (Est)</p>
+                        <p className="text-2xl font-bold text-stone-900">{formatAmount(totalRevenue)}</p>
                     </div>
                 </div>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 {/* Publish Events Form */}
-                <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 lg:col-span-2">
+                <div className="bg-white p-6 rounded-[22px] lg:col-span-2">
                     <h3 className="text-lg font-semibold mb-4 flex items-center gap-2 text-violet-600">
                         <Calendar size={18} /> Publish Live Meeting or Announcement
                     </h3>
                     <form onSubmit={handlePublish} className="space-y-4">
                         <div className="grid grid-cols-2 gap-4">
                             <div className="space-y-1">
-                                <label className="text-xs font-semibold text-gray-600">Type</label>
+                                <label className="text-xs font-semibold text-stone-600">Type</label>
                                 <select 
                                     value={type} 
                                     onChange={(e) => setType(e.target.value as any)}
-                                    className="w-full p-2 bg-gray-50 border border-gray-250 rounded-xl text-sm"
+                                    className="w-full p-2 bg-stone-50 border border-stone-250 rounded-[14px] text-sm"
                                 >
                                     <option value="Meeting">Live Meeting / Webinar</option>
                                     <option value="Announcement">Global Announcement</option>
                                 </select>
                             </div>
                             <div className="space-y-1">
-                                <label className="text-xs font-semibold text-gray-600">Host / Speaker</label>
+                                <label className="text-xs font-semibold text-stone-600">Host / Speaker</label>
                                 <input 
                                     type="text" 
                                     value={speaker} 
                                     onChange={(e) => setSpeaker(e.target.value)}
-                                    className="w-full p-2 bg-gray-50 border border-gray-250 rounded-xl text-sm"
+                                    className="w-full p-2 bg-stone-50 border border-stone-250 rounded-[14px] text-sm"
                                     placeholder="e.g. Admin Team" 
                                 />
                             </div>
                         </div>
 
                         <div className="space-y-1">
-                            <label className="text-xs font-semibold text-gray-600">Title</label>
+                            <label className="text-xs font-semibold text-stone-600">Title</label>
                             <input 
                                 type="text" 
                                 value={title} 
                                 onChange={(e) => setTitle(e.target.value)}
-                                className="w-full p-2 bg-gray-50 border border-gray-250 rounded-xl text-sm"
+                                className="w-full p-2 bg-stone-50 border border-stone-250 rounded-[14px] text-sm"
                                 placeholder="Enter title..." 
                             />
                         </div>
 
                         <div className="space-y-1">
-                            <label className="text-xs font-semibold text-gray-600">Details / Description</label>
+                            <label className="text-xs font-semibold text-stone-600">Details / Description</label>
                             <textarea 
                                 value={description} 
                                 onChange={(e) => setDescription(e.target.value)}
-                                className="w-full p-2 bg-gray-50 border border-gray-250 rounded-xl text-sm h-20"
+                                className="w-full p-2 bg-stone-50 border border-stone-250 rounded-[14px] text-sm h-20"
                                 placeholder="Enter details..." 
                             />
                         </div>
 
                         <div className="grid grid-cols-2 gap-4">
                             <div className="space-y-1">
-                                <label className="text-xs font-semibold text-gray-600">Date</label>
+                                <label className="text-xs font-semibold text-stone-600">Date</label>
                                 <input 
                                     type="date" 
                                     value={date} 
                                     onChange={(e) => setDate(e.target.value)}
-                                    className="w-full p-2 bg-gray-50 border border-gray-250 rounded-xl text-sm" 
+                                    className="w-full p-2 bg-stone-50 border border-stone-250 rounded-[14px] text-sm" 
                                 />
                             </div>
                             <div className="space-y-1">
-                                <label className="text-xs font-semibold text-gray-600">Time</label>
+                                <label className="text-xs font-semibold text-stone-600">Time</label>
                                 <input 
                                     type="text" 
                                     value={time} 
                                     onChange={(e) => setTime(e.target.value)}
-                                    className="w-full p-2 bg-gray-50 border border-gray-250 rounded-xl text-sm"
+                                    className="w-full p-2 bg-stone-50 border border-stone-250 rounded-[14px] text-sm"
                                     placeholder="e.g. 14:00 - 15:30 (SAST)" 
                                 />
                             </div>
                         </div>
 
                         <div className="space-y-1">
-                            <label className="text-xs font-semibold text-gray-600">Target Group (Course Specific)</label>
+                            <label className="text-xs font-semibold text-stone-600">Target Group (Course Specific)</label>
                             <select 
                                 value={courseId} 
                                 onChange={(e) => setCourseId(e.target.value)}
-                                className="w-full p-2 bg-gray-50 border border-gray-250 rounded-xl text-sm"
+                                className="w-full p-2 bg-stone-50 border border-stone-250 rounded-[14px] text-sm"
                             >
                                 <option value="global">Global (All Students)</option>
                                 {courses.map(c => (
@@ -274,11 +274,11 @@ const AdminOverview: React.FC = () => {
                         </div>
 
                         <div className="space-y-1">
-                            <label className="text-xs font-semibold text-gray-600">Target Plan (Visibility)</label>
+                            <label className="text-xs font-semibold text-stone-600">Target Plan (Visibility)</label>
                             <select 
                                 value={visibility} 
                                 onChange={(e) => setVisibility(e.target.value as any)}
-                                className="w-full p-2 bg-gray-50 border border-gray-250 rounded-xl text-sm"
+                                className="w-full p-2 bg-stone-50 border border-stone-250 rounded-[14px] text-sm"
                             >
                                 <option value="basic">Basic (All Students)</option>
                                 <option value="pro">Pro (Pro & Sponsored Students Only)</option>
@@ -289,11 +289,11 @@ const AdminOverview: React.FC = () => {
                         {type === 'Meeting' && (
                             <>
                                 <div className="space-y-1">
-                                    <label className="text-xs font-semibold text-gray-600">Event Medium</label>
+                                    <label className="text-xs font-semibold text-stone-600">Event Medium</label>
                                     <select 
                                         value={medium} 
                                         onChange={(e) => setMedium(e.target.value as any)}
-                                        className="w-full p-2 bg-gray-50 border border-gray-250 rounded-xl text-sm"
+                                        className="w-full p-2 bg-stone-50 border border-stone-250 rounded-[14px] text-sm"
                                     >
                                         <option value="Online">Online / Virtual Meeting</option>
                                         <option value="Physical">Physical / In-Person Campus</option>
@@ -302,23 +302,23 @@ const AdminOverview: React.FC = () => {
 
                                 {medium === 'Online' ? (
                                     <div className="space-y-1">
-                                        <label className="text-xs font-semibold text-gray-600">Google Meet Link</label>
+                                        <label className="text-xs font-semibold text-stone-600">Google Meet Link</label>
                                         <input 
                                             type="text" 
                                             value={meetLink} 
                                             onChange={(e) => setMeetLink(e.target.value)}
-                                            className="w-full p-2 bg-gray-50 border border-gray-250 rounded-xl text-sm"
+                                            className="w-full p-2 bg-stone-50 border border-stone-250 rounded-[14px] text-sm"
                                             placeholder="https://meet.google.com/abc-defg-hij" 
                                         />
                                     </div>
                                 ) : (
                                     <div className="space-y-1">
-                                        <label className="text-xs font-semibold text-gray-600">Physical Location / Room</label>
+                                        <label className="text-xs font-semibold text-stone-600">Physical Location / Room</label>
                                         <input 
                                             type="text" 
                                             value={location} 
                                             onChange={(e) => setLocation(e.target.value)}
-                                            className="w-full p-2 bg-gray-50 border border-gray-250 rounded-xl text-sm"
+                                            className="w-full p-2 bg-stone-50 border border-stone-250 rounded-[14px] text-sm"
                                             placeholder="e.g. WSAI Campus Hall A, Johannesburg" 
                                         />
                                     </div>
@@ -328,7 +328,7 @@ const AdminOverview: React.FC = () => {
 
                         <button 
                             type="submit" 
-                            className="w-full bg-violet-600 hover:bg-violet-750 text-white font-semibold py-2.5 rounded-xl text-sm transition-colors flex items-center justify-center gap-2 cursor-pointer"
+                            className="w-full bg-brand hover:bg-violet-750 text-white font-semibold py-2.5 rounded-[14px] text-sm transition-colors flex items-center justify-center gap-2 cursor-pointer"
                         >
                             <Send size={14} /> Publish Event
                         </button>
@@ -336,11 +336,11 @@ const AdminOverview: React.FC = () => {
                 </div>
 
                 {/* System Alerts */}
-                <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 space-y-4">
+                <div className="bg-white p-6 rounded-[22px] space-y-4">
                     <h3 className="text-lg font-semibold flex items-center gap-2 text-orange-600">
                         <Megaphone size={18} /> System Alerts
                     </h3>
-                    <div className="text-gray-500 italic text-sm">No new alerts. System operating normally.</div>
+                    <div className="text-stone-500 italic text-sm">No new alerts. System operating normally.</div>
                 </div>
             </div>
         </div>
