@@ -837,6 +837,7 @@ const AdminAgents: React.FC = () => {
                                     <th className="py-3 px-3 text-right">Live / Done</th>
                                     <th className="py-3 px-3 hidden md:table-cell">14d Trend</th>
                                     <th className="py-3 px-3 hidden lg:table-cell">Last Activity</th>
+                                    <th className="py-3 px-3 text-right">Link</th>
                                     <th className="py-3 px-4 text-right">Details</th>
                                 </tr>
                             </thead>
@@ -916,6 +917,30 @@ const AdminAgents: React.FC = () => {
                                                     {timeAgo(a.last_activity_at)}
                                                 </span>
                                             </td>
+                                            <td className="py-3.5 px-3 text-right whitespace-nowrap">
+                                                {a.slug ? (
+                                                    <div className="inline-flex flex-col items-end gap-1">
+                                                        <button
+                                                            type="button"
+                                                            onClick={e => { e.stopPropagation(); void copyText(`${origin}/join/${a.slug}`, `row-${a.id}`); }}
+                                                            className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-[12px] text-xs font-semibold bg-brand text-white hover:bg-brand-mid"
+                                                        >
+                                                            {copiedKey === `row-${a.id}` ? <><Check size={13} /> Copied</> : <><Copy size={13} /> Copy link</>}
+                                                        </button>
+                                                        <button
+                                                            type="button"
+                                                            onClick={e => {
+                                                                e.stopPropagation();
+                                                                if (selectedAgentId !== a.id) toggleSelectAgent(a.id);
+                                                                setTimeout(() => document.getElementById('agent-links-panel')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 150);
+                                                            }}
+                                                            className="text-[11px] font-semibold underline text-stone-600 dark:text-slate-300"
+                                                        >
+                                                            All links
+                                                        </button>
+                                                    </div>
+                                                ) : <span className="text-[11px] text-stone-400">No link yet</span>}
+                                            </td>
                                             <td className="py-3.5 px-4 text-right whitespace-nowrap">
                                                 <button
                                                     type="button"
@@ -990,7 +1015,7 @@ const AdminAgents: React.FC = () => {
                         </div>
                     </div>
 
-                    <AgentLinksPanel agent={selectedAgent} />
+                    <div id="agent-links-panel" className="scroll-mt-4"><AgentLinksPanel agent={selectedAgent} /></div>
 
                     {/* Agent Metrics + Trend + Locations */}
                     <div className="grid lg:grid-cols-3 gap-4">

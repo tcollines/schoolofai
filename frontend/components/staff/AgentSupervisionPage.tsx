@@ -9,7 +9,7 @@ import {
 import { supabase } from '../../src/lib/supabaseClient';
 import { clearPortalRolesCache, fetchMyPortalRoles, PortalRoles } from '../../src/lib/roles';
 import {
-    createFieldOnlyAgent, fieldAgentCredentialsMessage, generateTempPassword, whatsappShare
+    createFieldOnlyAgent, fieldAgentCredentialsMessage, generateTempPassword, whatsappShare, joinLink
 } from '../../src/lib/staffApi';
 import { BTN_PRIMARY, BTN_SECONDARY, CARD, INK, Logo, MUTED, PAPER, ThemeButton } from '../learn/learnUi';
 import AgentLinksPanel from './AgentLinksPanel';
@@ -634,7 +634,7 @@ const AgentSupervisionPage: React.FC<{ session: any }> = ({ session }) => {
                             <div className="px-5 py-4 border-b border-stone-100 dark:border-slate-800 flex items-center justify-between">
                                 <div>
                                     <h2 className="font-bold text-base">All Field Officers &amp; Agents</h2>
-                                    <p className={`text-xs ${MUTED}`}>Click any officer to view every student they registered.</p>
+                                    <p className={`text-xs ${MUTED}`}>Click any officer to view every student they registered. Use Copy link to copy their sign-up link, or All links for every link.</p>
                                 </div>
                                 <span className={`text-xs font-semibold ${MUTED}`}>{sortedAgents.length} total</span>
                             </div>
@@ -647,6 +647,7 @@ const AgentSupervisionPage: React.FC<{ session: any }> = ({ session }) => {
                                             <th className="py-3 px-3 text-right">Registered</th>
                                             <th className="py-3 px-3 text-right">Today</th>
                                             <th className="py-3 px-3 text-right">Accounts</th>
+                                            <th className="py-3 px-3 text-right">Link</th>
                                             <th className="py-3 px-4 text-right">Roster</th>
                                         </tr>
                                     </thead>
@@ -677,6 +678,30 @@ const AgentSupervisionPage: React.FC<{ session: any }> = ({ session }) => {
                                                         {a.registered_today || 0}
                                                     </td>
                                                     <td className="py-3 px-3 text-right font-semibold">{a.accounts}</td>
+                                                    <td className="py-3 px-3 text-right whitespace-nowrap">
+                                                        {a.slug ? (
+                                                            <div className="inline-flex flex-col items-end gap-1">
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={e => { e.stopPropagation(); void copyText(joinLink(a.slug), `row-${a.id}`); }}
+                                                                    className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-indigo-600 hover:bg-indigo-700 text-white"
+                                                                >
+                                                                    {copiedKey === `row-${a.id}` ? <><Check size={13} /> Copied</> : <><Copy size={13} /> Copy link</>}
+                                                                </button>
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={e => {
+                                                                        e.stopPropagation();
+                                                                        if (openOfficerId !== a.id) void openOfficerRoster(a.id);
+                                                                        setTimeout(() => document.getElementById('agent-links-panel')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 200);
+                                                                    }}
+                                                                    className="text-[11px] font-semibold underline text-stone-600 dark:text-slate-300"
+                                                                >
+                                                                    All links
+                                                                </button>
+                                                            </div>
+                                                        ) : <span className="text-[11px] text-stone-400">No link yet</span>}
+                                                    </td>
                                                     <td className="py-3 px-4 text-right">
                                                         <span className="inline-flex items-center gap-1 text-xs font-semibold text-indigo-700 dark:text-indigo-300">
                                                             {isOpen ? <>Hide <ChevronUp size={13} /></> : <>View <ChevronDown size={13} /></>}
@@ -693,7 +718,7 @@ const AgentSupervisionPage: React.FC<{ session: any }> = ({ session }) => {
                         {/* Selected Officer Student Roster */}
                         {openOfficer && (
                             <div className="space-y-4">
-                            <AgentLinksPanel agent={openOfficer} />
+                            <div id="agent-links-panel" className="scroll-mt-4"><AgentLinksPanel agent={openOfficer} /></div>
                             <section className={`${CARD} rounded-2xl p-5 space-y-4 ring-2 ring-indigo-500/30`}>
                                 <div className="flex flex-wrap items-center justify-between gap-2">
                                     <div>
