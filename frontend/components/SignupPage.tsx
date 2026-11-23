@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { AuthShell, AUTH, GoogleIcon, OrDivider } from './auth/AuthShell';
 import { supabase } from '../src/lib/supabaseClient';
+import ExistingAccountNotice from './ExistingAccountNotice';
 import { getReferral, setFreeCourseIntent, getFreeCourseIntent, learnHomePath, afterSignInUrl } from '../src/lib/acquisition';
 import { ArrowLeft, Mail, Lock, User, Eye, EyeOff, AlertTriangle, AlertCircle, LogIn } from 'lucide-react';
 
@@ -153,19 +154,11 @@ const SignupPage: React.FC = () => {
             <p className="mt-1.5 mb-0 text-[14px] leading-relaxed text-[#6B6680] dark:text-slate-400">Start AI Fundamentals today. It takes under a minute.</p>
 
             {existingAccountEmail && (
-                <div role="alert" className="mt-5 rounded-[18px] bg-[#FFF3D6] dark:bg-amber-950/40 p-4 flex items-start gap-3">
-                    <span className="w-10 h-10 rounded-[12px] bg-white/70 dark:bg-amber-900/50 flex items-center justify-center shrink-0"><AlertCircle className="w-5 h-5 text-[#9A6B00] dark:text-amber-400" /></span>
-                    <div className="flex-1 min-w-0">
-                        <h4 className="m-0 text-[15px] font-extrabold">This email already has an account</h4>
-                        <p className="mt-1 mb-0 text-[13px] text-[#6B4A00] dark:text-slate-300 leading-relaxed"><strong className="break-all">{existingAccountEmail}</strong> is already registered.</p>
-                        <div className="mt-3 flex flex-wrap gap-2 items-center">
-                            <button type="button" onClick={() => navigate('/login', { state: { email: existingAccountEmail } })} className="press h-10 px-4 bg-brand hover:bg-brand-mid text-white rounded-[12px] text-[13px] font-bold inline-flex items-center gap-1.5">
-                                <LogIn className="w-4 h-4" />Sign in instead
-                            </button>
-                            <button type="button" onClick={() => setExistingAccountEmail(null)} className="h-10 px-3 text-[13px] font-bold text-[#6B4A00] dark:text-slate-300 hover:underline">Use a different email</button>
-                        </div>
-                    </div>
-                </div>
+                <ExistingAccountNotice
+                    email={existingAccountEmail}
+                    onSignIn={() => navigate('/login', { state: { email: existingAccountEmail } })}
+                    onChangeEmail={() => setExistingAccountEmail(null)}
+                />
             )}
 
             {error && !existingAccountEmail && (

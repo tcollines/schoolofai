@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { AlertTriangle, Eye, EyeOff, Loader2, UserPlus } from 'lucide-react';
 import { supabase } from '../src/lib/supabaseClient';
+import ExistingAccountNotice from './ExistingAccountNotice';
 import { setReferral, logReferralClick, setFreeCourseIntent } from '../src/lib/acquisition';
 import { OFFICIAL_COURSE_CATALOG } from '../src/lib/outreachSync';
 import { BTN_PRIMARY, CARD, INK, Logo, MUTED, PAPER, ThemeButton } from './learn/learnUi';
@@ -114,7 +115,7 @@ const JoinPage: React.FC = () => {
 
                     <label className="flex items-start gap-3 text-sm cursor-pointer"><input type="checkbox" checked={form.emailOptIn} onChange={set('emailOptIn')} className="mt-0.5 accent-[#5B2BC4] w-5 h-5 shrink-0" /><span>Email me live-class reminders and course updates. You can change this any time.</span></label>
 
-                    {exists && <p role="alert" className="text-sm rounded-[14px] bg-[#FFF3D6] dark:bg-amber-950/30 text-[#6B4A00] dark:text-amber-200 p-3.5">This email already has an account. <a href="/login" className="font-semibold underline">Sign in</a> and open your free course.</p>}
+                    {exists && <ExistingAccountNotice email={form.email.trim().toLowerCase()} onSignIn={() => navigate('/login', { state: { email: form.email.trim().toLowerCase() } })} onChangeEmail={() => setExists(false)} />}
                     {error && <p role="alert" className="text-sm text-red-600 flex items-start gap-2"><AlertTriangle size={16} className="mt-0.5 shrink-0" />{error}</p>}
                     <button type="submit" disabled={busy} className={`${BTN_PRIMARY} w-full`}>{busy ? <><Loader2 className="animate-spin" size={18} /> Creating...</> : <><UserPlus size={18} /> Create my account</>}</button>
                     <p className={`text-xs text-center ${MUTED}`}>You will get an email to confirm your address. Already registered? <a href="/login" className="underline">Sign in</a></p>
