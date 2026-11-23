@@ -3,21 +3,11 @@ import { useSearchParams } from 'react-router-dom';
 import { Loader2, RefreshCw } from 'lucide-react';
 import { supabaseClient } from '../../lib/supabaseClient';
 import { COURSE } from '../../content/aiFundamentals';
-import AdminRegistrationPipeline from './AdminRegistrationPipeline';
+import AdminRegistrationPipeline, { StudentRow } from './AdminRegistrationPipeline';
 import { CHANNELS, channelOf } from './peopleChannels';
 
-interface Person {
-    key: string;
-    name: string;
-    location: string | null;
-    sources: string[];
-    agent: string | null;
-    registered_at: string;
-    has_account: boolean;
-    stage: string;
-    live_count?: number;
-    certificate_id?: string | null;
-}
+type Person = StudentRow;
+const FREE_TITLE = 'AI Fundamentals (free)';
 
 const card = 'bg-white dark:bg-night-2 rounded-[22px]';
 const RANGES = [['today', 'Today'], ['7', 'Last 7 days'], ['30', 'Last 30 days'], ['all', 'All time']] as const;
@@ -35,23 +25,63 @@ const AdminPeople: React.FC = () => {
     const [error, setError] = useState<string | null>(null);
     const [loading, setLoading] = useState(true);
     const [range, setRange] = useState<Range>('all');
+    const courseFilter = searchParams.get('course') || 'all';
 
     const load = useCallback(async () => {
         setLoading(true);
         let res = await supabaseClient.rpc('admin_course_stage_students', { p_course: COURSE.slug });
         if (res.error) res = await supabaseClient.rpc('admin_registration_pipeline', { p_course: COURSE.slug });
-        if (res.error) setError(res.error.message); else { setError(null); setRows((res.data || []) as Person[]); }
+        if (res.error) { setError(res.error.message); setLoading(false); return; }
+        const free = ((res.data || []) as Person[]).map(r => ({ ...r, courses: [FREE_TITLE] }));
+        // People outside the free course: general sign-ups, other-course interest and paid enrolments
+        const other = await supabaseClient.rpc('admin_other_people');
+        const byKey = new Map<string, Person>(free.map(r => [r.key, r] as [string, Person]));
+        const merged: Person[] = [...free];
+        if (!other.error) {
+            ((other.data || []) as Person[]).forEach(o => {
+                const hit = byKey.get(o.key);
+                if (hit) {
+                    hit.courses = Array.from(new Set([...(hit.courses || []), ...(o.courses || [])]));
+                    hit.paid_enrolled = hit.paid_enrolled || o.paid_enrolled;
+                } else { merged.push(o); byKey.set(o.key, o); }
+            });
+        }
+        setError(null);
+        setRows(merged.sort((a, b) => (a.registered_at < b.registered_at ? 1 : -1)));
         setLoading(false);
     }, []);
     useEffect(() => { void load(); }, [load]);
 
+    const courseOptions = useMemo(() => {
+        const m = new Map<string, number>();
+        (rows || []).forEach(p => (p.courses || []).forEach(c => m.set(c, (m.get(c) || 0) + 1)));
+        return [...m.entries()].sort((a, b) => b[1] - a[1]);
+    }, [rows]);
+
+    // The course filter narrows everything on the page: the numbers and the person-by-person list
+    const inCourse = useMemo(
+        () => (rows || []).filter(p => courseFilter === 'all' || (p.courses || []).includes(courseFilter)),
+        [rows, courseFilter]
+    );
+    const pipelineData = useMemo(() => ({
+        rows: rows ? inCourse : null,
+        setRows: (updater: (prev: Person[] | null) => Person[]) => {
+            const next = updater(inCourse);
+            const m = new Map(next.map(r => [r.key, r]));
+            setRows(prev => (prev || []).map(r => m.get(r.key) || r));
+        },
+        reload: load,
+        loading,
+        error,
+    }), [rows, inCourse, load, loading, error]);
+
     const scoped = useMemo(() => {
-        const list = rows || [];
+        const list = inCourse;
         if (range === 'all') return list;
         const today = kampalaDay(new Date().toISOString());
         const cutoff = range === 'today' ? today : kampalaDay(new Date(Date.now() - (Number(range) - 1) * 86400000).toISOString());
         return list.filter(p => kampalaDay(p.registered_at) >= cutoff);
-    }, [rows, range]);
+    }, [inCourse, range]);
 
     const tiles = useMemo(() => {
         const n = scoped.length;
@@ -115,9 +145,18 @@ const AdminPeople: React.FC = () => {
             <div className="flex flex-wrap items-end justify-between gap-3">
                 <div>
                     <h1 className="text-2xl font-extrabold">All people</h1>
-                    <p className="text-sm text-stone-500 dark:text-slate-400 mt-1">Everyone registered or enrolled in {COURSE.title || 'the free course'}, where they are in the journey, and who brought them in.</p>
+                    <p className="text-sm text-stone-500 dark:text-slate-400 mt-1">Everyone registered or enrolled in any course, where they are in the journey, and who brought them in. The study stages follow the free AI Fundamentals course.</p>
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex flex-wrap items-center gap-2">
+                    <select
+                        value={courseFilter}
+                        onChange={e => { const next = new URLSearchParams(searchParams); if (e.target.value === 'all') next.delete('course'); else next.set('course', e.target.value); setSearchParams(next, { replace: true }); }}
+                        aria-label="Filter by course"
+                        className="rounded-[12px] border border-stone-200 dark:border-slate-700 bg-white dark:bg-night-2 px-3 py-2 text-xs font-semibold"
+                    >
+                        <option value="all">All courses ({(rows || []).length})</option>
+                        {courseOptions.map(([c, n]) => <option key={c} value={c}>{c} ({n})</option>)}
+                    </select>
                     <div className="inline-flex rounded-[12px] border border-stone-200 dark:border-slate-700 overflow-hidden text-xs font-semibold" role="group" aria-label="Time range">
                         {RANGES.map(([id, label]) => (
                             <button key={id} onClick={() => setRange(id)} className={`px-3 py-2 ${range === id ? 'bg-brand text-white' : 'bg-white dark:bg-night-2'}`}>{label}</button>
@@ -154,6 +193,21 @@ const AdminPeople: React.FC = () => {
                             ))}
                         </div>
                     </div>
+
+                    {courseOptions.length > 1 && (
+                        <section className={`${card} p-4 sm:p-5`}>
+                            <h2 className="text-base font-extrabold">By course</h2>
+                            <p className="text-xs text-stone-500 dark:text-slate-400 mt-0.5 mb-2">One person can be in more than one course. Click a course to see only its people.</p>
+                            <div className="flex flex-wrap gap-2">
+                                {courseOptions.map(([c, n]) => (
+                                    <button key={c} onClick={() => { const next = new URLSearchParams(searchParams); if (courseFilter === c) next.delete('course'); else next.set('course', c); setSearchParams(next, { replace: true }); }}
+                                        className={`px-3 py-2 rounded-[12px] text-sm font-semibold border ${courseFilter === c ? 'bg-brand text-white border-violet-600' : 'border-stone-200 dark:border-slate-700 hover:bg-stone-50 dark:hover:bg-slate-800'}`}>
+                                        {c} <b>{n}</b>
+                                    </button>
+                                ))}
+                            </div>
+                        </section>
+                    )}
 
                     <div className="grid lg:grid-cols-2 gap-4">
                         <section className={`${card} p-4 sm:p-5`}>
@@ -195,7 +249,7 @@ const AdminPeople: React.FC = () => {
 
             <div id="people-explorer">
                 <h2 className="text-lg font-extrabold mb-2">Everyone, person by person</h2>
-                <AdminRegistrationPipeline course={COURSE.slug} />
+                <AdminRegistrationPipeline course={COURSE.slug} data={pipelineData} />
             </div>
         </div>
     );

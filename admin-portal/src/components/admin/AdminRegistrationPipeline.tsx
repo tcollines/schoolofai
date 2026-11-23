@@ -9,7 +9,7 @@ import { CHANNELS, channelOf } from './peopleChannels';
 
 type Stage = 'Registered' | 'Account opened' | 'In course' | 'Studying' | 'Joined live' | 'Passed final' | 'Completed';
 
-interface StudentRow {
+export interface StudentRow {
     key: string;
     user_id?: string | null;
     name: string;
@@ -38,6 +38,8 @@ interface StudentRow {
     last_active: string | null;
     followup: 'new' | 'contacted' | 'interested' | 'converted' | 'not_interested';
     note: string | null;
+    courses?: string[];
+    paid_enrolled?: boolean;
 }
 
 const STAGES: { id: Stage; tab: string; help: string; badge: string }[] = [
@@ -77,16 +79,33 @@ const field = 'rounded-[12px] bg-white dark:bg-night-2 px-2.5 py-2 text-sm';
 const VALID_STAGE_IDS = new Set<string>(['all', ...STAGES.map(s => s.id)]);
 
 /** Stage-by-stage student explorer & follow-up pipeline for the free course. */
-const AdminRegistrationPipeline: React.FC<{ course: string }> = ({ course }) => {
+export interface PipelineData {
+    rows: StudentRow[] | null;
+    setRows: (updater: (prev: StudentRow[] | null) => StudentRow[]) => void;
+    reload: () => Promise<void>;
+    loading: boolean;
+    error: string | null;
+}
+
+/** Pass `data` to let a parent page own the list (the All People page does this so it can mix in other courses). */
+const AdminRegistrationPipeline: React.FC<{ course: string; data?: PipelineData }> = ({ course, data }) => {
     const [searchParams, setSearchParams] = useSearchParams();
     const initialStage = (() => {
         const s = searchParams.get('stage');
         return s && VALID_STAGE_IDS.has(s) ? (s as 'all' | Stage) : 'all';
     })();
 
-    const [rows, setRows] = useState<StudentRow[] | null>(null);
-    const [error, setError] = useState<string | null>(null);
-    const [loading, setLoading] = useState(true);
+    const [ownRows, setOwnRows] = useState<StudentRow[] | null>(null);
+    const [ownError, setOwnError] = useState<string | null>(null);
+    const [ownLoading, setOwnLoading] = useState(true);
+    const rows = data ? data.rows : ownRows;
+    const error = data ? data.error : ownError;
+    const loading = data ? data.loading : ownLoading;
+    const setError = (m: string | null) => { if (!data) setOwnError(m); };
+    const setRows = (u: ((prev: StudentRow[] | null) => StudentRow[]) | StudentRow[] | null) => {
+        if (data) { if (typeof u === 'function') data.setRows(u); return; }
+        setOwnRows(u as any);
+    };
     const [tab, setTab] = useState<'all' | Stage>(initialStage);
     const [q, setQ] = useState('');
     const [moduleFilter, setModuleFilter] = useState<string>('all');
@@ -122,25 +141,26 @@ const AdminRegistrationPipeline: React.FC<{ course: string }> = ({ course }) => 
     };
 
     const load = useCallback(async () => {
-        setLoading(true);
+        if (data) { await data.reload(); return; }
+        setOwnLoading(true);
         const res = await supabaseClient.rpc('admin_course_stage_students', { p_course: course });
         if (res.error) {
             // Graceful fallback to legacy pipeline RPC if needed
             const fallback = await supabaseClient.rpc('admin_registration_pipeline', { p_course: course });
             if (fallback.error) {
-                setError(fallback.error.message);
+                setOwnError(fallback.error.message);
             } else {
-                setError(null);
-                setRows((fallback.data || []) as StudentRow[]);
+                setOwnError(null);
+                setOwnRows((fallback.data || []) as StudentRow[]);
             }
         } else {
-            setError(null);
-            setRows((res.data || []) as StudentRow[]);
+            setOwnError(null);
+            setOwnRows((res.data || []) as StudentRow[]);
         }
-        setLoading(false);
-    }, [course]);
+        setOwnLoading(false);
+    }, [course, data]);
 
-    useEffect(() => { void load(); }, [load]);
+    useEffect(() => { if (!data) void load(); }, [load]); // eslint-disable-line react-hooks/exhaustive-deps
 
     const counts = useMemo(() => {
         const list = rows || [];
@@ -200,13 +220,13 @@ const AdminRegistrationPipeline: React.FC<{ course: string }> = ({ course }) => 
     const exportCsv = () => {
         const esc = (v: unknown) => `"${String(v ?? '').replace(/"/g, '""')}"`;
         const head = [
-            'Name', 'Email', 'Phone', 'Location', 'Source', 'Agent', 'Registered',
+            'Name', 'Email', 'Phone', 'Location', 'Courses', 'Source', 'Agent', 'Registered',
             'Stage', 'Items Done', 'Progress %', 'Current Module', 'Quizzes Passed',
             'Final Score %', 'Certificate ID', 'Certificate Issued', 'Live Classes',
             'App Installed', 'Last Active', 'Follow-up', 'Note'
         ];
         const lines = shown.map(r => [
-            r.name, r.email, r.phone ? '+' + r.phone : '', r.location, r.sources.join('; '), r.agent,
+            r.name, r.email, r.phone ? '+' + r.phone : '', r.location, (r.courses || []).join('; '), r.sources.join('; '), r.agent,
             r.registered_at.slice(0, 10), r.stage, r.items_done ?? 0, r.progress_pct ?? 0,
             r.highest_module ? (MODULE_LABELS[r.highest_module] || r.highest_module) : '',
             r.quizzes_passed ?? 0, r.final_score ?? '', r.certificate_id || '',
@@ -378,6 +398,11 @@ const AdminRegistrationPipeline: React.FC<{ course: string }> = ({ course }) => 
                                                 )}
                                             </div>
                                             {r.location && <span className="block text-xs text-stone-500 dark:text-slate-400">{r.location}</span>}
+                                            {(r.courses || []).length > 0 && (
+                                                <span className="mt-1 flex flex-wrap gap-1">
+                                                    {(r.courses || []).map(c => <span key={c} className="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-stone-100 dark:bg-slate-800 text-stone-600 dark:text-slate-300">{c}{r.paid_enrolled && !c.toLowerCase().includes('free') && !c.toLowerCase().includes('general') ? ' · paid' : ''}</span>)}
+                                                </span>
+                                            )}
                                         </td>
 
                                         <td className="py-3 pr-3">
