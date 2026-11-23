@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Search, Building2, Mail, Phone, MapPin, Printer, Handshake, Download, Loader2 } from 'lucide-react';
+import { Plus, Search, Building2, Mail, Phone, MapPin, Handshake, Download, Loader2 } from 'lucide-react';
+import { canvasToPdfBlob, safeFileName, saveBlob } from '../../lib/pdfDownload';
+import { renderPartnerCertificate } from '../../lib/partnerCertificate';
 import { supabaseClient } from '../../lib/supabaseClient';
 
 interface Partner {
@@ -98,58 +100,19 @@ const AdminPartners = () => {
         }
     };
 
-    const handlePrintCertificate = (partner: Partner) => {
-        const printWindow = window.open('', '_blank');
-        if (!printWindow) return;
-
-        const html = `
-            <html>
-                <head>
-                    <title>Certificate of Partnership - ${partner.name}</title>
-                    <style>
-                        body { font-family: 'Times New Roman', serif; text-align: center; margin: 0; padding: 0; background: #f9fafb; display: flex; align-items: center; justify-content: center; height: 100vh; }
-                        .certificate { width: 800px; padding: 50px; background: white; border: 20px solid #7c3aed; position: relative; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
-                        .certificate::before { content: ''; position: absolute; top: 10px; left: 10px; right: 10px; bottom: 10px; border: 2px solid #7c3aed; }
-                        h1 { font-size: 48px; color: #4c1d95; margin-bottom: 10px; }
-                        h2 { font-size: 24px; color: #6b7280; font-weight: normal; margin-bottom: 40px; text-transform: uppercase; letter-spacing: 2px; }
-                        .awarded-to { font-size: 18px; color: #4b5563; margin-bottom: 20px; }
-                        .partner-name { font-size: 36px; color: #111827; font-weight: bold; margin-bottom: 40px; border-bottom: 2px solid #e5e7eb; padding-bottom: 10px; display: inline-block; min-width: 400px; }
-                        .description { font-size: 18px; color: #4b5563; max-width: 600px; margin: 0 auto 50px auto; line-height: 1.6; }
-                        .footer { display: flex; justify-content: space-between; margin-top: 50px; padding: 0 50px; }
-                        .signature { border-top: 1px solid #000; padding-top: 10px; width: 200px; font-weight: bold; }
-                        .date { border-top: 1px solid #000; padding-top: 10px; width: 200px; font-weight: bold; }
-                        .logo { max-width: 150px; max-height: 150px; margin-bottom: 20px; }
-                    </style>
-                </head>
-                <body>
-                    <div class="certificate">
-                        ${partner.logo ? `<img src="${partner.logo}" class="logo" alt="Logo" />` : ''}
-                        <h1>Certificate of Partnership</h1>
-                        <h2>Welile School of AI</h2>
-                        <div class="awarded-to">This proudly certifies that</div>
-                        <div class="partner-name">${partner.name}</div>
-                        <div class="description">
-                            is an official ${partner.type} partner of the Welile School of AI, dedicated to advancing artificial intelligence education and empowering the next generation of tech leaders.
-                        </div>
-                        <div class="footer">
-                            <div class="date">
-                                <div>${new Date().toLocaleDateString()}</div>
-                                <div style="font-size:12px; font-weight:normal; margin-top:5px;">Date of Issuance</div>
-                            </div>
-                            <div class="signature">
-                                <div style="font-family: 'Brush Script MT', cursive; font-size: 24px; color: #4c1d95;">Welile Director</div>
-                                <div style="font-size:12px; font-weight:normal; margin-top:5px;">Authorized Signature</div>
-                            </div>
-                        </div>
-                    </div>
-                    <script>
-                        window.onload = function() { window.print(); }
-                    </script>
-                </body>
-            </html>
-        `;
-        printWindow.document.write(html);
-        printWindow.document.close();
+    const [downloadingId, setDownloadingId] = useState<string | null>(null);
+    // Saves the certificate as a PDF straight to the device, with no print window
+    const handleDownloadCertificate = async (partner: Partner) => {
+        if (downloadingId) return;
+        setDownloadingId(partner.id);
+        try {
+            const canvas = await renderPartnerCertificate({ name: partner.name, type: partner.type, logo: partner.logo });
+            saveBlob(await canvasToPdfBlob(canvas, true), `Welile-Partnership-Certificate-${safeFileName(partner.name)}.pdf`);
+        } catch {
+            alert('We could not prepare the certificate. Please try again.');
+        } finally {
+            setDownloadingId(null);
+        }
     };
 
     const filteredPartners = partners.filter(p => p.name.toLowerCase().includes(searchTerm.toLowerCase()));
@@ -228,10 +191,10 @@ const AdminPartners = () => {
                             
                             <div className="mt-6 pt-4 border-t border-stone-100 flex gap-2">
                                 <button 
-                                    onClick={() => handlePrintCertificate(partner)}
+                                    onClick={() => void handleDownloadCertificate(partner)}
                                     className="flex-1 bg-stone-50 hover:bg-stone-100 text-stone-700 py-2.5 rounded-[14px] text-sm font-bold transition-colors flex justify-center items-center gap-2"
                                 >
-                                    <Printer size={16} /> Print Certificate
+                                    {downloadingId === partner.id ? <><Loader2 size={16} className="animate-spin" /> Preparing...</> : <><Download size={16} /> Download Certificate</>}
                                 </button>
                             </div>
                         </div>

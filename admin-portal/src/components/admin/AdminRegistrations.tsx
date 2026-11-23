@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { supabaseClient } from '../../lib/supabaseClient';
+import { saveBlob } from '../../lib/pdfDownload';
 import {
     Users,
     Sparkles,
@@ -1866,6 +1867,17 @@ const AdminRegistrations: React.FC = () => {
 
     const publicRegisterUrl = getPublicRegisterUrl();
     const qrCodeImageUrl = `https://api.qrserver.com/v1/create-qr-code/?size=320x320&margin=12&data=${encodeURIComponent(publicRegisterUrl)}`;
+    // Saves the QR as a PNG file straight to the device (no print window)
+    const downloadQrImage = async () => {
+        const name = `Welile-Registration-QR${qrEventName.trim() ? '-' + qrEventName.trim().replace(/[^\w]+/g, '-').slice(0, 40) : ''}.png`;
+        try {
+            const res = await fetch(`https://api.qrserver.com/v1/create-qr-code/?size=1000x1000&margin=24&data=${encodeURIComponent(publicRegisterUrl)}`);
+            if (!res.ok) throw new Error('bad response');
+            saveBlob(await res.blob(), name);
+        } catch {
+            window.open(qrCodeImageUrl, '_blank', 'noopener');
+        }
+    };
 
     const handleSortToggle = (column: typeof sortBy) => {
         if (sortBy === column) {
@@ -3298,7 +3310,7 @@ const AdminRegistrations: React.FC = () => {
                                     onClick={() => window.print()}
                                     className="px-4 py-2 rounded-[14px] bg-brand hover:bg-brand-mid text-white text-xs font-bold flex items-center gap-1.5 cursor-pointer"
                                 >
-                                    <Printer size={14} /> Print / Save PDF
+                                    <Printer size={14} /> Print form
                                 </button>
                                 <button
                                     type="button"
@@ -3794,6 +3806,13 @@ const AdminRegistrations: React.FC = () => {
                                     className="flex-1 py-2.5 rounded-[14px] border border-stone-200 dark:border-slate-700 hover:bg-stone-50 dark:hover:bg-slate-800 text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer"
                                 >
                                     <Printer size={14} /> Print Flyer QR
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => void downloadQrImage()}
+                                    className="flex-1 py-2.5 rounded-[14px] bg-brand hover:bg-brand-mid text-white text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer"
+                                >
+                                    <Download size={14} /> Download QR
                                 </button>
                                 <button
                                     type="button"

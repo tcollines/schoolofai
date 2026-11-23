@@ -1,9 +1,10 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import {
     ArrowUpRight, Award, BarChart3, Check, Clock, Copy, Download, ExternalLink,
-    Globe, Info, Loader2, MapPin, Monitor, MousePointerClick, Printer, RefreshCw,
+    Globe, Info, Loader2, MapPin, Monitor, MousePointerClick, RefreshCw,
     Repeat, Smartphone, Tablet, TrendingUp, Users
 } from 'lucide-react';
+import { saveBlob, textToPdfBlob } from '../../lib/pdfDownload';
 import { Area, AreaChart, CartesianGrid, Legend, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { supabaseClient } from '../../lib/supabaseClient';
 import AdminAuthPrompt, { MissingDbNotice } from './AdminAuthPrompt';
@@ -133,8 +134,8 @@ const AdminAnalytics: React.FC = () => {
 
     const periodLabel = days === 1 ? 'Last 24 Hours' : days === 7 ? 'Last 7 Days' : days === 30 ? 'Last 30 Days' : 'All Time';
 
-    const copyPitchSummary = async () => {
-        if (!data) return;
+    const buildPitchSummary = (): string => {
+        if (!data) return '';
         const ov = data.overview;
         const p = data.pitch;
         const topLocs = (data.top_locations || []).slice(0, 6).map(l => l.location).join(', ');
@@ -159,11 +160,23 @@ const AdminAnalytics: React.FC = () => {
             `• Welile Technologies (welile.com) Clicks: ${ov.welile_tech_clicks} (${ov.welile_tech_unique} unique)`,
             `• Live Class Join Clicks: ${ov.live_link_clicks} · WhatsApp Clicks: ${ov.whatsapp_clicks}`,
         ].join('\n');
+        return lines;
+    };
+
+    const copyPitchSummary = async () => {
+        if (!data) return;
+        const lines = buildPitchSummary();
         try {
             await navigator.clipboard.writeText(lines);
             setCopiedPitch(true);
             setTimeout(() => setCopiedPitch(false), 2200);
         } catch { /* ignore */ }
+    };
+
+    // Saves the same snapshot as a PDF file straight to the device, with no print window
+    const downloadPdf = () => {
+        if (!data) return;
+        saveBlob(textToPdfBlob(buildPitchSummary().split('\n')), `welile-traction-snapshot-${new Date().toISOString().slice(0, 10)}.pdf`);
     };
 
     const exportCsv = () => {
@@ -218,18 +231,18 @@ const AdminAnalytics: React.FC = () => {
                         {copiedPitch ? <><Check size={15} /> Pitch Summary Copied!</> : <><Copy size={15} /> Copy Pitch Summary</>}
                     </button>
                     <button
-                        onClick={() => window.print()}
+                        onClick={downloadPdf}
                         disabled={!data}
                         className="inline-flex items-center gap-1.5 px-3 py-2 rounded-[12px] text-sm font-medium bg-white dark:bg-night-2 hover:bg-stone-50 dark:hover:bg-slate-800 disabled:opacity-50"
                     >
-                        <Printer size={15} /> Print / PDF
+                        <Download size={15} /> Download PDF
                     </button>
                     <button
                         onClick={exportCsv}
                         disabled={!data}
                         className="inline-flex items-center gap-1.5 px-3 py-2 rounded-[12px] text-sm font-medium bg-white dark:bg-night-2 hover:bg-stone-50 dark:hover:bg-slate-800 disabled:opacity-50"
                     >
-                        <Download size={15} /> CSV
+                        <Download size={15} /> Download CSV
                     </button>
                     <button
                         onClick={() => void load()}

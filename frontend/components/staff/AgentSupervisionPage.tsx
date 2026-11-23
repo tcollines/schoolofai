@@ -12,6 +12,7 @@ import {
     createFieldOnlyAgent, fieldAgentCredentialsMessage, generateTempPassword, whatsappShare
 } from '../../src/lib/staffApi';
 import { BTN_PRIMARY, BTN_SECONDARY, CARD, INK, Logo, MUTED, PAPER, ThemeButton } from '../learn/learnUi';
+import AgentLinksPanel from './AgentLinksPanel';
 
 type SupTab = 'summary' | 'onboard' | 'registrations';
 
@@ -691,6 +692,8 @@ const AgentSupervisionPage: React.FC<{ session: any }> = ({ session }) => {
 
                         {/* Selected Officer Student Roster */}
                         {openOfficer && (
+                            <div className="space-y-4">
+                            <AgentLinksPanel agent={openOfficer} />
                             <section className={`${CARD} rounded-2xl p-5 space-y-4 ring-2 ring-indigo-500/30`}>
                                 <div className="flex flex-wrap items-center justify-between gap-2">
                                     <div>
@@ -755,6 +758,7 @@ const AgentSupervisionPage: React.FC<{ session: any }> = ({ session }) => {
                                     </div>
                                 )}
                             </section>
+                            </div>
                         )}
                     </div>
                 )}

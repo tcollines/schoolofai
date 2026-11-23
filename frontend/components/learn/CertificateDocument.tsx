@@ -21,7 +21,7 @@ const monthYear = (iso: string) => {
 };
 
 // Where the QR code leads: the public page that confirms this certificate is real
-const verifyUrlFor = (certId: string) => {
+export const verifyUrlFor = (certId: string) => {
     const origin = typeof window !== 'undefined' ? window.location.origin.replace('//admin.', '//www.') : 'https://www.welileschoolofai.org';
     return `${origin}/verify/${encodeURIComponent(certId)}`;
 };

@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import { supabaseClient } from '../../lib/supabaseClient';
 import AdminAuthPrompt, { MissingDbNotice } from './AdminAuthPrompt';
+import AgentLinksPanel from './AgentLinksPanel';
 
 interface AgentSummary {
     id: string;
@@ -988,6 +989,8 @@ const AdminAgents: React.FC = () => {
                             </button>
                         </div>
                     </div>
+
+                    <AgentLinksPanel agent={selectedAgent} />
 
                     {/* Agent Metrics + Trend + Locations */}
                     <div className="grid lg:grid-cols-3 gap-4">

@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Award, Download, Linkedin, Loader2, MessageCircle, Share2, Star, CheckCircle2 } from 'lucide-react';
+import { Award, Download, Image as ImageIcon, Linkedin, Loader2, MessageCircle, Printer, Share2, Star, CheckCircle2 } from 'lucide-react';
 import { COURSE } from '../../src/content/aiFundamentals';
 import { completionState, issueCertificate, loadRating, saveRating } from '../../src/lib/learnApi';
 import { useLearn } from './learnContext';
-import CertificateDocument from './CertificateDocument';
+import CertificateDocument, { verifyUrlFor } from './CertificateDocument';
+import { renderCertificateCanvas } from '../../src/lib/certificateCanvas';
+import { canvasToPdfBlob, canvasToPngBlob, safeFileName, saveBlob } from '../../src/lib/pdfDownload';
 import { BTN_PRIMARY, BTN_SECONDARY, CARD, MUTED } from './learnUi';
 
 const PRINT_CSS = `
@@ -26,6 +28,8 @@ const CertificatePage: React.FC = () => {
     const [busy, setBusy] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [copied, setCopied] = useState(false);
+    const [saving, setSaving] = useState<null | 'pdf' | 'png'>(null);
+    const [saveError, setSaveError] = useState<string | null>(null);
 
     const eligible = state.allItemsDone && state.finalPassed;
 
@@ -99,6 +103,23 @@ const CertificatePage: React.FC = () => {
     const shareText = `I just completed "${COURSE.title}", a free course by Welile School of AI. Verify my certificate: ${verifyUrl}`;
     const whatsapp = `https://wa.me/?text=${encodeURIComponent(shareText)}`;
 
+    // One tap saves the file. No print window.
+    const download = async (kind: 'pdf' | 'png') => {
+        if (!cert || saving) return;
+        setSaving(kind);
+        setSaveError(null);
+        try {
+            const canvas = await renderCertificateCanvas({ name: cert.name, issuedAt: cert.issuedAt, certId: cert.id, verifyUrl: verifyUrlFor(cert.id) });
+            const base = `Welile-Certificate-${safeFileName(cert.name)}`;
+            if (kind === 'pdf') saveBlob(await canvasToPdfBlob(canvas, true), `${base}.pdf`);
+            else saveBlob(await canvasToPngBlob(canvas), `${base}.png`);
+        } catch {
+            setSaveError('We could not prepare the file. Please try again.');
+        } finally {
+            setSaving(null);
+        }
+    };
+
     const copy = async () => {
         try { await navigator.clipboard.writeText(verifyUrl); setCopied(true); setTimeout(() => setCopied(false), 2000); } catch { /* ignore */ }
     };
@@ -114,12 +135,20 @@ const CertificatePage: React.FC = () => {
             </div>
 
             <div className="mt-6 flex flex-wrap gap-3">
-                <button onClick={() => window.print()} className={BTN_PRIMARY}><Download size={18} /> Download / print (PDF)</button>
+                <button onClick={() => void download('pdf')} disabled={!!saving} className={BTN_PRIMARY}>
+                    {saving === 'pdf' ? <><Loader2 className="animate-spin" size={18} /> Preparing...</> : <><Download size={18} /> Download PDF</>}
+                </button>
+                <button onClick={() => void download('png')} disabled={!!saving} className={BTN_SECONDARY}>
+                    {saving === 'png' ? <><Loader2 className="animate-spin" size={18} /> Preparing...</> : <><ImageIcon size={18} /> Download image</>}
+                </button>
                 <a href={linkedIn} target="_blank" rel="noreferrer" className={BTN_SECONDARY}><Linkedin size={18} /> Add to LinkedIn</a>
                 <a href={whatsapp} target="_blank" rel="noreferrer" className={BTN_SECONDARY}><MessageCircle size={18} /> WhatsApp</a>
                 <button onClick={copy} className={BTN_SECONDARY}>{copied ? <><CheckCircle2 size={18} /> Copied</> : <><Share2 size={18} /> Copy verify link</>}</button>
             </div>
-            <p className={`mt-3 text-sm ${MUTED}`}>Tip: in the print window choose "Save as PDF", landscape, and turn background graphics on.</p>
+            {saveError && <p role="alert" className="mt-3 text-sm text-red-600">{saveError}</p>}
+            <p className={`mt-3 text-sm ${MUTED}`}>
+                Need a paper copy? <button type="button" onClick={() => window.print()} className="underline inline-flex items-center gap-1"><Printer size={13} /> Print it</button>
+            </p>
 
             <div className={`${CARD} p-6 mt-10`}>
                 <h2 className="text-xl font-extrabold tracking-[-0.02em]">What next?</h2>
