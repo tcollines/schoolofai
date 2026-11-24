@@ -217,6 +217,7 @@ const ProtectedRoute = ({ isAuthenticated, requireOnboarding = false, userProfil
 };
 
 import InstallRequiredPrompt from './components/InstallRequiredPrompt';
+import InstallNudge from './components/InstallNudge';
 import AccountSetupGate from './components/AccountSetupGate';
 import AnalyticsTracker from './components/AnalyticsTracker';
 const JoinPage = lazy(() => import('./components/JoinPage'));
@@ -370,6 +371,7 @@ function App() {
       <AnalyticsTracker />
       <ReturnToCleaner />
       <InstallRequiredPrompt uid={session?.user?.id} email={session?.user?.email} />
+      <InstallNudge uid={session?.user?.id} />
       <AccountSetupGate session={session} />
       <Routes>
         {/* Public Routes */}
@@ -396,7 +398,7 @@ function App() {
           </ProtectedRoute>
         } />
         {/* Agent Supervision workspace (Mugasha Isaac, tkwaniaye17@gmail.com, and Admins) */}
-        <Route path="/supervision" element={
+        <Route path="/supervision/*" element={
           <ProtectedRoute isAuthenticated={isAuthenticated} userProfile={userProfile}>
             <Suspense fallback={<RouteFallback />}><AgentSupervisionPage session={session} /></Suspense>
           </ProtectedRoute>
