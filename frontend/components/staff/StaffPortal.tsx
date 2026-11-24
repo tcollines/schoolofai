@@ -6,7 +6,7 @@ import {
     RefreshCw, Search, Trophy, UserPlus, Users, WifiOff
 } from 'lucide-react';
 import { supabase } from '../../src/lib/supabaseClient';
-import { clearPortalRolesCache } from '../../src/lib/roles';
+import { clearPortalRolesCache, fetchMyPortalRoles } from '../../src/lib/roles';
 import { ALL_ITEMS } from '../../src/content/aiFundamentals';
 import { OFFICIAL_COURSE_CATALOG } from '../../src/lib/outreachSync';
 import {
@@ -761,6 +761,7 @@ const StaffPortal: React.FC<{ session: any }> = ({ session }) => {
     const [leaders, setLeaders] = useState<LeaderRow[] | null>(null);
     const [pending, setPending] = useState(queuedCount());
     const [notice, setNotice] = useState<string | null>(null);
+    const [hasOtherDashboards, setHasOtherDashboards] = useState(false);
 
     const loadAll = useCallback(async () => {
         try { setStats(await loadStaffStats()); } catch { /* shown as loading */ }
@@ -778,6 +779,13 @@ const StaffPortal: React.FC<{ session: any }> = ({ session }) => {
             void loadAll();
         }
     }, [loadAll]);
+
+    // People who have more than one dashboard (for example an agent who is also a supervisor or admin) get a Switch dashboard button
+    useEffect(() => {
+        const uid = session?.user?.id;
+        if (!uid) return;
+        void fetchMyPortalRoles(uid).then(r => setHasOtherDashboards((r.role_count || 0) >= 2));
+    }, [session?.user?.id]);
 
     useEffect(() => {
         document.title = 'Agent portal | Welile School of AI';
@@ -863,8 +871,8 @@ const StaffPortal: React.FC<{ session: any }> = ({ session }) => {
                     )}
                     <div className="flex-1" />
                     <div className="flex items-center gap-2 pt-3 border-t border-[#EEEBF6] dark:border-night-3">
-                        {!isFieldOnly && (
-                            <Link to="/portal" className="press flex-1 h-11 px-3 rounded-[14px] bg-panel dark:bg-night-3 text-[13px] font-bold inline-flex items-center gap-2 no-underline text-ink dark:text-white"><LayoutGrid size={16} />Switch Role</Link>
+                        {(!isFieldOnly || hasOtherDashboards) && (
+                            <Link to="/portal" className="press flex-1 h-11 px-3 rounded-[14px] bg-panel dark:bg-night-3 text-[13px] font-bold inline-flex items-center gap-2 no-underline text-ink dark:text-white"><LayoutGrid size={16} />Switch dashboard</Link>
                         )}
                         <ThemeButton />
                         <button onClick={handleSignOut} title="Sign out" className="press w-11 h-11 rounded-[14px] bg-panel dark:bg-night-3 text-[#C2410C] inline-flex items-center justify-center">
@@ -883,8 +891,8 @@ const StaffPortal: React.FC<{ session: any }> = ({ session }) => {
                                 <p className={`m-0 text-[12px] truncate ${MUTED}`}>{profile.display_name}</p>
                             </div>
                             <div className="flex-1" />
-                            {!isFieldOnly && (
-                                <Link to="/portal" aria-label="Switch Role" className="press w-11 h-11 rounded-[14px] bg-white dark:bg-night-2 inline-flex items-center justify-center text-ink dark:text-white"><LayoutGrid size={18} /></Link>
+                            {(!isFieldOnly || hasOtherDashboards) && (
+                                <Link to="/portal" aria-label="Switch dashboard" title="Switch dashboard" className="press w-11 h-11 rounded-[14px] bg-white dark:bg-night-2 inline-flex items-center justify-center text-ink dark:text-white"><LayoutGrid size={18} /></Link>
                             )}
                             <ThemeButton />
                             <button onClick={handleSignOut} title="Sign out" className="press w-11 h-11 rounded-[14px] bg-white dark:bg-night-2 inline-flex items-center justify-center text-[#C2410C]">

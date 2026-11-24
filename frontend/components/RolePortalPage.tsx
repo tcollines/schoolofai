@@ -29,7 +29,7 @@ const RolePortalPage: React.FC<{ session: any }> = ({ session }) => {
     const [roles, setRoles] = useState<PortalRoles | null>(null);
 
     useEffect(() => {
-        document.title = 'Choose Workspace | Welile School of AI';
+        document.title = 'Choose your dashboard | Welile School of AI';
         if (!uid) {
             navigate('/login', { replace: true });
             return;
@@ -61,7 +61,7 @@ const RolePortalPage: React.FC<{ session: any }> = ({ session }) => {
         return (
             <div className="min-h-screen bg-[#faf8f5] dark:bg-slate-950 flex flex-col items-center justify-center gap-3">
                 <Loader2 className="animate-spin text-violet-700" size={32} />
-                <p className="text-sm text-stone-500 dark:text-slate-400">Loading your workspaces...</p>
+                <p className="text-sm text-stone-500 dark:text-slate-400">Loading your dashboards...</p>
             </div>
         );
     }
@@ -156,13 +156,13 @@ const RolePortalPage: React.FC<{ session: any }> = ({ session }) => {
             <main className="flex-1 max-w-5xl w-full mx-auto px-4 sm:px-6 py-10 sm:py-14 flex flex-col justify-center">
                 <div className="max-w-2xl">
                     <span className="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-full bg-violet-100 text-violet-800 dark:bg-violet-950/60 dark:text-violet-300">
-                        <Sparkles size={13} /> Workspace Switcher
+                        <Sparkles size={13} /> Switch dashboard
                     </span>
                     <h1 className="font-serif text-3xl sm:text-4xl font-bold mt-3 tracking-tight">
                         Welcome back, {firstName}
                     </h1>
                     <p className="mt-2 text-base text-stone-600 dark:text-slate-400">
-                        Your account has {cards.length} workspaces. Select the role you want to open now — you can switch anytime.
+                        You have {cards.length} dashboards. Pick the one you want to open. You can switch any time with the Switch dashboard button.
                     </p>
                 </div>
 

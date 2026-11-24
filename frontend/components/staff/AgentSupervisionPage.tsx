@@ -415,7 +415,7 @@ const AgentSupervisionPage: React.FC<{ session: any }> = ({ session }) => {
                             className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs sm:text-sm font-semibold bg-violet-100 dark:bg-violet-950/60 text-violet-900 dark:text-violet-200 hover:bg-violet-200 dark:hover:bg-violet-900/60"
                         >
                             <LayoutGrid size={15} />
-                            <span className="hidden sm:inline">Switch Role</span>
+                            <span>Switch dashboard</span>
                         </Link>
                     )}
 

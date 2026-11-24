@@ -3,7 +3,7 @@ import { Routes, Route, useNavigate, useLocation, Navigate } from 'react-router-
 import { 
     LayoutDashboard, Users, BookOpen, UserCheck, 
     Settings, LogOut, FileQuestion, Calendar, Mail, CheckCircle, Shield,
-    Bell, Search, Handshake, Menu, X, Sun, Moon, MessageSquare, ClipboardList, Wallet, GraduationCap, Video, UserCog, Home, Activity, BarChart3, UsersRound
+    Bell, Search, Handshake, Menu, X, Sun, Moon, MessageSquare, ClipboardList, Wallet, GraduationCap, Video, UserCog, Home, Activity, BarChart3, UsersRound, LayoutGrid
 } from 'lucide-react';
 import { getCurrencyPreference, setCurrencyPreference, CurrencyType } from '../../lib/currency';
 import AdminOverview from './AdminOverview';
@@ -200,6 +200,17 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ onExit, isInstructor, isAdmin
         }
     };
 
+    // The page where a person picks which dashboard to open (student, agent, supervision, admin...), on the main site
+    const handleSwitchDashboard = () => {
+        if (isAdminSubdomain) {
+            const { protocol, host } = window.location;
+            const mainHost = host.replace('admin.', '').replace('instructor.', '').replace('instructors.', '');
+            window.location.href = `${protocol}//${mainHost}/portal`;
+        } else {
+            window.location.href = '/portal';
+        }
+    };
+
     if (!sessionChecked && isAdminAuthenticated) {
         return (
             <div className="min-h-screen flex items-center justify-center bg-panel dark:bg-night">
@@ -320,6 +331,12 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ onExit, isInstructor, isAdmin
                     })}
                 </nav>
 
+                <div className="mx-3 mb-3 pt-3 border-t border-night-3">
+                    <button onClick={handleSwitchDashboard} className="press w-full flex items-center gap-3 px-3 min-h-[40px] rounded-[11px] text-[13px] text-left bg-night-3 hover:bg-night-2 transition-colors">
+                        <LayoutGrid size={17} className="text-lime-200" />
+                        Switch dashboard
+                    </button>
+                </div>
                 <div className="mx-3 mb-4 pt-3 border-t border-night-3 flex items-center gap-2.5 px-2">
                     {userAvatar && (userAvatar.startsWith('http') || userAvatar.startsWith('data:')) ? (
                         <img src={userAvatar} alt="" className="w-8 h-8 rounded-full object-cover shrink-0" />
@@ -344,6 +361,9 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ onExit, isInstructor, isAdmin
                             <p className="m-0 text-[11px] font-extrabold tracking-[0.12em] uppercase text-brand dark:text-violet-300">{isInstructor ? 'Instructor' : 'Admin'}</p>
                             <p className="m-0 text-[17px] font-extrabold tracking-[-0.01em] truncate lg:hidden">{activeLabel}</p>
                         </div>
+                        <button onClick={handleSwitchDashboard} title="Switch dashboard" aria-label="Switch dashboard" className="press h-10 px-3 rounded-[12px] bg-white dark:bg-night-2 inline-flex items-center gap-2 text-[13px] font-bold text-ink dark:text-white">
+                            <LayoutGrid size={16} /><span className="hidden sm:inline">Switch dashboard</span>
+                        </button>
                         <button onClick={toggleCurrency} title="Switch currency" aria-label={`Currency: ${currency}. Switch currency`} className="press h-10 px-3 rounded-[12px] bg-white dark:bg-night-2 inline-flex items-center gap-1.5 text-[12px] font-extrabold">
                             <span className="w-1.5 h-1.5 rounded-full bg-brand" aria-hidden="true" />{currency}
                         </button>
@@ -367,6 +387,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ onExit, isInstructor, isAdmin
                                             <p className="m-0 text-[11px] font-semibold text-[#6B6680]">Signed in as</p>
                                             <p className="m-0 text-[13px] font-bold truncate">{userEmail}</p>
                                         </div>
+                                        <button role="menuitem" onClick={() => { setShowProfileDropdown(false); handleSwitchDashboard(); }} className="w-full text-left px-3 h-10 rounded-[11px] text-[13px] font-semibold hover:bg-panel dark:hover:bg-night-3">Switch dashboard</button>
                                         <button role="menuitem" onClick={() => { setShowProfileDropdown(false); handleBackToStudentPortal(); }} className="w-full text-left px-3 h-10 rounded-[11px] text-[13px] font-semibold hover:bg-panel dark:hover:bg-night-3">Student site</button>
                                         <button role="menuitem" onClick={() => { setShowProfileDropdown(false); handleExitConsole(); }} className="w-full text-left px-3 h-10 rounded-[11px] text-[13px] font-bold text-[#A3321F] hover:bg-[#FDECE8] dark:hover:bg-red-950/20 flex items-center gap-2"><LogOut size={15} />Sign out</button>
                                     </div>

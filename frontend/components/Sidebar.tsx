@@ -55,7 +55,7 @@ const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, isOpen, onCl
     { id: 'career', to: '/career', label: 'Certificates', icon: Award },
   ];
   const work: Item[] = [
-    ...(hasMultipleRoles ? [{ id: 'portal', to: '/portal', label: 'Switch Workspace', icon: LayoutGrid }] : []),
+    ...(hasMultipleRoles ? [{ id: 'portal', to: '/portal', label: 'Switch dashboard', icon: LayoutGrid }] : []),
     ...(isCorporate ? [{ id: 'corporate', to: '/corporate', label: 'Corporate portal', icon: Building2 }] : []),
   ];
   const account: Item[] = [
