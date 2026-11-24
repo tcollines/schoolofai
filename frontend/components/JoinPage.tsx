@@ -90,7 +90,7 @@ const JoinPage: React.FC = () => {
                     <h1 className="relative mt-5 mb-0 text-[30px] sm:text-[38px] leading-[1.08] font-extrabold tracking-[-0.03em]">Open your free account</h1>
                     <p className="relative mt-3 mb-0 text-[15px] leading-relaxed text-[#CFC8DC]">It takes one minute. Start with <b className="text-white">AI Fundamentals</b>, free, on any phone, with a free certificate.</p>
                     <ul className="relative mt-5 p-0 list-none flex flex-wrap gap-2">
-                        {['6 short modules', 'Live classes Mon, Wed, Fri', 'Free certificate'].map(t => <li key={t} className="px-3 py-2 rounded-[12px] bg-night-2 text-[13px] font-semibold text-[#E6E1EE]">{t}</li>)}
+                        {['6 short modules', 'Live classes Wed and Fri', 'Free certificate'].map(t => <li key={t} className="px-3 py-2 rounded-[12px] bg-night-2 text-[13px] font-semibold text-[#E6E1EE]">{t}</li>)}
                     </ul>
                 </section>
 

@@ -195,7 +195,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLoginClick, onSignupClick, 
         { q: 'Do I need to pay anything?', a: 'No. The course and the certificate are free, sponsored by Welile Technologies.' },
         { q: 'Do I need a computer?', a: 'A smartphone is enough. Videos adapt to slow connections, and every lesson has written notes too.' },
         { q: 'How long does it take?', a: 'About 6 hours in total. Most people finish in one to two weeks, studying a little each day.' },
-        { q: 'Do I have to attend the live classes?', a: 'No. Join the live classes (Monday, Wednesday and Friday at 2:00 pm, East Africa Time), or study at your own pace. Both are free and lead to the same certificate.' },
+        { q: 'Do I have to attend the live classes?', a: 'No. Join the live classes (Wednesday and Friday at 2:00 pm, East Africa Time), or study at your own pace. Both are free and lead to the same certificate.' },
         { q: 'How do I get the certificate?', a: 'Finish every lesson, pass each module quiz, and pass the final assessment. Your certificate is issued instantly and can be verified online.' },
         { q: 'Which AI tool do I need?', a: 'Any major chatbot works. The course is tool-neutral and shows you how to pick one.' },
     ];
@@ -363,7 +363,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLoginClick, onSignupClick, 
                                 {['MON', 'WED', 'FRI'].map(d => <span key={d} className="rounded-[14px] bg-brand-soft dark:bg-night-3 py-2.5 text-center"><span className="block text-[11px] font-extrabold text-brand dark:text-violet-300">{d}</span><span className="block text-[16px] font-extrabold">2 pm</span></span>)}
                             </div>
                             <h3 className="mt-5 mb-0 text-[19px] font-extrabold">2. Join live, or go at your pace</h3>
-                            <p className="mt-1.5 mb-0 text-[14px] leading-relaxed text-[#6B6680] dark:text-slate-400">Live classes every Monday, Wednesday and Friday at 2:00 pm EAT. Attend and those lessons count as done.</p>
+                            <p className="mt-1.5 mb-0 text-[14px] leading-relaxed text-[#6B6680] dark:text-slate-400">Live classes every Wednesday and Friday at 2:00 pm EAT. Attend and those lessons count as done.</p>
                         </div>
                         <div className="bg-white dark:bg-night-2 rounded-[26px] p-6">
                             <div className="rounded-[18px] bg-lime-100 border-2 border-dashed border-lime-200 px-4 py-3 text-center" aria-hidden="true">

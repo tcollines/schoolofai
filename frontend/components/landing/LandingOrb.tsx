@@ -39,7 +39,7 @@ const LandingOrb: React.FC<{ size?: 'lg' | 'md'; className?: string; showBadges?
             {showBadges && (
                 <>
                     <span className="floaty absolute left-0 top-[18%] inline-flex items-center gap-2 px-3.5 py-2.5 rounded-[16px] bg-white text-ink text-[13px] font-extrabold shadow-[0_14px_30px_rgba(0,0,0,0.25)]">
-                        <span className="w-2 h-2 rounded-full bg-[#F0533A]" aria-hidden="true" />Live Mon · Wed · Fri, 2 pm EAT
+                        <span className="w-2 h-2 rounded-full bg-[#F0533A]" aria-hidden="true" />Live Wed · Fri, 2 pm EAT
                     </span>
                     <span className="floaty absolute right-0 bottom-[20%] px-3.5 py-2.5 rounded-[16px] bg-lime-200 text-night text-[13px] font-extrabold shadow-[0_14px_30px_rgba(0,0,0,0.25)]" style={{ animationDelay: '-3s' }}>
                         Free certificate

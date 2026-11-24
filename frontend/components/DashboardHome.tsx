@@ -121,7 +121,7 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({ courses, userId }) => {
 
     const liveChip = nextLive
         ? (isToday(nextLive.starts_at) ? `Live today · ${formatEAT(nextLive.starts_at, { weekday: undefined, day: undefined, month: undefined })}` : `Next live · ${formatEAT(nextLive.starts_at)}`)
-        : 'Live Mon, Wed, Fri · 2 pm';
+        : 'Live Wed and Fri · 2 pm';
 
     const maxWeek = Math.max(1, ...week);
     const chartPts = week.map((v, i) => ({ x: 42 + i * 46, y: 180 - (v / maxWeek) * 150, v }));

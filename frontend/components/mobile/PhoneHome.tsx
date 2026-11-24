@@ -103,7 +103,7 @@ const PhoneHome: React.FC<{ user: any }> = ({ user }) => {
                 </span>
                 <span className="flex-1 min-w-0">
                     <span className="block text-[14px] font-bold truncate">
-                        {live ? `${isToday(live.starts_at) ? 'Live class today' : `Live class ${formatEAT(live.starts_at, { hour: undefined, minute: undefined, month: undefined })}`} · ${timeEAT(live.starts_at)}` : 'Live classes · Mon, Wed, Fri'}
+                        {live ? `${isToday(live.starts_at) ? 'Live class today' : `Live class ${formatEAT(live.starts_at, { hour: undefined, minute: undefined, month: undefined })}`} · ${timeEAT(live.starts_at)}` : 'Live classes · Wed and Fri'}
                     </span>
                     <span className="block text-[12px] text-[#CFC8DC] truncate">{live ? live.title : '2:00 pm EAT · times posted each week'}</span>
                 </span>
