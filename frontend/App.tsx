@@ -218,6 +218,7 @@ const ProtectedRoute = ({ isAuthenticated, requireOnboarding = false, userProfil
 
 import InstallRequiredPrompt from './components/InstallRequiredPrompt';
 import InstallNudge from './components/InstallNudge';
+import StudentInstallBanner from './components/StudentInstallBanner';
 import AccountSetupGate from './components/AccountSetupGate';
 import AnalyticsTracker from './components/AnalyticsTracker';
 const JoinPage = lazy(() => import('./components/JoinPage'));
@@ -372,6 +373,7 @@ function App() {
       <ReturnToCleaner />
       <InstallRequiredPrompt uid={session?.user?.id} email={session?.user?.email} />
       <InstallNudge uid={session?.user?.id} />
+      <StudentInstallBanner uid={session?.user?.id} email={session?.user?.email} />
       <AccountSetupGate session={session} />
       <Routes>
         {/* Public Routes */}

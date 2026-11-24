@@ -17,7 +17,7 @@ const Step: React.FC<{ n: number; title: React.ReactNode; hint?: string; icon: R
     </li>
 );
 
-const InstallSheet: React.FC<{ uid: string; onClose: () => void }> = ({ uid, onClose }) => {
+export const InstallSheet: React.FC<{ uid: string; onClose: () => void }> = ({ uid, onClose }) => {
     const ios = isIOS();
     const safari = isSafari();
     const [copied, setCopied] = useState(false);
