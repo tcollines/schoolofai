@@ -39,13 +39,13 @@ const MobileTabBar: React.FC<{ className?: string }> = ({ className = '' }) => {
     const active = tabForPath(pathname);
     return (
         <nav aria-label="Main"
-            className={`lg:hidden fixed left-3 right-3 z-40 h-[68px] rounded-[24px] frost-white border-t border-solid border-x-0 border-b-0 border-white/60 dark:border-white/5 shadow-[0_10px_30px_rgba(76,52,150,0.14)] grid grid-cols-5 items-center ${className}`}
+            className={`lg:hidden fixed left-3 right-3 z-40 min-h-[72px] rounded-[24px] frost-white border-t border-solid border-x-0 border-b-0 border-white/60 dark:border-white/5 shadow-[0_10px_30px_rgba(76,52,150,0.14)] grid grid-cols-5 items-center ${className}`}
             style={{ bottom: 'calc(20px + env(safe-area-inset-bottom))' }}>
             {TABS.map(t => {
                 const on = t.id === active;
                 return (
                     <button key={t.id} type="button" onClick={() => navigate(t.to)} aria-current={on ? 'page' : undefined}
-                        className={`press flex flex-col items-center justify-center gap-[3px] h-full text-[10px] bg-transparent border-0 cursor-pointer ${on ? 'text-brand dark:text-violet-300 font-extrabold' : 'text-[#6B6680] dark:text-slate-400 font-bold'}`}>
+                        className={`press flex flex-col items-center justify-center gap-[3px] h-full min-h-[56px] text-[12px] bg-transparent border-0 cursor-pointer ${on ? 'text-brand dark:text-violet-300 font-extrabold' : 'text-[#6B6680] dark:text-slate-400 font-bold'}`}>
                         {ICONS[t.id](on)}
                         <span>{t.label}</span>
                     </button>

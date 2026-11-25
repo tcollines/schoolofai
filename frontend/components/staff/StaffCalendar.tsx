@@ -131,11 +131,11 @@ const StaffCalendar: React.FC = () => {
         <section aria-label="My calendar" className="space-y-4">
             <div className="flex items-center gap-3">
                 <div className="min-w-0">
-                    <h1 className="font-serif text-2xl font-semibold flex items-center gap-2"><CalendarDays size={22} className="text-violet-700 dark:text-violet-300" /> My calendar</h1>
+                    <h1 className="font-serif text-2xl font-semibold flex items-center gap-2"><CalendarDays size={22} className="text-violet-700 dark:text-violet-300" /> My week</h1>
                     <p className={`text-sm ${MUTED}`}>Your week, in East Africa Time. Tap any block to change it.</p>
                 </div>
                 <div className="flex-1" />
-                <button onClick={openNew} className={`${BTN_PRIMARY} !px-4 !py-2.5 !text-sm shrink-0`}><Plus size={16} /> Add block</button>
+                <button onClick={openNew} className={`${BTN_PRIMARY} !px-4 !min-h-[44px] !text-sm shrink-0`}><Plus size={16} /> Add block</button>
             </div>
 
             {error && (
@@ -184,7 +184,7 @@ const StaffCalendar: React.FC = () => {
                                 const d = i + 1, on = d === selDay;
                                 return (
                                     <button key={n} role="tab" aria-selected={on} onClick={() => setSelDay(d)}
-                                        className={`rounded-xl py-2 text-center border ${on ? 'bg-violet-700 border-violet-700 text-white' : `${CARD}`} ${d === today && !on ? 'ring-2 ring-violet-400' : ''}`}>
+                                        className={`rounded-xl py-2.5 min-h-[56px] text-center border ${on ? 'bg-violet-700 border-violet-700 text-white' : `${CARD}`} ${d === today && !on ? 'ring-2 ring-violet-400' : ''}`}>
                                         <span className="block text-[11px] font-semibold">{n}</span>
                                         <span className="block text-sm font-bold">{dates[i].getUTCDate()}</span>
                                     </button>

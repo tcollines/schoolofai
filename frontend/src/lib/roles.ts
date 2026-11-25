@@ -11,6 +11,8 @@ export interface PortalRoles {
     is_supervisor: boolean;
     is_admin: boolean;
     is_corporate: boolean;
+    /** true when the profile role is INSTRUCTOR (older servers do not send it) */
+    is_instructor?: boolean;
     staff_slug?: string | null;
     staff_code?: string | null;
     staff_role?: string | null;
@@ -26,6 +28,7 @@ const DEFAULT_ROLES: PortalRoles = {
     is_supervisor: false,
     is_admin: false,
     is_corporate: false,
+    is_instructor: false,
     role_count: 1,
     default_path: '/dashboard',
 };
@@ -65,4 +68,12 @@ export function adminConsoleUrl(): string {
     return window.location.hostname.includes('localhost')
         ? `${window.location.protocol}//admin.localhost:4002`
         : `${window.location.origin}/admin/`;
+}
+
+/** Where the instructor console lives: /admin/instructor/courses on the main site, /instructor/courses on the local admin host. */
+export function instructorConsoleUrl(): string {
+    if (typeof window === 'undefined') return '/admin/instructor/courses';
+    return window.location.hostname.includes('localhost')
+        ? `${window.location.protocol}//admin.localhost:4002/instructor/courses`
+        : `${window.location.origin}/admin/instructor/courses`;
 }

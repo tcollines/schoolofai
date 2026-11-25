@@ -22,7 +22,7 @@ const CreateAgentPage: React.FC = () => {
                     <span className="text-xs font-bold uppercase tracking-wider px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300">
                         Non-Student Field Agent
                     </span>
-                    <h2 className="font-serif text-xl font-bold mt-2">Create a Field-Only Agent</h2>
+                    <h2 className="font-serif text-xl font-bold mt-2">Add agent: Field-Only Agent</h2>
                     <p className={`text-sm mt-1 ${MUTED}`}>
                         Creates a dedicated field officer account (not enrolled as a student). When they sign in, they go straight to an ultra-simple <strong>3-field registration form</strong> (Name, Phone Number, Location) and their personal stats.
                     </p>

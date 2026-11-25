@@ -4,6 +4,7 @@ import { supabase } from '../../src/lib/supabaseClient';
 import { useFreeCourse } from '../../src/hooks/useFreeCourse';
 import { ALL_ITEMS } from '../../src/content/aiFundamentals';
 import { usePlayerPrefs } from '../learn/learnUi';
+import { adminConsoleUrl, fetchMyPortalRoles, instructorConsoleUrl, type PortalRoles } from '../../src/lib/roles';
 import { Avatar, Ico, PageTitle, PhonePage, Toggle, useProgressMap } from './phoneKit';
 
 /**
@@ -21,7 +22,7 @@ const IconTile: React.FC<{ tone: string; children: React.ReactNode }> = ({ tone,
 );
 
 const NavRow: React.FC<{ to: string; label: string; value?: string; sub?: string; icon?: React.ReactNode; last?: boolean }> = ({ to, label, value, sub, icon, last }) => (
-    <Link to={to} className={`flex items-center gap-3 min-h-[54px] px-3.5 py-2 text-ink dark:text-white no-underline hover:bg-[#FAF9FE] dark:hover:bg-night-3 ${last ? '' : LINE}`}>
+    <Link to={to} className={`flex items-center gap-3 min-h-[56px] px-3.5 py-2 text-ink dark:text-white no-underline hover:bg-[#FAF9FE] dark:hover:bg-night-3 ${last ? '' : LINE}`}>
         {icon}
         <span className="flex-1 min-w-0">
             <span className="block text-[15px] font-semibold">{label}</span>
@@ -30,6 +31,17 @@ const NavRow: React.FC<{ to: string; label: string; value?: string; sub?: string
         {value && <span className="text-[14px] text-[#6B6680] dark:text-slate-400">{value}</span>}
         <span className="text-[#A39DB5]">{Ico.chevron()}</span>
     </Link>
+);
+
+const ExtRow: React.FC<{ href: string; label: string; sub?: string; icon?: React.ReactNode; last?: boolean }> = ({ href, label, sub, icon, last }) => (
+    <a href={href} className={`flex items-center gap-3 min-h-[56px] px-3.5 py-2 text-ink dark:text-white no-underline hover:bg-[#FAF9FE] dark:hover:bg-night-3 ${last ? '' : LINE}`}>
+        {icon}
+        <span className="flex-1 min-w-0">
+            <span className="block text-[15px] font-semibold">{label}</span>
+            {sub && <span className="block text-[12px] text-[#6B6680] dark:text-slate-400 truncate">{sub}</span>}
+        </span>
+        <span className="text-[#A39DB5]">{Ico.chevron()}</span>
+    </a>
 );
 
 const SwitchRow: React.FC<{ label: string; sub?: string; icon?: React.ReactNode; on: boolean; onChange: () => void; last?: boolean }> = ({ label, sub, icon, on, onChange, last }) => (
@@ -50,10 +62,16 @@ const PhoneMe: React.FC<{ user: any }> = ({ user }) => {
     const progress = useProgressMap(uid);
     const { prefs, update } = usePlayerPrefs();
     const [isStaff, setIsStaff] = useState(false);
+    const [roles, setRoles] = useState<PortalRoles | null>(null);
     const [dark, setDark] = useState(() => document.documentElement.classList.contains('dark'));
 
     useEffect(() => { document.title = 'Me | Welile School of AI'; }, []);
     useEffect(() => { if (uid) supabase.rpc('is_staff').then(({ data }) => setIsStaff(data === true)); }, [uid]);
+    useEffect(() => {
+        let live = true;
+        if (uid) fetchMyPortalRoles(uid).then(r => { if (live) setRoles(r); }).catch(() => { /* dashboards just stay hidden */ });
+        return () => { live = false; };
+    }, [uid]);
     useEffect(() => {
         const sync = () => setDark(document.documentElement.classList.contains('dark'));
         window.addEventListener('theme-change', sync);
@@ -81,6 +99,14 @@ const PhoneMe: React.FC<{ user: any }> = ({ user }) => {
     const features = paid
         ? ['Every Pro course and live cohort', 'Verified certificates', 'Mobile Money billing']
         : ['AI Fundamentals with certificate', 'Free live classes and community'];
+
+    const dashboards: React.ReactElement<any>[] = [];
+    if (roles?.is_agent) dashboards.push(<NavRow key="agent" to="/staff" label="Agent portal" sub={isStaff ? 'Register students and track your sign-ups' : 'Your sign-ups and timetable'} icon={<IconTile tone="bg-night text-lime-200">{Ico.handshake()}</IconTile>} />);
+    if (roles?.is_supervisor) dashboards.push(<NavRow key="sup" to="/supervision" label="Agent supervision" sub="Your agents, links and weekly numbers" icon={<IconTile tone="bg-brand-soft text-brand">{Ico.users(18)}</IconTile>} />);
+    if (roles?.is_admin || role === 'ADMIN') dashboards.push(<ExtRow key="admin" href={adminConsoleUrl()} label="Admin console" sub="Manage the school" icon={<IconTile tone="bg-[#F1EFF6] text-ink">{Ico.shield()}</IconTile>} />);
+    if (roles?.is_instructor) dashboards.push(<ExtRow key="inst" href={instructorConsoleUrl()} label="Instructor console" sub="Your courses and lessons" icon={<IconTile tone="bg-mint-soft text-mint">{Ico.award(18)}</IconTile>} />);
+    if (isCorporate) dashboards.push(<NavRow key="corp" to="/corporate" label="Corporate portal" sub={user?.companyName || 'Your team and seats'} icon={<IconTile tone="bg-brand-soft text-brand">{Ico.users(18)}</IconTile>} />);
+    if ((roles?.role_count ?? 0) >= 2) dashboards.push(<NavRow key="switch" to="/portal" label="Switch dashboard" sub="Change between your roles" icon={<IconTile tone="bg-[#F1EFF6] text-ink">{Ico.chevron()}</IconTile>} />);
 
     return (
         <PhonePage>
@@ -124,58 +150,46 @@ const PhoneMe: React.FC<{ user: any }> = ({ user }) => {
             </div>
 
             <section aria-labelledby="g-learn">
-                <h2 id="g-learn" className={GROUP}>Learning</h2>
+                <h2 id="g-learn" className={GROUP}>My learning</h2>
                 <div className={BOX}>
+                    <NavRow to="/courses?tab=certs" label="My certificates" sub="Download or share"
+                        icon={<IconTile tone="bg-lime-100 text-[#3F4A1C]">{Ico.award(18)}</IconTile>} />
+                    <NavRow to="/courses" label="My courses" sub="Pick up where you stopped"
+                        icon={<IconTile tone="bg-brand-soft text-brand">{Ico.headphones()}</IconTile>} />
+                    <NavRow to="/discussions" label="Discussions" sub="Ask questions and help others"
+                        icon={<IconTile tone="bg-mint-soft text-mint">{Ico.users(18)}</IconTile>} />
+                    <NavRow to="/events" label="Events" sub="Live classes and meetups"
+                        icon={<IconTile tone="bg-[#FCE8DD] text-[#9A3412]">{Ico.calendar(18)}</IconTile>} />
                     <SwitchRow label="Data saver" sub="Videos load only when you tap play" on={prefs.dataSaver} onChange={() => update({ dataSaver: !prefs.dataSaver })}
                         icon={<IconTile tone="bg-lime-100 text-[#3F4A1C]">{Ico.saver()}</IconTile>} />
-                    <SwitchRow label="Start lessons in audio only" sub="Uses far less data than video" on={prefs.audioOnly} onChange={() => update({ audioOnly: !prefs.audioOnly })}
+                    <SwitchRow label="Start lessons in audio only" sub="Uses far less data than video" on={prefs.audioOnly} onChange={() => update({ audioOnly: !prefs.audioOnly })} last
                         icon={<IconTile tone="bg-brand-soft text-brand">{Ico.headphones()}</IconTile>} />
-                    <NavRow to="/discussions" label="Discussions" sub="Ask questions and help others" last
-                        icon={<IconTile tone="bg-mint-soft text-mint">{Ico.users(18)}</IconTile>} />
                 </div>
             </section>
 
-            <section aria-labelledby="g-work">
-                <h2 id="g-work" className={GROUP}>Agents and work</h2>
+            <section aria-labelledby="g-acct">
+                <h2 id="g-acct" className={GROUP}>My account</h2>
                 <div className={BOX}>
-                    <NavRow to="/staff" label="Agent portal" sub={isStaff ? 'Register students and track your sign-ups' : 'For Welile agents and staff'} last={!isCorporate && role !== 'ADMIN'}
-                        icon={<IconTile tone="bg-night text-lime-200">{Ico.handshake()}</IconTile>} />
-                    {isCorporate && <NavRow to="/corporate" label="Corporate portal" sub={user?.companyName || 'Your team and seats'} last={role !== 'ADMIN'}
-                        icon={<IconTile tone="bg-brand-soft text-brand">{Ico.users(18)}</IconTile>} />}
-                    {role === 'ADMIN' && <NavRow to="/admin" label="Admin console" sub="Manage the school" last
-                        icon={<IconTile tone="bg-[#F1EFF6] text-ink">{Ico.shield()}</IconTile>} />}
-                </div>
-            </section>
-
-            <section aria-labelledby="g-notif">
-                <h2 id="g-notif" className={GROUP}>Notifications</h2>
-                <div className={BOX}>
-                    <NavRow to="/notifications" label="Notifications" sub="Class reminders, new lessons and replies" last
-                        icon={<IconTile tone="bg-[#FCE8DD] text-[#9A3412]">{Ico.megaphone()}</IconTile>} />
-                </div>
-            </section>
-
-            <section aria-labelledby="g-pref">
-                <h2 id="g-pref" className={GROUP}>Preferences</h2>
-                <div className={BOX}>
+                    <NavRow to="/profile?view=details" label="Profile details" />
+                    <NavRow to="/plans" label="Plans and payments" value={plan} />
+                    <NavRow to="/settings" label="Security and sign-in" />
+                    <NavRow to="/notifications" label="Notifications" sub="Class reminders, new lessons and replies" />
+                    <NavRow to="/settings" label="Settings" />
                     <NavRow to="/settings" label="Language" value={lang} />
                     <NavRow to="/settings" label="Time zone" value={tz ? tz.replace(/\s*\(.*\)/, '') : 'East Africa Time'} />
-                    <div className="flex items-center gap-3 min-h-[54px] px-3.5">
+                    <div className="flex items-center gap-3 min-h-[56px] px-3.5">
                         <span className="flex-1 text-[15px] font-semibold">Dark mode</span>
                         <Toggle on={dark} onChange={toggleDark} label="Dark mode" />
                     </div>
                 </div>
             </section>
 
-            <section aria-labelledby="g-acct">
-                <h2 id="g-acct" className={GROUP}>Account</h2>
-                <div className={BOX}>
-                    <NavRow to="/courses?tab=certs" label="My certificates" />
-                    <NavRow to="/plans" label="Plans and payments" value={plan} />
-                    <NavRow to="/profile?view=details" label="Profile details" />
-                    <NavRow to="/settings" label="Security and sign-in" last />
-                </div>
-            </section>
+            {dashboards.length > 0 && (
+                <section aria-labelledby="g-dash">
+                    <h2 id="g-dash" className={GROUP}>My dashboards</h2>
+                    <div className={BOX}>{dashboards.map((d, i) => React.cloneElement(d, { last: i === dashboards.length - 1 }))}</div>
+                </section>
+            )}
 
             <button type="button" onClick={signOut} className="press h-[52px] rounded-[18px] border-0 bg-white dark:bg-night-2 text-[#C2410C] dark:text-[#FF8A75] text-[15px] font-bold cursor-pointer">Sign out</button>
         </PhonePage>

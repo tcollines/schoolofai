@@ -19,12 +19,63 @@ const OfficersPage: React.FC = () => {
         <section className={`${CARD} rounded-2xl overflow-hidden`}>
             <div className="px-5 py-4 border-b border-stone-100 dark:border-slate-800 flex items-center justify-between">
                 <div>
-                    <h2 className="font-bold text-base">All Field Officers &amp; Agents</h2>
-                    <p className={`text-xs ${MUTED}`}>Click any officer to view every student they registered. Use Copy link to copy their sign-up link, or All links for every link.</p>
+                    <h2 className="font-bold text-base">Agents</h2>
+                    <p className={`text-xs ${MUTED}`}>Tap an agent to view every student they registered. Use Copy link to copy their sign-up link, or All links for every link.</p>
                 </div>
                 <span className={`text-xs font-semibold ${MUTED}`}>{sortedAgents.length} total</span>
             </div>
-            <div className="overflow-x-auto">
+            <div className="md:hidden divide-y divide-stone-100 dark:divide-slate-800">
+                {sortedAgents.map(a => {
+                    const isOpen = openOfficerId === a.id;
+                    return (
+                        <div key={a.id} className={`px-4 py-3.5 space-y-2 ${isOpen ? 'bg-indigo-50/70 dark:bg-indigo-950/30' : ''} ${a.active ? '' : 'opacity-55'}`}>
+                            <button type="button" onClick={() => void openOfficerRoster(a.id)} className="block w-full text-left min-h-[44px]">
+                                <p className="font-semibold text-[15px]">{a.name}</p>
+                                <p className={`text-sm break-all ${MUTED}`}>{[a.email, a.staff_code].filter(Boolean).join(' · ')}</p>
+                                <span className={`inline-block mt-1 text-xs font-semibold px-2.5 py-0.5 rounded-full ${
+                                    a.agent_type === 'field_only'
+                                        ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/50 dark:text-emerald-300'
+                                        : 'bg-violet-100 text-violet-800 dark:bg-violet-950/50 dark:text-violet-300'
+                                }`}>
+                                    {a.agent_type === 'field_only' ? 'Field-Only (3-Field)' : 'Student Agent'}
+                                </span>
+                                <div className="grid grid-cols-3 gap-2 mt-2 text-center">
+                                    <div><p className="text-xl font-extrabold">{a.registered}</p><p className={`text-xs ${MUTED}`}>Registered</p></div>
+                                    <div><p className="text-xl font-extrabold text-emerald-700 dark:text-emerald-400">{a.registered_today || 0}</p><p className={`text-xs ${MUTED}`}>Today</p></div>
+                                    <div><p className="text-xl font-extrabold">{a.accounts}</p><p className={`text-xs ${MUTED}`}>Accounts</p></div>
+                                </div>
+                            </button>
+                            <div className="flex flex-wrap items-center gap-2">
+                                {a.slug ? (
+                                    <>
+                                        <button
+                                            type="button"
+                                            onClick={() => void copyText(joinLink(a.slug), `row-${a.id}`)}
+                                            className="inline-flex items-center justify-center gap-1.5 px-4 min-h-[44px] rounded-xl text-sm font-semibold bg-indigo-600 hover:bg-indigo-700 text-white"
+                                        >
+                                            {copiedKey === `row-${a.id}` ? <><Check size={15} /> Copied</> : <><Copy size={15} /> Copy link</>}
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                if (openOfficerId !== a.id) void openOfficerRoster(a.id);
+                                                setTimeout(() => document.getElementById('agent-links-panel')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 200);
+                                            }}
+                                            className="px-3 min-h-[44px] text-sm font-semibold underline text-stone-600 dark:text-slate-300"
+                                        >
+                                            All links
+                                        </button>
+                                    </>
+                                ) : <span className="text-sm text-stone-400">No link yet</span>}
+                                <button type="button" onClick={() => void openOfficerRoster(a.id)} className="ml-auto inline-flex items-center gap-1 px-3 min-h-[44px] text-sm font-semibold text-indigo-700 dark:text-indigo-300">
+                                    {isOpen ? <>Hide students <ChevronUp size={15} /></> : <>View students <ChevronDown size={15} /></>}
+                                </button>
+                            </div>
+                        </div>
+                    );
+                })}
+            </div>
+            <div className="hidden md:block overflow-x-auto">
                 <table className="w-full text-sm min-w-[680px]">
                     <thead>
                         <tr className="text-left text-xs uppercase text-stone-500 dark:text-slate-400 bg-stone-50 dark:bg-slate-800/40">
@@ -121,13 +172,13 @@ const OfficersPage: React.FC = () => {
                                                     ['Date', 'Name', 'Phone', 'Email', 'Location', 'Stage'],
                                                     officerClients.map(c => [formatEatDate(c.joined), c.name, c.phone || '', c.email || '', c.location || '', c.stage])
                                                 )}
-                                                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border border-stone-300 dark:border-slate-700"
+                                                className="inline-flex items-center gap-1.5 px-3 min-h-[44px] rounded-lg text-sm font-semibold border border-stone-300 dark:border-slate-700"
                                             >
-                                                <Download size={13} /> Export CSV
+                                                <Download size={15} /> Export CSV
                                             </button>
                                         )}
-                                        <button onClick={() => setOpenOfficerId(null)} className="p-1.5 rounded-lg border border-stone-300 dark:border-slate-700">
-                                            <X size={15} />
+                                        <button onClick={() => setOpenOfficerId(null)} className="min-h-[44px] min-w-[44px] inline-flex items-center justify-center rounded-lg border border-stone-300 dark:border-slate-700" aria-label="Close">
+                                            <X size={16} />
                                         </button>
                                     </div>
                                 </div>
@@ -137,7 +188,20 @@ const OfficersPage: React.FC = () => {
                                 ) : officerClients.length === 0 ? (
                                     <p className={`text-sm ${MUTED}`}>No students registered yet.</p>
                                 ) : (
-                                    <div className="overflow-x-auto rounded-xl border border-stone-200 dark:border-slate-800">
+                                    <>
+                                    <div className="md:hidden divide-y divide-stone-100 dark:divide-slate-800 rounded-xl border border-stone-200 dark:border-slate-800">
+                                        {officerClients.map((c, idx) => (
+                                            <div key={`${c.phone || c.name}-${idx}`} className="px-3 py-2.5 space-y-0.5">
+                                                <div className="flex items-start justify-between gap-2">
+                                                    <p className="font-semibold">{c.name || '(no name)'}</p>
+                                                    <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-violet-100 text-violet-800 dark:bg-violet-950/60 dark:text-violet-300 shrink-0">{c.stage}</span>
+                                                </div>
+                                                <p className="text-sm font-mono break-all">{c.phone || c.email || '—'}</p>
+                                                <p className={`text-xs ${MUTED}`}>{c.location || '—'} · {formatEatDate(c.joined)}</p>
+                                            </div>
+                                        ))}
+                                    </div>
+                                    <div className="hidden md:block overflow-x-auto rounded-xl border border-stone-200 dark:border-slate-800">
                                         <table className="w-full text-sm">
                                             <thead>
                                                 <tr className="text-left text-xs uppercase text-stone-500 bg-stone-50 dark:bg-slate-800/40">
@@ -167,6 +231,7 @@ const OfficersPage: React.FC = () => {
                                             </tbody>
                                         </table>
                                     </div>
+                                    </>
                                 )}
                             </section>
                             </div>

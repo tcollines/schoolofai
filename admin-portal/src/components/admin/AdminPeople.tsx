@@ -138,7 +138,7 @@ const AdminPeople: React.FC = () => {
     };
     const activeChannel = searchParams.get('channel');
     const activeAgent = searchParams.get('agent');
-    const rowBtn = (on: boolean) => `w-full text-left grid grid-cols-[1fr_repeat(4,56px)] gap-2 items-center py-2 px-2 rounded-[10px] text-sm hover:bg-stone-50 dark:hover:bg-slate-800/50 ${on ? 'bg-violet-50 dark:bg-violet-950/30 ring-1 ring-violet-300' : ''}`;
+    const rowBtn = (on: boolean) => `w-full text-left grid grid-cols-[1fr_repeat(4,44px)] sm:grid-cols-[1fr_repeat(4,56px)] gap-1 sm:gap-2 items-center min-h-[44px] py-2 px-2 rounded-[10px] text-sm hover:bg-stone-50 dark:hover:bg-slate-800/50 ${on ? 'bg-violet-50 dark:bg-violet-950/30 ring-1 ring-violet-300' : ''}`;
 
     return (
         <div className="space-y-5">
@@ -147,22 +147,22 @@ const AdminPeople: React.FC = () => {
                     <h1 className="text-2xl font-extrabold">All people</h1>
                     <p className="text-sm text-stone-500 dark:text-slate-400 mt-1">Everyone registered or enrolled in any course, where they are in the journey, and who brought them in. The study stages follow the free AI Fundamentals course.</p>
                 </div>
-                <div className="flex flex-wrap items-center gap-2">
+                <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
                     <select
                         value={courseFilter}
                         onChange={e => { const next = new URLSearchParams(searchParams); if (e.target.value === 'all') next.delete('course'); else next.set('course', e.target.value); setSearchParams(next, { replace: true }); }}
                         aria-label="Filter by course"
-                        className="rounded-[12px] border border-stone-200 dark:border-slate-700 bg-white dark:bg-night-2 px-3 py-2 text-xs font-semibold"
+                        className="w-full sm:w-auto min-h-[44px] rounded-[12px] border border-stone-200 dark:border-slate-700 bg-white dark:bg-night-2 px-3 py-2 text-sm font-semibold"
                     >
                         <option value="all">All courses ({(rows || []).length})</option>
                         {courseOptions.map(([c, n]) => <option key={c} value={c}>{c} ({n})</option>)}
                     </select>
-                    <div className="inline-flex rounded-[12px] border border-stone-200 dark:border-slate-700 overflow-hidden text-xs font-semibold" role="group" aria-label="Time range">
+                    <div className="flex flex-wrap gap-2 text-sm font-semibold" role="group" aria-label="Time range">
                         {RANGES.map(([id, label]) => (
-                            <button key={id} onClick={() => setRange(id)} className={`px-3 py-2 ${range === id ? 'bg-brand text-white' : 'bg-white dark:bg-night-2'}`}>{label}</button>
+                            <button key={id} onClick={() => setRange(id)} aria-pressed={range === id} className={`min-h-[44px] px-4 rounded-[12px] border ${range === id ? 'bg-brand text-white border-violet-600' : 'bg-white dark:bg-night-2 border-stone-200 dark:border-slate-700'}`}>{label}</button>
                         ))}
                     </div>
-                    <button onClick={() => void load()} aria-label="Refresh" className="p-2.5 rounded-[12px] border border-stone-200 dark:border-slate-700"><RefreshCw size={15} className={loading ? 'animate-spin' : ''} /></button>
+                    <button onClick={() => void load()} aria-label="Refresh" className="min-w-[44px] min-h-[44px] inline-flex items-center justify-center rounded-[12px] border border-stone-200 dark:border-slate-700"><RefreshCw size={16} className={loading ? 'animate-spin' : ''} /></button>
                 </div>
             </div>
 
@@ -201,7 +201,7 @@ const AdminPeople: React.FC = () => {
                             <div className="flex flex-wrap gap-2">
                                 {courseOptions.map(([c, n]) => (
                                     <button key={c} onClick={() => { const next = new URLSearchParams(searchParams); if (courseFilter === c) next.delete('course'); else next.set('course', c); setSearchParams(next, { replace: true }); }}
-                                        className={`px-3 py-2 rounded-[12px] text-sm font-semibold border ${courseFilter === c ? 'bg-brand text-white border-violet-600' : 'border-stone-200 dark:border-slate-700 hover:bg-stone-50 dark:hover:bg-slate-800'}`}>
+                                        className={`min-h-[44px] px-3 py-2 rounded-[12px] text-sm font-semibold border ${courseFilter === c ? 'bg-brand text-white border-violet-600' : 'border-stone-200 dark:border-slate-700 hover:bg-stone-50 dark:hover:bg-slate-800'}`}>
                                         {c} <b>{n}</b>
                                     </button>
                                 ))}
@@ -213,7 +213,7 @@ const AdminPeople: React.FC = () => {
                         <section className={`${card} p-4 sm:p-5`}>
                             <h2 className="text-base font-extrabold">How they registered</h2>
                             <p className="text-xs text-stone-500 dark:text-slate-400 mt-0.5 mb-2">Click a row to filter the list below.</p>
-                            <div className="grid grid-cols-[1fr_repeat(4,56px)] gap-2 px-2 text-[10px] font-bold uppercase text-stone-400"><span>Channel</span><span className="text-right">People</span><span className="text-right">Account</span><span className="text-right">Study</span><span className="text-right">Done</span></div>
+                            <div className="grid grid-cols-[1fr_repeat(4,44px)] sm:grid-cols-[1fr_repeat(4,56px)] gap-1 sm:gap-2 px-2 text-[11px] font-bold uppercase text-stone-400"><span>Channel</span><span className="text-right">People</span><span className="text-right">Account</span><span className="text-right">Study</span><span className="text-right">Done</span></div>
                             {byChannel.map(r => (
                                 <button key={r.c} onClick={() => pick('channel', r.c)} className={rowBtn(activeChannel === r.c)}>
                                     <span className="font-semibold">{r.c}</span>
@@ -225,7 +225,7 @@ const AdminPeople: React.FC = () => {
                         <section className={`${card} p-4 sm:p-5`}>
                             <h2 className="text-base font-extrabold">By agent</h2>
                             <p className="text-xs text-stone-500 dark:text-slate-400 mt-0.5 mb-2">Top 15 agents. People without an agent signed up on their own.</p>
-                            <div className="grid grid-cols-[1fr_repeat(4,56px)] gap-2 px-2 text-[10px] font-bold uppercase text-stone-400"><span>Agent</span><span className="text-right">People</span><span className="text-right">Account</span><span className="text-right">Study</span><span className="text-right">Done</span></div>
+                            <div className="grid grid-cols-[1fr_repeat(4,44px)] sm:grid-cols-[1fr_repeat(4,56px)] gap-1 sm:gap-2 px-2 text-[11px] font-bold uppercase text-stone-400"><span>Agent</span><span className="text-right">People</span><span className="text-right">Account</span><span className="text-right">Study</span><span className="text-right">Done</span></div>
                             {byAgent.length === 0 && <p className="text-sm text-stone-500 px-2 py-3">No agent sign-ups in this period.</p>}
                             {byAgent.map(r => (
                                 <button key={r.a} onClick={() => pick('agent', r.a)} className={rowBtn(activeAgent === r.a)}>

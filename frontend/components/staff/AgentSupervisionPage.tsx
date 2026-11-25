@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { Link, Navigate, NavLink, Route, Routes, useNavigate } from 'react-router-dom';
+import { Link, Navigate, NavLink, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
 import {
-    AlertTriangle, CalendarDays, ClipboardCheck, LayoutGrid, ListFilter, Loader2, LogOut, RefreshCw, UserPlus, Users
+    AlertTriangle, CalendarDays, ClipboardCheck, Home, LayoutGrid, ListFilter, Loader2, LogOut, MoreHorizontal, RefreshCw, UserPlus, Users
 } from 'lucide-react';
 import { supabase } from '../../src/lib/supabaseClient';
 import { clearPortalRolesCache, fetchMyPortalRoles, PortalRoles } from '../../src/lib/roles';
@@ -13,19 +13,24 @@ import OverviewPage from './supervision/OverviewPage';
 import OfficersPage from './supervision/OfficersPage';
 import CreateAgentPage from './supervision/CreateAgentPage';
 import RegistrationsPage from './supervision/RegistrationsPage';
+import MorePage from './supervision/MorePage';
+import StaffCalendar from './StaffCalendar';
+import BottomNav from '../ui/BottomNav';
 
 // Agent Supervision is four pages: /supervision (overview), /supervision/officers, /supervision/create-agent and
 // /supervision/registrations. This file is the shell: access check, header, navigation, data loading and the state
 // the pages share (so the selected officer and filters stay put as you move between pages).
 const NAV = [
-    { to: '/supervision', end: true, label: 'Overview', short: 'Overview', Icon: CalendarDays },
-    { to: '/supervision/officers', end: false, label: 'Officers', short: 'Officers', Icon: Users },
-    { to: '/supervision/create-agent', end: false, label: 'Create Field Agent', short: 'Add Agent', Icon: UserPlus },
-    { to: '/supervision/registrations', end: false, label: 'All Registrations', short: 'All Regs', Icon: ListFilter },
+    { to: '/supervision', end: true, label: 'Today', Icon: Home },
+    { to: '/supervision/officers', end: false, label: 'Agents', Icon: Users },
+    { to: '/supervision/create-agent', end: false, label: 'Add agent', Icon: UserPlus },
+    { to: '/supervision/registrations', end: false, label: 'Registrations', Icon: ListFilter },
 ] as const;
+const MORE_PATHS = ['/supervision/more', '/supervision/week'];
 
 const AgentSupervisionPage: React.FC<{ session: any }> = ({ session }) => {
     const navigate = useNavigate();
+    const location = useLocation();
     const uid = session?.user?.id as string | undefined;
 
     const [roles, setRoles] = useState<PortalRoles | null>(null);
@@ -275,7 +280,7 @@ const AgentSupervisionPage: React.FC<{ session: any }> = ({ session }) => {
     };
 
     return (
-        <div className={`min-h-screen ${PAPER} ${INK} pb-20 md:pb-12`}>
+        <div className={`min-h-screen ${PAPER} ${INK} pb-[112px] md:pb-12`}>
             {/* Top Navigation Header */}
             <header className="sticky top-0 z-30 bg-[#faf8f5]/95 dark:bg-slate-950/95 backdrop-blur border-b border-stone-200 dark:border-slate-800">
                 <div className="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center gap-3">
@@ -304,6 +309,17 @@ const AgentSupervisionPage: React.FC<{ session: any }> = ({ session }) => {
                                 {label}
                             </NavLink>
                         ))}
+                        <NavLink
+                            to="/supervision/week"
+                            className={({ isActive }) => `inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-sm font-semibold transition-colors ${
+                                isActive
+                                    ? 'bg-indigo-100 dark:bg-indigo-950/70 text-indigo-900 dark:text-indigo-200'
+                                    : 'text-stone-600 dark:text-slate-300 hover:bg-stone-100 dark:hover:bg-slate-800'
+                            }`}
+                        >
+                            <CalendarDays size={15} />
+                            My week
+                        </NavLink>
                     </nav>
 
                     <div className="flex-1" />
@@ -351,25 +367,28 @@ const AgentSupervisionPage: React.FC<{ session: any }> = ({ session }) => {
                         <Route path="officers" element={<OfficersPage />} />
                         <Route path="create-agent" element={<CreateAgentPage />} />
                         <Route path="registrations" element={<RegistrationsPage />} />
+                        <Route path="more" element={<MorePage canSwitch={roles.role_count >= 2} loading={loading} onRefresh={() => void loadAll()} onSignOut={handleSignOut} />} />
+                        <Route path="week" element={<StaffCalendar />} />
                         <Route path="*" element={<Navigate to="/supervision" replace />} />
                     </Routes>
                 </SupervisionContext.Provider>
             </main>
 
-            {/* Mobile bottom navigation */}
-            <nav className="md:hidden fixed bottom-0 inset-x-0 z-30 bg-white/95 dark:bg-slate-900/95 backdrop-blur border-t border-stone-200 dark:border-slate-800 grid grid-cols-4 pb-[env(safe-area-inset-bottom)]">
-                {NAV.map(({ to, end, short, Icon }) => (
-                    <NavLink
-                        key={to}
-                        to={to}
-                        end={end}
-                        className={({ isActive }) => `flex flex-col items-center gap-1 py-2.5 text-[11px] font-semibold ${isActive ? 'text-indigo-700 dark:text-indigo-300' : 'text-stone-500 dark:text-slate-400'}`}
-                    >
-                        <Icon size={20} />
-                        {short}
-                    </NavLink>
-                ))}
-            </nav>
+            {/* Phone bottom bar */}
+            <BottomNav
+                className="md:hidden"
+                ariaLabel="Supervision"
+                activeId={(() => {
+                    const p = location.pathname.replace(/\/+$/, '');
+                    if (MORE_PATHS.includes(p)) return 'more';
+                    const hit = NAV.find(n => n.end ? p === n.to : p.startsWith(n.to));
+                    return hit ? hit.to : 'none';
+                })()}
+                items={[
+                    ...NAV.map(({ to, label, Icon }) => ({ id: to, label, icon: <Icon size={22} />, onSelect: () => navigate(to) })),
+                    { id: 'more', label: 'More', icon: <MoreHorizontal size={22} />, onSelect: () => navigate('/supervision/more') },
+                ]}
+            />
         </div>
     );
 };

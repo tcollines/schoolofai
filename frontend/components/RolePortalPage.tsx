@@ -2,10 +2,10 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
     ArrowRight, Building2, ClipboardCheck, GraduationCap, Handshake,
-    Loader2, LogOut, Shield, Sparkles
+    Loader2, LogOut, PencilRuler, Shield, Sparkles
 } from 'lucide-react';
 import { supabase } from '../src/lib/supabaseClient';
-import { adminConsoleUrl, clearPortalRolesCache, fetchMyPortalRoles, PortalRoles } from '../src/lib/roles';
+import { adminConsoleUrl, clearPortalRolesCache, fetchMyPortalRoles, instructorConsoleUrl, PortalRoles } from '../src/lib/roles';
 import { Logo, ThemeButton } from './learn/learnUi';
 
 interface RoleCard {
@@ -20,7 +20,7 @@ interface RoleCard {
 }
 
 /**
- * Clean workspace launcher for users who hold multiple roles (Student, Agent, Agent Supervision, Admin, Corporate).
+ * Clean workspace launcher for users who hold multiple roles (Student, Agent, Agent Supervision, Admin, Instructor, Corporate).
  * Single-role users are automatically redirected straight to their own portal with zero extra clicks.
  */
 const RolePortalPage: React.FC<{ session: any }> = ({ session }) => {
@@ -120,6 +120,19 @@ const RolePortalPage: React.FC<{ session: any }> = ({ session }) => {
         });
     }
 
+    if (roles.is_instructor) {
+        cards.push({
+            id: 'instructor',
+            title: 'Instructor console',
+            badge: 'Instructor',
+            description: 'Set up courses, cohorts, exams and events.',
+            icon: PencilRuler,
+            accent: 'bg-rose-100 text-rose-700 dark:bg-rose-950/60 dark:text-rose-300',
+            badgeTone: 'bg-rose-50 text-rose-700 dark:bg-rose-950/50 dark:text-rose-300',
+            onOpen: () => { window.location.href = instructorConsoleUrl(); },
+        });
+    }
+
     if (roles.is_corporate) {
         cards.push({
             id: 'corporate',
@@ -153,7 +166,7 @@ const RolePortalPage: React.FC<{ session: any }> = ({ session }) => {
                 </div>
             </header>
 
-            <main className="flex-1 max-w-5xl w-full mx-auto px-4 sm:px-6 py-10 sm:py-14 flex flex-col justify-center">
+            <main className="flex-1 max-w-5xl w-full mx-auto px-4 sm:px-6 py-6 sm:py-14 flex flex-col justify-center">
                 <div className="max-w-2xl">
                     <span className="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-full bg-violet-100 text-violet-800 dark:bg-violet-950/60 dark:text-violet-300">
                         <Sparkles size={13} /> Switch dashboard
@@ -162,40 +175,37 @@ const RolePortalPage: React.FC<{ session: any }> = ({ session }) => {
                         Welcome back, {firstName}
                     </h1>
                     <p className="mt-2 text-base text-stone-600 dark:text-slate-400">
-                        You have {cards.length} dashboards. Pick the one you want to open. You can switch any time with the Switch dashboard button.
+                        Pick where you want to go. You can switch any time.
                     </p>
                 </div>
 
-                <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
+                <div className="mt-6 sm:mt-8 grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-5">
                     {cards.map(c => (
                         <button
                             key={c.id}
                             type="button"
                             onClick={c.onOpen}
-                            className="group text-left bg-white dark:bg-slate-900 rounded-2xl border border-stone-200 dark:border-slate-800 p-6 shadow-sm hover:shadow-lg hover:border-violet-400 dark:hover:border-violet-600 transition-all duration-200 flex flex-col justify-between gap-5 focus:outline-none focus-visible:ring-2 focus-visible:ring-violet-600"
+                            className="group text-left bg-white dark:bg-slate-900 rounded-2xl border border-stone-200 dark:border-slate-800 p-4 sm:p-6 min-h-[88px] shadow-sm hover:shadow-lg hover:border-violet-400 dark:hover:border-violet-600 transition-all duration-200 flex flex-row sm:flex-col items-center sm:items-stretch sm:justify-between gap-4 sm:gap-5 focus:outline-none focus-visible:ring-2 focus-visible:ring-violet-600"
                         >
-                            <div className="space-y-4">
-                                <div className="flex items-start justify-between gap-3">
-                                    <div className={`w-13 h-13 p-3 rounded-2xl flex items-center justify-center transition-transform duration-200 group-hover:scale-105 ${c.accent}`}>
-                                        <c.icon size={26} />
-                                    </div>
-                                    <span className={`text-xs font-bold px-2.5 py-1 rounded-full ${c.badgeTone}`}>
+                            <div className={`shrink-0 w-14 h-14 rounded-2xl flex items-center justify-center transition-transform duration-200 group-hover:scale-105 ${c.accent}`}>
+                                <c.icon size={26} />
+                            </div>
+                            <div className="flex-1 min-w-0 space-y-1.5">
+                                <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                                    <h2 className="text-lg sm:text-xl font-bold text-[#1c1917] dark:text-white group-hover:text-violet-700 dark:group-hover:text-violet-300 transition-colors">
+                                        {c.title}
+                                    </h2>
+                                    <span className={`text-[13px] font-bold px-2.5 py-0.5 rounded-full ${c.badgeTone}`}>
                                         {c.badge}
                                     </span>
                                 </div>
-                                <div>
-                                    <h2 className="text-xl font-bold text-[#1c1917] dark:text-white group-hover:text-violet-700 dark:group-hover:text-violet-300 transition-colors">
-                                        {c.title}
-                                    </h2>
-                                    <p className="mt-1.5 text-sm leading-relaxed text-stone-600 dark:text-slate-400">
-                                        {c.description}
-                                    </p>
-                                </div>
+                                <p className="m-0 text-sm leading-relaxed text-stone-600 dark:text-slate-400">
+                                    {c.description}
+                                </p>
                             </div>
-
-                            <div className="flex items-center justify-between pt-3 border-t border-stone-100 dark:border-slate-800 text-sm font-semibold text-violet-700 dark:text-violet-300">
-                                <span>Open {c.title}</span>
-                                <ArrowRight size={17} className="transition-transform duration-200 group-hover:translate-x-1" />
+                            <div className="shrink-0 sm:flex sm:items-center sm:justify-between sm:pt-3 sm:border-t sm:border-stone-100 sm:dark:border-slate-800 text-sm font-semibold text-violet-700 dark:text-violet-300">
+                                <span className="hidden sm:inline">Open {c.title}</span>
+                                <ArrowRight size={20} className="transition-transform duration-200 group-hover:translate-x-1" />
                             </div>
                         </button>
                     ))}

@@ -74,7 +74,7 @@ const wa = (p: string) => (p.startsWith('0') ? '256' + p.slice(1) : p);
 const fmtDay = (iso?: string | null) =>
     iso ? new Date(iso).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', timeZone: 'Africa/Kampala' }) : '—';
 const card = 'bg-white dark:bg-night-2 rounded-[22px]';
-const field = 'rounded-[12px] bg-white dark:bg-night-2 px-2.5 py-2 text-sm';
+const field = 'rounded-[12px] bg-white dark:bg-night-2 px-2.5 py-2 text-sm min-h-[44px]';
 
 const VALID_STAGE_IDS = new Set<string>(['all', ...STAGES.map(s => s.id)]);
 
@@ -254,7 +254,7 @@ const AdminRegistrationPipeline: React.FC<{ course: string; data?: PipelineData 
                         role="tab"
                         aria-selected={tab === 'all'}
                         onClick={() => selectTab('all')}
-                        className={`px-3 py-2 rounded-[12px] text-xs sm:text-sm font-semibold border transition-colors ${
+                        className={`min-h-[44px] px-3 py-2 rounded-[12px] text-sm font-semibold border transition-colors ${
                             tab === 'all'
                                 ? 'bg-brand border-violet-600 text-white'
                                 : 'border-stone-200 dark:border-slate-700 hover:bg-stone-50 dark:hover:bg-slate-800'
@@ -270,7 +270,7 @@ const AdminRegistrationPipeline: React.FC<{ course: string; data?: PipelineData 
                                 role="tab"
                                 aria-selected={tab === s.id}
                                 onClick={() => selectTab(s.id)}
-                                className={`px-3 py-2 rounded-[12px] text-xs sm:text-sm font-semibold border transition-colors ${
+                                className={`min-h-[44px] px-3 py-2 rounded-[12px] text-sm font-semibold border transition-colors ${
                                     tab === s.id
                                         ? 'bg-brand border-violet-600 text-white'
                                         : 'border-stone-200 dark:border-slate-700 hover:bg-stone-50 dark:hover:bg-slate-800'
@@ -285,14 +285,14 @@ const AdminRegistrationPipeline: React.FC<{ course: string; data?: PipelineData 
                     <button
                         onClick={exportCsv}
                         disabled={!rows || shown.length === 0}
-                        className="inline-flex items-center gap-1.5 px-3 py-2 rounded-[12px] text-sm font-medium border border-stone-200 dark:border-slate-700 hover:bg-stone-50 dark:hover:bg-slate-800 disabled:opacity-50"
+                        className="inline-flex items-center gap-1.5 min-h-[44px] px-3 py-2 rounded-[12px] text-sm font-medium border border-stone-200 dark:border-slate-700 hover:bg-stone-50 dark:hover:bg-slate-800 disabled:opacity-50"
                     >
                         <Download size={15} /> Export ({shown.length})
                     </button>
                     <button
                         onClick={() => void load()}
                         aria-label="Refresh"
-                        className="inline-flex items-center px-3 py-2 rounded-[12px] text-sm border border-stone-200 dark:border-slate-700 hover:bg-stone-50 dark:hover:bg-slate-800"
+                        className="inline-flex items-center justify-center min-w-[44px] min-h-[44px] px-3 py-2 rounded-[12px] text-sm border border-stone-200 dark:border-slate-700 hover:bg-stone-50 dark:hover:bg-slate-800"
                     >
                         <RefreshCw size={15} className={loading ? 'animate-spin' : ''} />
                     </button>
@@ -303,8 +303,8 @@ const AdminRegistrationPipeline: React.FC<{ course: string; data?: PipelineData 
 
             {/* Secondary Filter Bar: Search, Module, Agent, Installed App */}
             <div className="flex flex-wrap items-center gap-2.5">
-                <div className="relative flex-1 min-w-[200px] max-w-sm">
-                    <Search size={14} className="absolute left-2.5 top-3 text-stone-400" />
+                <div className="relative w-full sm:flex-1 sm:min-w-[200px] sm:max-w-sm">
+                    <Search size={14} className="absolute left-2.5 top-[15px] text-stone-400" />
                     <input
                         value={q}
                         onChange={e => { setQ(e.target.value); setLimit(50); }}
@@ -319,7 +319,7 @@ const AdminRegistrationPipeline: React.FC<{ course: string; data?: PipelineData 
                         value={moduleFilter}
                         onChange={e => { setModuleFilter(e.target.value); setLimit(50); }}
                         aria-label="Filter by module reached"
-                        className={`${field} text-xs`}
+                        className={`${field} text-sm`}
                     >
                         <option value="all">All modules</option>
                         {Object.entries(MODULE_LABELS).map(([id, label]) => (
@@ -332,7 +332,7 @@ const AdminRegistrationPipeline: React.FC<{ course: string; data?: PipelineData 
                     value={channelFilter}
                     onChange={e => { setChannelFilter(e.target.value); setLimit(50); }}
                     aria-label="Filter by how they registered"
-                    className={`${field} text-xs`}
+                    className={`${field} text-sm`}
                 >
                     <option value="all">All ways of registering</option>
                     {CHANNELS.map(c => <option key={c} value={c}>{c}</option>)}
@@ -343,7 +343,7 @@ const AdminRegistrationPipeline: React.FC<{ course: string; data?: PipelineData 
                         value={agentFilter}
                         onChange={e => { setAgentFilter(e.target.value); setLimit(50); }}
                         aria-label="Filter by agent"
-                        className={`${field} text-xs`}
+                        className={`${field} text-sm`}
                     >
                         <option value="all">All agents / direct</option>
                         <option value="__none__">Direct / No agent</option>
@@ -351,7 +351,7 @@ const AdminRegistrationPipeline: React.FC<{ course: string; data?: PipelineData 
                     </select>
                 )}
 
-                <label className="inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-2 rounded-[12px] border border-stone-200 dark:border-slate-700 cursor-pointer select-none">
+                <label className="inline-flex items-center gap-1.5 min-h-[44px] text-sm font-semibold px-3 py-2 rounded-[12px] border border-stone-200 dark:border-slate-700 cursor-pointer select-none">
                     <input
                         type="checkbox"
                         checked={onlyAppInstalled}
@@ -367,7 +367,8 @@ const AdminRegistrationPipeline: React.FC<{ course: string; data?: PipelineData 
             {!rows && !error && <div className="flex items-center gap-2 text-stone-500"><Loader2 className="animate-spin" size={18} /> Loading learners...</div>}
 
             {rows && (
-                <div className="overflow-x-auto">
+                <div>
+                  <div className="hidden md:block overflow-x-auto">
                     <table className="w-full text-sm min-w-[860px]">
                         <thead>
                             <tr className="text-left text-xs uppercase text-stone-500 dark:text-slate-400 border-b border-stone-100 dark:border-slate-800">
@@ -487,7 +488,7 @@ const AdminRegistrationPipeline: React.FC<{ course: string; data?: PipelineData 
                                             <select
                                                 value={r.followup}
                                                 onChange={e => void save(r, e.target.value as StudentRow['followup'], notes[r.key] ?? r.note)}
-                                                className={`${field} text-xs`}
+                                                className={`${field} text-sm`}
                                                 aria-label="Follow-up status"
                                             >
                                                 {FOLLOW.map(([id, l]) => <option key={id} value={id}>{l}</option>)}
@@ -519,10 +520,92 @@ const AdminRegistrationPipeline: React.FC<{ course: string; data?: PipelineData 
                             )}
                         </tbody>
                     </table>
+                  </div>
+
+                  {/* Phone view: one card per person, same data and same actions */}
+                  <div className="md:hidden space-y-3">
+                    {shown.slice(0, limit).map(r => {
+                        const stageMeta = STAGES.find(s => s.id === r.stage);
+                        const pct = r.progress_pct ?? 0;
+                        const first = (r.name || '').split(' ')[0];
+                        const btn = 'inline-flex items-center justify-center gap-1.5 min-h-[44px] px-3 rounded-[12px] border border-stone-200 dark:border-slate-700 text-sm font-semibold';
+                        return (
+                            <div key={r.key} className="rounded-[16px] border border-stone-200 dark:border-slate-700 bg-white dark:bg-night-2 p-4">
+                                <div className="flex items-start justify-between gap-2">
+                                    <div className="min-w-0">
+                                        <p className="m-0 font-bold text-base text-stone-900 dark:text-white break-words">{r.name || '(no name)'}</p>
+                                        {r.location && <p className="m-0 text-xs text-stone-500 dark:text-slate-400">{r.location}</p>}
+                                    </div>
+                                    <span className={`shrink-0 text-xs font-semibold px-2.5 py-1 rounded-full ${stageMeta?.badge || 'bg-stone-100 text-stone-700'}`}>
+                                        {r.stage === 'Registered' ? 'No account yet' : r.stage}
+                                    </span>
+                                </div>
+                                <div className="mt-2 flex flex-wrap gap-1.5">
+                                    {r.app_installed && <span className="inline-flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded bg-violet-100 text-violet-700 dark:bg-violet-950/60 dark:text-violet-300"><Smartphone size={11} /> App</span>}
+                                    {(r.live_count || 0) > 0 && <span className="inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-full bg-sky-100 text-sky-800 dark:bg-sky-950/50 dark:text-sky-300"><Video size={11} /> {r.live_count} live</span>}
+                                    {(r.courses || []).map(c => <span key={c} className="text-[11px] font-semibold px-2 py-0.5 rounded bg-stone-100 dark:bg-slate-800 text-stone-600 dark:text-slate-300">{c}{r.paid_enrolled && !c.toLowerCase().includes('free') && !c.toLowerCase().includes('general') ? ' · paid' : ''}</span>)}
+                                </div>
+                                {r.has_account && (
+                                    <div className="mt-3">
+                                        <div className="flex items-center gap-2">
+                                            <div className="flex-1 h-2 rounded-full bg-stone-100 dark:bg-slate-800 overflow-hidden">
+                                                <div className={`h-full rounded-full ${r.certificate_id ? 'bg-emerald-500' : 'bg-violet-500'}`} style={{ width: `${pct}%` }} />
+                                            </div>
+                                            <span className="text-xs font-semibold text-stone-600 dark:text-slate-300">{r.items_done ?? 0}/{r.total_items ?? 38} ({pct}%)</span>
+                                        </div>
+                                        <p className="m-0 mt-1 text-xs text-stone-500 dark:text-slate-400">
+                                            {r.highest_module && <>At {MODULE_LABELS[r.highest_module] || r.highest_module}</>}
+                                            {(r.quizzes_passed || 0) > 0 && <> · {r.quizzes_passed}/6 quizzes</>}
+                                            {r.final_score != null && <> · Final {r.final_score}%</>}
+                                        </p>
+                                    </div>
+                                )}
+                                {r.certificate_id && (
+                                    <a href={`${origin}/verify/${encodeURIComponent(r.certificate_id)}`} target="_blank" rel="noreferrer" className="mt-3 inline-flex items-center gap-1.5 min-h-[44px] px-3 rounded-[12px] bg-mint-soft dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-900 text-xs font-mono font-semibold text-emerald-800 dark:text-emerald-300">
+                                        <Award size={14} className="shrink-0" /> {r.certificate_id}{r.certificate_issued_at ? ` (${fmtDay(r.certificate_issued_at)})` : ''} <ExternalLink size={11} />
+                                    </a>
+                                )}
+                                <div className="mt-3 text-xs text-stone-600 dark:text-slate-300 space-y-0.5">
+                                    {r.phone && <p className="m-0 font-mono">+{r.phone}</p>}
+                                    {r.email && <p className="m-0 break-all">{r.email}</p>}
+                                    <p className="m-0">{r.sources.join(', ')}{r.agent && <span className="font-semibold text-violet-700 dark:text-violet-300"> · {r.agent}</span>}</p>
+                                    <p className="m-0 text-stone-500 dark:text-slate-400">Registered {fmtDay(r.registered_at)}{r.last_active ? ` · Active ${fmtDay(r.last_active)}` : ''}</p>
+                                </div>
+                                <div className="mt-3 flex flex-wrap gap-2">
+                                    {r.phone && <a href={`tel:+${wa(r.phone)}`} className={btn}><Phone size={15} /> Call</a>}
+                                    {r.phone && <a href={`https://wa.me/${wa(r.phone)}?text=${encodeURIComponent(`Hello ${first}, this is Welile School of AI. You registered for our free AI Fundamentals course. Can we help you get started?`)}`} target="_blank" rel="noreferrer" className={btn}><MessageCircle size={15} /> WhatsApp</a>}
+                                    {r.email && <a href={`mailto:${r.email}`} className={btn}><Mail size={15} /> Email</a>}
+                                </div>
+                                <div className="mt-3 space-y-2">
+                                    <select
+                                        value={r.followup}
+                                        onChange={e => void save(r, e.target.value as StudentRow['followup'], notes[r.key] ?? r.note)}
+                                        className={`${field} text-sm w-full`}
+                                        aria-label="Follow-up status"
+                                    >
+                                        {FOLLOW.map(([id, l]) => <option key={id} value={id}>{l}</option>)}
+                                    </select>
+                                    <input
+                                        value={notes[r.key] ?? r.note ?? ''}
+                                        onChange={e => setNotes(n => ({ ...n, [r.key]: e.target.value }))}
+                                        onBlur={() => {
+                                            if ((notes[r.key] ?? r.note ?? '') !== (r.note ?? '')) {
+                                                void save(r, r.followup, notes[r.key] ?? null);
+                                            }
+                                        }}
+                                        placeholder="Add a note"
+                                        className={`${field} text-sm w-full`}
+                                    />
+                                </div>
+                            </div>
+                        );
+                    })}
+                    {shown.length === 0 && <p className="py-8 text-center text-stone-500">No students match this stage or filter.</p>}
+                  </div>
                     {shown.length > limit && (
                         <button
                             onClick={() => setLimit(l => l + 60)}
-                            className="mt-3 text-sm font-semibold text-violet-700 dark:text-violet-300 hover:underline"
+                            className="mt-3 min-h-[44px] px-2 text-sm font-semibold text-violet-700 dark:text-violet-300 hover:underline"
                         >
                             Show more ({shown.length - limit} remaining)
                         </button>

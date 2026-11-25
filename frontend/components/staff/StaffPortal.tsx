@@ -1,9 +1,9 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import QRCode from 'qrcode';
 import {
-    AlertTriangle, BarChart3, CalendarDays, Check, CheckCircle2, Clock, Copy, Download, ExternalLink, LayoutDashboard, LayoutGrid, Loader2, LogOut, MessageCircle,
-    RefreshCw, Search, Trophy, UserPlus, Users, WifiOff
+    AlertTriangle, CalendarDays, Check, CheckCircle2, Clock, Copy, Download, ExternalLink, LayoutGrid, Link2, Loader2, LogOut, MessageCircle,
+    RefreshCw, Search, Trophy, UserCircle, UserPlus, Users, WifiOff
 } from 'lucide-react';
 import { supabase } from '../../src/lib/supabaseClient';
 import { clearPortalRolesCache, fetchMyPortalRoles } from '../../src/lib/roles';
@@ -17,8 +17,16 @@ import {
 } from '../../src/lib/staffApi';
 import { BTN_PRIMARY, BTN_SECONDARY, CARD, INK, Logo, MUTED, PAPER, ThemeButton } from '../learn/learnUi';
 import StaffCalendar from './StaffCalendar';
+import BottomNav, { BOTTOM_NAV_SPACE } from '../ui/BottomNav';
 
-type Tab = 'overview' | 'register' | 'students' | 'leaderboard' | 'calendar';
+type Tab = 'register' | 'people' | 'link' | 'week' | 'me';
+const TAB_IDS: Tab[] = ['register', 'people', 'link', 'week', 'me'];
+const TAB_ALIAS: Record<string, Tab> = { overview: 'me', students: 'people', calendar: 'week', leaderboard: 'me' };
+const parseTab = (v: string | null): Tab => {
+    if (!v) return 'register';
+    if (TAB_ALIAS[v]) return TAB_ALIAS[v];
+    return (TAB_IDS as string[]).includes(v) ? (v as Tab) : 'register';
+};
 const TOTAL_ITEMS = ALL_ITEMS.length;
 
 const FREE_COURSE = 'AI Fundamentals (free)';
@@ -29,7 +37,7 @@ const PAGES = [
     { label: 'Official registration form', to: '/register' }
 ];
 
-const INPUT = 'w-full h-[50px] rounded-[14px] border-2 border-transparent bg-panel dark:bg-night-3 px-4 text-[15px] focus:outline-none focus:border-brand transition-colors';
+const INPUT = 'w-full h-[50px] rounded-[14px] border-2 border-transparent bg-panel dark:bg-night-3 px-4 text-[16px] lg:text-[15px] focus:outline-none focus:border-brand transition-colors';
 
 const ago = (iso: string | null) => {
     if (!iso) return 'never';
@@ -55,16 +63,6 @@ const Overview: React.FC<{ profile: StaffProfile; stats: StaffStats | null; onRe
     const [funnel, setFunnel] = useState<StaffFunnel | null>(null);
     const [days, setDays] = useState<number | null>(null);
     useEffect(() => { void loadMyFunnel(days).then(setFunnel); }, [stats, days]);
-    const quick = joinLink(profile.slug);
-    const [target, setTarget] = useState(PAGES[0].to);
-    const [qr, setQr] = useState('');
-    const { copied, copy } = useCopy();
-    const link = staffLink(profile.slug, target);
-
-    useEffect(() => {
-        QRCode.toDataURL(link, { margin: 2, width: 512 }).then(setQr).catch(() => setQr(''));
-    }, [link]);
-
     const tiles = stats ? [
         { label: 'Link clicks', value: stats.clicks },
         { label: 'Registered by me', value: stats.registered },
@@ -120,58 +118,14 @@ const Overview: React.FC<{ profile: StaffProfile; stats: StaffStats | null; onRe
                 )}
             </section>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 items-start">
-                {/* links */}
-                <div className="flex flex-col gap-5">
-                    <section className={`${CARD} p-5 sm:p-6`}>
-                        <div className="flex items-start gap-3">
-                            <span className="w-11 h-11 rounded-[14px] bg-lime-200 text-night inline-flex items-center justify-center shrink-0"><UserPlus size={20} /></span>
-                            <div className="min-w-0">
-                                <h2 className="m-0 text-[17px] font-extrabold">Quick sign-up link</h2>
-                                <p className={`mt-1 mb-0 text-[13px] leading-relaxed ${MUTED}`}>A very short form where a client opens their own account. They are counted for you automatically. Starts with the free course; other courses can be chosen too.</p>
-                            </div>
-                        </div>
-                        <div className="mt-4 rounded-[14px] bg-panel dark:bg-night-3 px-4 py-3 text-[13px] break-all font-mono">{quick}</div>
-                        <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                            <button onClick={() => copy(quick, 'quick')} className={BTN_PRIMARY}>{copied === 'quick' ? <><Check size={18} /> Copied</> : <><Copy size={18} /> Copy sign-up link</>}</button>
-                            <a href={whatsappShare(`Open your free Welile School of AI account here (takes one minute): ${quick}`)} target="_blank" rel="noreferrer" className={BTN_SECONDARY}><MessageCircle size={18} /> Share on WhatsApp</a>
-                        </div>
-                    </section>
-
-                    <section className={`${CARD} p-5 sm:p-6`}>
-                        <h2 className="m-0 text-[17px] font-extrabold">Your personal link</h2>
-                        <p className={`mt-1 mb-0 text-[13px] ${MUTED}`}>Anyone who joins through this link is counted for you, and they never see your code.</p>
-                        <div className="mt-4 flex flex-col sm:flex-row gap-5 items-start">
-                            <div className="space-y-3 min-w-0 flex-1 w-full">
-                                <div>
-                                    <label htmlFor="page" className="block text-[13px] font-bold mb-1.5">Send people to</label>
-                                    <select id="page" value={target} onChange={e => setTarget(e.target.value)} className={INPUT}>
-                                        {PAGES.map(p => <option key={p.to} value={p.to}>{p.label}</option>)}
-                                    </select>
-                                </div>
-                                <div className="rounded-[14px] bg-panel dark:bg-night-3 px-4 py-3 text-[13px] break-all font-mono">{link}</div>
-                                <div className="grid grid-cols-1 gap-2.5">
-                                    <button onClick={() => copy(link, 'link')} className={BTN_PRIMARY}>
-                                        {copied === 'link' ? <><Check size={18} /> Copied</> : <><Copy size={18} /> Copy link</>}
-                                    </button>
-                                    <a href={whatsappShare(startMessage(null, link))} target="_blank" rel="noreferrer" className={BTN_SECONDARY}><MessageCircle size={18} /> Share on WhatsApp</a>
-                                </div>
-                            </div>
-                            <div className="mx-auto sm:mx-0 text-center shrink-0 rounded-[20px] bg-panel dark:bg-night-3 p-3">
-                                {qr ? <img src={qr} alt="QR code for your link" className="w-40 h-40 rounded-[14px] bg-white" /> : <div className="w-40 h-40" />}
-                                <a href={qr} download={`welile-${profile.slug}-qr.png`} className="mt-2 inline-flex items-center gap-1.5 text-[13px] font-bold text-brand dark:text-violet-300 no-underline hover:underline"><Download size={14} /> Download QR</a>
-                            </div>
-                        </div>
-                    </section>
-                </div>
-
+            <div className="grid grid-cols-1 gap-5 items-start">
                 {/* funnel */}
                 <section className={`${CARD} p-5 sm:p-6`}>
                     <div className="flex items-center justify-between gap-2 flex-wrap">
                         <h2 className="m-0 text-[17px] font-extrabold">Where your clients are</h2>
                         <div className="inline-flex p-1 rounded-[12px] bg-panel dark:bg-night-3" role="group" aria-label="Period">
                             {([[7, '7 days'], [30, '30 days'], [null, 'All']] as [number | null, string][]).map(([d, l]) => (
-                                <button key={l} onClick={() => setDays(d)} aria-pressed={days === d} className={`press h-8 px-3 rounded-[9px] text-[12px] font-bold ${days === d ? 'bg-brand text-white' : 'text-[#6B6680] dark:text-slate-400'}`}>{l}</button>
+                                <button key={l} onClick={() => setDays(d)} aria-pressed={days === d} className={`press h-10 px-3 rounded-[9px] text-[13px] font-bold ${days === d ? 'bg-brand text-white' : 'text-[#6B6680] dark:text-slate-400'}`}>{l}</button>
                             ))}
                         </div>
                     </div>
@@ -221,6 +175,66 @@ const Overview: React.FC<{ profile: StaffProfile; stats: StaffStats | null; onRe
                     {stats && <p className={`mt-5 mb-0 text-[13px] ${MUTED}`}>You are ranked <span className="font-extrabold text-ink dark:text-slate-100">{stats.rank}</span> of {stats.staff_total} by total students registered.</p>}
                 </section>
             </div>
+        </div>
+    );
+};
+
+// ---------------------------------------------------------------------------
+// My link (student agents): quick sign-up link, personal link and QR
+// ---------------------------------------------------------------------------
+const StudentLinkTab: React.FC<{ profile: StaffProfile }> = ({ profile }) => {
+    const quick = joinLink(profile.slug);
+    const [target, setTarget] = useState(PAGES[0].to);
+    const [qr, setQr] = useState('');
+    const { copied, copy } = useCopy();
+    const link = staffLink(profile.slug, target);
+
+    useEffect(() => {
+        QRCode.toDataURL(link, { margin: 2, width: 512 }).then(setQr).catch(() => setQr(''));
+    }, [link]);
+
+    return (
+        <div className="flex flex-col gap-5 max-w-[760px]">
+                    <section className={`${CARD} p-5 sm:p-6`}>
+                        <div className="flex items-start gap-3">
+                            <span className="w-11 h-11 rounded-[14px] bg-lime-200 text-night inline-flex items-center justify-center shrink-0"><UserPlus size={20} /></span>
+                            <div className="min-w-0">
+                                <h2 className="m-0 text-[17px] font-extrabold">Quick sign-up link</h2>
+                                <p className={`mt-1 mb-0 text-[13px] leading-relaxed ${MUTED}`}>A very short form where a client opens their own account. They are counted for you automatically. Starts with the free course; other courses can be chosen too.</p>
+                            </div>
+                        </div>
+                        <div className="mt-4 rounded-[14px] bg-panel dark:bg-night-3 px-4 py-3 text-[13px] break-all font-mono">{quick}</div>
+                        <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                            <button onClick={() => copy(quick, 'quick')} className={BTN_PRIMARY}>{copied === 'quick' ? <><Check size={18} /> Copied</> : <><Copy size={18} /> Copy sign-up link</>}</button>
+                            <a href={whatsappShare(`Open your free Welile School of AI account here (takes one minute): ${quick}`)} target="_blank" rel="noreferrer" className={BTN_SECONDARY}><MessageCircle size={18} /> Share on WhatsApp</a>
+                        </div>
+                    </section>
+
+                    <section className={`${CARD} p-5 sm:p-6`}>
+                        <h2 className="m-0 text-[17px] font-extrabold">Your personal link</h2>
+                        <p className={`mt-1 mb-0 text-[13px] ${MUTED}`}>Anyone who joins through this link is counted for you, and they never see your code.</p>
+                        <div className="mt-4 flex flex-col sm:flex-row gap-5 items-start">
+                            <div className="space-y-3 min-w-0 flex-1 w-full">
+                                <div>
+                                    <label htmlFor="page" className="block text-[13px] font-bold mb-1.5">Send people to</label>
+                                    <select id="page" value={target} onChange={e => setTarget(e.target.value)} className={INPUT}>
+                                        {PAGES.map(p => <option key={p.to} value={p.to}>{p.label}</option>)}
+                                    </select>
+                                </div>
+                                <div className="rounded-[14px] bg-panel dark:bg-night-3 px-4 py-3 text-[13px] break-all font-mono">{link}</div>
+                                <div className="grid grid-cols-1 gap-2.5">
+                                    <button onClick={() => copy(link, 'link')} className={BTN_PRIMARY}>
+                                        {copied === 'link' ? <><Check size={18} /> Copied</> : <><Copy size={18} /> Copy link</>}
+                                    </button>
+                                    <a href={whatsappShare(startMessage(null, link))} target="_blank" rel="noreferrer" className={BTN_SECONDARY}><MessageCircle size={18} /> Share on WhatsApp</a>
+                                </div>
+                            </div>
+                            <div className="mx-auto sm:mx-0 text-center shrink-0 rounded-[20px] bg-panel dark:bg-night-3 p-3">
+                                {qr ? <img src={qr} alt="QR code for your link" className="w-40 h-40 rounded-[14px] bg-white" /> : <div className="w-40 h-40" />}
+                                <a href={qr} download={`welile-${profile.slug}-qr.png`} className="mt-2 inline-flex items-center gap-1.5 text-[13px] font-bold text-brand dark:text-violet-300 no-underline hover:underline"><Download size={14} /> Download QR</a>
+                            </div>
+                        </div>
+                    </section>
         </div>
     );
 };
@@ -431,7 +445,7 @@ const Students: React.FC<{ profile: StaffProfile; students: StaffStudent[] | nul
             <div className="no-scrollbar flex gap-2 overflow-x-auto pb-2 mb-3">
                 {([['all', 'All'], ['waiting', 'Waiting to sign up'], ['learning', 'Learning'], ['done', 'Completed']] as const).map(([id, label]) => (
                     <button key={id} onClick={() => setFilter(id)} aria-pressed={filter === id}
-                        className={`press shrink-0 h-10 px-4 rounded-full text-[13px] font-bold ${filter === id ? 'bg-brand text-white' : 'bg-white dark:bg-night-2 text-ink dark:text-slate-300'}`}>
+                        className={`press shrink-0 h-11 px-4 rounded-full text-[14px] font-bold ${filter === id ? 'bg-brand text-white' : 'bg-white dark:bg-night-2 text-ink dark:text-slate-300'}`}>
                         {label}
                     </button>
                 ))}
@@ -459,7 +473,7 @@ const Students: React.FC<{ profile: StaffProfile; students: StaffStudent[] | nul
                                     <span className="inline-flex items-center gap-1"><Clock size={12} /> Active {ago(s.last_active)}</span>
                                 </p>
                                 {s.kind === 'assisted' && !s.account_linked && s.phone && (
-                                    <a href={whatsappShare(startMessage(s.name, link), s.phone)} target="_blank" rel="noreferrer" className={`${BTN_SECONDARY} mt-3 !py-2 !px-4 !text-sm`}>
+                                    <a href={whatsappShare(startMessage(s.name, link), s.phone)} target="_blank" rel="noreferrer" className={`${BTN_SECONDARY} mt-3 !min-h-[44px] !text-sm`}>
                                         <MessageCircle size={16} /> Remind on WhatsApp
                                     </a>
                                 )}
@@ -647,7 +661,6 @@ const FieldOnlyRegister: React.FC<{ profile: StaffProfile; onDone: () => void }>
                 {busy ? <><Loader2 className="animate-spin" size={18} /> Saving...</> : <><UserPlus size={18} /> Register Student</>}
             </button>
         </form>
-        <FieldAgentLinkCard profile={profile} compact />
         </div>
     );
 };
@@ -670,10 +683,10 @@ const FieldOnlyOverview: React.FC<{ profile: StaffProfile; stats: StaffStats | n
                 <div className="flex items-center gap-2">
                     <div className="inline-flex rounded-lg border border-stone-300 dark:border-slate-700 overflow-hidden text-xs font-semibold">
                         {([[7, '7d'], [30, '30d'], [null, 'All']] as [number | null, string][]).map(([d, l]) => (
-                            <button key={l} onClick={() => setDays(d)} className={`px-2.5 py-1.5 ${days === d ? 'bg-violet-700 text-white' : 'bg-white dark:bg-slate-900'}`}>{l}</button>
+                            <button key={l} onClick={() => setDays(d)} className={`px-3 min-h-[44px] ${days === d ? 'bg-violet-700 text-white' : 'bg-white dark:bg-slate-900'}`}>{l}</button>
                         ))}
                     </div>
-                    <button onClick={onRefresh} className="p-2 rounded-lg border border-stone-300 dark:border-slate-700" aria-label="Refresh stats"><RefreshCw size={15} /></button>
+                    <button onClick={onRefresh} className="w-11 h-11 inline-flex items-center justify-center rounded-lg border border-stone-300 dark:border-slate-700" aria-label="Refresh stats"><RefreshCw size={15} /></button>
                 </div>
             </div>
 
@@ -695,8 +708,6 @@ const FieldOnlyOverview: React.FC<{ profile: StaffProfile; stats: StaffStats | n
                     <p className="text-3xl font-extrabold mt-1 text-violet-700 dark:text-violet-300">{funnel?.accounts ?? stats?.signups ?? 0}</p>
                 </div>
             </div>
-
-            <FieldAgentLinkCard profile={profile} />
 
             {funnel && (
                 <div className={`${CARD} rounded-2xl p-5 space-y-4`}>
@@ -737,25 +748,33 @@ const FieldOnlyOverview: React.FC<{ profile: StaffProfile; stats: StaffStats | n
 // ---------------------------------------------------------------------------
 // Portal shell
 // ---------------------------------------------------------------------------
-const STUDENT_AGENT_TABS: { id: Tab; label: string; icon: React.FC<any> }[] = [
-    { id: 'overview', label: 'Overview', icon: LayoutDashboard },
+const AGENT_TABS: { id: Tab; label: string; icon: React.FC<any> }[] = [
     { id: 'register', label: 'Register', icon: UserPlus },
-    { id: 'students', label: 'My students', icon: Users },
-    { id: 'leaderboard', label: 'Leaderboard', icon: Trophy },
-    { id: 'calendar', label: 'My calendar', icon: CalendarDays }
+    { id: 'people', label: 'My people', icon: Users },
+    { id: 'link', label: 'My link', icon: Link2 },
+    { id: 'week', label: 'My week', icon: CalendarDays },
+    { id: 'me', label: 'Me', icon: UserCircle }
 ];
 
-const FIELD_ONLY_TABS: { id: Tab; label: string; icon: React.FC<any> }[] = [
-    { id: 'register', label: 'Register', icon: UserPlus },
-    { id: 'overview', label: 'My Stats', icon: BarChart3 },
-    { id: 'students', label: 'Registered', icon: Users },
-    { id: 'leaderboard', label: 'Top Agents', icon: Trophy },
-    { id: 'calendar', label: 'My calendar', icon: CalendarDays }
-];
+const AccountBlock: React.FC<{ showSwitch: boolean; onSignOut: () => void }> = ({ showSwitch, onSignOut }) => (
+    <section className={`${CARD} p-5 space-y-3 max-w-[760px] lg:hidden`} aria-label="Account">
+        <h2 className="m-0 text-[17px] font-extrabold">My account</h2>
+        {showSwitch && (
+            <Link to="/portal" className="press min-h-[48px] px-4 rounded-[14px] bg-panel dark:bg-night-3 text-[15px] font-bold inline-flex items-center gap-3 no-underline text-ink dark:text-white w-full"><LayoutGrid size={18} />Switch dashboard</Link>
+        )}
+        <div className="flex items-center justify-between gap-3 min-h-[48px] px-4 rounded-[14px] bg-panel dark:bg-night-3">
+            <span className="text-[15px] font-bold">Light or dark screen</span>
+            <ThemeButton />
+        </div>
+        <button onClick={onSignOut} className="press min-h-[48px] px-4 rounded-[14px] bg-panel dark:bg-night-3 text-[15px] font-bold inline-flex items-center gap-3 text-[#C2410C] w-full"><LogOut size={18} />Sign out</button>
+    </section>
+);
 
 const StaffPortal: React.FC<{ session: any }> = ({ session }) => {
     const [state, setState] = useState<ProfileState | null>(null);
-    const [tab, setTab] = useState<Tab>('overview');
+    const [params, setParams] = useSearchParams();
+    const tab = parseTab(params.get('tab'));
+    const goTab = (t: Tab) => setParams({ tab: t });
     const [stats, setStats] = useState<StaffStats | null>(null);
     const [students, setStudents] = useState<StaffStudent[] | null>(null);
     const [leaders, setLeaders] = useState<LeaderRow[] | null>(null);
@@ -792,7 +811,6 @@ const StaffPortal: React.FC<{ session: any }> = ({ session }) => {
         loadStaffProfile().then(s => {
             setState(s);
             if (s.status === 'ok') {
-                if (s.profile.agent_type === 'field_only') setTab('register');
                 void loadAll();
                 void flush();
             }
@@ -833,10 +851,12 @@ const StaffPortal: React.FC<{ session: any }> = ({ session }) => {
 
     const profile = state.profile;
     const isFieldOnly = profile.agent_type === 'field_only';
-    const tabs = isFieldOnly ? FIELD_ONLY_TABS : STUDENT_AGENT_TABS;
+    const tabs = AGENT_TABS;
+    const showSwitch = !isFieldOnly || hasOtherDashboards;
+    const navItems = tabs.map(t => ({ id: t.id, label: t.label, icon: <t.icon size={20} />, onSelect: () => goTab(t.id), badge: t.id === 'register' && pending > 0 ? pending : null }));
 
     return (
-        <div className={`min-h-screen ${PAPER} ${INK} pb-32 lg:pb-0`}>
+        <div className={`min-h-screen ${PAPER} ${INK} ${BOTTOM_NAV_SPACE}`}>
             <div className="max-w-[1480px] mx-auto flex items-start gap-5 lg:p-5">
                 {/* desktop sidebar */}
                 <aside className="hidden lg:flex sticky top-5 w-[264px] shrink-0 h-[calc(100vh-40px)] flex-col rounded-[24px] bg-white dark:bg-night-2 p-4">
@@ -853,7 +873,7 @@ const StaffPortal: React.FC<{ session: any }> = ({ session }) => {
                         {tabs.map(t => {
                             const on = tab === t.id;
                             return (
-                                <button key={t.id} onClick={() => setTab(t.id)} aria-current={on ? 'page' : undefined}
+                                <button key={t.id} onClick={() => goTab(t.id)} aria-current={on ? 'page' : undefined}
                                     className={`press relative h-12 px-3 rounded-[14px] flex items-center gap-3 text-[14px] font-bold text-left ${on ? 'bg-brand-soft dark:bg-night-3 text-brand-ink dark:text-white' : 'text-[#4A4560] dark:text-slate-300 hover:bg-panel dark:hover:bg-night-3/60'}`}>
                                     {on && <span aria-hidden="true" className="absolute left-0 top-3 bottom-3 w-[3px] rounded-full bg-brand" />}
                                     <t.icon size={19} className={on ? 'text-brand dark:text-violet-300' : ''} />{t.label}
@@ -871,7 +891,7 @@ const StaffPortal: React.FC<{ session: any }> = ({ session }) => {
                     )}
                     <div className="flex-1" />
                     <div className="flex items-center gap-2 pt-3 border-t border-[#EEEBF6] dark:border-night-3">
-                        {(!isFieldOnly || hasOtherDashboards) && (
+                        {showSwitch && (
                             <Link to="/portal" className="press flex-1 h-11 px-3 rounded-[14px] bg-panel dark:bg-night-3 text-[13px] font-bold inline-flex items-center gap-2 no-underline text-ink dark:text-white"><LayoutGrid size={16} />Switch dashboard</Link>
                         )}
                         <ThemeButton />
@@ -891,10 +911,9 @@ const StaffPortal: React.FC<{ session: any }> = ({ session }) => {
                                 <p className={`m-0 text-[12px] truncate ${MUTED}`}>{profile.display_name}</p>
                             </div>
                             <div className="flex-1" />
-                            {(!isFieldOnly || hasOtherDashboards) && (
+                            {showSwitch && (
                                 <Link to="/portal" aria-label="Switch dashboard" title="Switch dashboard" className="press w-11 h-11 rounded-[14px] bg-white dark:bg-night-2 inline-flex items-center justify-center text-ink dark:text-white"><LayoutGrid size={18} /></Link>
                             )}
-                            <ThemeButton />
                             <button onClick={handleSignOut} title="Sign out" className="press w-11 h-11 rounded-[14px] bg-white dark:bg-night-2 inline-flex items-center justify-center text-[#C2410C]">
                                 <LogOut size={18} />
                             </button>
@@ -911,31 +930,26 @@ const StaffPortal: React.FC<{ session: any }> = ({ session }) => {
                         )}
                         {notice && <div role="status" className="rounded-[18px] bg-mint-soft text-[#0E5A35] dark:bg-emerald-950/30 dark:text-emerald-200 p-4 text-[14px]">{notice}</div>}
 
-                        {tab === 'overview' && (isFieldOnly
-                            ? <FieldOnlyOverview profile={profile} stats={stats} onRefresh={() => void loadAll()} />
-                            : <Overview profile={profile} stats={stats} onRefresh={() => void loadAll()} />)}
                         {tab === 'register' && (isFieldOnly
                             ? <FieldOnlyRegister profile={profile} onDone={() => { setPending(queuedCount()); void loadAll(); }} />
                             : <Register profile={profile} onDone={() => { setPending(queuedCount()); void loadAll(); }} />)}
-                        {tab === 'students' && <Students profile={profile} students={students} onRefresh={() => void loadAll()} />}
-                        {tab === 'leaderboard' && <Leaderboard rows={leaders} />}
-                        {tab === 'calendar' && <StaffCalendar />}
+                        {tab === 'people' && <Students profile={profile} students={students} onRefresh={() => void loadAll()} />}
+                        {tab === 'link' && (isFieldOnly ? <div className="max-w-[760px]"><FieldAgentLinkCard profile={profile} /></div> : <StudentLinkTab profile={profile} />)}
+                        {tab === 'week' && <StaffCalendar />}
+                        {tab === 'me' && (
+                            <div className="space-y-6">
+                                {isFieldOnly
+                                    ? <FieldOnlyOverview profile={profile} stats={stats} onRefresh={() => void loadAll()} />
+                                    : <Overview profile={profile} stats={stats} onRefresh={() => void loadAll()} />}
+                                <Leaderboard rows={leaders} />
+                                <AccountBlock showSwitch={showSwitch} onSignOut={handleSignOut} />
+                            </div>
+                        )}
                     </main>
                 </div>
             </div>
 
-            {/* phone navigation */}
-            <nav className="lg:hidden fixed bottom-3 inset-x-3 z-30 frost-white rounded-[24px] h-[68px] grid grid-cols-5 px-1.5 mb-[env(safe-area-inset-bottom)] shadow-[0_10px_30px_rgba(30,27,46,0.12)]" aria-label="Agent sections">
-                {tabs.map(t => {
-                    const on = tab === t.id;
-                    return (
-                        <button key={t.id} onClick={() => setTab(t.id)} aria-current={on ? 'page' : undefined}
-                            className={`press flex flex-col items-center justify-center gap-1 my-1.5 rounded-[18px] text-[10px] font-bold ${on ? 'bg-brand text-white' : 'text-[#6B6680] dark:text-slate-400'}`}>
-                            <t.icon size={19} /><span className="truncate max-w-full px-0.5">{t.label}</span>
-                        </button>
-                    );
-                })}
-            </nav>
+            <BottomNav items={navItems} activeId={tab} ariaLabel="Agent sections" />
         </div>
     );
 };

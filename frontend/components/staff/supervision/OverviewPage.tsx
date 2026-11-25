@@ -20,10 +20,10 @@ const OverviewPage: React.FC = () => {
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
             <div className={`${CARD} rounded-2xl p-4`}>
                 <div className="flex items-center justify-between">
-                    <span className={`text-xs font-semibold uppercase tracking-wide ${MUTED}`}>Active Officers</span>
+                    <span className={`text-xs font-semibold uppercase tracking-wide ${MUTED}`}>Active agents</span>
                     <Handshake size={16} className="text-indigo-600" />
                 </div>
-                <p className="text-3xl font-extrabold mt-2">{totals.active}</p>
+                <p className="text-4xl font-extrabold mt-2">{totals.active}</p>
                 <p className={`text-xs mt-1 ${MUTED}`}>{totals.fieldOnly} field-only · {agents.length} total</p>
             </div>
 
@@ -32,7 +32,7 @@ const OverviewPage: React.FC = () => {
                     <span className={`text-xs font-semibold uppercase tracking-wide ${MUTED}`}>Total Registered</span>
                     <Users size={16} className="text-violet-600" />
                 </div>
-                <p className="text-3xl font-extrabold mt-2">{totals.registered.toLocaleString()}</p>
+                <p className="text-4xl font-extrabold mt-2">{totals.registered.toLocaleString()}</p>
                 <p className={`text-xs mt-1 ${MUTED}`}>{totals.today} today · {totals.week} in 7 days</p>
             </div>
 
@@ -41,20 +41,20 @@ const OverviewPage: React.FC = () => {
                     <span className={`text-xs font-semibold uppercase tracking-wide ${MUTED}`}>Accounts Opened</span>
                     <UserCheck size={16} className="text-emerald-600" />
                 </div>
-                <p className="text-3xl font-extrabold mt-2">{totals.accounts}</p>
+                <p className="text-4xl font-extrabold mt-2">{totals.accounts}</p>
                 <p className={`text-xs mt-1 ${MUTED}`}>{convPct}% converted · {totals.waiting} waiting</p>
             </div>
 
             <div className={`${CARD} rounded-2xl p-4 flex flex-col justify-between`}>
                 <div>
                     <p className={`text-xs font-semibold uppercase tracking-wide ${MUTED}`}>Quick Action</p>
-                    <p className="text-sm font-bold mt-1.5">Onboard Field Agent</p>
+                    <p className="text-sm font-bold mt-1.5">Onboard a new agent</p>
                 </div>
                 <button
                     onClick={() => navigate('/supervision/create-agent')}
-                    className="mt-2 inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold bg-indigo-600 hover:bg-indigo-700 text-white"
+                    className="mt-2 inline-flex items-center justify-center gap-1.5 px-3 min-h-[44px] rounded-xl text-sm font-semibold bg-indigo-600 hover:bg-indigo-700 text-white"
                 >
-                    <UserPlus size={14} /> Add Non-Student Agent
+                    <UserPlus size={16} /> Add agent
                 </button>
             </div>
         </div>
@@ -65,7 +65,7 @@ const OverviewPage: React.FC = () => {
                     <div className="flex flex-wrap items-center gap-2">
                         <h2 className="font-bold text-base flex items-center gap-2">
                             <CalendarDays size={18} className="text-indigo-600" />
-                            Registration Summary
+                            Daily summary
                         </h2>
                         <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-indigo-100 text-indigo-800 dark:bg-indigo-950/60 dark:text-indigo-300">
                             {summaryTotals.total.toLocaleString()} {summaryTotals.total === 1 ? 'person' : 'people'}
@@ -82,7 +82,7 @@ const OverviewPage: React.FC = () => {
                             <button
                                 key={val}
                                 onClick={() => { setSummaryDate(''); setSummaryQuickRange(val); }}
-                                className={`px-2.5 py-1.5 ${!summaryDate && summaryQuickRange === val ? 'bg-indigo-600 text-white' : 'bg-white dark:bg-slate-900'}`}
+                                className={`px-3 min-h-[44px] ${!summaryDate && summaryQuickRange === val ? 'bg-indigo-600 text-white' : 'bg-white dark:bg-slate-900'}`}
                             >
                                 {label}
                             </button>
@@ -116,7 +116,7 @@ const OverviewPage: React.FC = () => {
                             ])
                         )}
                         disabled={filteredRegSummary.length === 0}
-                        className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-semibold border border-stone-300 dark:border-slate-700 disabled:opacity-50"
+                        className="inline-flex items-center gap-1 px-3 min-h-[44px] rounded-lg text-sm font-semibold border border-stone-300 dark:border-slate-700 disabled:opacity-50"
                     >
                         <Download size={13} /> CSV
                     </button>
@@ -126,7 +126,48 @@ const OverviewPage: React.FC = () => {
             {filteredRegSummary.length === 0 ? (
                 <p className={`p-6 text-sm text-center ${MUTED}`}>No registrations recorded for this selection.</p>
             ) : (
-                <div className="overflow-x-auto">
+                <>
+                <div className="md:hidden divide-y divide-stone-100 dark:divide-slate-800">
+                    {filteredRegSummary.map(row => {
+                        const isToday = row.reg_date === todayYmd;
+                        return (
+                            <button
+                                key={`${row.reg_date}-${row.staff_id}`}
+                                type="button"
+                                onClick={() => { if (openOfficerId !== row.staff_id) void openOfficerRoster(row.staff_id); navigate('/supervision/officers'); }}
+                                className="block w-full text-left px-4 py-3.5 min-h-[44px] space-y-1.5"
+                            >
+                                <div className="flex items-start justify-between gap-2">
+                                    <p className="font-semibold text-[15px]">{row.field_officer}</p>
+                                    <span className="text-xl font-extrabold shrink-0">{row.total_registered} <span className={`text-sm font-normal ${MUTED}`}>{row.total_registered === 1 ? 'person' : 'people'}</span></span>
+                                </div>
+                                <p className={`text-sm ${MUTED}`}>
+                                    {formatSummaryDate(row.reg_date)}
+                                    {isToday && <span className="ml-2 text-xs font-bold px-1.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800">Today</span>}
+                                    {' · '}{row.agent_type === 'field_only' ? 'Field-Only Agent' : (row.role || 'Student Agent')}{row.staff_code ? ` · ${row.staff_code}` : ''}
+                                </p>
+                                <p className="text-xs">
+                                    <span className="px-2 py-0.5 rounded-full font-semibold bg-emerald-100 text-emerald-800">{row.accounts_opened} opened</span>{' '}
+                                    <span className="px-2 py-0.5 rounded-full font-semibold bg-amber-100 text-amber-800">{row.waiting_signup} waiting</span>
+                                </p>
+                                {(row.top_locations || []).length > 0 && (
+                                    <div className="flex flex-wrap gap-1">
+                                        {(row.top_locations || []).map(loc => (
+                                            <span key={loc.location} className="px-2 py-0.5 rounded text-xs bg-stone-100 dark:bg-slate-800">{loc.location} <b>{loc.count}</b></span>
+                                        ))}
+                                    </div>
+                                )}
+                                <p className="text-xs font-mono text-stone-500">
+                                    {formatEatTime(row.first_reg_at) === formatEatTime(row.last_reg_at) ? `${formatEatTime(row.first_reg_at)} EAT` : `${formatEatTime(row.first_reg_at)} – ${formatEatTime(row.last_reg_at)} EAT`}
+                                </p>
+                            </button>
+                        );
+                    })}
+                    <p className="px-4 py-3 text-sm font-bold bg-stone-50 dark:bg-slate-800/60">
+                        Total: {summaryTotals.total.toLocaleString()} people · {summaryTotals.opened} opened · {summaryTotals.waiting} waiting
+                    </p>
+                </div>
+                <div className="hidden md:block overflow-x-auto">
                     <table className="w-full text-sm min-w-[740px]">
                         <thead>
                             <tr className="text-left text-xs uppercase text-stone-500 dark:text-slate-400 bg-stone-50 dark:bg-slate-800/40">
@@ -200,6 +241,7 @@ const OverviewPage: React.FC = () => {
                         </tfoot>
                     </table>
                 </div>
+                </>
             )}
         </section>
         </div>

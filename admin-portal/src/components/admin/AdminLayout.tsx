@@ -1,12 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { Routes, Route, useNavigate, useLocation, Navigate } from 'react-router-dom';
-import { 
-    LayoutDashboard, Users, BookOpen, UserCheck, 
-    Settings, LogOut, FileQuestion, Calendar, Mail, CheckCircle, Shield,
-    Bell, Search, Handshake, Menu, X, Sun, Moon, MessageSquare, ClipboardList, Wallet, GraduationCap, Video, UserCog, Home, Activity, BarChart3, UsersRound, LayoutGrid
-} from 'lucide-react';
+import { LogOut, Sun, Moon, LayoutGrid, CalendarDays, BarChart3, Handshake, Mail, Wallet } from 'lucide-react';
 import { getCurrencyPreference, setCurrencyPreference, CurrencyType } from '../../lib/currency';
-import AdminOverview from './AdminOverview';
+import { ADMIN_PRIMARY, INSTRUCTOR_PRIMARY, groupOf, PAGE_TITLES } from './adminNav';
+import AdminBottomNav, { BOTTOM_NAV_SPACE } from './AdminBottomNav';
+import AdminToday from './AdminToday';
+import AdminMore from './AdminMore';
+import AdminWeek from './AdminWeek';
+import PeopleHub from './PeopleHub';
+import LearningHub from './LearningHub';
+import TeamHub from './TeamHub';
 import AdminDashboard from './AdminDashboard';
 import AdminEnrollments from './AdminEnrollments';
 import AdminWallet from './AdminWallet';
@@ -25,7 +28,6 @@ import AdminLiveSessions from './AdminLiveSessions';
 import AdminStaff from './AdminStaff';
 import AdminAgents from './AdminAgents';
 import AdminAnalytics from './AdminAnalytics';
-import AdminPeople from './AdminPeople';
 import { supabaseClient } from '../../lib/supabaseClient';
 import { verifyConsoleSession, clearConsoleFlags } from '../../lib/consoleAuth';
 
@@ -42,8 +44,8 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ onExit, isInstructor, isAdmin
     const activeTab = location.pathname.includes('/instructor/')
         ? (location.pathname.split('/')[2] || 'courses')
         : location.pathname.includes('/admin/')
-        ? (location.pathname.split('/')[2] || 'enrollments')
-        : (location.pathname.split('/')[1] || (isInstructor ? 'courses' : 'dashboard'));
+        ? (location.pathname.split('/')[2] || 'today')
+        : (location.pathname.split('/')[1] || (isInstructor ? 'courses' : 'today'));
 
     // Persist admin/instructor session across page refreshes
     const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(() => {
@@ -73,8 +75,6 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ onExit, isInstructor, isAdmin
     const [userEmail, setUserEmail] = useState('');
     const [userAvatar, setUserAvatar] = useState('');
     const [showProfileDropdown, setShowProfileDropdown] = useState(false);
-    const [navOpen, setNavOpen] = useState(false);
-    useEffect(() => { setNavOpen(false); }, [location.pathname]);
 
     useEffect(() => {
         const loadUserData = async () => {
@@ -232,39 +232,28 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ onExit, isInstructor, isAdmin
         );
     }
 
-    const menuItems = isInstructor 
-        ? ([
-            { id: 'courses', label: 'Course Setup', icon: BookOpen },
-            { id: 'cohorts', label: 'Cohorts', icon: Calendar },
-            { id: 'exams', label: 'Exam Setup', icon: FileQuestion },
-            { id: 'events', label: 'Ongoing Events', icon: Calendar },
-          ] as const)
-        : ([
-            { id: 'dashboard', label: 'Dashboard', icon: Home },
-            { id: 'people', label: 'All People', icon: UsersRound },
-            { id: 'enrollments', label: 'Enrollments', icon: Users },
-            { id: 'registrations', label: 'Registrations', icon: ClipboardList },
-            { id: 'free-course', label: 'Free Course', icon: GraduationCap },
-            { id: 'live-classes', label: 'Live Classes', icon: Video },
-            { id: 'agents', label: 'Agent Monitoring', icon: Activity },
-            { id: 'analytics', label: 'Traffic & Clicks', icon: BarChart3 },
-            { id: 'staff', label: 'Staff & Links', icon: UserCog },
-            { id: 'wallet', label: 'Wallet & Ledger', icon: Wallet },
-            { id: 'courses', label: 'Course Setup', icon: BookOpen },
-            { id: 'cohorts', label: 'Cohorts', icon: Calendar },
-            { id: 'instructors', label: 'Instructors', icon: UserCheck },
-            { id: 'partners', label: 'Partners', icon: Handshake },
-            { id: 'exams', label: 'Exam Setup', icon: FileQuestion },
-            { id: 'events', label: 'Ongoing Events', icon: Calendar },
-            { id: 'mails', label: 'Mails', icon: Mail },
-          ] as const);
+    const primary = isInstructor ? INSTRUCTOR_PRIMARY : ADMIN_PRIMARY;
+    // Desktop sidebar: the five main places, then the less-used pages grouped under a heading.
+    const sidebarMore = [
+        { id: 'week', label: 'My week', icon: CalendarDays },
+        { id: 'analytics', label: 'Traffic and clicks', icon: BarChart3 },
+        { id: 'partners', label: 'Partners', icon: Handshake },
+        { id: 'mails', label: 'Mails', icon: Mail },
+        { id: 'wallet', label: 'Wallet and ledger', icon: Wallet },
+    ];
+    const bottomActive = isInstructor ? activeTab : groupOf(activeTab);
 
     const renderContent = () => {
         return (
             <Routes>
-                <Route path="/" element={<Navigate to={isInstructor ? "courses" : "dashboard"} replace />} />
+                <Route path="/" element={<Navigate to={isInstructor ? "courses" : "today"} replace />} />
+                {!isInstructor && <Route path="today" element={<AdminToday firstName={userName ? userName.split(' ')[0] : undefined} />} />}
+                {!isInstructor && <Route path="week" element={<AdminWeek />} />}
+                {!isInstructor && <Route path="more" element={<AdminMore onSwitchDashboard={handleSwitchDashboard} onStudentSite={handleBackToStudentPortal} onSignOut={handleExitConsole} />} />}
+                {!isInstructor && <Route path="people" element={<PeopleHub />} />}
+                {!isInstructor && <Route path="learning" element={<LearningHub />} />}
+                {!isInstructor && <Route path="team" element={<TeamHub />} />}
                 {!isInstructor && <Route path="dashboard" element={<AdminDashboard />} />}
-                {!isInstructor && <Route path="people" element={<AdminPeople />} />}
                 {!isInstructor && <Route path="enrollments" element={<AdminEnrollments />} />}
                 {!isInstructor && <Route path="registrations" element={<AdminRegistrations />} />}
                 {!isInstructor && <Route path="free-course" element={<AdminFreeCourse />} />}
@@ -285,7 +274,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ onExit, isInstructor, isAdmin
                 {!isInstructor && <Route path="admin/wallet" element={<Navigate to="/wallet" replace />} />}
                 {!isInstructor && <Route path="admin/enrollments" element={<Navigate to="/enrollments" replace />} />}
                 <Route path="admin/courses" element={<Navigate to="/courses" replace />} />
-                <Route path="admin/*" element={<Navigate to={isInstructor ? "/courses" : "/enrollments"} replace />} />
+                <Route path="admin/*" element={<Navigate to={isInstructor ? "/courses" : "/today"} replace />} />
             </Routes>
         );
     };
@@ -295,48 +284,62 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ onExit, isInstructor, isAdmin
         if (isAdminSubdomain) navigate(isInstructor ? `/instructor/${id}` : `/${id}`);
         else navigate(isInstructor ? `/instructor/${id}` : `/admin/${id}`);
     };
-    const activeLabel = menuItems.find(i => i.id === activeTab)?.label || (activeTab === 'courses' ? 'Course Setup' : '');
+    const activeLabel = PAGE_TITLES[activeTab] || '';
+    const bottomItems = primary.map(p => ({
+        id: p.id, label: p.label, icon: <p.icon size={22} />, onSelect: () => go(p.id),
+    }));
 
     return (
         <div className="flex min-h-screen bg-panel dark:bg-night text-ink dark:text-slate-100 font-sans transition-colors duration-200">
-            {/* Admin sidebar (night) */}
-            {navOpen && <div className="fixed inset-0 z-40 bg-night/60 lg:hidden" onClick={() => setNavOpen(false)} aria-hidden="true" />}
-            <aside aria-label={isInstructor ? 'Instructor navigation' : 'Admin navigation'} className={`w-[240px] max-w-[85vw] bg-night text-white flex flex-col fixed inset-y-0 left-0 z-50 overflow-y-auto transition-transform duration-300 lg:translate-x-0 ${navOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+            {/* Desktop sidebar (night). On a phone the bottom bar replaces it. */}
+            <aside aria-label={isInstructor ? 'Instructor navigation' : 'Admin navigation'} className="hidden lg:flex w-[240px] bg-night text-white flex-col fixed inset-y-0 left-0 z-50 overflow-y-auto">
                 <div className="px-5 pt-6 pb-5 flex items-center justify-between">
                     <div className="flex items-center gap-2.5">
                         <span className="w-9 h-9 rounded-[11px] bg-brand inline-flex items-center justify-center font-extrabold">W</span>
                         <span className="leading-tight">
                             <span className="block text-[14px] font-extrabold">{isInstructor ? 'Welile Instructor' : 'Welile Admin'}</span>
-                            <span className="block text-[11px] text-[#B9B2CC]">School of AI</span>
+                            <span className="block text-[12px] text-[#B9B2CC]">School of AI</span>
                         </span>
                     </div>
-                    <button onClick={() => setNavOpen(false)} aria-label="Close menu" className="lg:hidden w-10 h-10 rounded-[11px] inline-flex items-center justify-center text-[#B9B2CC] hover:bg-night-3"><X size={19} /></button>
                 </div>
 
                 <nav className="flex-1 px-3 pb-4 flex flex-col gap-0.5">
-                    {menuItems.map((item) => {
-                        const on = activeTab === item.id;
+                    {primary.map((item) => {
+                        const on = bottomActive === item.id;
                         return (
                             <button
                                 key={item.id}
                                 onClick={() => go(item.id)}
                                 aria-current={on ? 'page' : undefined}
-                                className={`press relative w-full flex items-center gap-3 px-3 min-h-[40px] rounded-[11px] text-[13px] text-left transition-colors ${on ? 'bg-night-3 text-white font-extrabold' : 'text-[#B9B2CC] font-semibold hover:bg-night-2 hover:text-white'}`}
+                                className={`press relative w-full flex items-center gap-3 px-3 min-h-[44px] rounded-[11px] text-[14px] text-left transition-colors ${on ? 'bg-night-3 text-white font-extrabold' : 'text-[#B9B2CC] font-semibold hover:bg-night-2 hover:text-white'}`}
                             >
                                 {on && <span aria-hidden="true" className="absolute -left-3 top-2.5 bottom-2.5 w-1 rounded-full bg-lime-200" />}
-                                <item.icon size={17} className={on ? 'text-lime-200' : ''} />
+                                <item.icon size={18} className={on ? 'text-lime-200' : ''} />
                                 {item.label}
                             </button>
                         );
                     })}
+                    {!isInstructor && (
+                        <>
+                            <p className="m-0 mt-4 mb-1 px-3 text-[11px] font-extrabold tracking-[0.12em] uppercase text-[#8F87A8]">Also</p>
+                            {sidebarMore.map((item) => {
+                                const on = activeTab === item.id;
+                                return (
+                                    <button
+                                        key={item.id}
+                                        onClick={() => go(item.id)}
+                                        aria-current={on ? 'page' : undefined}
+                                        className={`press relative w-full flex items-center gap-3 px-3 min-h-[44px] rounded-[11px] text-[14px] text-left transition-colors ${on ? 'bg-night-3 text-white font-extrabold' : 'text-[#B9B2CC] font-semibold hover:bg-night-2 hover:text-white'}`}
+                                    >
+                                        <item.icon size={18} className={on ? 'text-lime-200' : ''} />
+                                        {item.label}
+                                    </button>
+                                );
+                            })}
+                        </>
+                    )}
                 </nav>
 
-                <div className="mx-3 mb-3 pt-3 border-t border-night-3">
-                    <button onClick={handleSwitchDashboard} className="press w-full flex items-center gap-3 px-3 min-h-[40px] rounded-[11px] text-[13px] text-left bg-night-3 hover:bg-night-2 transition-colors">
-                        <LayoutGrid size={17} className="text-lime-200" />
-                        Switch dashboard
-                    </button>
-                </div>
                 <div className="mx-3 mb-4 pt-3 border-t border-night-3 flex items-center gap-2.5 px-2">
                     {userAvatar && (userAvatar.startsWith('http') || userAvatar.startsWith('data:')) ? (
                         <img src={userAvatar} alt="" className="w-8 h-8 rounded-full object-cover shrink-0" />
@@ -355,23 +358,22 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ onExit, isInstructor, isAdmin
             <main className="flex-1 lg:ml-[240px] min-w-0 flex flex-col min-h-screen">
                 <header className="frost sticky top-0 z-30 shrink-0">
                     <div className="h-[64px] px-3 sm:px-6 lg:px-7 flex items-center gap-2 sm:gap-3">
-                        <button onClick={() => setNavOpen(true)} aria-label="Open menu" className="press lg:hidden w-11 h-11 rounded-[12px] bg-white dark:bg-night-2 inline-flex items-center justify-center"><Menu size={20} /></button>
-                        {/* each page shows its own title; the bar only repeats it on phones, where the menu is hidden */}
+                        {/* each page shows its own title; the bar only repeats it on phones */}
                         <div className="min-w-0 flex-1 leading-tight">
                             <p className="m-0 text-[11px] font-extrabold tracking-[0.12em] uppercase text-brand dark:text-violet-300">{isInstructor ? 'Instructor' : 'Admin'}</p>
                             <p className="m-0 text-[17px] font-extrabold tracking-[-0.01em] truncate lg:hidden">{activeLabel}</p>
                         </div>
-                        <button onClick={handleSwitchDashboard} title="Switch dashboard" aria-label="Switch dashboard" className="press h-10 px-3 rounded-[12px] bg-white dark:bg-night-2 inline-flex items-center gap-2 text-[13px] font-bold text-ink dark:text-white">
-                            <LayoutGrid size={16} /><span className="hidden sm:inline">Switch dashboard</span>
+                        <button onClick={handleSwitchDashboard} title="Switch dashboard" aria-label="Switch dashboard" className="press h-11 min-w-[44px] px-3 rounded-[12px] bg-white dark:bg-night-2 inline-flex items-center justify-center gap-2 text-[13px] font-bold text-ink dark:text-white">
+                            <LayoutGrid size={18} /><span className="hidden sm:inline">Switch dashboard</span>
                         </button>
-                        <button onClick={toggleCurrency} title="Switch currency" aria-label={`Currency: ${currency}. Switch currency`} className="press h-10 px-3 rounded-[12px] bg-white dark:bg-night-2 inline-flex items-center gap-1.5 text-[12px] font-extrabold">
+                        <button onClick={toggleCurrency} title="Switch currency" aria-label={`Currency: ${currency}. Switch currency`} className="press hidden sm:inline-flex h-11 px-3 rounded-[12px] bg-white dark:bg-night-2 items-center gap-1.5 text-[12px] font-extrabold">
                             <span className="w-1.5 h-1.5 rounded-full bg-brand" aria-hidden="true" />{currency}
                         </button>
-                        <button onClick={toggleTheme} aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'} className="press w-10 h-10 rounded-[12px] bg-white dark:bg-night-2 inline-flex items-center justify-center text-[#6B6680] dark:text-slate-300">
+                        <button onClick={toggleTheme} aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'} className="press w-11 h-11 rounded-[12px] bg-white dark:bg-night-2 inline-flex items-center justify-center text-[#6B6680] dark:text-slate-300">
                             {isDark ? <Sun size={18} /> : <Moon size={18} />}
                         </button>
                         <div className="relative">
-                            <button onClick={() => setShowProfileDropdown(!showProfileDropdown)} aria-haspopup="menu" aria-expanded={showProfileDropdown} className="press h-10 pl-1 pr-3 rounded-full bg-white dark:bg-night-2 inline-flex items-center gap-2">
+                            <button onClick={() => setShowProfileDropdown(!showProfileDropdown)} aria-haspopup="menu" aria-expanded={showProfileDropdown} className="press h-11 pl-1.5 pr-3 rounded-full bg-white dark:bg-night-2 inline-flex items-center gap-2">
                                 {userAvatar && (userAvatar.startsWith('http') || userAvatar.startsWith('data:')) ? (
                                     <img src={userAvatar} alt="" className="w-8 h-8 rounded-full object-cover" />
                                 ) : (
@@ -387,8 +389,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ onExit, isInstructor, isAdmin
                                             <p className="m-0 text-[11px] font-semibold text-[#6B6680]">Signed in as</p>
                                             <p className="m-0 text-[13px] font-bold truncate">{userEmail}</p>
                                         </div>
-                                        <button role="menuitem" onClick={() => { setShowProfileDropdown(false); handleSwitchDashboard(); }} className="w-full text-left px-3 h-10 rounded-[11px] text-[13px] font-semibold hover:bg-panel dark:hover:bg-night-3">Switch dashboard</button>
-                                        <button role="menuitem" onClick={() => { setShowProfileDropdown(false); handleBackToStudentPortal(); }} className="w-full text-left px-3 h-10 rounded-[11px] text-[13px] font-semibold hover:bg-panel dark:hover:bg-night-3">Student site</button>
+                                        <button role="menuitem" onClick={() => { setShowProfileDropdown(false); handleBackToStudentPortal(); }} className="w-full text-left px-3 h-11 rounded-[11px] text-[14px] font-semibold hover:bg-panel dark:hover:bg-night-3">Student site</button>
                                         <button role="menuitem" onClick={() => { setShowProfileDropdown(false); handleExitConsole(); }} className="w-full text-left px-3 h-10 rounded-[11px] text-[13px] font-bold text-[#A3321F] hover:bg-[#FDECE8] dark:hover:bg-red-950/20 flex items-center gap-2"><LogOut size={15} />Sign out</button>
                                     </div>
                                 </>
@@ -397,10 +398,11 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ onExit, isInstructor, isAdmin
                     </div>
                 </header>
 
-                <div className="admin-content px-3 sm:px-6 lg:px-7 pt-2 pb-10 flex-1 min-w-0 overflow-x-auto">
+                <div className={`admin-content px-3 sm:px-6 lg:px-7 pt-2 pb-10 flex-1 min-w-0 overflow-x-auto ${BOTTOM_NAV_SPACE}`}>
                     {renderContent()}
                 </div>
             </main>
+            <AdminBottomNav items={bottomItems} activeId={bottomActive} ariaLabel={isInstructor ? 'Instructor' : 'Admin'} />
         </div>
     );
 };

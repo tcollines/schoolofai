@@ -1,11 +1,11 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
   Home, GraduationCap, BookOpen, Video, Compass, Award, Building2, CreditCard, User, SlidersHorizontal,
-  LogOut, Shield, PanelLeftClose, PanelLeftOpen, X, LayoutGrid
+  LogOut, Shield, PanelLeftClose, PanelLeftOpen, X, LayoutGrid, ClipboardCheck, Presentation
 } from 'lucide-react';
 import { supabaseClient } from '../src/lib/supabaseClient';
-import { clearPortalRolesCache, adminConsoleUrl } from '../src/lib/roles';
+import { clearPortalRolesCache, adminConsoleUrl, instructorConsoleUrl, fetchMyPortalRoles, type PortalRoles } from '../src/lib/roles';
 import { useFreeCourse } from '../src/hooks/useFreeCourse';
 import { COURSE } from '../src/content/aiFundamentals';
 import { useTranslation } from './translations';
@@ -41,6 +41,14 @@ const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, isOpen, onCl
 
   const uid = user?.id && user.id !== 'guest' ? user.id : undefined;
   const fc = useFreeCourse(uid);
+  const [roles, setRoles] = useState<PortalRoles | null>(null);
+  useEffect(() => {
+    let live = true;
+    if (uid) fetchMyPortalRoles(uid).then(r => { if (live) setRoles(r); }).catch(() => { /* links just stay hidden */ });
+    return () => { live = false; };
+  }, [uid]);
+  const isSupervisor = Boolean(roles?.is_supervisor);
+  const isInstructor = Boolean(roles?.is_instructor);
   const base = `/learn/${COURSE.slug}`;
   const role = String(user?.role || '').toUpperCase();
   const isPremium = role === 'PRO' || role === 'PREMIUM' || role === 'ADMIN' || role === 'SPONSORED';
@@ -56,6 +64,7 @@ const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, isOpen, onCl
   ];
   const work: Item[] = [
     ...(hasMultipleRoles ? [{ id: 'portal', to: '/portal', label: 'Switch dashboard', icon: LayoutGrid }] : []),
+    ...(isSupervisor ? [{ id: 'supervision', to: '/supervision', label: 'Agent supervision', icon: ClipboardCheck }] : []),
     ...(isCorporate ? [{ id: 'corporate', to: '/corporate', label: 'Corporate portal', icon: Building2 }] : []),
   ];
   const account: Item[] = [
@@ -129,6 +138,14 @@ const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, isOpen, onCl
             <p className="relative mt-1 mb-0 text-[12px] leading-relaxed text-violet-100">Live cohorts, every Pro course and verified certificates.</p>
             <Link to="/plans" className="press relative mt-2.5 h-[34px] rounded-[10px] bg-lime-200 text-ink text-[12px] font-extrabold flex items-center justify-center no-underline">Upgrade</Link>
           </div>
+        )}
+
+        {isInstructor && (
+          <a href={instructorConsoleUrl()}
+            title={expanded ? undefined : 'Instructor console'} aria-label={expanded ? undefined : 'Instructor console'}
+            className={cx('press flex items-center gap-3 min-h-[44px] rounded-[14px] text-[13px] font-bold text-brand-ink dark:text-violet-200 bg-brand-soft dark:bg-night-3 mb-2 no-underline', expanded ? 'px-3' : 'w-12 mx-auto justify-center')}>
+            <Presentation size={18} className="shrink-0" />{expanded && <span>Instructor console</span>}
+          </a>
         )}
 
         {isAdmin && (
