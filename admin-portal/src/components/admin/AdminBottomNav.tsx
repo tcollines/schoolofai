@@ -16,7 +16,7 @@ const AdminBottomNav: React.FC<{ items: BottomNavItem[]; activeId: string; ariaL
     return (
         <nav
             aria-label={ariaLabel}
-            className="lg:hidden fixed left-3 right-3 z-40 min-h-[72px] rounded-[24px] frost-white border-t border-solid border-x-0 border-b-0 border-white/60 dark:border-white/5 shadow-[0_10px_30px_rgba(76,52,150,0.14)] grid items-stretch"
+            className="lg:hidden fixed left-3 right-3 z-40 min-h-[72px] rounded-[24px] bg-white dark:bg-[#221b40] backdrop-blur-xl border-t border-solid border-x-0 border-b-0 border-white/60 dark:border-white/5 shadow-[0_10px_30px_rgba(76,52,150,0.14)] grid items-stretch"
             style={{ bottom: 'calc(16px + env(safe-area-inset-bottom))', gridTemplateColumns: `repeat(${list.length}, minmax(0, 1fr))` }}
         >
             {list.map(it => {

@@ -138,7 +138,7 @@ const AdminPeople: React.FC = () => {
     };
     const activeChannel = searchParams.get('channel');
     const activeAgent = searchParams.get('agent');
-    const rowBtn = (on: boolean) => `w-full text-left grid grid-cols-[1fr_repeat(4,44px)] sm:grid-cols-[1fr_repeat(4,56px)] gap-1 sm:gap-2 items-center min-h-[44px] py-2 px-2 rounded-[10px] text-sm hover:bg-stone-50 dark:hover:bg-slate-800/50 ${on ? 'bg-violet-50 dark:bg-violet-950/30 ring-1 ring-violet-300' : ''}`;
+    const rowBtn = (on: boolean) => `w-full text-left grid grid-cols-[1fr_repeat(4,52px)] sm:grid-cols-[1fr_repeat(4,64px)] gap-1 sm:gap-2 items-center min-h-[44px] py-2 px-2 rounded-[10px] text-sm hover:bg-stone-50 dark:hover:bg-slate-800/50 ${on ? 'bg-violet-50 dark:bg-violet-950/30 ring-1 ring-violet-300' : ''}`;
 
     return (
         <div className="space-y-5">
@@ -213,7 +213,7 @@ const AdminPeople: React.FC = () => {
                         <section className={`${card} p-4 sm:p-5`}>
                             <h2 className="text-base font-extrabold">How they registered</h2>
                             <p className="text-xs text-stone-500 dark:text-slate-400 mt-0.5 mb-2">Click a row to filter the list below.</p>
-                            <div className="grid grid-cols-[1fr_repeat(4,44px)] sm:grid-cols-[1fr_repeat(4,56px)] gap-1 sm:gap-2 px-2 text-[11px] font-bold uppercase text-stone-400"><span>Channel</span><span className="text-right">People</span><span className="text-right">Account</span><span className="text-right">Study</span><span className="text-right">Done</span></div>
+                            <div className="grid grid-cols-[1fr_repeat(4,52px)] sm:grid-cols-[1fr_repeat(4,64px)] gap-1 sm:gap-2 px-2 text-[11px] font-bold uppercase text-stone-400"><span>Channel</span><span className="text-right">People</span><span className="text-right">Joined</span><span className="text-right">Study</span><span className="text-right">Done</span></div>
                             {byChannel.map(r => (
                                 <button key={r.c} onClick={() => pick('channel', r.c)} className={rowBtn(activeChannel === r.c)}>
                                     <span className="font-semibold">{r.c}</span>
@@ -225,7 +225,7 @@ const AdminPeople: React.FC = () => {
                         <section className={`${card} p-4 sm:p-5`}>
                             <h2 className="text-base font-extrabold">By agent</h2>
                             <p className="text-xs text-stone-500 dark:text-slate-400 mt-0.5 mb-2">Top 15 agents. People without an agent signed up on their own.</p>
-                            <div className="grid grid-cols-[1fr_repeat(4,44px)] sm:grid-cols-[1fr_repeat(4,56px)] gap-1 sm:gap-2 px-2 text-[11px] font-bold uppercase text-stone-400"><span>Agent</span><span className="text-right">People</span><span className="text-right">Account</span><span className="text-right">Study</span><span className="text-right">Done</span></div>
+                            <div className="grid grid-cols-[1fr_repeat(4,52px)] sm:grid-cols-[1fr_repeat(4,64px)] gap-1 sm:gap-2 px-2 text-[11px] font-bold uppercase text-stone-400"><span>Agent</span><span className="text-right">People</span><span className="text-right">Joined</span><span className="text-right">Study</span><span className="text-right">Done</span></div>
                             {byAgent.length === 0 && <p className="text-sm text-stone-500 px-2 py-3">No agent sign-ups in this period.</p>}
                             {byAgent.map(r => (
                                 <button key={r.a} onClick={() => pick('agent', r.a)} className={rowBtn(activeAgent === r.a)}>
