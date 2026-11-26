@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-    ArrowRight, Building2, ClipboardCheck, GraduationCap, Handshake,
+    ArrowRight, Building2, ClipboardCheck, ConciergeBell, GraduationCap, Handshake,
     Loader2, LogOut, PencilRuler, Shield, Sparkles
 } from 'lucide-react';
 import { supabase } from '../src/lib/supabaseClient';
-import { adminConsoleUrl, clearPortalRolesCache, fetchMyPortalRoles, instructorConsoleUrl, PortalRoles } from '../src/lib/roles';
+import { adminConsoleUrl, clearPortalRolesCache, fetchMyPortalRoles, frontDeskConsoleUrl, instructorConsoleUrl, PortalRoles } from '../src/lib/roles';
 import { Logo, ThemeButton } from './learn/learnUi';
 
 interface RoleCard {
@@ -117,6 +117,16 @@ const RolePortalPage: React.FC<{ session: any }> = ({ session }) => {
             accent: 'bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300',
             badgeTone: 'bg-amber-50 text-amber-800 dark:bg-amber-950/50 dark:text-amber-300',
             onOpen: () => { window.location.href = adminConsoleUrl(); },
+        });
+        cards.push({
+            id: 'frontdesk',
+            title: 'Front desk',
+            badge: 'HQ',
+            description: 'Register walk-ins, make calls and mark who came to HQ.',
+            icon: ConciergeBell,
+            accent: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300',
+            badgeTone: 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300',
+            onOpen: () => { window.location.href = frontDeskConsoleUrl(); },
         });
     }
 

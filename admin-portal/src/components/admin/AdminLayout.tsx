@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Routes, Route, useNavigate, useLocation, Navigate } from 'react-router-dom';
-import { LogOut, Sun, Moon, LayoutGrid, CalendarDays, BarChart3, Handshake, Mail, Wallet } from 'lucide-react';
+import { LogOut, Sun, Moon, LayoutGrid, CalendarDays, BarChart3, Handshake, Mail, Wallet, ConciergeBell } from 'lucide-react';
 import { getCurrencyPreference, setCurrencyPreference, CurrencyType } from '../../lib/currency';
 import { ADMIN_PRIMARY, INSTRUCTOR_PRIMARY, groupOf, PAGE_TITLES } from './adminNav';
 import AdminBottomNav, { BOTTOM_NAV_SPACE } from './AdminBottomNav';
+import FrontDeskShell from './FrontDeskShell';
 import AdminToday from './AdminToday';
 import AdminMore from './AdminMore';
 import AdminWeek from './AdminWeek';
@@ -250,6 +251,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ onExit, isInstructor, isAdmin
                 {!isInstructor && <Route path="today" element={<AdminToday firstName={userName ? userName.split(' ')[0] : undefined} />} />}
                 {!isInstructor && <Route path="week" element={<AdminWeek />} />}
                 {!isInstructor && <Route path="more" element={<AdminMore onSwitchDashboard={handleSwitchDashboard} onStudentSite={handleBackToStudentPortal} onSignOut={handleExitConsole} />} />}
+                {!isInstructor && <Route path="desk" element={<FrontDeskShell firstName={userName ? userName.split(' ')[0] : undefined} onAdminDashboard={() => go('today')} onChooseDashboard={handleSwitchDashboard} onSignOut={handleExitConsole} />} />}
                 {!isInstructor && <Route path="people" element={<PeopleHub />} />}
                 {!isInstructor && <Route path="learning" element={<LearningHub />} />}
                 {!isInstructor && <Route path="team" element={<TeamHub />} />}
@@ -288,6 +290,9 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ onExit, isInstructor, isAdmin
     const bottomItems = primary.map(p => ({
         id: p.id, label: p.label, icon: <p.icon size={22} />, onSelect: () => go(p.id),
     }));
+
+    // The Front desk dashboard is its own simple screen: no admin sidebar, top bar or bottom bar
+    if (!isInstructor && activeTab === 'desk') return renderContent();
 
     return (
         <div className="flex min-h-screen bg-panel dark:bg-night text-ink dark:text-slate-100 font-sans transition-colors duration-200">
@@ -363,6 +368,11 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ onExit, isInstructor, isAdmin
                             <p className="m-0 text-[11px] font-extrabold tracking-[0.12em] uppercase text-brand dark:text-violet-300">{isInstructor ? 'Instructor' : 'Admin'}</p>
                             <p className="m-0 text-[17px] font-extrabold tracking-[-0.01em] truncate lg:hidden">{activeLabel}</p>
                         </div>
+                        {!isInstructor && (
+                            <button onClick={() => go('desk')} title="Front desk" aria-label="Front desk" className="press h-11 min-w-[44px] px-3 rounded-[12px] bg-brand text-white inline-flex items-center justify-center gap-2 text-[13px] font-bold">
+                                <ConciergeBell size={18} /><span className="hidden sm:inline">Front desk</span>
+                            </button>
+                        )}
                         <button onClick={handleSwitchDashboard} title="Switch dashboard" aria-label="Switch dashboard" className="press h-11 min-w-[44px] px-3 rounded-[12px] bg-white dark:bg-night-2 inline-flex items-center justify-center gap-2 text-[13px] font-bold text-ink dark:text-white">
                             <LayoutGrid size={18} /><span className="hidden sm:inline">Switch dashboard</span>
                         </button>

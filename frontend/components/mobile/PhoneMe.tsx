@@ -4,7 +4,7 @@ import { supabase } from '../../src/lib/supabaseClient';
 import { useFreeCourse } from '../../src/hooks/useFreeCourse';
 import { ALL_ITEMS } from '../../src/content/aiFundamentals';
 import { usePlayerPrefs } from '../learn/learnUi';
-import { adminConsoleUrl, fetchMyPortalRoles, instructorConsoleUrl, type PortalRoles } from '../../src/lib/roles';
+import { adminConsoleUrl, fetchMyPortalRoles, frontDeskConsoleUrl, instructorConsoleUrl, type PortalRoles } from '../../src/lib/roles';
 import { Avatar, Ico, PageTitle, PhonePage, Toggle, useProgressMap } from './phoneKit';
 
 /**
@@ -104,6 +104,7 @@ const PhoneMe: React.FC<{ user: any }> = ({ user }) => {
     if (roles?.is_agent) dashboards.push(<NavRow key="agent" to="/staff" label="Agent portal" sub={isStaff ? 'Register students and track your sign-ups' : 'Your sign-ups and timetable'} icon={<IconTile tone="bg-night text-lime-200">{Ico.handshake()}</IconTile>} />);
     if (roles?.is_supervisor) dashboards.push(<NavRow key="sup" to="/supervision" label="Agent supervision" sub="Your agents, links and weekly numbers" icon={<IconTile tone="bg-brand-soft text-brand">{Ico.users(18)}</IconTile>} />);
     if (roles?.is_admin || role === 'ADMIN') dashboards.push(<ExtRow key="admin" href={adminConsoleUrl()} label="Admin console" sub="Manage the school" icon={<IconTile tone="bg-[#F1EFF6] text-ink">{Ico.shield()}</IconTile>} />);
+    if (roles?.is_admin || role === 'ADMIN') dashboards.push(<ExtRow key="desk" href={frontDeskConsoleUrl()} label="Front desk" sub="Walk-ins, calls and who came to HQ" icon={<IconTile tone="bg-mint-soft text-mint">{Ico.check(18)}</IconTile>} />);
     if (roles?.is_instructor) dashboards.push(<ExtRow key="inst" href={instructorConsoleUrl()} label="Instructor console" sub="Your courses and lessons" icon={<IconTile tone="bg-mint-soft text-mint">{Ico.award(18)}</IconTile>} />);
     if (isCorporate) dashboards.push(<NavRow key="corp" to="/corporate" label="Corporate portal" sub={user?.companyName || 'Your team and seats'} icon={<IconTile tone="bg-brand-soft text-brand">{Ico.users(18)}</IconTile>} />);
     if ((roles?.role_count ?? 0) >= 2) dashboards.push(<NavRow key="switch" to="/portal" label="Switch dashboard" sub="Change between your roles" icon={<IconTile tone="bg-[#F1EFF6] text-ink">{Ico.chevron()}</IconTile>} />);

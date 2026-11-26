@@ -1,5 +1,7 @@
 import React from 'react';
 import HubTabs, { HubTab, useHubTab } from './HubTabs';
+import CourseStats from './CourseStats';
+import HqAttendance from './HqAttendance';
 import AdminFreeCourse from './AdminFreeCourse';
 import AdminLiveSessions from './AdminLiveSessions';
 import AdminCourses from './AdminCourses';
@@ -9,6 +11,8 @@ import AdminEvents from './AdminEvents';
 import AdminInstructors from './AdminInstructors';
 
 const TABS: HubTab[] = [
+    { id: 'stats', label: 'Course stats' },
+    { id: 'hq', label: 'Front desk' },
     { id: 'free', label: 'Free course' },
     { id: 'live', label: 'Live classes' },
     { id: 'courses', label: 'Courses' },
@@ -23,6 +27,8 @@ const LearningHub: React.FC = () => {
     return (
         <div>
             <HubTabs tabs={TABS} active={tab} onChange={setTab} label="Learning" />
+            {tab === 'stats' && <CourseStats />}
+            {tab === 'hq' && <HqAttendance />}
             {tab === 'free' && <AdminFreeCourse />}
             {tab === 'live' && <AdminLiveSessions />}
             {tab === 'courses' && <AdminCourses isInstructor={false} />}

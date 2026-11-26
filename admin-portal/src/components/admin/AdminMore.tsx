@@ -1,11 +1,12 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import {
-    BarChart3, BookOpen, Calendar, CalendarDays, ClipboardList, FileQuestion, Globe, Handshake, Home, LayoutGrid, LogOut, Mail, UserCheck, UserCog, Wallet
+    BarChart3, BookOpen, Calendar, CalendarDays, ClipboardList, ConciergeBell, FileQuestion, Globe, Handshake, Home, LayoutGrid, LogOut, Mail, UserCheck, UserCog, Wallet
 } from 'lucide-react';
 import type { MoreItem } from './adminNav';
 
 const ITEMS: (MoreItem & { to: string })[] = [
+    { id: 'desk', to: '/desk', label: 'Front desk', hint: 'Walk-ins, calls and who came to HQ', icon: ConciergeBell },
     { id: 'week', to: '/week', label: 'My week', hint: 'Your own timetable', icon: CalendarDays },
     { id: 'dashboard', to: '/dashboard', label: 'Full dashboard', hint: 'All the numbers in one page', icon: Home },
     { id: 'analytics', to: '/analytics', label: 'Traffic and clicks', hint: 'Who visits and clicks', icon: BarChart3 },

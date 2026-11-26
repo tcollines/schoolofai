@@ -1,9 +1,11 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, BadgeDollarSign, CalendarClock, CalendarDays, GraduationCap, Loader2, Mail, MailPlus, Phone, Plus, RefreshCw, UserPlus, Users, Wifi } from 'lucide-react';
+import { ArrowRight, BadgeDollarSign, ConciergeBell, CalendarClock, CalendarDays, GraduationCap, Loader2, Mail, MailPlus, Phone, Plus, RefreshCw, UserPlus, Users, Wifi } from 'lucide-react';
 import { supabaseClient } from '../../lib/supabaseClient';
 import { CalEvent, loadCalendar } from '../../lib/staffCalendarApi';
-import { GLOSSARY, PersonRow, computePeopleMetrics, loadPeople } from '../../lib/peopleMetrics';
+import { GLOSSARY, PersonRow, computePeopleMetrics, kampalaDay, loadPeople } from '../../lib/peopleMetrics';
+import { PhysicalRow, fetchPhysicalAttendance, indexPhysical } from '../../lib/physicalAttendance';
+import { CallRow, fetchCallLog, indexCalls } from '../../lib/callLog';
 import { calColor, nowEat, timeRange, todaysBlocks } from './StaffCalendarView';
 
 interface Summary {
@@ -40,15 +42,24 @@ const AdminToday: React.FC<{ firstName?: string }> = ({ firstName }) => {
     const [s, setS] = useState<Summary | null>(null);
     const [rows, setRows] = useState<PersonRow[]>([]);
     const [mine, setMine] = useState<CalEvent[] | null>(null);
+    const [marks, setMarks] = useState<PhysicalRow[]>([]);
+    const [callRows, setCallRows] = useState<CallRow[]>([]);
+    const [deskOk, setDeskOk] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [loading, setLoading] = useState(true);
 
     const load = useCallback(async () => {
         setLoading(true);
-        const [a, b] = await Promise.all([
+        const [a, b, hq, log] = await Promise.all([
             supabaseClient.rpc('admin_dashboard'),
             loadPeople(),
+            fetchPhysicalAttendance(),
+            fetchCallLog(),
         ]);
+        // The front desk card is for people allowed to see these (admins). If both loads are refused, the card stays hidden.
+        setMarks(hq.rows);
+        setCallRows(log.rows);
+        setDeskOk(!hq.error || !log.error);
         if (a.error) setError(a.error.message); else { setError(null); setS(a.data as Summary); }
         if (!b.error) setRows(b.rows);
         setLoading(false);
@@ -56,7 +67,19 @@ const AdminToday: React.FC<{ firstName?: string }> = ({ firstName }) => {
     useEffect(() => { void load(); }, [load]);
     useEffect(() => { loadCalendar().then(setMine).catch(() => setMine([])); }, []);
 
-    const m = useMemo(() => computePeopleMetrics(rows), [rows]);
+    const lessonsFor = useMemo(() => indexPhysical(marks), [marks]);
+    const callIndex = useMemo(() => indexCalls(callRows), [callRows]);
+    const m = useMemo(() => computePeopleMetrics(rows, lessonsFor, callIndex), [rows, lessonsFor, callIndex]);
+    // Front desk today (Kampala day): people called, people reached, and people marked at HQ
+    const desk = useMemo(() => {
+        const t = kampalaDay(Date.now());
+        const callsToday = callRows.filter(c => kampalaDay(c.called_at) === t);
+        return {
+            called: new Set(callsToday.map(c => c.person_key)).size,
+            reached: new Set(callsToday.filter(c => c.outcome === 'reached').map(c => c.person_key)).size,
+            atHq: new Set(marks.filter(x => x.attended_on === t).map(x => x.person_key)).size,
+        };
+    }, [callRows, marks]);
     const todays = useMemo(() => todaysBlocks(mine || [], nowEat()), [mine]);
     const dateLabel = new Date().toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', timeZone: 'Africa/Kampala' });
     const hour = nowEat().getUTCHours();
@@ -88,6 +111,21 @@ const AdminToday: React.FC<{ firstName?: string }> = ({ firstName }) => {
                         <Tile label="Live classes ahead" value={s.sessions_ahead} icon={CalendarClock} to="/learning?tab=live" />
                         <Tile label="Reminders sent, 7 days" value={s.reminders_7d} icon={Mail} to="/mails" />
                     </div>
+
+                    {deskOk && (
+                        <section className={`${card} p-[18px]`}>
+                            <div className="flex items-center justify-between gap-2 mb-3">
+                                <h2 className="m-0 text-[17px] font-extrabold flex items-center gap-2"><ConciergeBell size={18} className="text-brand dark:text-violet-300" />Front desk today</h2>
+                                <Link to="/learning?tab=hq" className="press min-h-[44px] px-4 rounded-[12px] bg-brand text-white text-[14px] font-bold inline-flex items-center no-underline">Open</Link>
+                            </div>
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                                <Link to="/learning?tab=hq&mode=calls" className="no-underline text-inherit rounded-[14px] bg-brand-soft dark:bg-night-3 p-3 min-h-[72px]"><span className="block text-[13px] font-bold text-[#6B6680] dark:text-slate-400">Called today</span><span className="block text-[24px] font-extrabold tabular-nums">{desk.called}</span></Link>
+                                <Link to="/learning?tab=hq&mode=calls" className="no-underline text-inherit rounded-[14px] bg-brand-soft dark:bg-night-3 p-3 min-h-[72px]"><span className="block text-[13px] font-bold text-[#6B6680] dark:text-slate-400">Reached today</span><span className="block text-[24px] font-extrabold tabular-nums">{desk.reached}</span></Link>
+                                <Link to="/learning?tab=hq&mode=attendance" className="no-underline text-inherit rounded-[14px] bg-brand-soft dark:bg-night-3 p-3 min-h-[72px]"><span className="block text-[13px] font-bold text-[#6B6680] dark:text-slate-400">At HQ today</span><span className="block text-[24px] font-extrabold tabular-nums">{desk.atHq}</span></Link>
+                                <Link to="/learning?tab=hq&mode=calls" className="no-underline text-inherit rounded-[14px] bg-brand-soft dark:bg-night-3 p-3 min-h-[72px]"><span className="block text-[13px] font-bold text-[#6B6680] dark:text-slate-400">Call backs due</span><span className="block text-[24px] font-extrabold tabular-nums">{m.callBackDue}</span></Link>
+                            </div>
+                        </section>
+                    )}
 
                     <section className={`${card} p-[18px]`}>
                         <h2 className="m-0 mb-1 text-[17px] font-extrabold">Needs attention</h2>

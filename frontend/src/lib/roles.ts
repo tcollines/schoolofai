@@ -70,6 +70,14 @@ export function adminConsoleUrl(): string {
         : `${window.location.origin}/admin/`;
 }
 
+/** Where the Front desk dashboard lives: /admin/desk on the main site, /desk on the local admin host. */
+export function frontDeskConsoleUrl(): string {
+    if (typeof window === 'undefined') return '/admin/desk';
+    return window.location.hostname.includes('localhost')
+        ? `${window.location.protocol}//admin.localhost:4002/desk`
+        : `${window.location.origin}/admin/desk`;
+}
+
 /** Where the instructor console lives: /admin/instructor/courses on the main site, /instructor/courses on the local admin host. */
 export function instructorConsoleUrl(): string {
     if (typeof window === 'undefined') return '/admin/instructor/courses';

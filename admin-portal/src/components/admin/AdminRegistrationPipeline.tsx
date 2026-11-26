@@ -6,7 +6,9 @@ import {
 } from 'lucide-react';
 import { supabaseClient } from '../../lib/supabaseClient';
 import { CHANNELS, channelOf } from './peopleChannels';
-import { GLOSSARY, GROUP_ORDER, GroupId, inGroup, normalizeGroup, rowLabel } from '../../lib/peopleMetrics';
+import { GLOSSARY, GROUP_ORDER, GroupId, HQ_GROUPS, inGroup, isOnline, normalizeGroup, rowLabel } from '../../lib/peopleMetrics';
+import type { LessonsFor } from '../../lib/physicalAttendance';
+import HqLessons from './HqLessons';
 
 type Stage = 'Registered' | 'Account opened' | 'In course' | 'Studying' | 'Joined live' | 'Passed final' | 'Completed';
 
@@ -87,8 +89,16 @@ export interface PipelineData {
     error: string | null;
 }
 
+/** Optional HQ attendance: when given, each person gets Lesson 1, 2, 3 chips and the HQ groups appear. */
+export interface HqControl {
+    lessonsFor: LessonsFor;
+    toggle: (r: StudentRow, lesson: number, attended: boolean) => void;
+}
+
 /** Pass `data` to let a parent page own the list (the All People page does this so it can mix in other courses). */
-const AdminRegistrationPipeline: React.FC<{ course: string; data?: PipelineData }> = ({ course, data }) => {
+const AdminRegistrationPipeline: React.FC<{ course: string; data?: PipelineData; hq?: HqControl }> = ({ course, data, hq }) => {
+    const lessonsFor = hq?.lessonsFor;
+    const visibleGroups = useMemo(() => (hq ? GROUP_ORDER : GROUP_ORDER.filter(g => !HQ_GROUPS.includes(g))), [hq]);
     const [searchParams, setSearchParams] = useSearchParams();
     // ?stage= takes a group id (all, online, call, invite, account, notStarted, studying, live, completed, paid); ?route= is the same idea.
     // Old links with the previous stage names still work.
@@ -166,9 +176,9 @@ const AdminRegistrationPipeline: React.FC<{ course: string; data?: PipelineData 
     const counts = useMemo(() => {
         const list = rows || [];
         const c: Record<string, number> = { app_installed: list.filter(r => r.app_installed).length };
-        GROUP_ORDER.forEach(g => { c[g] = list.filter(r => inGroup(r, g)).length; });
+        GROUP_ORDER.forEach(g => { c[g] = list.filter(r => inGroup(r, g, lessonsFor)).length; });
         return c;
-    }, [rows]);
+    }, [rows, lessonsFor]);
 
     const agentOptions = useMemo(() => {
         const set = new Set<string>();
@@ -179,7 +189,7 @@ const AdminRegistrationPipeline: React.FC<{ course: string; data?: PipelineData 
     const shown = useMemo(() => {
         const term = q.trim().toLowerCase();
         return (rows || []).filter(r => {
-            if (!inGroup(r, tab)) return false;
+            if (!inGroup(r, tab, lessonsFor)) return false;
             if (moduleFilter !== 'all') {
                 const touched = r.modules_touched || [];
                 if (!touched.includes(moduleFilter) && r.highest_module !== moduleFilter) return false;
@@ -196,7 +206,7 @@ const AdminRegistrationPipeline: React.FC<{ course: string; data?: PipelineData 
             }
             return true;
         });
-    }, [rows, tab, moduleFilter, agentFilter, channelFilter, onlyAppInstalled, q]);
+    }, [rows, tab, lessonsFor, moduleFilter, agentFilter, channelFilter, onlyAppInstalled, q]);
 
     const save = async (r: StudentRow, status: StudentRow['followup'], note: string | null) => {
         setRows(prev => (prev || []).map(x => x.key === r.key ? { ...x, followup: status, note } : x));
@@ -210,7 +220,7 @@ const AdminRegistrationPipeline: React.FC<{ course: string; data?: PipelineData 
             'Name', 'Email', 'Phone', 'Location', 'Courses', 'Source', 'Agent', 'Registered',
             'Stage', 'Items Done', 'Progress %', 'Current Module', 'Quizzes Passed',
             'Final Score %', 'Certificate ID', 'Certificate Issued', 'Live Classes',
-            'App Installed', 'Last Active', 'Follow-up', 'Note'
+            'App Installed', 'Last Active', 'Follow-up', 'Note', 'HQ Lessons'
         ];
         const lines = shown.map(r => [
             r.name, r.email, r.phone ? '+' + r.phone : '', r.location, (r.courses || []).join('; '), r.sources.join('; '), r.agent,
@@ -218,7 +228,8 @@ const AdminRegistrationPipeline: React.FC<{ course: string; data?: PipelineData 
             r.highest_module ? (MODULE_LABELS[r.highest_module] || r.highest_module) : '',
             r.quizzes_passed ?? 0, r.final_score ?? '', r.certificate_id || '',
             r.certificate_issued_at?.slice(0, 10) || '', r.live_count ?? 0,
-            r.app_installed ? 'Yes' : 'No', r.last_active?.slice(0, 10) || '', r.followup, r.note || ''
+            r.app_installed ? 'Yes' : 'No', r.last_active?.slice(0, 10) || '', r.followup, r.note || '',
+            hq ? hq.lessonsFor({ key: r.key, name: r.name, email: r.email, phone: r.phone }).join('+') : ''
         ].map(esc).join(','));
         const a = document.createElement('a');
         a.href = URL.createObjectURL(new Blob([[head.join(','), ...lines].join('\n')], { type: 'text/csv' }));
@@ -235,7 +246,7 @@ const AdminRegistrationPipeline: React.FC<{ course: string; data?: PipelineData 
             {/* Stage Tabs */}
             <div className="flex flex-wrap items-start justify-between gap-2">
                 <div className="flex flex-wrap gap-1.5" role="tablist" aria-label="People groups">
-                    {GROUP_ORDER.map(g => (
+                    {visibleGroups.map(g => (
                         <button
                             key={g}
                             role="tab"
@@ -455,6 +466,11 @@ const AdminRegistrationPipeline: React.FC<{ course: string; data?: PipelineData 
                                         </td>
 
                                         <td className="py-3 pr-3">
+                                            {hq && (
+                                                <div className="mb-2">
+                                                    <HqLessons lessons={hq.lessonsFor({ key: r.key, name: r.name, email: r.email, phone: r.phone })} prominent={!isOnline(r)} onToggle={(n, on) => hq.toggle(r, n, on)} />
+                                                </div>
+                                            )}
                                             <select
                                                 value={r.followup}
                                                 onChange={e => void save(r, e.target.value as StudentRow['followup'], notes[r.key] ?? r.note)}
@@ -547,6 +563,7 @@ const AdminRegistrationPipeline: React.FC<{ course: string; data?: PipelineData 
                                     {r.email && <a href={`mailto:${r.email}`} className={btn}><Mail size={15} /> Email</a>}
                                 </div>
                                 <div className="mt-3 space-y-2">
+                                    {hq && <HqLessons lessons={hq.lessonsFor({ key: r.key, name: r.name, email: r.email, phone: r.phone })} prominent={!isOnline(r)} onToggle={(n, on) => hq.toggle(r, n, on)} />}
                                     <select
                                         value={r.followup}
                                         onChange={e => void save(r, e.target.value as StudentRow['followup'], notes[r.key] ?? r.note)}

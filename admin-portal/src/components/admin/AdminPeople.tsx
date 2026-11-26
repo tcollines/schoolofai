@@ -2,9 +2,10 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { Loader2, RefreshCw } from 'lucide-react';
 import { COURSE } from '../../content/aiFundamentals';
-import AdminRegistrationPipeline, { StudentRow } from './AdminRegistrationPipeline';
+import AdminRegistrationPipeline, { HqControl, StudentRow } from './AdminRegistrationPipeline';
 import { CHANNELS, channelOf } from './peopleChannels';
 import { GLOSSARY, GroupId, computePeopleMetrics, kampalaDay, loadPeople, pct } from '../../lib/peopleMetrics';
+import { PhysicalRow, applyLocalMark, fetchPhysicalAttendance, indexPhysical, setPhysicalLesson } from '../../lib/physicalAttendance';
 
 type Person = StudentRow;
 
@@ -20,15 +21,17 @@ const AdminPeople: React.FC = () => {
     const [error, setError] = useState<string | null>(null);
     const [loading, setLoading] = useState(true);
     const [range, setRange] = useState<Range>('all');
+    const [physicalRows, setPhysicalRows] = useState<PhysicalRow[]>([]);
     const courseFilter = searchParams.get('course') || 'all';
 
     const load = useCallback(async () => {
         setLoading(true);
         // Same list Today and Dashboard use: the free-course roster merged with people in other courses and paid enrolments
-        const res = await loadPeople(COURSE.slug);
+        const [res, hqRes] = await Promise.all([loadPeople(COURSE.slug), fetchPhysicalAttendance(COURSE.slug)]);
         if (res.error) { setError(res.error); setLoading(false); return; }
         setError(null);
         setRows(res.rows);
+        setPhysicalRows(hqRes.rows);
         setLoading(false);
     }, []);
     useEffect(() => { void load(); }, [load]);
@@ -65,7 +68,20 @@ const AdminPeople: React.FC = () => {
         error,
     }), [rows, scoped, load, loading, error]);
 
-    const m = useMemo(() => computePeopleMetrics(scoped), [scoped]);
+    // HQ attendance: who attended which of the 3 physical lessons (marks match a person by key, email or phone)
+    const lessonsFor = useMemo(() => indexPhysical(physicalRows), [physicalRows]);
+    const toggleHq = useCallback(async (r: Person, lesson: number, attended: boolean) => {
+        const person = { key: r.key, name: r.name, email: r.email, phone: r.phone };
+        setPhysicalRows(prev => applyLocalMark(prev, person, lesson, attended));
+        const res = await setPhysicalLesson(person, lesson, attended);
+        if (!res.ok) {
+            setPhysicalRows(prev => applyLocalMark(prev, person, lesson, !attended));
+            setError(`Could not save HQ attendance: ${res.error}`);
+        } else setError(null);
+    }, []);
+    const hqControl = useMemo<HqControl>(() => ({ lessonsFor, toggle: (r, lesson, attended) => { void toggleHq(r, lesson, attended); } }), [lessonsFor, toggleHq]);
+
+    const m = useMemo(() => computePeopleMetrics(scoped, lessonsFor), [scoped, lessonsFor]);
     const rangeLabel = range === 'all' ? '' : ` ${RANGES.find(r => r[0] === range)?.[1].toLowerCase()}`;
     const goTo = (id: GroupId) => {
         const next = new URLSearchParams(searchParams);
@@ -90,6 +106,10 @@ const AdminPeople: React.FC = () => {
         { id: 'completed', value: m.completed, note: `${pct(m.completed, m.hasAccount)}% of accounts`, tone: 'text-emerald-700 dark:text-emerald-400' },
     ];
     const paidTile: Tile = { id: 'paid', value: m.paid, note: `${pct(m.paid, m.registered)}% of registered`, tone: 'text-emerald-700 dark:text-emerald-400' };
+    const hqTiles: Tile[] = [
+        { id: 'hq', value: m.physicalAny, note: `${pct(m.physicalAny, m.registered)}% of registered`, tone: 'text-emerald-700 dark:text-emerald-400' },
+        { id: 'both', value: m.both, note: 'started online and came to HQ', tone: 'text-teal-700 dark:text-teal-300' },
+    ];
     const renderTile = (t: Tile) => (
         <button key={t.id} type="button" onClick={() => goTo(t.id)} title={GLOSSARY[t.id].definition} className={`${card} p-4 text-left min-h-[44px] hover:ring-2 hover:ring-violet-200 dark:hover:ring-violet-900`}>
             <p className="text-[11px] font-bold uppercase tracking-wide text-stone-500 dark:text-slate-400">{GLOSSARY[t.id].label}</p>
@@ -173,7 +193,7 @@ const AdminPeople: React.FC = () => {
                             <p className="text-xs font-bold uppercase tracking-wide text-stone-500 dark:text-slate-400 mb-2">Online (has email): where they are{rangeLabel ? `, registered${rangeLabel}` : ''}</p>
                             <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3">{journeyTiles.map(renderTile)}</div>
                         </div>
-                        <div className="grid grid-cols-2 md:grid-cols-3 gap-3">{renderTile(paidTile)}</div>
+                        <div className="grid grid-cols-2 md:grid-cols-3 gap-3">{renderTile(paidTile)}{hqTiles.map(renderTile)}</div>
                         <p className="text-xs text-stone-500 dark:text-slate-400">{GLOSSARY.account.definition} Has an account = {GLOSSARY.notStarted.label} + {GLOSSARY.studying.label} + {GLOSSARY.live.label} + {GLOSSARY.completed.label}. {GLOSSARY.studying.definition}</p>
                     </div>
 
@@ -245,7 +265,7 @@ const AdminPeople: React.FC = () => {
 
             <div id="people-explorer">
                 <h2 className="text-lg font-extrabold mb-2">Everyone, person by person</h2>
-                <AdminRegistrationPipeline course={COURSE.slug} data={pipelineData} />
+                <AdminRegistrationPipeline course={COURSE.slug} data={pipelineData} hq={hqControl} />
             </div>
         </div>
     );

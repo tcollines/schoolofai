@@ -2,10 +2,10 @@ import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
   Home, GraduationCap, BookOpen, Video, Compass, Award, Building2, CreditCard, User, SlidersHorizontal,
-  LogOut, Shield, PanelLeftClose, PanelLeftOpen, X, LayoutGrid, ClipboardCheck, Presentation
+  LogOut, Shield, PanelLeftClose, PanelLeftOpen, X, LayoutGrid, ClipboardCheck, Presentation, ConciergeBell
 } from 'lucide-react';
 import { supabaseClient } from '../src/lib/supabaseClient';
-import { clearPortalRolesCache, adminConsoleUrl, instructorConsoleUrl, fetchMyPortalRoles, type PortalRoles } from '../src/lib/roles';
+import { clearPortalRolesCache, adminConsoleUrl, frontDeskConsoleUrl, instructorConsoleUrl, fetchMyPortalRoles, type PortalRoles } from '../src/lib/roles';
 import { useFreeCourse } from '../src/hooks/useFreeCourse';
 import { COURSE } from '../src/content/aiFundamentals';
 import { useTranslation } from './translations';
@@ -153,6 +153,14 @@ const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, isOpen, onCl
             title={expanded ? undefined : 'Admin console'} aria-label={expanded ? undefined : 'Admin console'}
             className={cx('press flex items-center gap-3 min-h-[44px] rounded-[14px] text-[13px] font-bold text-brand-ink dark:text-violet-200 bg-brand-soft dark:bg-night-3 mb-2 no-underline', expanded ? 'px-3' : 'w-12 mx-auto justify-center')}>
             <Shield size={18} className="shrink-0" />{expanded && <span>Admin console</span>}
+          </a>
+        )}
+
+        {isAdmin && (
+          <a href={frontDeskConsoleUrl()}
+            title={expanded ? undefined : 'Front desk'} aria-label={expanded ? undefined : 'Front desk'}
+            className={cx('press flex items-center gap-3 min-h-[44px] rounded-[14px] text-[13px] font-bold text-brand-ink dark:text-violet-200 bg-brand-soft dark:bg-night-3 mb-2 no-underline', expanded ? 'px-3' : 'w-12 mx-auto justify-center')}>
+            <ConciergeBell size={18} className="shrink-0" />{expanded && <span>Front desk</span>}
           </a>
         )}
 
