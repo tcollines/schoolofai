@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import { supabaseClient } from '../../lib/supabaseClient';
 import { CHANNELS, channelOf } from './peopleChannels';
+import { GLOSSARY, GROUP_ORDER, GroupId, inGroup, normalizeGroup, rowLabel } from '../../lib/peopleMetrics';
 
 type Stage = 'Registered' | 'Account opened' | 'In course' | 'Studying' | 'Joined live' | 'Passed final' | 'Completed';
 
@@ -76,7 +77,6 @@ const fmtDay = (iso?: string | null) =>
 const card = 'bg-white dark:bg-night-2 rounded-[22px]';
 const field = 'rounded-[12px] bg-white dark:bg-night-2 px-2.5 py-2 text-sm min-h-[44px]';
 
-const VALID_STAGE_IDS = new Set<string>(['all', ...STAGES.map(s => s.id)]);
 
 /** Stage-by-stage student explorer & follow-up pipeline for the free course. */
 export interface PipelineData {
@@ -90,10 +90,9 @@ export interface PipelineData {
 /** Pass `data` to let a parent page own the list (the All People page does this so it can mix in other courses). */
 const AdminRegistrationPipeline: React.FC<{ course: string; data?: PipelineData }> = ({ course, data }) => {
     const [searchParams, setSearchParams] = useSearchParams();
-    const initialStage = (() => {
-        const s = searchParams.get('stage');
-        return s && VALID_STAGE_IDS.has(s) ? (s as 'all' | Stage) : 'all';
-    })();
+    // ?stage= takes a group id (all, online, call, invite, account, notStarted, studying, live, completed, paid); ?route= is the same idea.
+    // Old links with the previous stage names still work.
+    const initialStage: GroupId = normalizeGroup(searchParams.get('stage'), searchParams.get('route')) || 'all';
 
     const [ownRows, setOwnRows] = useState<StudentRow[] | null>(null);
     const [ownError, setOwnError] = useState<string | null>(null);
@@ -106,7 +105,7 @@ const AdminRegistrationPipeline: React.FC<{ course: string; data?: PipelineData 
         if (data) { if (typeof u === 'function') data.setRows(u); return; }
         setOwnRows(u as any);
     };
-    const [tab, setTab] = useState<'all' | Stage>(initialStage);
+    const [tab, setTab] = useState<GroupId>(initialStage);
     const [q, setQ] = useState('');
     const [moduleFilter, setModuleFilter] = useState<string>('all');
     const [agentFilter, setAgentFilter] = useState<string>(searchParams.get('agent') || 'all');
@@ -122,19 +121,20 @@ const AdminRegistrationPipeline: React.FC<{ course: string; data?: PipelineData 
         setLimit(50);
     }, [searchParams]);
 
-    // Sync tab if user clicked a stage link from Dashboard
+    // Sync the tab when a link from Today, Dashboard or the People tiles sets ?stage= or ?route=
     useEffect(() => {
-        const s = searchParams.get('stage');
-        if (s && VALID_STAGE_IDS.has(s) && s !== tab) {
-            setTab(s as 'all' | Stage);
+        const next: GroupId = normalizeGroup(searchParams.get('stage'), searchParams.get('route')) || 'all';
+        if (next !== tab) {
+            setTab(next);
             setLimit(50);
         }
     }, [searchParams]); // eslint-disable-line react-hooks/exhaustive-deps
 
-    const selectTab = (next: 'all' | Stage) => {
+    const selectTab = (next: GroupId) => {
         setTab(next);
         setLimit(50);
         const nextParams = new URLSearchParams(searchParams);
+        nextParams.delete('route');
         if (next === 'all') nextParams.delete('stage');
         else nextParams.set('stage', next);
         setSearchParams(nextParams, { replace: true });
@@ -162,15 +162,11 @@ const AdminRegistrationPipeline: React.FC<{ course: string; data?: PipelineData 
 
     useEffect(() => { if (!data) void load(); }, [load]); // eslint-disable-line react-hooks/exhaustive-deps
 
+    // Every tab count uses the same rule as the list and as the tiles on the People page (see lib/peopleMetrics.ts)
     const counts = useMemo(() => {
         const list = rows || [];
-        const c: Record<string, number> = {
-            all: list.length,
-            app_installed: list.filter(r => r.app_installed).length,
-            certified: list.filter(r => !!r.certificate_id).length,
-            live_any: list.filter(r => (r.live_count || 0) > 0 || r.stage === 'Joined live').length,
-        };
-        STAGES.forEach(s => { c[s.id] = list.filter(r => r.stage === s.id).length; });
+        const c: Record<string, number> = { app_installed: list.filter(r => r.app_installed).length };
+        GROUP_ORDER.forEach(g => { c[g] = list.filter(r => inGroup(r, g)).length; });
         return c;
     }, [rows]);
 
@@ -183,16 +179,7 @@ const AdminRegistrationPipeline: React.FC<{ course: string; data?: PipelineData 
     const shown = useMemo(() => {
         const term = q.trim().toLowerCase();
         return (rows || []).filter(r => {
-            if (tab !== 'all') {
-                // For "Joined live", also include completed/passed learners who attended live!
-                if (tab === 'Joined live') {
-                    if (r.stage !== 'Joined live' && !(r.live_count && r.live_count > 0)) return false;
-                } else if (tab === 'Completed') {
-                    if (r.stage !== 'Completed' && !r.certificate_id) return false;
-                } else if (r.stage !== tab) {
-                    return false;
-                }
-            }
+            if (!inGroup(r, tab)) return false;
             if (moduleFilter !== 'all') {
                 const touched = r.modules_touched || [];
                 if (!touched.includes(moduleFilter) && r.highest_module !== moduleFilter) return false;
@@ -235,51 +222,34 @@ const AdminRegistrationPipeline: React.FC<{ course: string; data?: PipelineData 
         ].map(esc).join(','));
         const a = document.createElement('a');
         a.href = URL.createObjectURL(new Blob([[head.join(','), ...lines].join('\n')], { type: 'text/csv' }));
-        a.download = `free-course-${tab === 'all' ? 'all' : tab.toLowerCase().replace(/\s+/g, '-')}-${new Date().toISOString().slice(0, 10)}.csv`;
+        a.download = `people-${tab}-${new Date().toISOString().slice(0, 10)}.csv`;
         a.click();
         URL.revokeObjectURL(a.href);
     };
 
     const origin = typeof window !== 'undefined' ? window.location.origin.replace('admin.', '') : '';
-    const help = tab === 'all'
-        ? 'Everyone registered or enrolled in the free course. Click any stage tab above to view the exact students at that stage.'
-        : STAGES.find(s => s.id === tab)?.help;
+    const help = GLOSSARY[tab].definition;
 
     return (
-        <section className={`${card} p-4 sm:p-5 space-y-4`} aria-label="Free course learners by stage">
+        <section className={`${card} p-4 sm:p-5 space-y-4`} aria-label="People, person by person">
             {/* Stage Tabs */}
             <div className="flex flex-wrap items-start justify-between gap-2">
-                <div className="flex flex-wrap gap-1.5" role="tablist" aria-label="Course stage">
-                    <button
-                        role="tab"
-                        aria-selected={tab === 'all'}
-                        onClick={() => selectTab('all')}
-                        className={`min-h-[44px] px-3 py-2 rounded-[12px] text-sm font-semibold border transition-colors ${
-                            tab === 'all'
-                                ? 'bg-brand border-violet-600 text-white'
-                                : 'border-stone-200 dark:border-slate-700 hover:bg-stone-50 dark:hover:bg-slate-800'
-                        }`}
-                    >
-                        All <span className={tab === 'all' ? 'opacity-90' : 'text-stone-500'}>{counts.all ?? 0}</span>
-                    </button>
-                    {STAGES.map(s => {
-                        const cnt = s.id === 'Joined live' ? counts.live_any : s.id === 'Completed' ? counts.certified : counts[s.id];
-                        return (
-                            <button
-                                key={s.id}
-                                role="tab"
-                                aria-selected={tab === s.id}
-                                onClick={() => selectTab(s.id)}
-                                className={`min-h-[44px] px-3 py-2 rounded-[12px] text-sm font-semibold border transition-colors ${
-                                    tab === s.id
-                                        ? 'bg-brand border-violet-600 text-white'
-                                        : 'border-stone-200 dark:border-slate-700 hover:bg-stone-50 dark:hover:bg-slate-800'
-                                }`}
-                            >
-                                {s.tab} <span className={tab === s.id ? 'opacity-90' : 'text-stone-500'}>{cnt ?? 0}</span>
-                            </button>
-                        );
-                    })}
+                <div className="flex flex-wrap gap-1.5" role="tablist" aria-label="People groups">
+                    {GROUP_ORDER.map(g => (
+                        <button
+                            key={g}
+                            role="tab"
+                            aria-selected={tab === g}
+                            onClick={() => selectTab(g)}
+                            className={`min-h-[44px] px-3 py-2 rounded-[12px] text-sm font-semibold border transition-colors ${
+                                tab === g
+                                    ? 'bg-brand border-violet-600 text-white'
+                                    : 'border-stone-200 dark:border-slate-700 hover:bg-stone-50 dark:hover:bg-slate-800'
+                            }`}
+                        >
+                            {GLOSSARY[g].label} <span className={tab === g ? 'opacity-90' : 'text-stone-500'}>{counts[g] ?? 0}</span>
+                        </button>
+                    ))}
                 </div>
                 <div className="flex gap-2 shrink-0">
                     <button
@@ -419,7 +389,7 @@ const AdminRegistrationPipeline: React.FC<{ course: string; data?: PipelineData 
                                         <td className="py-3 pr-3 min-w-[210px]">
                                             <div className="flex flex-wrap items-center gap-1.5">
                                                 <span className={`text-xs font-semibold px-2 py-0.5 rounded-full whitespace-nowrap ${stageMeta?.badge || 'bg-stone-100 text-stone-700'}`}>
-                                                    {r.stage === 'Registered' ? 'No account yet' : r.stage}
+                                                    {rowLabel(r)}
                                                 </span>
                                                 {(r.live_count || 0) > 0 && (
                                                     <span className="inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-full bg-sky-100 text-sky-800 dark:bg-sky-950/50 dark:text-sky-300">
@@ -514,7 +484,7 @@ const AdminRegistrationPipeline: React.FC<{ course: string; data?: PipelineData 
                             {shown.length === 0 && (
                                 <tr>
                                     <td colSpan={7} className="py-8 text-center text-stone-500">
-                                        No students match this stage or filter.
+                                        No people match this group or filter.
                                     </td>
                                 </tr>
                             )}
@@ -537,7 +507,7 @@ const AdminRegistrationPipeline: React.FC<{ course: string; data?: PipelineData 
                                         {r.location && <p className="m-0 text-xs text-stone-500 dark:text-slate-400">{r.location}</p>}
                                     </div>
                                     <span className={`shrink-0 text-xs font-semibold px-2.5 py-1 rounded-full ${stageMeta?.badge || 'bg-stone-100 text-stone-700'}`}>
-                                        {r.stage === 'Registered' ? 'No account yet' : r.stage}
+                                        {rowLabel(r)}
                                     </span>
                                 </div>
                                 <div className="mt-2 flex flex-wrap gap-1.5">
@@ -600,7 +570,7 @@ const AdminRegistrationPipeline: React.FC<{ course: string; data?: PipelineData 
                             </div>
                         );
                     })}
-                    {shown.length === 0 && <p className="py-8 text-center text-stone-500">No students match this stage or filter.</p>}
+                    {shown.length === 0 && <p className="py-8 text-center text-stone-500">No people match this group or filter.</p>}
                   </div>
                     {shown.length > limit && (
                         <button

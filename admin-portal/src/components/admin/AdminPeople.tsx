@@ -1,22 +1,17 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { Loader2, RefreshCw } from 'lucide-react';
-import { supabaseClient } from '../../lib/supabaseClient';
 import { COURSE } from '../../content/aiFundamentals';
 import AdminRegistrationPipeline, { StudentRow } from './AdminRegistrationPipeline';
 import { CHANNELS, channelOf } from './peopleChannels';
+import { GLOSSARY, GroupId, computePeopleMetrics, kampalaDay, loadPeople, pct } from '../../lib/peopleMetrics';
 
 type Person = StudentRow;
-const FREE_TITLE = 'AI Fundamentals (free)';
 
 const card = 'bg-white dark:bg-night-2 rounded-[22px]';
 const RANGES = [['today', 'Today'], ['7', 'Last 7 days'], ['30', 'Last 30 days'], ['all', 'All time']] as const;
 type Range = typeof RANGES[number][0];
 
-const kampalaDay = (iso: string) => new Date(new Date(iso).getTime() + 3 * 3600 * 1000).toISOString().slice(0, 10);
-const pct = (n: number, d: number) => (d > 0 ? Math.round((n / d) * 100) : 0);
-const studying = (p: Person) => ['Studying', 'Joined live', 'Passed final', 'Completed'].includes(p.stage) || (p.live_count || 0) > 0 || !!p.certificate_id;
-const completed = (p: Person) => p.stage === 'Completed' || !!p.certificate_id;
 
 /** One place for everyone on the platform: how many, where they are in the journey, and who brought them. */
 const AdminPeople: React.FC = () => {
@@ -29,25 +24,11 @@ const AdminPeople: React.FC = () => {
 
     const load = useCallback(async () => {
         setLoading(true);
-        let res = await supabaseClient.rpc('admin_course_stage_students', { p_course: COURSE.slug });
-        if (res.error) res = await supabaseClient.rpc('admin_registration_pipeline', { p_course: COURSE.slug });
-        if (res.error) { setError(res.error.message); setLoading(false); return; }
-        const free = ((res.data || []) as Person[]).map(r => ({ ...r, courses: [FREE_TITLE] }));
-        // People outside the free course: general sign-ups, other-course interest and paid enrolments
-        const other = await supabaseClient.rpc('admin_other_people');
-        const byKey = new Map<string, Person>(free.map(r => [r.key, r] as [string, Person]));
-        const merged: Person[] = [...free];
-        if (!other.error) {
-            ((other.data || []) as Person[]).forEach(o => {
-                const hit = byKey.get(o.key);
-                if (hit) {
-                    hit.courses = Array.from(new Set([...(hit.courses || []), ...(o.courses || [])]));
-                    hit.paid_enrolled = hit.paid_enrolled || o.paid_enrolled;
-                } else { merged.push(o); byKey.set(o.key, o); }
-            });
-        }
+        // Same list Today and Dashboard use: the free-course roster merged with people in other courses and paid enrolments
+        const res = await loadPeople(COURSE.slug);
+        if (res.error) { setError(res.error); setLoading(false); return; }
         setError(null);
-        setRows(merged.sort((a, b) => (a.registered_at < b.registered_at ? 1 : -1)));
+        setRows(res.rows);
         setLoading(false);
     }, []);
     useEffect(() => { void load(); }, [load]);
@@ -63,18 +44,6 @@ const AdminPeople: React.FC = () => {
         () => (rows || []).filter(p => courseFilter === 'all' || (p.courses || []).includes(courseFilter)),
         [rows, courseFilter]
     );
-    const pipelineData = useMemo(() => ({
-        rows: rows ? inCourse : null,
-        setRows: (updater: (prev: Person[] | null) => Person[]) => {
-            const next = updater(inCourse);
-            const m = new Map(next.map(r => [r.key, r]));
-            setRows(prev => (prev || []).map(r => m.get(r.key) || r));
-        },
-        reload: load,
-        loading,
-        error,
-    }), [rows, inCourse, load, loading, error]);
-
     const scoped = useMemo(() => {
         const list = inCourse;
         if (range === 'all') return list;
@@ -83,35 +52,62 @@ const AdminPeople: React.FC = () => {
         return list.filter(p => kampalaDay(p.registered_at) >= cutoff);
     }, [inCourse, range]);
 
-    const tiles = useMemo(() => {
-        const n = scoped.length;
-        const noAcc = scoped.filter(p => !p.has_account).length;
-        const acc = scoped.filter(p => p.has_account).length;
-        const inCourse = scoped.filter(p => p.stage === 'In course').length;
-        const accOnly = scoped.filter(p => p.stage === 'Account opened').length;
-        const stud = scoped.filter(studying).length;
-        const live = scoped.filter(p => (p.live_count || 0) > 0 || p.stage === 'Joined live').length;
-        const done = scoped.filter(completed).length;
-        return [
-            { label: 'Everyone', value: n, note: 'registered or enrolled', tone: 'text-stone-900 dark:text-white' },
-            { label: 'Just registered', value: noAcc, note: `${pct(noAcc, n)}% have no login yet`, tone: 'text-amber-700 dark:text-amber-400' },
-            { label: 'Have an account', value: acc, note: `${pct(acc, n)}% of everyone`, tone: 'text-violet-700 dark:text-violet-300' },
-            { label: 'Account, not started', value: accOnly + inCourse, note: 'opened but no lessons yet', tone: 'text-sky-700 dark:text-sky-300' },
-            { label: 'Studying', value: stud, note: `${pct(stud, acc)}% of accounts`, tone: 'text-indigo-700 dark:text-indigo-300' },
-            { label: 'Joined a live class', value: live, note: `${pct(live, acc)}% of accounts`, tone: 'text-teal-700 dark:text-teal-300' },
-            { label: 'Completed', value: done, note: 'certified', tone: 'text-emerald-700 dark:text-emerald-400' },
-        ];
-    }, [scoped]);
+    // The list and its tab counts use exactly the rows the tiles above use (same course and time range)
+    const pipelineData = useMemo(() => ({
+        rows: rows ? scoped : null,
+        setRows: (updater: (prev: Person[] | null) => Person[]) => {
+            const next = updater(scoped);
+            const m = new Map(next.map(r => [r.key, r]));
+            setRows(prev => (prev || []).map(r => m.get(r.key) || r));
+        },
+        reload: load,
+        loading,
+        error,
+    }), [rows, scoped, load, loading, error]);
+
+    const m = useMemo(() => computePeopleMetrics(scoped), [scoped]);
+    const rangeLabel = range === 'all' ? '' : ` ${RANGES.find(r => r[0] === range)?.[1].toLowerCase()}`;
+    const goTo = (id: GroupId) => {
+        const next = new URLSearchParams(searchParams);
+        next.delete('route');
+        if (id === 'all') next.delete('stage'); else next.set('stage', id);
+        setSearchParams(next, { replace: true });
+        document.getElementById('people-explorer')?.scrollIntoView({ behavior: 'smooth' });
+    };
+    type Tile = { id: GroupId; value: number; note: string; tone: string };
+    // Order: Registered, then the two routes (Online, Needs a call), then the journey inside Online, then Paid
+    const routeTiles: Tile[] = [
+        { id: 'all', value: m.registered, note: `${GLOSSARY.online.label} + ${GLOSSARY.call.label}`, tone: 'text-stone-900 dark:text-white' },
+        { id: 'online', value: m.online, note: `${pct(m.online, m.registered)}% of registered`, tone: 'text-violet-700 dark:text-violet-300' },
+        { id: 'call', value: m.needsCall, note: `${m.followUpNew} not called yet`, tone: 'text-amber-700 dark:text-amber-400' },
+    ];
+    const journeyTiles: Tile[] = [
+        { id: 'account', value: m.hasAccount, note: `${pct(m.hasAccount, m.online)}% of online`, tone: 'text-violet-700 dark:text-violet-300' },
+        { id: 'invite', value: m.invitePending, note: 'email, no account yet', tone: 'text-amber-700 dark:text-amber-400' },
+        { id: 'notStarted', value: m.notStarted, note: `${pct(m.notStarted, m.hasAccount)}% of accounts`, tone: 'text-sky-700 dark:text-sky-300' },
+        { id: 'studying', value: m.studying, note: `${pct(m.studying, m.hasAccount)}% of accounts`, tone: 'text-indigo-700 dark:text-indigo-300' },
+        { id: 'live', value: m.joinedLive, note: `${pct(m.joinedLive, m.hasAccount)}% of accounts`, tone: 'text-teal-700 dark:text-teal-300' },
+        { id: 'completed', value: m.completed, note: `${pct(m.completed, m.hasAccount)}% of accounts`, tone: 'text-emerald-700 dark:text-emerald-400' },
+    ];
+    const paidTile: Tile = { id: 'paid', value: m.paid, note: `${pct(m.paid, m.registered)}% of registered`, tone: 'text-emerald-700 dark:text-emerald-400' };
+    const renderTile = (t: Tile) => (
+        <button key={t.id} type="button" onClick={() => goTo(t.id)} title={GLOSSARY[t.id].definition} className={`${card} p-4 text-left min-h-[44px] hover:ring-2 hover:ring-violet-200 dark:hover:ring-violet-900`}>
+            <p className="text-[11px] font-bold uppercase tracking-wide text-stone-500 dark:text-slate-400">{GLOSSARY[t.id].label}</p>
+            <p className={`text-3xl font-extrabold mt-1 ${t.tone}`}>{t.value}</p>
+            <p className="text-[11px] text-stone-500 dark:text-slate-400 mt-0.5">{t.note}</p>
+        </button>
+    );
 
     const byChannel = useMemo(() => CHANNELS.map(c => {
         const g = scoped.filter(p => channelOf(p) === c);
-        return { c, n: g.length, acc: g.filter(p => p.has_account).length, stud: g.filter(studying).length, done: g.filter(completed).length };
+        const gm = computePeopleMetrics(g);
+        return { c, n: gm.registered, acc: gm.hasAccount, stud: gm.studying, done: gm.completed };
     }), [scoped]);
 
     const byAgent = useMemo(() => {
         const m = new Map<string, Person[]>();
         scoped.forEach(p => { if (p.agent) m.set(p.agent, [...(m.get(p.agent) || []), p]); });
-        return [...m.entries()].map(([a, g]) => ({ a, n: g.length, acc: g.filter(p => p.has_account).length, stud: g.filter(studying).length, done: g.filter(completed).length }))
+        return [...m.entries()].map(([a, g]) => { const gm = computePeopleMetrics(g); return { a, n: gm.registered, acc: gm.hasAccount, stud: gm.studying, done: gm.completed }; })
             .sort((x, y) => y.n - x.n).slice(0, 15);
     }, [scoped]);
 
@@ -138,14 +134,14 @@ const AdminPeople: React.FC = () => {
     };
     const activeChannel = searchParams.get('channel');
     const activeAgent = searchParams.get('agent');
-    const rowBtn = (on: boolean) => `w-full text-left grid grid-cols-[1fr_repeat(4,52px)] sm:grid-cols-[1fr_repeat(4,64px)] gap-1 sm:gap-2 items-center min-h-[44px] py-2 px-2 rounded-[10px] text-sm hover:bg-stone-50 dark:hover:bg-slate-800/50 ${on ? 'bg-violet-50 dark:bg-violet-950/30 ring-1 ring-violet-300' : ''}`;
+    const rowBtn = (on: boolean) => `w-full text-left grid grid-cols-[1fr_repeat(4,56px)] sm:grid-cols-[1fr_repeat(4,80px)] gap-1 sm:gap-2 items-center min-h-[44px] py-2 px-2 rounded-[10px] text-sm hover:bg-stone-50 dark:hover:bg-slate-800/50 ${on ? 'bg-violet-50 dark:bg-violet-950/30 ring-1 ring-violet-300' : ''}`;
 
     return (
         <div className="space-y-5">
             <div className="flex flex-wrap items-end justify-between gap-3">
                 <div>
-                    <h1 className="text-2xl font-extrabold">All people</h1>
-                    <p className="text-sm text-stone-500 dark:text-slate-400 mt-1">Everyone registered or enrolled in any course, where they are in the journey, and who brought them in. The study stages follow the free AI Fundamentals course.</p>
+                    <h1 className="text-2xl font-extrabold">People</h1>
+                    <p className="text-sm text-stone-500 dark:text-slate-400 mt-1">Everyone we know about, once each. People with an email study online; people without one need a call from an agent or staff. The aim is to move them from the free course to paid courses.</p>
                 </div>
                 <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
                     <select
@@ -154,7 +150,7 @@ const AdminPeople: React.FC = () => {
                         aria-label="Filter by course"
                         className="w-full sm:w-auto min-h-[44px] rounded-[12px] border border-stone-200 dark:border-slate-700 bg-white dark:bg-night-2 px-3 py-2 text-sm font-semibold"
                     >
-                        <option value="all">All courses ({(rows || []).length})</option>
+                        <option value="all">All courses ({(rows || []).length} registered)</option>
                         {courseOptions.map(([c, n]) => <option key={c} value={c}>{c} ({n})</option>)}
                     </select>
                     <div className="flex flex-wrap gap-2 text-sm font-semibold" role="group" aria-label="Time range">
@@ -171,18 +167,18 @@ const AdminPeople: React.FC = () => {
 
             {rows && (
                 <>
-                    <div className="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-7 gap-3">
-                        {tiles.map(t => (
-                            <div key={t.label} className={`${card} p-4`}>
-                                <p className="text-[11px] font-bold uppercase tracking-wide text-stone-500 dark:text-slate-400">{t.label}</p>
-                                <p className={`text-3xl font-extrabold mt-1 ${t.tone}`}>{t.value}</p>
-                                <p className="text-[11px] text-stone-500 dark:text-slate-400 mt-0.5">{t.note}</p>
-                            </div>
-                        ))}
+                    <div className="space-y-3">
+                        <div className="grid grid-cols-2 md:grid-cols-3 gap-3">{routeTiles.map(renderTile)}</div>
+                        <div>
+                            <p className="text-xs font-bold uppercase tracking-wide text-stone-500 dark:text-slate-400 mb-2">Online (has email): where they are{rangeLabel ? `, registered${rangeLabel}` : ''}</p>
+                            <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3">{journeyTiles.map(renderTile)}</div>
+                        </div>
+                        <div className="grid grid-cols-2 md:grid-cols-3 gap-3">{renderTile(paidTile)}</div>
+                        <p className="text-xs text-stone-500 dark:text-slate-400">{GLOSSARY.account.definition} Has an account = {GLOSSARY.notStarted.label} + {GLOSSARY.studying.label} + {GLOSSARY.live.label} + {GLOSSARY.completed.label}. {GLOSSARY.studying.definition}</p>
                     </div>
 
                     <div className={`${card} p-4 sm:p-5`}>
-                        <p className="text-xs font-bold uppercase tracking-wide text-stone-500 dark:text-slate-400">New registrations, last 14 days</p>
+                        <p className="text-xs font-bold uppercase tracking-wide text-stone-500 dark:text-slate-400">New registrations, last 14 days (Kampala days)</p>
                         <div className="flex items-end gap-1.5 h-24 mt-3">
                             {daily.map(x => (
                                 <div key={x.d} className="flex-1 flex flex-col items-center justify-end h-full gap-1" title={`${x.d}: ${x.n}`}>
@@ -212,8 +208,8 @@ const AdminPeople: React.FC = () => {
                     <div className="grid lg:grid-cols-2 gap-4">
                         <section className={`${card} p-4 sm:p-5`}>
                             <h2 className="text-base font-extrabold">How they registered</h2>
-                            <p className="text-xs text-stone-500 dark:text-slate-400 mt-0.5 mb-2">Click a row to filter the list below.</p>
-                            <div className="grid grid-cols-[1fr_repeat(4,52px)] sm:grid-cols-[1fr_repeat(4,64px)] gap-1 sm:gap-2 px-2 text-[11px] font-bold uppercase text-stone-400"><span>Channel</span><span className="text-right">People</span><span className="text-right">Joined</span><span className="text-right">Study</span><span className="text-right">Done</span></div>
+                            <p className="text-xs text-stone-500 dark:text-slate-400 mt-0.5 mb-2">Click a row to filter the list below. Account, Studying and Done count only people who have an account.</p>
+                            <div className="grid grid-cols-[1fr_repeat(4,56px)] sm:grid-cols-[1fr_repeat(4,80px)] gap-1 sm:gap-2 px-2 text-[9px] sm:text-[11px] font-bold uppercase text-stone-400"><span>Channel</span><span className="text-right">Registered</span><span className="text-right">Account</span><span className="text-right">Studying</span><span className="text-right">Done</span></div>
                             {byChannel.map(r => (
                                 <button key={r.c} onClick={() => pick('channel', r.c)} className={rowBtn(activeChannel === r.c)}>
                                     <span className="font-semibold">{r.c}</span>
@@ -225,7 +221,7 @@ const AdminPeople: React.FC = () => {
                         <section className={`${card} p-4 sm:p-5`}>
                             <h2 className="text-base font-extrabold">By agent</h2>
                             <p className="text-xs text-stone-500 dark:text-slate-400 mt-0.5 mb-2">Top 15 agents. People without an agent signed up on their own.</p>
-                            <div className="grid grid-cols-[1fr_repeat(4,52px)] sm:grid-cols-[1fr_repeat(4,64px)] gap-1 sm:gap-2 px-2 text-[11px] font-bold uppercase text-stone-400"><span>Agent</span><span className="text-right">People</span><span className="text-right">Joined</span><span className="text-right">Study</span><span className="text-right">Done</span></div>
+                            <div className="grid grid-cols-[1fr_repeat(4,56px)] sm:grid-cols-[1fr_repeat(4,80px)] gap-1 sm:gap-2 px-2 text-[9px] sm:text-[11px] font-bold uppercase text-stone-400"><span>Agent</span><span className="text-right">Registered</span><span className="text-right">Account</span><span className="text-right">Studying</span><span className="text-right">Done</span></div>
                             {byAgent.length === 0 && <p className="text-sm text-stone-500 px-2 py-3">No agent sign-ups in this period.</p>}
                             {byAgent.map(r => (
                                 <button key={r.a} onClick={() => pick('agent', r.a)} className={rowBtn(activeAgent === r.a)}>

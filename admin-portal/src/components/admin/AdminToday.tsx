@@ -1,8 +1,9 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, CalendarClock, CalendarDays, GraduationCap, Loader2, Mail, Plus, RefreshCw, UserPlus, Users, UserX } from 'lucide-react';
+import { ArrowRight, BadgeDollarSign, CalendarClock, CalendarDays, GraduationCap, Loader2, Mail, MailPlus, Phone, Plus, RefreshCw, UserPlus, Users, Wifi } from 'lucide-react';
 import { supabaseClient } from '../../lib/supabaseClient';
 import { CalEvent, loadCalendar } from '../../lib/staffCalendarApi';
+import { GLOSSARY, PersonRow, computePeopleMetrics, loadPeople } from '../../lib/peopleMetrics';
 import { calColor, nowEat, timeRange, todaysBlocks } from './StaffCalendarView';
 
 interface Summary {
@@ -10,7 +11,6 @@ interface Summary {
     next_session: { title: string; starts_at: string; meet_link: string | null } | null; sessions_ahead: number;
     reminders_7d: number; agents: number; agent_regs_7d: number;
 }
-interface PRow { stage: string; followup: string; live_count?: number; }
 
 const card = 'bg-white dark:bg-night-2 rounded-[22px]';
 const when = (iso: string) => new Date(iso).toLocaleString('en-GB', { weekday: 'long', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit', timeZone: 'Africa/Kampala' }) + ' EAT';
@@ -38,7 +38,7 @@ const Attention: React.FC<{ text: string; cta: string; to: string }> = ({ text, 
 /** First page an admin sees: a few big numbers, what needs attention, and today's own timetable. */
 const AdminToday: React.FC<{ firstName?: string }> = ({ firstName }) => {
     const [s, setS] = useState<Summary | null>(null);
-    const [rows, setRows] = useState<PRow[]>([]);
+    const [rows, setRows] = useState<PersonRow[]>([]);
     const [mine, setMine] = useState<CalEvent[] | null>(null);
     const [error, setError] = useState<string | null>(null);
     const [loading, setLoading] = useState(true);
@@ -47,24 +47,16 @@ const AdminToday: React.FC<{ firstName?: string }> = ({ firstName }) => {
         setLoading(true);
         const [a, b] = await Promise.all([
             supabaseClient.rpc('admin_dashboard'),
-            supabaseClient.rpc('admin_course_stage_students', { p_course: 'ai-fundamentals' }),
+            loadPeople(),
         ]);
         if (a.error) setError(a.error.message); else { setError(null); setS(a.data as Summary); }
-        if (!b.error && b.data) setRows(b.data as PRow[]);
+        if (!b.error) setRows(b.rows);
         setLoading(false);
     }, []);
     useEffect(() => { void load(); }, [load]);
     useEffect(() => { loadCalendar().then(setMine).catch(() => setMine([])); }, []);
 
-    const by = useMemo(() => {
-        const n = (st: string) => rows.filter(r => r.stage === st).length;
-        return {
-            all: rows.length,
-            noAccount: n('Registered'),
-            studying: n('Studying') + rows.filter(r => r.stage === 'Joined live').length,
-            toContact: rows.filter(r => r.followup === 'new' && r.stage !== 'Completed').length,
-        };
-    }, [rows]);
+    const m = useMemo(() => computePeopleMetrics(rows), [rows]);
     const todays = useMemo(() => todaysBlocks(mine || [], nowEat()), [mine]);
     const dateLabel = new Date().toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', timeZone: 'Africa/Kampala' });
     const hour = nowEat().getUTCHours();
@@ -86,22 +78,25 @@ const AdminToday: React.FC<{ firstName?: string }> = ({ firstName }) => {
             {s && (
                 <>
                     <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                        <Tile label="People registered" value={by.all} icon={Users} to="/people" />
-                        <Tile label="Have an account" value={Math.max(0, by.all - by.noAccount)} icon={UserPlus} to="/people" />
-                        <Tile label="No account yet" value={by.noAccount} icon={UserX} to="/people?stage=Registered" />
-                        <Tile label="Studying now" value={by.studying} icon={GraduationCap} to="/learning" />
+                        <Tile label={GLOSSARY.all.label} value={m.registered} icon={Users} to="/people" />
+                        <Tile label={GLOSSARY.online.label} value={m.online} icon={Wifi} to="/people?stage=online" />
+                        <Tile label={GLOSSARY.call.label} value={m.needsCall} icon={Phone} to="/people?stage=call" />
+                        <Tile label={GLOSSARY.account.label} value={m.hasAccount} icon={UserPlus} to="/people?stage=account" />
+                        <Tile label={GLOSSARY.invite.label} value={m.invitePending} icon={MailPlus} to="/people?stage=invite" />
+                        <Tile label={GLOSSARY.studying.label} value={m.studying} icon={GraduationCap} to="/people?stage=studying" />
+                        <Tile label={GLOSSARY.paid.label} value={m.paid} icon={BadgeDollarSign} to="/people?stage=paid" />
                         <Tile label="Live classes ahead" value={s.sessions_ahead} icon={CalendarClock} to="/learning?tab=live" />
-                        <Tile label="Emails, last 7 days" value={s.reminders_7d} icon={Mail} to="/mails" />
+                        <Tile label="Reminders sent, 7 days" value={s.reminders_7d} icon={Mail} to="/mails" />
                     </div>
 
                     <section className={`${card} p-[18px]`}>
                         <h2 className="m-0 mb-1 text-[17px] font-extrabold">Needs attention</h2>
-                        {by.noAccount === 0 && by.toContact === 0 && s.sessions_ahead > 0
+                        {m.followUpNew === 0 && m.invitePending === 0 && s.sessions_ahead > 0
                             ? <p className="m-0 py-3 text-[14px] text-[#6B6680] dark:text-slate-400">Nothing waiting. Well done.</p>
                             : (
                                 <div>
-                                    {by.noAccount > 0 && <Attention text={`${by.noAccount} ${by.noAccount === 1 ? 'person' : 'people'} registered but have no account yet`} cta="See them" to="/people?stage=Registered" />}
-                                    {by.toContact > 0 && <Attention text={`${by.toContact} ${by.toContact === 1 ? 'person is' : 'people are'} waiting for a follow-up call`} cta="Follow up" to="/people?stage=Registered" />}
+                                    {m.followUpNew > 0 && <Attention text={`${m.followUpNew} ${m.followUpNew === 1 ? 'person has' : 'people have'} no email and still ${m.followUpNew === 1 ? 'needs' : 'need'} a call`} cta="Call them" to="/people?stage=call" />}
+                                    {m.invitePending > 0 && <Attention text={`${m.invitePending} ${m.invitePending === 1 ? 'person has' : 'people have'} an email but no account yet`} cta="Invite them" to="/people?stage=invite" />}
                                     {s.sessions_ahead === 0 && <Attention text="No live class is scheduled" cta="Schedule" to="/learning?tab=live" />}
                                 </div>
                             )}
