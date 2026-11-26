@@ -6,6 +6,7 @@ import { ALL_ITEMS } from '../../src/content/aiFundamentals';
 import { usePlayerPrefs } from '../learn/learnUi';
 import { adminConsoleUrl, fetchMyPortalRoles, frontDeskConsoleUrl, instructorConsoleUrl, type PortalRoles } from '../../src/lib/roles';
 import { Avatar, Ico, PageTitle, PhonePage, Toggle, useProgressMap } from './phoneKit';
+import DashboardSwitcher from '../ui/DashboardSwitcher';
 
 /**
  * Phone · Me (canvas board MobileMe). Also holds everything the side menu had on computers:
@@ -53,6 +54,11 @@ const SwitchRow: React.FC<{ label: string; sub?: string; icon?: React.ReactNode;
         </span>
         <Toggle on={on} onChange={onChange} label={label} />
     </div>
+);
+
+/** The one switch control (same sheet as everywhere else); shows nothing unless there are two or more dashboards. */
+const DashboardSwitchRow: React.FC<{ last?: boolean }> = ({ last }) => (
+    <div className={`px-1.5 ${last ? '' : LINE}`}><DashboardSwitcher current="student" variant="row" className="!min-h-[56px]" /></div>
 );
 
 const PhoneMe: React.FC<{ user: any }> = ({ user }) => {
@@ -107,7 +113,7 @@ const PhoneMe: React.FC<{ user: any }> = ({ user }) => {
     if (roles?.is_admin || role === 'ADMIN') dashboards.push(<ExtRow key="desk" href={frontDeskConsoleUrl()} label="Front desk" sub="Walk-ins, calls and who came to HQ" icon={<IconTile tone="bg-mint-soft text-mint">{Ico.check(18)}</IconTile>} />);
     if (roles?.is_instructor) dashboards.push(<ExtRow key="inst" href={instructorConsoleUrl()} label="Instructor console" sub="Your courses and lessons" icon={<IconTile tone="bg-mint-soft text-mint">{Ico.award(18)}</IconTile>} />);
     if (isCorporate) dashboards.push(<NavRow key="corp" to="/corporate" label="Corporate portal" sub={user?.companyName || 'Your team and seats'} icon={<IconTile tone="bg-brand-soft text-brand">{Ico.users(18)}</IconTile>} />);
-    if ((roles?.role_count ?? 0) >= 2) dashboards.push(<NavRow key="switch" to="/portal" label="Switch dashboard" sub="Change between your roles" icon={<IconTile tone="bg-[#F1EFF6] text-ink">{Ico.chevron()}</IconTile>} />);
+    if ((roles?.role_count ?? 0) >= 2) dashboards.push(<DashboardSwitchRow key="switch" />);
 
     return (
         <PhonePage>

@@ -2,14 +2,28 @@
 // The Learning-hub "Front desk" tab and the Front desk dashboard both load it here, and every number comes from the shared people model,
 // so the Front desk numbers always equal the admin numbers.
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { FREE_COURSE_TITLE, PeopleMetrics, PersonRow, computePeopleMetrics, isOnline, kampalaDay, loadPeople } from '../../lib/peopleMetrics';
+import { FREE_COURSE_TITLE, PeopleMetrics, PersonRow, computePeopleMetrics, invalidatePeople, isOnline, kampalaDay, loadPeople } from '../../lib/peopleMetrics';
+import { Enquiry, HqCourse, HqEnrolment, SheetRow, fetchAllSheets, fetchEnquiries, fetchHqCourses, fetchHqEnrolments, marksFor, readiness, enrolmentRef } from '../../lib/hqApi';
 import { PhysicalRow, fetchPhysicalAttendance, indexPhysical } from '../../lib/physicalAttendance';
 import { CallIndex, CallRow, fetchCallLog, indexCalls } from '../../lib/callLog';
 import { channelOf } from './peopleChannels';
 
 /** What every Front desk screen shares, so a walk-in, a call or a mark shows up everywhere straight away. */
 export interface FrontDeskData {
+    /** People in Fundamentals of AI (the programme). Used by the lesson-chip screens. */
     rows: PersonRow[];
+    /** Everyone we know about, in every course. Used to find a person before registering or enrolling them. */
+    allRows: PersonRow[];
+    courses: HqCourse[];
+    enrolments: HqEnrolment[];
+    setEnrolments: React.Dispatch<React.SetStateAction<HqEnrolment[]>>;
+    /** Class attendance (present, absent, excused) for every course. */
+    sheet: SheetRow[];
+    setSheet: React.Dispatch<React.SetStateAction<SheetRow[]>>;
+    enquiries: Enquiry[];
+    setEnquiries: React.Dispatch<React.SetStateAction<Enquiry[]>>;
+    /** Loads only the HQ parts again (courses, enrolments, attendance sheet, visitors). Cheap, so it is fine after a single tap. */
+    reloadHq: () => Promise<void>;
     marks: PhysicalRow[];
     setMarks: React.Dispatch<React.SetStateAction<PhysicalRow[]>>;
     calls: CallRow[];
@@ -23,16 +37,37 @@ export interface FrontDeskData {
 
 export function useFrontDeskData(): FrontDeskData {
     const [rows, setRows] = useState<PersonRow[]>([]);
+    const [allRows, setAllRows] = useState<PersonRow[]>([]);
+    const [courses, setCourses] = useState<HqCourse[]>([]);
+    const [enrolments, setEnrolments] = useState<HqEnrolment[]>([]);
+    const [sheet, setSheet] = useState<SheetRow[]>([]);
+    const [enquiries, setEnquiries] = useState<Enquiry[]>([]);
+    const [hqNotice, setHqNotice] = useState<string | null>(null);
     const [marks, setMarks] = useState<PhysicalRow[]>([]);
     const [calls, setCalls] = useState<CallRow[]>([]);
     const [loading, setLoading] = useState(true);
     const [notice, setNotice] = useState<string | null>(null);
 
+    const reloadHq = useCallback(async () => {
+        const [c, e, q] = await Promise.all([fetchHqCourses(), fetchHqEnrolments(null), fetchEnquiries()]);
+        const active = (c.data || []).map(x => x.slug);
+        const sheets = await fetchAllSheets(active);
+        if (c.ok) setCourses(c.data || []);
+        if (e.ok) setEnrolments(e.data || []);
+        if (q.ok) setEnquiries(q.data || []);
+        setSheet(sheets.rows);
+        const bad = [c, e, q].find(x => !x.ok);
+        setHqNotice(bad ? `Some course information could not be loaded (${bad.error}). The rest still works.` : sheets.error ? `Class attendance could not be loaded (${sheets.error}).` : null);
+    }, []);
+
     const reload = useCallback(async () => {
         setLoading(true);
-        const [people, hq, log] = await Promise.all([loadPeople(), fetchPhysicalAttendance(), fetchCallLog()]);
+        // A fresh copy of the people list, so a registration, a mark or a call made a moment ago is included
+        invalidatePeople();
+        const [people, hq, log] = await Promise.all([loadPeople(), fetchPhysicalAttendance(), fetchCallLog(), reloadHq()]);
         if (people.error) setNotice(`Could not load people: ${people.error}`);
         else {
+            setAllRows(people.rows);
             setRows(people.rows.filter(p => (p.courses || []).includes(FREE_COURSE_TITLE)));
             setNotice(hq.error ? `HQ attendance could not be loaded: ${hq.error}` : log.error ? `The call log could not be loaded: ${log.error}` : null);
         }
@@ -42,7 +77,7 @@ export function useFrontDeskData(): FrontDeskData {
     }, []);
     useEffect(() => { void reload(); }, [reload]);
 
-    return { rows, marks, setMarks, calls, setCalls, loading, notice, reload };
+    return { rows, allRows, courses, enrolments, setEnrolments, sheet, setSheet, enquiries, setEnquiries, reloadHq, marks, setMarks, calls, setCalls, loading, notice: notice || hqNotice, reload };
 }
 
 export interface DeskStats {
@@ -61,6 +96,12 @@ export interface DeskStats {
     convertedThisWeek: number;
     /** The people who have waited longest for a first call: no email and never called. */
     needsCallPreview: PersonRow[];
+    /** Visitors who came only to ask something, today (Kampala day). */
+    visitorsToday: number;
+    /** Visitors whose follow-up date is today or earlier and who are still thinking or need follow-up, oldest date first. */
+    followUpsDue: Enquiry[];
+    /** People who can graduate now: exam passed (if the course has one), every lesson attended, not graduated yet. */
+    readyToGraduate: number;
 }
 
 export function useDeskStats(data: FrontDeskData): DeskStats {
@@ -84,7 +125,15 @@ export function useDeskStats(data: FrontDeskData): DeskStats {
             .filter(p => !isOnline(p) && p.followup !== 'not_interested' && !callIndex.last({ key: p.key, email: p.email, phone: p.phone }))
             .sort((a, b) => (a.registered_at < b.registered_at ? -1 : 1))
             .slice(0, 5);
+        const followUpsDue = data.enquiries
+            .filter(q => !!q.follow_up_on && (q.follow_up_on as string) <= today && (q.outcome === 'thinking' || q.outcome === 'follow_up'))
+            .sort((a, b) => ((a.follow_up_on as string) < (b.follow_up_on as string) ? -1 : 1));
+        const ready = data.enrolments.filter(en => {
+            const course = data.courses.find(c => c.slug === en.course_slug);
+            return readiness(en, course, marksFor(data.sheet, en.course_slug, enrolmentRef(en))).ready;
+        }).length;
         return {
+            visitorsToday: data.enquiries.filter(q => kampalaDay(q.visited_at) === today).length, followUpsDue, readyToGraduate: ready,
             metrics, callIndex, lessonsFor,
             calledToday: new Set(todays.map(c => c.person_key)).size,
             reachedToday: new Set(todays.filter(c => c.outcome === 'reached').map(c => c.person_key)).size,
@@ -94,5 +143,5 @@ export function useDeskStats(data: FrontDeskData): DeskStats {
             convertedThisWeek: week.size,
             needsCallPreview: preview,
         };
-    }, [data.rows, data.calls, data.marks, metrics, callIndex, lessonsFor]);
+    }, [data.rows, data.calls, data.marks, data.enquiries, data.enrolments, data.courses, data.sheet, metrics, callIndex, lessonsFor]);
 }

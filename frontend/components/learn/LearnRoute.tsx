@@ -1,13 +1,13 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link, Navigate, Route, Routes, useLocation, useParams } from 'react-router-dom';
-import { Award, CalendarClock, CheckCircle2, Circle, Lock, FileText, HelpCircle, LayoutDashboard, LayoutGrid, ListTree, Loader2, PlayCircle, X } from 'lucide-react';
+import { Award, CalendarClock, CheckCircle2, Circle, Lock, FileText, HelpCircle, LayoutDashboard, ListTree, Loader2, PlayCircle, X } from 'lucide-react';
 import { ALL_ITEMS, COURSE, MODULES } from '../../src/content/aiFundamentals';
 import {
     Certificate, ItemProgress, ProgressMap, completionState, ensureEnrolled, loadCertificate, loadProgress, saveItemProgress
 } from '../../src/lib/learnApi';
 import { clearFreeCourseIntent } from '../../src/lib/acquisition';
 import { setReturnTo } from '../../src/lib/returnTo';
-import { fetchMyPortalRoles } from '../../src/lib/roles';
+import DashboardSwitcher from '../ui/DashboardSwitcher';
 import { LearnContext } from './learnContext';
 import CourseHome from './CourseHome';
 import ItemPage from './ItemPage';
@@ -100,7 +100,6 @@ const LearnRoute: React.FC<Props> = ({ session, userProfile }) => {
     const [ready, setReady] = useState(false);
     const [tick, setTick] = useState(0);
     const [drawer, setDrawer] = useState(false);
-    const [multiRole, setMultiRole] = useState(false);
     const [attended, setAttended] = useState<Set<string>>(new Set());
     useInstallTracking(uid);
 
@@ -159,11 +158,7 @@ const LearnRoute: React.FC<Props> = ({ session, userProfile }) => {
 
     const fullAccess = hasFullAccess(session?.user?.email, userProfile?.role);
     const fullName = userProfile?.name || session?.user?.user_metadata?.full_name || '';
-    // Anyone with more than one dashboard (student plus agent, supervisor or admin) sees a Switch dashboard button
-    useEffect(() => {
-        if (!uid) return;
-        void fetchMyPortalRoles(uid).then(r => setMultiRole((r.role_count || 0) >= 2));
-    }, [uid]);
+    // The Switch dashboard button (DashboardSwitcher below) shows only for people with two or more dashboards
 
     const ctx = useMemo(() => ({
         uid: uid || '',
@@ -227,7 +222,7 @@ const LearnRoute: React.FC<Props> = ({ session, userProfile }) => {
                         </div>
                         {navChip(`${base}/live`, 'Live', CalendarClock, pathname === `${base}/live`)}
                         {navChip(`${base}/certificate`, 'Certificate', Award, pathname === `${base}/certificate`)}
-                        {multiRole && navChip('/portal', 'Switch dashboard', LayoutGrid, false, 'lg')}
+                        <DashboardSwitcher current="student" variant="icon" />
                         <span className="hidden lg:contents">
                             {navChip('/dashboard', 'Dashboard', LayoutDashboard, false, 'lg')}
                             <InstallChip />

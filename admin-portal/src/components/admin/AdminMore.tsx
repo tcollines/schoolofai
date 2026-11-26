@@ -1,3 +1,4 @@
+import DashboardSwitcher from './DashboardSwitcher';
 import React from 'react';
 import { Link } from 'react-router-dom';
 import {
@@ -43,7 +44,7 @@ const AdminMore: React.FC<{ onSwitchDashboard: () => void; onStudentSite: () => 
         <section className="bg-white dark:bg-night-2 rounded-[22px] p-4">
             <h2 className="m-0 mb-2 text-[17px] font-extrabold">Your account</h2>
             <div className="flex flex-col">
-                <button onClick={onSwitchDashboard} className="press min-h-[52px] flex items-center gap-3 text-left text-[15px] font-bold bg-transparent border-0 cursor-pointer text-inherit"><LayoutGrid size={19} className="text-brand dark:text-violet-300" />Switch dashboard</button>
+                <DashboardSwitcher current="admin" variant="row" />
                 <button onClick={onStudentSite} className="press min-h-[52px] flex items-center gap-3 text-left text-[15px] font-bold bg-transparent border-0 cursor-pointer text-inherit border-t border-[#F4F2F9] dark:border-night-3"><Globe size={19} className="text-brand dark:text-violet-300" />Student site</button>
                 <button onClick={onSignOut} className="press min-h-[52px] flex items-center gap-3 text-left text-[15px] font-bold bg-transparent border-0 cursor-pointer text-[#A3321F] border-t border-[#F4F2F9] dark:border-night-3"><LogOut size={19} />Sign out</button>
             </div>

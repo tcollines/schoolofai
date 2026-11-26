@@ -6,6 +6,8 @@ import {
 } from '../../lib/peopleMetrics';
 import { LESSONS, PhysicalRow, buildPersonLookup, fetchPhysicalAttendance, indexPhysical } from '../../lib/physicalAttendance';
 import { CallRow, fetchCallLog, indexCalls } from '../../lib/callLog';
+import { Enquiry, HqCourse, HqEnrolment, SheetRow, enrolmentRef, fetchAllSheets, fetchEnquiries, fetchHqCourses, fetchHqEnrolments } from '../../lib/hqApi';
+import CourseHqStats from './CourseHqStats';
 import { channelOf } from './peopleChannels';
 
 const card = 'bg-white dark:bg-night-2 rounded-[22px]';
@@ -69,6 +71,11 @@ const CourseStats: React.FC = () => {
     const [hqRows, setHqRows] = useState<PhysicalRow[]>([]);
     const [callRows, setCallRows] = useState<CallRow[]>([]);
     const [callNote, setCallNote] = useState<string | null>(null);
+    const [hqCourses, setHqCourses] = useState<HqCourse[]>([]);
+    const [hqEnrols, setHqEnrols] = useState<HqEnrolment[]>([]);
+    const [hqSheet, setHqSheet] = useState<SheetRow[]>([]);
+    const [hqEnquiries, setHqEnquiries] = useState<Enquiry[]>([]);
+    const [hqNote2, setHqNote2] = useState<string | null>(null);
     const [error, setError] = useState<string | null>(null);
     const [hqNote, setHqNote] = useState<string | null>(null);
     const [loading, setLoading] = useState(true);
@@ -76,7 +83,11 @@ const CourseStats: React.FC = () => {
 
     const load = useCallback(async () => {
         setLoading(true);
-        const [people, hq, log] = await Promise.all([loadPeople(), fetchPhysicalAttendance(), fetchCallLog()]);
+        const [people, hq, log, hc, he, hq2] = await Promise.all([loadPeople(), fetchPhysicalAttendance(), fetchCallLog(), fetchHqCourses(), fetchHqEnrolments(null), fetchEnquiries()]);
+        const sheets = await fetchAllSheets((hc.data || []).map(c => c.slug));
+        setHqCourses(hc.data || []); setHqEnrols(he.data || []); setHqEnquiries(hq2.data || []); setHqSheet(sheets.rows);
+        const bad = [hc, he, hq2].find(x => !x.ok);
+        setHqNote2(bad ? `HQ course information could not be loaded (${bad.error}). The HQ numbers may read zero.` : sheets.error ? `Class attendance could not be loaded (${sheets.error}).` : null);
         if (people.error) setError(people.error); else { setError(null); setRows(people.rows); }
         setPhysical(() => indexPhysical(hq.rows));
         setHqRows(hq.rows);
@@ -90,12 +101,14 @@ const CourseStats: React.FC = () => {
     const courses = useMemo(() => {
         const m = new Map<string, number>();
         (rows || []).forEach(p => (p.courses || []).forEach(c => m.set(c, (m.get(c) || 0) + 1)));
+        // Courses taught at HQ appear even before anyone is enrolled
+        hqCourses.forEach(c => { const t = canonicalCourse(c.title); if (t && !m.has(t)) m.set(t, 0); });
         const list = [...m.entries()].sort((a, b) => b[1] - a[1]);
         // The programme always comes first, even before anyone is in it
         if (!m.has(COURSE_NAME)) list.unshift([COURSE_NAME, 0]);
         else { const i = list.findIndex(x => x[0] === COURSE_NAME); list.unshift(list.splice(i, 1)[0]); }
         return list;
-    }, [rows]);
+    }, [rows, hqCourses]);
 
     const pop = useMemo(() => (rows || []).filter(p => (p.courses || []).includes(course)), [rows, course]);
     const lessonsFor = physical || undefined;
@@ -125,6 +138,12 @@ const CourseStats: React.FC = () => {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [pop, lessonsFor, m]);
 
+    // The HQ course that matches the picked course (by its canonical name), and its own records
+    const hqCourse = useMemo(() => hqCourses.find(c => canonicalCourse(c.title) === course) || null, [hqCourses, course]);
+    const courseEnrols = useMemo(() => (hqCourse ? hqEnrols.filter(e => e.course_slug === hqCourse.slug) : []), [hqCourse, hqEnrols]);
+    const courseSheet = useMemo(() => (hqCourse ? hqSheet.filter(r => r.course_slug === hqCourse.slug) : []), [hqCourse, hqSheet]);
+    const courseEnquiries = useMemo(() => (hqCourse ? hqEnquiries.filter(q => q.course_slug === hqCourse.slug || (!q.course_slug && isProgramme)) : []), [hqCourse, hqEnquiries, isProgramme]);
+
     // Do the numbers agree? Every check uses the same rows as the cards above.
     const checks = useMemo(() => {
         const all = rows || [];
@@ -134,7 +153,26 @@ const CourseStats: React.FC = () => {
         const orphanCalls = callRows.filter(x => !known({ key: x.person_key, email: x.email, phone: x.phone }));
         const sum4 = m.onlineOnly + m.physicalOnly + m.both + m.notYetAny;
         const journey = m.notStarted + m.studying + m.joinedLive + m.completed;
-        return [
+        type Check = { ok: boolean; warn?: boolean; title: string; bad: string };
+        // HQ checks, when this course is taught at HQ
+        const hqChecks: Check[] = [];
+        if (hqCourse) {
+            const names = (list: string[]) => `${list.slice(0, 10).join(', ')}${list.length > 10 ? ` and ${list.length - 10} more` : ''}`;
+            const orphanEnrols = courseEnrols.filter(e => !known(enrolmentRef(e)));
+            const enrolLookup = buildPersonLookup(courseEnrols.map(enrolmentRef));
+            const orphanSheet = courseSheet.filter(r => !enrolLookup({ key: r.person_key, email: r.email, phone: r.phone }));
+            const overrides = courseEnrols.filter(e => e.status === 'graduated' && hqCourse.has_exam && e.exam_result !== 'passed');
+            const over = courseEnrols.filter(e => (e.paid_ugx || 0) > (e.fee_ugx || 0));
+            const orphanVisits = courseEnquiries.filter(q => q.outcome === 'registered' && !known({ key: q.converted_key, email: q.email, phone: q.phone }));
+            hqChecks.push(
+                { ok: orphanEnrols.length === 0, title: orphanEnrols.length === 0 ? `All ${courseEnrols.length} HQ enrolments match a registered person` : `${orphanEnrols.length} HQ enrolments match nobody`, bad: `These enrolments are not on the registered list: ${names(orphanEnrols.map(e => e.person_name || e.person_key))}.` },
+                { ok: orphanSheet.length === 0, title: orphanSheet.length === 0 ? `All ${courseSheet.length} class attendance marks match an enrolment` : `${orphanSheet.length} class attendance marks match no enrolment`, bad: `Marks exist for people who are not enrolled in this course: ${names([...new Set(orphanSheet.map(r => r.person_name || r.person_key))])}.` },
+                { ok: overrides.length === 0, warn: overrides.length > 0, title: overrides.length === 0 ? 'Every graduate has the exam passed' : `${overrides.length} graduated by override (exam not passed)`, bad: `These people graduated without a passed exam, so a manager overrode it: ${names(overrides.map(e => e.person_name || e.person_key))}.` },
+                { ok: over.length === 0, title: over.length === 0 ? 'Nobody has paid more than their fee' : `${over.length} paid more than the fee`, bad: `Paid is more than the fee for: ${names(over.map(e => e.person_name || e.person_key))}. Check the amounts.` },
+                { ok: orphanVisits.length === 0, title: orphanVisits.length === 0 ? 'Every visitor marked registered matches a person' : `${orphanVisits.length} visitors marked registered match nobody`, bad: `These visitors are marked registered but no person matches them: ${names(orphanVisits.map(q => q.visitor_name || q.phone || q.email || 'unknown'))}.` },
+            );
+        }
+        const base: Check[] = [
             { ok: m.registered === m.online + m.needsCall, title: `Registered ${m.registered} = Online ${m.online} + Needs a call ${m.needsCall}`,
                 bad: `Registered is ${m.registered} but Online plus Needs a call is ${m.online + m.needsCall}. Someone is counted in both routes or in neither.` },
             { ok: m.online === m.hasAccount + m.invitePending, title: `Online ${m.online} = Has an account ${m.hasAccount} + Invite pending ${m.invitePending}`,
@@ -148,7 +186,25 @@ const CourseStats: React.FC = () => {
             { ok: orphanCalls.length === 0, title: orphanCalls.length === 0 ? `All ${callRows.length} logged calls match a registered person` : `${orphanCalls.length} logged calls match nobody`,
                 bad: `${orphanCalls.length} calls were logged for people who are not on the registered list, so they are left out of the calling numbers.` },
         ];
-    }, [rows, hqRows, callRows, m]);
+        return [...base, ...hqChecks];
+    }, [rows, hqRows, callRows, m, hqCourse, courseEnrols, courseSheet, courseEnquiries]);
+
+    const ChecksPanel = (
+        <Section title="Do the numbers agree?" help="These checks use the same people, calls, HQ marks and class records as every card on this page. Green means the numbers add up. Amber is worth a look. Red says what is off.">
+            <ul className="m-0 p-0 list-none space-y-2">
+                {checks.map((c, i) => {
+                    const tone = c.ok ? 'border-emerald-200 bg-emerald-50 dark:border-emerald-900 dark:bg-emerald-950/30' : c.warn ? 'border-amber-300 bg-amber-50 dark:border-amber-800 dark:bg-amber-950/30' : 'border-red-200 bg-red-50 dark:border-red-900 dark:bg-red-950/30';
+                    const dotTone = c.ok ? 'bg-emerald-600' : c.warn ? 'bg-amber-500' : 'bg-red-600';
+                    return (
+                        <li key={i} className={`flex items-start gap-3 rounded-[12px] border p-3 ${tone}`}>
+                            <span aria-hidden className={`shrink-0 inline-flex items-center justify-center w-6 h-6 rounded-full text-white text-sm font-bold ${dotTone}`}>{c.ok ? '✓' : c.warn ? '!' : '✕'}</span>
+                            <p className="m-0 text-sm"><span className="sr-only">{c.ok ? 'Agrees: ' : c.warn ? 'Worth a look: ' : 'Does not agree: '}</span><b>{c.title}</b>{!c.ok && <span className={`block mt-0.5 ${c.warn ? 'text-amber-800 dark:text-amber-300' : 'text-red-700 dark:text-red-300'}`}>{c.bad}</span>}</p>
+                        </li>
+                    );
+                })}
+            </ul>
+        </Section>
+    );
 
     return (
         <div className="space-y-5">
@@ -171,6 +227,7 @@ const CourseStats: React.FC = () => {
             </div>
 
             {error && <p role="alert" className="text-sm text-red-600">{error}</p>}
+            {hqNote2 && <p role="status" className="text-sm text-amber-700 dark:text-amber-400">{hqNote2}</p>}
             {callNote && isProgramme && <p role="status" className="text-sm text-amber-700 dark:text-amber-400">{callNote}</p>}
             {hqNote && isProgramme && <p role="status" className="text-sm text-amber-700 dark:text-amber-400">{hqNote}</p>}
             {!rows && !error && <div className="flex items-center gap-2 text-stone-500"><Loader2 className="animate-spin" size={18} /> Loading course stats...</div>}
@@ -183,6 +240,12 @@ const CourseStats: React.FC = () => {
                         <Stat label={GLOSSARY.paid.label} value={m.paid} to={link('paid')} hint={GLOSSARY.paid.definition} note={`${pct(m.paid, m.registered)}% of registered`} tone="text-emerald-700 dark:text-emerald-400" />
                     </div>
                 </Section>
+            )}
+            {rows && !isProgramme && hqCourse && (
+                <>
+                    <CourseHqStats hq={hqCourse} enrolments={courseEnrols} sheet={courseSheet} enquiries={courseEnquiries} />
+                    {ChecksPanel}
+                </>
             )}
 
             {rows && isProgramme && (
@@ -277,16 +340,8 @@ const CourseStats: React.FC = () => {
                         </div>
                     </Section>
 
-                    <Section title="Do the numbers agree?" help="These checks use the same people, calls and HQ marks as every card on this page. Green means the numbers add up. Red says what is off.">
-                        <ul className="m-0 p-0 list-none space-y-2">
-                            {checks.map((c, i) => (
-                                <li key={i} className={`flex items-start gap-3 rounded-[12px] border p-3 ${c.ok ? 'border-emerald-200 bg-emerald-50 dark:border-emerald-900 dark:bg-emerald-950/30' : 'border-red-200 bg-red-50 dark:border-red-900 dark:bg-red-950/30'}`}>
-                                    <span aria-hidden className={`shrink-0 inline-flex items-center justify-center w-6 h-6 rounded-full text-white text-sm font-bold ${c.ok ? 'bg-emerald-600' : 'bg-red-600'}`}>{c.ok ? '✓' : '✕'}</span>
-                                    <p className="m-0 text-sm"><span className="sr-only">{c.ok ? 'Agrees: ' : 'Does not agree: '}</span><b>{c.title}</b>{!c.ok && <span className="block mt-0.5 text-red-700 dark:text-red-300">{c.bad}</span>}</p>
-                                </li>
-                            ))}
-                        </ul>
-                    </Section>
+                    {hqCourse && <CourseHqStats hq={hqCourse} enrolments={courseEnrols} sheet={courseSheet} enquiries={courseEnquiries} />}
+                    {ChecksPanel}
                 </>
             )}
         </div>

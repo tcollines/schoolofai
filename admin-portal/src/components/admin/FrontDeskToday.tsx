@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { FileText, Loader2, MessageCircle, Phone, PhoneCall, UserPlus } from 'lucide-react';
+import { FileText, GraduationCap, Loader2, MessageCircle, Phone, PhoneCall, UserPlus } from 'lucide-react';
 import { DeskStats } from './frontDeskData';
 
 const card = 'bg-white dark:bg-night-2 rounded-[22px]';
@@ -35,9 +35,13 @@ const FrontDeskToday: React.FC<{
     onCalls: () => void;
     /** Opens the screen for entering registrations taken on paper forms. */
     onPaperForms: () => void;
+    /** Opens the list of visitors who only came to ask. */
+    onVisitors: () => void;
+    /** Opens the graduation screen. */
+    onGraduation: () => void;
     /** Opens the Calls tab with this person's log-call panel ready. */
     onLogCall: (key: string, name: string) => void;
-}> = ({ stats, loading, onWalkIn, onCalls, onPaperForms, onLogCall }) => (
+}> = ({ stats, loading, onWalkIn, onCalls, onPaperForms, onVisitors, onGraduation, onLogCall }) => (
     <div className="space-y-4">
         <FrontDeskTiles stats={stats} />
 
@@ -46,6 +50,35 @@ const FrontDeskToday: React.FC<{
             <button onClick={onPaperForms} className="min-h-[64px] rounded-[16px] bg-white dark:bg-night-2 border-2 border-emerald-600 text-emerald-700 dark:text-emerald-400 text-lg font-extrabold inline-flex items-center justify-center gap-2"><FileText size={22} /> Enter paper forms</button>
             <button onClick={onCalls} className="min-h-[64px] rounded-[16px] bg-white dark:bg-night-2 border-2 border-violet-600 text-violet-700 dark:text-violet-300 text-lg font-extrabold inline-flex items-center justify-center gap-2"><PhoneCall size={22} /> Make calls</button>
         </div>
+
+        <div className="grid grid-cols-2 gap-3">
+            <button onClick={onVisitors} className={`${card} p-4 text-left min-h-[96px] border border-stone-100 dark:border-slate-800 cursor-pointer text-inherit`}>
+                <p className="m-0 text-sm font-bold text-stone-500 dark:text-slate-400">Visitors today</p>
+                <p className="m-0 mt-1 text-4xl font-extrabold tabular-nums">{stats.visitorsToday}</p>
+                <p className="m-0 mt-0.5 text-xs text-stone-500 dark:text-slate-400">came to ask</p>
+            </button>
+            <button onClick={onGraduation} className={`${card} p-4 text-left min-h-[96px] border border-stone-100 dark:border-slate-800 cursor-pointer text-inherit`}>
+                <p className="m-0 text-sm font-bold text-stone-500 dark:text-slate-400 inline-flex items-center gap-1"><GraduationCap size={14} /> Ready to graduate</p>
+                <p className="m-0 mt-1 text-4xl font-extrabold tabular-nums text-emerald-600">{stats.readyToGraduate}</p>
+                <p className="m-0 mt-0.5 text-xs text-stone-500 dark:text-slate-400">exam and lessons done</p>
+            </button>
+        </div>
+
+        <section className={`${card} p-4`}>
+            <div className="flex items-baseline justify-between gap-2">
+                <h2 className="m-0 text-lg font-extrabold">Follow-ups due</h2>
+                <button onClick={onVisitors} className="min-h-[44px] px-2 text-sm font-bold text-violet-700 dark:text-violet-300 bg-transparent border-0 cursor-pointer">{stats.followUpsDue.length} due</button>
+            </div>
+            {stats.followUpsDue.length === 0 && <p className="m-0 py-2 text-base text-stone-600 dark:text-slate-300">No visitor follow-ups are due. Well done.</p>}
+            <ul className="m-0 p-0 list-none">
+                {stats.followUpsDue.slice(0, 3).map(q => (
+                    <li key={q.id} className="py-3 border-t border-stone-100 dark:border-slate-800 first:border-t-0 flex items-center gap-3">
+                        <div className="min-w-0 flex-1"><p className="m-0 text-base font-bold break-words">{q.visitor_name || 'No name given'}</p><p className="m-0 text-sm text-stone-500 dark:text-slate-400">due {q.follow_up_on}</p></div>
+                        {q.phone ? <a href={`tel:+${wa(q.phone)}`} className="shrink-0 min-h-[52px] min-w-[96px] rounded-[12px] bg-emerald-600 text-white text-base font-bold inline-flex items-center justify-center gap-1.5 no-underline"><Phone size={16} /> Call</a> : null}
+                    </li>
+                ))}
+            </ul>
+        </section>
 
         <section className={`${card} p-4`}>
             <div className="flex items-baseline justify-between gap-2">

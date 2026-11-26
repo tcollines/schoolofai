@@ -5,7 +5,7 @@ import {
     Loader2, LogOut, PencilRuler, Shield, Sparkles
 } from 'lucide-react';
 import { supabase } from '../src/lib/supabaseClient';
-import { adminConsoleUrl, clearPortalRolesCache, fetchMyPortalRoles, frontDeskConsoleUrl, instructorConsoleUrl, PortalRoles } from '../src/lib/roles';
+import { adminConsoleUrl, clearPortalRolesCache, DashboardId, fetchMyPortalRoles, frontDeskConsoleUrl, instructorConsoleUrl, lastDashboard, PortalRoles, rememberDashboard } from '../src/lib/roles';
 import { Logo, ThemeButton } from './learn/learnUi';
 
 interface RoleCard {
@@ -158,6 +158,12 @@ const RolePortalPage: React.FC<{ session: any }> = ({ session }) => {
 
     const firstName = (roles.name || 'there').split(/\s+/)[0];
 
+    // The dashboard used last goes first, with a one-tap "Continue as" button on top
+    const openCard = (c: RoleCard) => { rememberDashboard(c.id as DashboardId); c.onOpen(); };
+    const lastId = lastDashboard();
+    const lastCard = cards.find(c => c.id === lastId);
+    const orderedCards = lastCard ? [lastCard, ...cards.filter(c => c !== lastCard)] : cards;
+
     return (
         <div className="min-h-screen bg-[#faf8f5] dark:bg-slate-950 text-[#1c1917] dark:text-slate-100 flex flex-col">
             <header className="border-b border-stone-200 dark:border-slate-800 bg-white/80 dark:bg-slate-900/80 backdrop-blur sticky top-0 z-20">
@@ -189,12 +195,24 @@ const RolePortalPage: React.FC<{ session: any }> = ({ session }) => {
                     </p>
                 </div>
 
+                {lastCard && (
+                    <button
+                        type="button"
+                        onClick={() => openCard(lastCard)}
+                        className="press mt-5 w-full sm:w-auto min-h-[56px] px-6 rounded-2xl bg-violet-700 hover:bg-violet-800 text-white text-base font-extrabold inline-flex items-center justify-center gap-3 border-0 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-violet-600 focus-visible:ring-offset-2"
+                    >
+                        <lastCard.icon size={20} />
+                        Continue as {lastCard.title}
+                        <ArrowRight size={18} />
+                    </button>
+                )}
+
                 <div className="mt-6 sm:mt-8 grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-5">
-                    {cards.map(c => (
+                    {orderedCards.map(c => (
                         <button
                             key={c.id}
                             type="button"
-                            onClick={c.onOpen}
+                            onClick={() => openCard(c)}
                             className="group text-left bg-white dark:bg-slate-900 rounded-2xl border border-stone-200 dark:border-slate-800 p-4 sm:p-6 min-h-[88px] shadow-sm hover:shadow-lg hover:border-violet-400 dark:hover:border-violet-600 transition-all duration-200 flex flex-row sm:flex-col items-center sm:items-stretch sm:justify-between gap-4 sm:gap-5 focus:outline-none focus-visible:ring-2 focus-visible:ring-violet-600"
                         >
                             <div className={`shrink-0 w-14 h-14 rounded-2xl flex items-center justify-center transition-transform duration-200 group-hover:scale-105 ${c.accent}`}>

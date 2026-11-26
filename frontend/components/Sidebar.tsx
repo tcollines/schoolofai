@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
   Home, GraduationCap, BookOpen, Video, Compass, Award, Building2, CreditCard, User, SlidersHorizontal,
-  LogOut, Shield, PanelLeftClose, PanelLeftOpen, X, LayoutGrid, ClipboardCheck, Presentation, ConciergeBell
+  LogOut, Shield, PanelLeftClose, PanelLeftOpen, X, ClipboardCheck, Presentation, ConciergeBell
 } from 'lucide-react';
 import { supabaseClient } from '../src/lib/supabaseClient';
 import { clearPortalRolesCache, adminConsoleUrl, frontDeskConsoleUrl, instructorConsoleUrl, fetchMyPortalRoles, type PortalRoles } from '../src/lib/roles';
@@ -10,6 +10,7 @@ import { useFreeCourse } from '../src/hooks/useFreeCourse';
 import { COURSE } from '../src/content/aiFundamentals';
 import { useTranslation } from './translations';
 import { Bar, Initials, cx } from './ui/welile';
+import DashboardSwitcher from './ui/DashboardSwitcher';
 
 interface SidebarProps {
   activeTab: string;
@@ -26,7 +27,7 @@ type Item = { id: string; to: string; label: string; icon: React.ComponentType<a
 
 const OPEN_KEY = 'welile_sidebar_open';
 
-const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, isOpen, onClose, isAdmin, isCorporate, hasMultipleRoles, user }) => {
+const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, isOpen, onClose, isAdmin, isCorporate, user }) => {
   const { t } = useTranslation();
 
   // Desktop: open (labels) or collapsed (icons). Remembered on this device.
@@ -63,7 +64,6 @@ const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, isOpen, onCl
     { id: 'career', to: '/career', label: 'Certificates', icon: Award },
   ];
   const work: Item[] = [
-    ...(hasMultipleRoles ? [{ id: 'portal', to: '/portal', label: 'Switch dashboard', icon: LayoutGrid }] : []),
     ...(isSupervisor ? [{ id: 'supervision', to: '/supervision', label: 'Agent supervision', icon: ClipboardCheck }] : []),
     ...(isCorporate ? [{ id: 'corporate', to: '/corporate', label: 'Corporate portal', icon: Building2 }] : []),
   ];
@@ -128,6 +128,8 @@ const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, isOpen, onCl
           </Link>
         )}
         <Section title="Work" items={work} />
+        {/* One switch control for every dashboard; it shows only when the person has two or more */}
+        <div className={cx(expanded ? '' : 'flex justify-center')}><DashboardSwitcher current="student" variant="row" compact={!expanded} /></div>
         <Section title="Account" items={account} />
         <div className="flex-1 min-h-[20px]" />
 

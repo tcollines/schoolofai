@@ -2,11 +2,11 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom';
 import QRCode from 'qrcode';
 import {
-    AlertTriangle, CalendarDays, Check, CheckCircle2, Clock, Copy, Download, ExternalLink, LayoutGrid, Link2, Loader2, LogOut, MessageCircle,
+    AlertTriangle, CalendarDays, Check, CheckCircle2, Clock, Copy, Download, ExternalLink, Link2, Loader2, LogOut, MessageCircle,
     RefreshCw, Search, Trophy, UserCircle, UserPlus, Users, WifiOff
 } from 'lucide-react';
 import { supabase } from '../../src/lib/supabaseClient';
-import { clearPortalRolesCache, fetchMyPortalRoles } from '../../src/lib/roles';
+import { clearPortalRolesCache } from '../../src/lib/roles';
 import { ALL_ITEMS } from '../../src/content/aiFundamentals';
 import { OFFICIAL_COURSE_CATALOG } from '../../src/lib/outreachSync';
 import {
@@ -18,6 +18,7 @@ import {
 import { BTN_PRIMARY, BTN_SECONDARY, CARD, INK, Logo, MUTED, PAPER, ThemeButton } from '../learn/learnUi';
 import StaffCalendar from './StaffCalendar';
 import BottomNav, { BOTTOM_NAV_SPACE } from '../ui/BottomNav';
+import DashboardSwitcher from '../ui/DashboardSwitcher';
 
 type Tab = 'register' | 'people' | 'link' | 'week' | 'me';
 const TAB_IDS: Tab[] = ['register', 'people', 'link', 'week', 'me'];
@@ -756,12 +757,11 @@ const AGENT_TABS: { id: Tab; label: string; icon: React.FC<any> }[] = [
     { id: 'me', label: 'Me', icon: UserCircle }
 ];
 
-const AccountBlock: React.FC<{ showSwitch: boolean; onSignOut: () => void }> = ({ showSwitch, onSignOut }) => (
+const AccountBlock: React.FC<{ onSignOut: () => void }> = ({ onSignOut }) => (
     <section className={`${CARD} p-5 space-y-3 max-w-[760px] lg:hidden`} aria-label="Account">
         <h2 className="m-0 text-[17px] font-extrabold">My account</h2>
-        {showSwitch && (
-            <Link to="/portal" className="press min-h-[48px] px-4 rounded-[14px] bg-panel dark:bg-night-3 text-[15px] font-bold inline-flex items-center gap-3 no-underline text-ink dark:text-white w-full"><LayoutGrid size={18} />Switch dashboard</Link>
-        )}
+        {/* Shows only when the person has more than one dashboard */}
+        <div className="rounded-[14px] bg-panel dark:bg-night-3 empty:hidden"><DashboardSwitcher current="agent" variant="row" /></div>
         <div className="flex items-center justify-between gap-3 min-h-[48px] px-4 rounded-[14px] bg-panel dark:bg-night-3">
             <span className="text-[15px] font-bold">Light or dark screen</span>
             <ThemeButton />
@@ -780,7 +780,6 @@ const StaffPortal: React.FC<{ session: any }> = ({ session }) => {
     const [leaders, setLeaders] = useState<LeaderRow[] | null>(null);
     const [pending, setPending] = useState(queuedCount());
     const [notice, setNotice] = useState<string | null>(null);
-    const [hasOtherDashboards, setHasOtherDashboards] = useState(false);
 
     const loadAll = useCallback(async () => {
         try { setStats(await loadStaffStats()); } catch { /* shown as loading */ }
@@ -798,13 +797,6 @@ const StaffPortal: React.FC<{ session: any }> = ({ session }) => {
             void loadAll();
         }
     }, [loadAll]);
-
-    // People who have more than one dashboard (for example an agent who is also a supervisor or admin) get a Switch dashboard button
-    useEffect(() => {
-        const uid = session?.user?.id;
-        if (!uid) return;
-        void fetchMyPortalRoles(uid).then(r => setHasOtherDashboards((r.role_count || 0) >= 2));
-    }, [session?.user?.id]);
 
     useEffect(() => {
         document.title = 'Agent portal | Welile School of AI';
@@ -852,7 +844,6 @@ const StaffPortal: React.FC<{ session: any }> = ({ session }) => {
     const profile = state.profile;
     const isFieldOnly = profile.agent_type === 'field_only';
     const tabs = AGENT_TABS;
-    const showSwitch = !isFieldOnly || hasOtherDashboards;
     const navItems = tabs.map(t => ({ id: t.id, label: t.label, icon: <t.icon size={20} />, onSelect: () => goTab(t.id), badge: t.id === 'register' && pending > 0 ? pending : null }));
 
     return (
@@ -891,9 +882,7 @@ const StaffPortal: React.FC<{ session: any }> = ({ session }) => {
                     )}
                     <div className="flex-1" />
                     <div className="flex items-center gap-2 pt-3 border-t border-[#EEEBF6] dark:border-night-3">
-                        {showSwitch && (
-                            <Link to="/portal" className="press flex-1 h-11 px-3 rounded-[14px] bg-panel dark:bg-night-3 text-[13px] font-bold inline-flex items-center gap-2 no-underline text-ink dark:text-white"><LayoutGrid size={16} />Switch dashboard</Link>
-                        )}
+                        <DashboardSwitcher current="agent" variant="pill" className="flex-1 !bg-panel dark:!bg-night-3" />
                         <ThemeButton />
                         <button onClick={handleSignOut} title="Sign out" className="press w-11 h-11 rounded-[14px] bg-panel dark:bg-night-3 text-[#C2410C] inline-flex items-center justify-center">
                             <LogOut size={16} />
@@ -911,9 +900,7 @@ const StaffPortal: React.FC<{ session: any }> = ({ session }) => {
                                 <p className={`m-0 text-[12px] truncate ${MUTED}`}>{profile.display_name}</p>
                             </div>
                             <div className="flex-1" />
-                            {showSwitch && (
-                                <Link to="/portal" aria-label="Switch dashboard" title="Switch dashboard" className="press w-11 h-11 rounded-[14px] bg-white dark:bg-night-2 inline-flex items-center justify-center text-ink dark:text-white"><LayoutGrid size={18} /></Link>
-                            )}
+                            <DashboardSwitcher current="agent" variant="pill" />
                             <button onClick={handleSignOut} title="Sign out" className="press w-11 h-11 rounded-[14px] bg-white dark:bg-night-2 inline-flex items-center justify-center text-[#C2410C]">
                                 <LogOut size={18} />
                             </button>
@@ -942,7 +929,7 @@ const StaffPortal: React.FC<{ session: any }> = ({ session }) => {
                                     ? <FieldOnlyOverview profile={profile} stats={stats} onRefresh={() => void loadAll()} />
                                     : <Overview profile={profile} stats={stats} onRefresh={() => void loadAll()} />}
                                 <Leaderboard rows={leaders} />
-                                <AccountBlock showSwitch={showSwitch} onSignOut={handleSignOut} />
+                                <AccountBlock onSignOut={handleSignOut} />
                             </div>
                         )}
                     </main>

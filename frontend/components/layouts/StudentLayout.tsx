@@ -10,6 +10,7 @@ import MobileTabBar from './MobileTabBar';
 import { supabase } from '../../src/lib/supabaseClient';
 import { fetchMyPortalRoles, PortalRoles } from '../../src/lib/roles';
 import { useTranslation } from '../translations';
+import DashboardSwitcher from '../ui/DashboardSwitcher';
 
 interface StudentLayoutProps {
     session: any;
@@ -132,6 +133,11 @@ const StudentLayout: React.FC<StudentLayoutProps> = ({ session, isAuthenticated,
                         courses={courses}
                     />
                     </div>
+
+                    {/* The phone screens that draw their own title (Learn, Live, Discover) get a floating switch; Home and Me carry it themselves */}
+                    {phoneOwn && currentPath !== 'dashboard' && currentPath !== 'profile' && (
+                        <div className="lg:hidden fixed top-3 right-4 z-30"><DashboardSwitcher current="student" variant="icon" className="!rounded-full shadow-[0_1px_3px_rgba(30,27,46,0.1)]" /></div>
+                    )}
 
                     <main className={`flex-1 w-full max-w-[1240px] lg:px-0 lg:pt-5 lg:pb-10 ${phoneOwn ? '' : 'px-4 pt-2 pb-32'}`}>
                         <div className="animate-in fade-in duration-500">

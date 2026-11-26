@@ -29,6 +29,8 @@ import AdminLiveSessions from './AdminLiveSessions';
 import AdminStaff from './AdminStaff';
 import AdminAgents from './AdminAgents';
 import AdminAnalytics from './AdminAnalytics';
+import DashboardSwitcher from './DashboardSwitcher';
+import { clearDashboardsCache } from '../../lib/dashboards';
 import { supabaseClient } from '../../lib/supabaseClient';
 import { verifyConsoleSession, clearConsoleFlags } from '../../lib/consoleAuth';
 
@@ -182,6 +184,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ onExit, isInstructor, isAdmin
 
     const handleExitConsole = async () => {
         clearConsoleFlags();
+        clearDashboardsCache();
         try { await supabaseClient.auth.signOut(); } catch (e) { console.warn('Sign-out failed:', e); }
         onExit();
     };
@@ -368,14 +371,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ onExit, isInstructor, isAdmin
                             <p className="m-0 text-[11px] font-extrabold tracking-[0.12em] uppercase text-brand dark:text-violet-300">{isInstructor ? 'Instructor' : 'Admin'}</p>
                             <p className="m-0 text-[17px] font-extrabold tracking-[-0.01em] truncate lg:hidden">{activeLabel}</p>
                         </div>
-                        {!isInstructor && (
-                            <button onClick={() => go('desk')} title="Front desk" aria-label="Front desk" className="press h-11 min-w-[44px] px-3 rounded-[12px] bg-brand text-white inline-flex items-center justify-center gap-2 text-[13px] font-bold">
-                                <ConciergeBell size={18} /><span className="hidden sm:inline">Front desk</span>
-                            </button>
-                        )}
-                        <button onClick={handleSwitchDashboard} title="Switch dashboard" aria-label="Switch dashboard" className="press h-11 min-w-[44px] px-3 rounded-[12px] bg-white dark:bg-night-2 inline-flex items-center justify-center gap-2 text-[13px] font-bold text-ink dark:text-white">
-                            <LayoutGrid size={18} /><span className="hidden sm:inline">Switch dashboard</span>
-                        </button>
+                        <DashboardSwitcher current={isInstructor ? 'instructor' : 'admin'} variant="pill" />
                         <button onClick={toggleCurrency} title="Switch currency" aria-label={`Currency: ${currency}. Switch currency`} className="press hidden sm:inline-flex h-11 px-3 rounded-[12px] bg-white dark:bg-night-2 items-center gap-1.5 text-[12px] font-extrabold">
                             <span className="w-1.5 h-1.5 rounded-full bg-brand" aria-hidden="true" />{currency}
                         </button>

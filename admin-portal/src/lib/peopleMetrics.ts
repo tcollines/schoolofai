@@ -38,6 +38,8 @@ export const canonicalCourses = (titles: (string | null | undefined)[] | null | 
 
 /** Everyone on the platform as one list: the free-course roster merged with people in other courses and paid enrolments. */
 import { PEOPLE_TTL_MS, peopleCache, peopleInFlight, invalidatePeople } from './peopleCache';
+import { fetchHqCourses, fetchHqEnrolments } from './hqApi';
+import { lastDigits, normEmail } from './physicalAttendance';
 export { invalidatePeople };
 
 type PeopleResult = { rows: PersonRow[]; error: string | null };
@@ -66,7 +68,8 @@ async function fetchPeople(courseSlug: string): Promise<{ rows: PersonRow[]; err
     if (res.error) res = await supabaseClient.rpc('admin_registration_pipeline', { p_course: courseSlug });
     if (res.error) return { rows: [], error: res.error.message };
     const free = ((res.data || []) as PersonRow[]).map(r => ({ ...r, courses: [COURSE_NAME] }));
-    const other = await supabaseClient.rpc('admin_other_people');
+    // HQ enrolments are read at the same time. If they cannot be read the list is the same as before.
+    const [other, hqCourses, hqEnrolments] = await Promise.all([supabaseClient.rpc('admin_other_people'), fetchHqCourses(), fetchHqEnrolments(null)]);
     const byKey = new Map<string, PersonRow>(free.map(r => [r.key, r] as [string, PersonRow]));
     const merged: PersonRow[] = [...free];
     if (!other.error) {
@@ -76,6 +79,34 @@ async function fetchPeople(courseSlug: string): Promise<{ rows: PersonRow[]; err
                 hit.courses = canonicalCourses([...(hit.courses || []), ...(o.courses || [])]);
                 hit.paid_enrolled = hit.paid_enrolled || o.paid_enrolled;
             } else { merged.push(o); byKey.set(o.key, o); }
+        });
+    }
+    // HQ enrolments: the course joins the person's courses, a paid enrolment marks them paid, and people enrolled only at HQ appear as rows too
+    if (hqEnrolments.ok && hqEnrolments.data && hqEnrolments.data.length > 0) {
+        const titleOf = new Map((hqCourses.data || []).map(c => [c.slug, canonicalCourse(c.title)] as [string, string]));
+        const byEmail = new Map<string, PersonRow>();
+        const byPhone = new Map<string, PersonRow>();
+        const index = (r: PersonRow) => {
+            byKey.set(r.key, r);
+            const e = normEmail(r.email); if (e) byEmail.set(e, r);
+            const ph = lastDigits(r.phone); if (ph) byPhone.set(ph, r);
+        };
+        merged.forEach(index);
+        hqEnrolments.data.forEach(en => {
+            const title = titleOf.get(en.course_slug) || canonicalCourse(en.course_slug);
+            const e = normEmail(en.email);
+            const ph = lastDigits(en.phone);
+            let person = byKey.get(en.person_key) || (e ? byEmail.get(e) : undefined) || (ph ? byPhone.get(ph) : undefined);
+            if (!person) {
+                person = {
+                    key: en.person_key, name: en.person_name || '', email: en.email, phone: en.phone, location: null, sources: ['HQ enrolment'], agent: null,
+                    registered_at: en.enrolled_at, has_account: false, stage: 'Registered', last_active: null, followup: 'new', note: null, courses: [], paid_enrolled: false,
+                } as PersonRow;
+                merged.push(person);
+                index(person);
+            }
+            person.courses = [...(person.courses || []), title];
+            if ((en.fee_ugx || 0) > 0 && (en.paid_ugx || 0) > 0) person.paid_enrolled = true;
         });
     }
     // One name per course and each person once per course, so a person found under two old names counts once

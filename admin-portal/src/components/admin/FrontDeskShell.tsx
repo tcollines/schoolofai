@@ -1,23 +1,28 @@
+import DashboardSwitcher from './DashboardSwitcher';
 import React, { useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { ClipboardCheck, FileText, Home, LayoutGrid, LogOut, Phone, RefreshCw, ShieldCheck, UserPlus } from 'lucide-react';
+import { ClipboardCheck, Home, LayoutGrid, LogOut, MoreHorizontal, Phone, RefreshCw, ShieldCheck, UserPlus } from 'lucide-react';
 import AdminBottomNav, { BOTTOM_NAV_SPACE } from './AdminBottomNav';
 import { useDeskStats, useFrontDeskData } from './frontDeskData';
 import FrontDeskToday from './FrontDeskToday';
-import FrontDeskWalkIn from './FrontDeskWalkIn';
+import FrontDeskRegister from './FrontDeskRegister';
+import FrontDeskClass from './FrontDeskClass';
 import FrontDeskCalls from './FrontDeskCalls';
-import FrontDeskAttendance from './FrontDeskAttendance';
-import FrontDeskPaperForms from './FrontDeskPaperForms';
+import FrontDeskMore from './FrontDeskMore';
+import type { Prefill } from './FrontDeskWalkIn';
 
-type Tab = 'today' | 'walkin' | 'paper' | 'calls' | 'attendance';
-// `short` is the word under the icon in the phone bar, where five items share the width
-const TABS: { id: Tab; label: string; short: string; icon: React.ReactNode }[] = [
-    { id: 'today', label: 'Today', short: 'Today', icon: <Home size={22} /> },
-    { id: 'walkin', label: 'Walk-in', short: 'Walk-in', icon: <UserPlus size={22} /> },
-    { id: 'paper', label: 'Paper forms', short: 'Paper', icon: <FileText size={22} /> },
-    { id: 'calls', label: 'Calls', short: 'Calls', icon: <Phone size={22} /> },
-    { id: 'attendance', label: 'Attendance', short: 'Present', icon: <ClipboardCheck size={22} /> },
+type Tab = 'today' | 'register' | 'class' | 'calls' | 'more';
+const TABS: { id: Tab; label: string; icon: React.ReactNode }[] = [
+    { id: 'today', label: 'Today', icon: <Home size={22} /> },
+    { id: 'register', label: 'Register', icon: <UserPlus size={22} /> },
+    { id: 'class', label: 'Class', icon: <ClipboardCheck size={22} /> },
+    { id: 'calls', label: 'Calls', icon: <Phone size={22} /> },
+    { id: 'more', label: 'More', icon: <MoreHorizontal size={22} /> },
 ];
+/** Old tab names still work: links and bookmarks from before the courses update land in the right place. */
+const ALIASES: Record<string, { tab: Tab; sub?: string }> = {
+    walkin: { tab: 'register' }, attendance: { tab: 'class' }, paper: { tab: 'register', sub: 'paper' },
+};
 
 /** The Front desk dashboard: a simple phone-first screen for the person who runs HQ.
  *  It has no admin menu. It shares its data and numbers with the Learning hub's Front desk tab, so the numbers equal the admin ones. */
@@ -28,9 +33,11 @@ const FrontDeskShell: React.FC<{
     onSignOut: () => void;
 }> = ({ firstName, onAdminDashboard, onChooseDashboard, onSignOut }) => {
     const [params, setParams] = useSearchParams();
-    const wanted = params.get('tab');
-    const tab: Tab = TABS.some(t => t.id === wanted) ? (wanted as Tab) : 'today';
-    const [sheet, setSheet] = useState(false);
+    const rawTab = params.get('tab') || '';
+    const alias = ALIASES[rawTab];
+    const tab: Tab = alias ? alias.tab : TABS.some(t => t.id === rawTab) ? (rawTab as Tab) : 'today';
+    // An old link like ?tab=paper means Register, Paper forms
+    const [prefill, setPrefill] = useState<Prefill | null>(null);
 
     const data = useFrontDeskData();
     const stats = useDeskStats(data);
@@ -45,8 +52,8 @@ const FrontDeskShell: React.FC<{
 
     const hour = new Date(Date.now() + 3 * 3600 * 1000).getUTCHours();
     const greet = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
-    const items = TABS.map(t => ({ id: t.id, label: t.short, icon: t.icon, onSelect: () => go(t.id) }));
-    const sheetBtn = 'w-full min-h-[56px] px-4 rounded-[14px] text-left text-base font-bold inline-flex items-center gap-3 border border-stone-200 dark:border-slate-700 bg-white dark:bg-night-2';
+    const items = TABS.map(t => ({ id: t.id, label: t.label, icon: t.icon, onSelect: () => go(t.id) }));
+    const registerFrom = (p: Prefill) => { setPrefill(p); go('register'); };
 
     return (
         <div className="min-h-screen bg-panel dark:bg-night text-ink dark:text-slate-100 font-sans text-base">
@@ -54,7 +61,7 @@ const FrontDeskShell: React.FC<{
                 <div className="h-[64px] px-4 max-w-[760px] mx-auto flex items-center gap-3">
                     <h1 className="m-0 flex-1 min-w-0 text-xl font-extrabold tracking-[-0.01em] truncate">Front desk</h1>
                     <button onClick={() => void data.reload()} aria-label="Refresh" className="press w-11 h-11 rounded-[12px] bg-white dark:bg-night-2 inline-flex items-center justify-center"><RefreshCw size={17} className={data.loading ? 'animate-spin' : ''} /></button>
-                    <button onClick={() => setSheet(true)} aria-haspopup="dialog" className="press h-11 min-w-[44px] px-3 rounded-[12px] bg-white dark:bg-night-2 inline-flex items-center justify-center gap-2 text-sm font-bold"><LayoutGrid size={18} /> Switch</button>
+                    <DashboardSwitcher current="frontdesk" variant="pill" />
                 </div>
                 {/* On a wide screen the same four places show as tabs, because the floating bar is for phones */}
                 <nav aria-label="Front desk" className="hidden lg:flex gap-2 px-4 pb-2 max-w-[760px] mx-auto">
@@ -77,33 +84,22 @@ const FrontDeskShell: React.FC<{
                         <FrontDeskToday
                             stats={stats}
                             loading={data.loading}
-                            onWalkIn={() => go('walkin')}
+                            onWalkIn={() => go('register')}
                             onCalls={() => go('calls')}
-                            onPaperForms={() => go('paper')}
+                            onPaperForms={() => go('register', { sub: 'paper' })}
+                            onVisitors={() => go('more', { sub: 'visitors' })}
+                            onGraduation={() => go('class', { sub: 'graduation' })}
                             onLogCall={(key, name) => go('calls', { open: key, q: name })}
                         />
                     </>
                 )}
-                {tab === 'walkin' && <FrontDeskWalkIn data={data} />}
-                {tab === 'paper' && <FrontDeskPaperForms data={data} />}
+                {tab === 'register' && <FrontDeskRegister data={data} prefill={prefill} onClass={() => go('class')} defaultSub={alias?.sub as 'paper' | undefined} />}
+                {tab === 'class' && <FrontDeskClass data={data} />}
                 {tab === 'calls' && <FrontDeskCalls data={data} />}
-                {tab === 'attendance' && <FrontDeskAttendance data={data} />}
+                {tab === 'more' && <FrontDeskMore data={data} onRegister={registerFrom} onAdminDashboard={onAdminDashboard} onChooseDashboard={onChooseDashboard} onSignOut={onSignOut} />}
             </main>
 
             <AdminBottomNav items={items} activeId={tab} ariaLabel="Front desk" />
-
-            {sheet && (
-                <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center" role="dialog" aria-modal="true" aria-label="Switch">
-                    <button aria-label="Close" onClick={() => setSheet(false)} className="absolute inset-0 bg-black/40 border-0 cursor-default" />
-                    <div className="relative w-full sm:max-w-[420px] rounded-t-[24px] sm:rounded-[24px] bg-panel dark:bg-night p-4 space-y-2" style={{ paddingBottom: 'calc(16px + env(safe-area-inset-bottom))' }}>
-                        <p className="m-0 px-1 pb-1 text-sm font-bold text-stone-500 dark:text-slate-400">Go to</p>
-                        <button onClick={() => { setSheet(false); onAdminDashboard(); }} className={sheetBtn}><ShieldCheck size={20} className="text-brand dark:text-violet-300" /> Admin dashboard</button>
-                        <button onClick={() => { setSheet(false); onChooseDashboard(); }} className={sheetBtn}><LayoutGrid size={20} className="text-brand dark:text-violet-300" /> Choose dashboard</button>
-                        <button onClick={() => { setSheet(false); onSignOut(); }} className={`${sheetBtn} text-[#A3321F]`}><LogOut size={20} /> Sign out</button>
-                        <button onClick={() => setSheet(false)} className="w-full min-h-[52px] rounded-[14px] text-base font-semibold text-stone-600 dark:text-slate-300">Close</button>
-                    </div>
-                </div>
-            )}
         </div>
     );
 };

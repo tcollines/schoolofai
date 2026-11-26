@@ -5,6 +5,7 @@ import { ALL_ITEMS, CourseItem, moduleOfItem } from '../../src/content/aiFundame
 import { useSessions } from '../learn/LivePanel';
 import { formatEAT } from '../learn/learnUi';
 import { Avatar, BASE, Ico, PhonePage, Ring, greeting, streakOf, useProgressMap } from './phoneKit';
+import DashboardSwitcher from '../ui/DashboardSwitcher';
 
 /** Phone · Home (canvas board MobileHome). */
 
@@ -76,6 +77,7 @@ const PhoneHome: React.FC<{ user: any }> = ({ user }) => {
                     <p className="m-0 text-[13px] text-[#6B6680] dark:text-slate-400">{greeting()}</p>
                     <h1 className="m-0 text-[22px] font-extrabold tracking-[-0.02em] truncate">{user?.name || firstName || 'Welcome'}</h1>
                 </div>
+                <DashboardSwitcher current="student" variant="icon" className="!rounded-full" />
                 <button type="button" onClick={() => navigate('/notifications')} aria-label={unread ? `Notifications, ${unread} new` : 'Notifications'}
                     className="press relative w-11 h-11 rounded-full border-0 bg-white dark:bg-night-2 text-ink dark:text-white inline-flex items-center justify-center cursor-pointer">
                     {Ico.bell()}

@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link, Navigate, NavLink, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
 import {
-    AlertTriangle, CalendarDays, ClipboardCheck, Home, LayoutGrid, ListFilter, Loader2, LogOut, MoreHorizontal, RefreshCw, UserPlus, Users
+    AlertTriangle, CalendarDays, ClipboardCheck, Home, ListFilter, Loader2, LogOut, MoreHorizontal, RefreshCw, UserPlus, Users
 } from 'lucide-react';
 import { supabase } from '../../src/lib/supabaseClient';
 import { clearPortalRolesCache, fetchMyPortalRoles, PortalRoles } from '../../src/lib/roles';
@@ -16,6 +16,7 @@ import RegistrationsPage from './supervision/RegistrationsPage';
 import MorePage from './supervision/MorePage';
 import StaffCalendar from './StaffCalendar';
 import BottomNav from '../ui/BottomNav';
+import DashboardSwitcher from '../ui/DashboardSwitcher';
 
 // Agent Supervision is four pages: /supervision (overview), /supervision/officers, /supervision/create-agent and
 // /supervision/registrations. This file is the shell: access check, header, navigation, data loading and the state
@@ -332,15 +333,7 @@ const AgentSupervisionPage: React.FC<{ session: any }> = ({ session }) => {
                         <RefreshCw size={16} className={loading ? 'animate-spin' : ''} />
                     </button>
 
-                    {roles.role_count >= 2 && (
-                        <Link
-                            to="/portal"
-                            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs sm:text-sm font-semibold bg-violet-100 dark:bg-violet-950/60 text-violet-900 dark:text-violet-200 hover:bg-violet-200 dark:hover:bg-violet-900/60"
-                        >
-                            <LayoutGrid size={15} />
-                            <span>Switch dashboard</span>
-                        </Link>
-                    )}
+                    <DashboardSwitcher current="supervision" variant="pill" />
 
                     <ThemeButton />
 
@@ -367,7 +360,7 @@ const AgentSupervisionPage: React.FC<{ session: any }> = ({ session }) => {
                         <Route path="officers" element={<OfficersPage />} />
                         <Route path="create-agent" element={<CreateAgentPage />} />
                         <Route path="registrations" element={<RegistrationsPage />} />
-                        <Route path="more" element={<MorePage canSwitch={roles.role_count >= 2} loading={loading} onRefresh={() => void loadAll()} onSignOut={handleSignOut} />} />
+                        <Route path="more" element={<MorePage loading={loading} onRefresh={() => void loadAll()} onSignOut={handleSignOut} />} />
                         <Route path="week" element={<StaffCalendar />} />
                         <Route path="*" element={<Navigate to="/supervision" replace />} />
                     </Routes>

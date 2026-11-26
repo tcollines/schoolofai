@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { UserProfile, Course } from '../types';
 import { useTranslation } from './translations';
 import { getCurrencyPreference, setCurrencyPreference, CurrencyType } from '../src/lib/currency';
+import DashboardSwitcher from './ui/DashboardSwitcher';
 
 const DefaultAvatar = () => (
   <svg viewBox="0 0 128 128" className="w-full h-full text-gray-400 dark:text-slate-500 fill-current bg-gray-100 dark:bg-slate-800">
@@ -261,6 +262,9 @@ const Header: React.FC<HeaderProps> = ({
       <button onClick={toggleTheme} title={isDark ? 'Switch to light mode' : 'Switch to dark mode'} aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'} className={`${iconBtn} hidden lg:inline-flex`}>
         {isDark ? <Sun size={19} /> : <Moon size={19} />}
       </button>
+
+      {/* Shows only when the person has two or more dashboards */}
+      <DashboardSwitcher current="student" variant="icon" className="!rounded-full" />
 
       {showNotifications && (
         <button onClick={() => navigate('/notifications')} title="Notifications" aria-label={unreadCount > 0 ? `Notifications, ${unreadCount} new` : 'Notifications'} className={iconBtn}>
