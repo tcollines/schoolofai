@@ -1,0 +1,47 @@
+name: Send agent registration invitations
+
+# Emails everyone an agent registered with an email (and no account yet) a link to open their account.
+# Every 30 minutes. Nobody is emailed twice; the database keeps the record (registration_invites).
+on:
+  schedule:
+    - cron: '*/30 * * * *'
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Dry run (list who is due, send nothing)'
+        type: boolean
+        default: true
+
+concurrency:
+  group: send-agent-invites
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  send:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+      - name: Install root dependencies (nodemailer)
+        run: npm ci --omit=dev --ignore-scripts --no-audit --no-fund
+      - name: Send invitations
+        env:
+          REMINDER_SECRET: ${{ secrets.REMINDER_SECRET }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+          SMTP_HOST: ${{ secrets.SMTP_HOST }}
+          SMTP_PORT: ${{ secrets.SMTP_PORT }}
+          SMTP_USER: ${{ secrets.SMTP_USER }}
+          SMTP_PASS: ${{ secrets.SMTP_PASS }}
+          SMTP_FROM_NAME: ${{ secrets.SMTP_FROM_NAME }}
+          APP_URL: ${{ secrets.APP_URL }}
+          # Scheduled runs send for real; a manual run defaults to a dry run
+          DRY: ${{ github.event_name == 'workflow_dispatch' && inputs.dry_run && '--dry' || '' }}
+        run: node scripts/send-agent-invites.mjs $DRY
