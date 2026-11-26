@@ -2,6 +2,7 @@
 // A call belongs to a person even when they have no email: we match a call to a person by the roster key,
 // or the same email, or the same phone (compared on the last 9 digits), exactly like HQ attendance.
 import { supabaseClient } from './supabaseClient';
+import { invalidatePeople } from './peopleCache';
 import { PersonRef, lastDigits, normEmail } from './physicalAttendance';
 
 export type CallOutcome = 'reached' | 'no_answer' | 'call_back' | 'wrong_number';
@@ -74,6 +75,7 @@ export async function logCall(
             p_note: note?.trim() || null,
             p_follow_up_on: followUpOn || null,
         });
+        invalidatePeople();
         if (error) return { ok: false, status: null, error: error.message };
         const d = (data || {}) as { ok?: boolean; status?: string };
         return { ok: d.ok !== false, status: d.status || null, error: null };
@@ -99,6 +101,7 @@ export async function registerWalkIn(w: WalkInInput): Promise<WalkInResult> {
             p_date: w.date || null,
             p_note: w.note?.trim() || null,
         });
+        invalidatePeople();
         if (error) return { ok: false, key: null, created: false, alreadyRegistered: false, error: error.message };
         const d = (data || {}) as { ok?: boolean; key?: string; created?: boolean; already_registered?: boolean };
         return { ok: d.ok !== false, key: d.key || null, created: !!d.created, alreadyRegistered: !!d.already_registered, error: null };

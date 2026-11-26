@@ -37,7 +37,31 @@ export const canonicalCourses = (titles: (string | null | undefined)[] | null | 
     Array.from(new Set((titles || []).map(canonicalCourse).filter(Boolean)));
 
 /** Everyone on the platform as one list: the free-course roster merged with people in other courses and paid enrolments. */
-export async function loadPeople(courseSlug = 'ai-fundamentals'): Promise<{ rows: PersonRow[]; error: string | null }> {
+import { PEOPLE_TTL_MS, peopleCache, peopleInFlight, invalidatePeople } from './peopleCache';
+export { invalidatePeople };
+
+type PeopleResult = { rows: PersonRow[]; error: string | null };
+const copyPeople = (v: PeopleResult): PeopleResult => ({ error: v.error, rows: v.rows.map(r => ({ ...r })) });
+
+export async function loadPeople(courseSlug = 'ai-fundamentals', opts: { force?: boolean } = {}): Promise<{ rows: PersonRow[]; error: string | null }> {
+    if (!opts.force) {
+        const hit = peopleCache.get(courseSlug);
+        if (hit && Date.now() - hit.at < PEOPLE_TTL_MS) return copyPeople(hit.value as PeopleResult);
+        const pending = peopleInFlight.get(courseSlug);
+        if (pending) return copyPeople((await pending) as PeopleResult);
+    }
+    const run = fetchPeople(courseSlug);
+    peopleInFlight.set(courseSlug, run);
+    try {
+        const value = await run;
+        if (!value.error) peopleCache.set(courseSlug, { at: Date.now(), value });
+        return copyPeople(value);
+    } finally {
+        peopleInFlight.delete(courseSlug);
+    }
+}
+
+async function fetchPeople(courseSlug: string): Promise<{ rows: PersonRow[]; error: string | null }> {
     let res = await supabaseClient.rpc('admin_course_stage_students', { p_course: courseSlug });
     if (res.error) res = await supabaseClient.rpc('admin_registration_pipeline', { p_course: courseSlug });
     if (res.error) return { rows: [], error: res.error.message };

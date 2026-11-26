@@ -1,6 +1,7 @@
 // Paper forms: registrations that agents took on paper before the digital switch.
 // Pavin enters them here with the date written on the form, the agent and the location, and each student is credited to that agent.
 import { supabaseClient } from './supabaseClient';
+import { invalidatePeople } from './peopleCache';
 
 export interface AgentOption {
     id: string;
@@ -64,6 +65,7 @@ export async function importPaperForms(rows: PaperRowPayload[]): Promise<ImportR
         for (let start = 0; start < rows.length; start += MAX_PER_CALL) {
             const chunk = rows.slice(start, start + MAX_PER_CALL);
             const { data, error } = await supabaseClient.rpc('admin_import_paper_forms', { p_rows: chunk });
+            invalidatePeople();
             if (error) {
                 // Stop here: the students from earlier calls are already saved, and the rest were not sent.
                 return { ...out, ok: false, error: error.message };

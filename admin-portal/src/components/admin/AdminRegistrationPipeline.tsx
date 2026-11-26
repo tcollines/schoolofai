@@ -5,6 +5,7 @@ import {
     Mail, MessageCircle, Phone, RefreshCw, Search, Smartphone, Video
 } from 'lucide-react';
 import { supabaseClient } from '../../lib/supabaseClient';
+import { invalidatePeople } from '../../lib/peopleCache';
 import { CHANNELS, channelOf } from './peopleChannels';
 import { COURSE_NAME, GLOSSARY, GROUP_ORDER, GroupId, HQ_GROUPS, inGroup, isOnline, normalizeGroup, rowLabel } from '../../lib/peopleMetrics';
 import type { LessonsFor } from '../../lib/physicalAttendance';
@@ -211,6 +212,7 @@ const AdminRegistrationPipeline: React.FC<{ course: string; data?: PipelineData;
     const save = async (r: StudentRow, status: StudentRow['followup'], note: string | null) => {
         setRows(prev => (prev || []).map(x => x.key === r.key ? { ...x, followup: status, note } : x));
         const { error: err } = await supabaseClient.rpc('admin_set_followup', { p_key: r.key, p_status: status, p_note: note });
+        invalidatePeople();
         if (err) setError(err.message);
     };
 

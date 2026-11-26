@@ -128,7 +128,7 @@ const AdminAnalytics: React.FC = () => {
 
     useEffect(() => {
         void load();
-        const t = window.setInterval(load, 60000);
+        const t = window.setInterval(() => { if (!document.hidden) void load(); }, 300000);
         return () => window.clearInterval(t);
     }, [load]);
 

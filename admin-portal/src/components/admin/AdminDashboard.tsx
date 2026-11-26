@@ -49,7 +49,7 @@ const AdminDashboard: React.FC = () => {
         if (!d.error && d.data && (d.data as any).overview) setTraffic((d.data as any).overview as TrafficMini);
         setLoading(false);
     }, []);
-    useEffect(() => { void load(); const t = window.setInterval(load, 60000); return () => window.clearInterval(t); }, [load]);
+    useEffect(() => { void load(); const t = window.setInterval(() => { if (!document.hidden) void load(); }, 300000); return () => window.clearInterval(t); }, [load]);
 
     const m = useMemo(() => computePeopleMetrics(rows), [rows]);
     const regToday = useMemo(() => registeredToday(rows), [rows]);
@@ -78,7 +78,7 @@ const AdminDashboard: React.FC = () => {
             <div className="flex flex-wrap items-center gap-3">
                 <div className="flex-1 min-w-[260px]">
                     <h1 className="m-0 text-[28px] font-extrabold tracking-[-0.02em]">Dashboard</h1>
-                    <p className="m-0 mt-1 text-[13px] text-[#6B6680] dark:text-slate-400">{today} · updates every minute</p>
+                    <p className="m-0 mt-1 text-[13px] text-[#6B6680] dark:text-slate-400">{today} · refreshes every 5 minutes</p>
                 </div>
                 <button onClick={() => void load()} className="press h-11 px-4 rounded-[12px] bg-white dark:bg-night-2 text-[13px] font-bold inline-flex items-center gap-2"><RefreshCw size={16} className={loading ? 'animate-spin' : ''} />Refresh</button>
             </div>

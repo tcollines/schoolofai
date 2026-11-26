@@ -16,7 +16,7 @@ const RecommendedCourses: React.FC = () => {
                 // Fetch a few random or top courses
                 const { data, error: fetchError } = await supabase
                     .from('courses')
-                    .select('*')
+                    .select('id,title,instructor,instructor_email,duration,category,rating,lessons_total,status,is_draft,image_url,price,platform,"accessTier",quiz,description,outcomes,image_scale,image_pos_x,image_pos_y,created_at,is_verified,sections')
                     .limit(3);
 
                 if (fetchError) throw fetchError;

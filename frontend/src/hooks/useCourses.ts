@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react';
 import { supabaseClient } from '../lib/supabaseClient';
 import { Course, CourseStatus } from '../../types';
+import { cachedInstructorThumbs, instructorThumbsAreFresh, refreshInstructorThumbs } from '../lib/instructorAvatars';
 
 export const useCourses = (userId: string | undefined) => {
     const [courses, setCourses] = useState<Course[]>([]);
@@ -14,9 +15,11 @@ export const useCourses = (userId: string | undefined) => {
                 setLoading(true);
 
                 // Fetch all courses
+                // Everything except instructor_avatar (about 2.4 MB of inline photos). Small copies of the photos
+                // come from instructorAvatars.ts, so the cards look the same.
                 const { data: coursesData, error: coursesError } = await supabaseClient
                     .from('courses')
-                    .select('*');
+                    .select('id,title,instructor,instructor_email,duration,category,rating,lessons_total,status,is_draft,image_url,price,platform,"accessTier",modules,quiz,description,outcomes,image_scale,image_pos_x,image_pos_y,created_at,is_verified,sections');
 
                 if (coursesError) throw coursesError;
 
@@ -37,6 +40,7 @@ export const useCourses = (userId: string | undefined) => {
                     }
                 }
 
+                const thumbs = cachedInstructorThumbs();
                 // Merge data (excluding internal outreach ledger/config rows)
                 const formattedCourses: Course[] = (coursesData || [])
                     .filter((course: any) => !String(course.category || '').startsWith('__OUTREACH_'))
@@ -71,7 +75,7 @@ export const useCourses = (userId: string | undefined) => {
                         title: course.title,
                         instructor: course.instructor || 'Unknown Instructor',
                         instructorEmail: course.instructor_email || '',
-                        instructorAvatar: course.instructor_avatar || '',
+                        instructorAvatar: thumbs[course.id] || '',
                         duration: course.duration || '0h',
                         category: course.category || 'General',
                         rating: Number(course.rating) || 0,
@@ -126,6 +130,13 @@ export const useCourses = (userId: string | undefined) => {
                 });
 
                 setCourses(formattedCourses);
+
+                // Fetch the small photo copies in the background only when this device has none or they are a week old
+                if (!instructorThumbsAreFresh()) {
+                    void refreshInstructorThumbs().then(map => {
+                        if (Object.keys(map).length) setCourses(prev => prev.map(c => ({ ...c, instructorAvatar: map[c.id] || c.instructorAvatar })));
+                    });
+                }
             } catch (err: any) {
                 console.error('Error fetching courses:', err);
                 setError(err.message);

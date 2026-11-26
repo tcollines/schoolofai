@@ -15,9 +15,11 @@ export const useAdmin = (isAdmin: boolean) => {
         setError(null);
         try {
             // Fetch Profiles
+            // Explicit columns: profile photos are stored inline and made this one call about 2 MB for 134 people.
+            // Admin screens do not show other people's photos, so they are not downloaded here.
             const { data: usersData, error: profilesError } = await supabaseClient
                 .from('profiles')
-                .select('*');
+                .select('id,full_name,email,role,wallet_balance,pending_role,pending_txid,pending_screenshot,nationality,date_of_birth,avatar_scale,avatar_pos_x,avatar_pos_y,created_at');
             
             if (profilesError) throw profilesError;
 
@@ -42,9 +44,11 @@ export const useAdmin = (isAdmin: boolean) => {
             setUsers(formattedUsers);
 
             // Fetch Courses
+            // Every column except instructor_avatar (an inline photo, about 2 MB in total). It is never overwritten:
+            // saving a course leaves the stored photo alone when none was loaded (see addCourse/updateCourse).
             const { data: coursesData, error: coursesError } = await supabaseClient
                 .from('courses')
-                .select('*');
+                .select('id,title,instructor,instructor_email,duration,category,rating,lessons_total,status,is_draft,image_url,price,platform,"accessTier",modules,quiz,description,outcomes,image_scale,image_pos_x,image_pos_y,created_at,is_verified,sections');
 
             if (coursesError) throw coursesError;
 
@@ -138,34 +142,42 @@ export const useAdmin = (isAdmin: boolean) => {
     useEffect(() => {
         fetchData();
 
-        const handleUpdate = () => {
-            fetchData(true); // reload silently
+        // Reloading silently on every focus and every database change used to re-download several MB each time.
+        // Now at most once a minute, and not at all while the tab is in the background.
+        let lastReload = Date.now();
+        const reloadThrottled = () => {
+            if (document.hidden) return;
+            if (Date.now() - lastReload < 60_000) return;
+            lastReload = Date.now();
+            fetchData(true);
         };
+        // Changes made on this screen refresh straight away; focus and background database changes are throttled.
+        const handleUpdate = () => { lastReload = Date.now(); fetchData(true); };
 
         const handleStorage = (e: StorageEvent) => {
             if (e.key === 'welile_local_db' || e.key === 'admin-events') {
-                fetchData(true);
+                reloadThrottled();
             }
         };
 
         window.addEventListener('courses-update', handleUpdate);
         window.addEventListener('admin-events-update', handleUpdate);
         window.addEventListener('profile-update', handleUpdate);
-        window.addEventListener('focus', handleUpdate);
+        window.addEventListener('focus', reloadThrottled);
         window.addEventListener('storage', handleStorage);
 
         const adminChannel = supabaseClient
             .channel('admin-portal-live-db-sync')
-            .on('postgres_changes', { event: '*', schema: 'public', table: 'courses' }, handleUpdate)
-            .on('postgres_changes', { event: '*', schema: 'public', table: 'enrollments' }, handleUpdate)
-            .on('postgres_changes', { event: '*', schema: 'public', table: 'profiles' }, handleUpdate)
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'courses' }, reloadThrottled)
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'enrollments' }, reloadThrottled)
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'profiles' }, reloadThrottled)
             .subscribe();
 
         return () => {
             window.removeEventListener('courses-update', handleUpdate);
             window.removeEventListener('admin-events-update', handleUpdate);
             window.removeEventListener('profile-update', handleUpdate);
-            window.removeEventListener('focus', handleUpdate);
+            window.removeEventListener('focus', reloadThrottled);
             window.removeEventListener('storage', handleStorage);
             supabaseClient.removeChannel(adminChannel);
         };
@@ -239,7 +251,7 @@ export const useAdmin = (isAdmin: boolean) => {
                     title: courseData.title,
                     instructor: courseData.instructor,
                     instructor_email: courseData.instructorEmail,
-                    instructor_avatar: courseData.instructorAvatar,
+                    ...(courseData.instructorAvatar ? { instructor_avatar: courseData.instructorAvatar } : {}),
                     duration: courseData.duration,
                     category: courseData.category,
                     accessTier: courseData.accessTier || 'FREE',

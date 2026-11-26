@@ -3,6 +3,7 @@
 // A mark belongs to a person even when they have no email: we match a mark to a person by the roster key,
 // or the same email, or the same phone (compared on the last 9 digits).
 import { supabaseClient } from './supabaseClient';
+import { invalidatePeople } from './peopleCache';
 
 export const LESSONS = [
     { no: 1, modules: 'Modules 1 and 2' },
@@ -64,6 +65,7 @@ export async function setPhysicalLesson(
             p_date: date || null,
             p_course: course,
         });
+        invalidatePeople();
         return error ? { ok: false, error: error.message } : { ok: true, error: null };
     } catch (e) {
         return { ok: false, error: e instanceof Error ? e.message : 'Could not save attendance' };
