@@ -12,7 +12,7 @@ export interface LinkAgent {
 
 // Pages an agent's personal link can send people to (same list agents see in their own portal)
 const PAGES = [
-    { label: 'Free AI Fundamentals course', to: '/free/ai-fundamentals' },
+    { label: 'Fundamentals of AI (free online course)', to: '/free/ai-fundamentals' },
     { label: 'Home page', to: '/' },
     { label: 'Course catalogue', to: '/discover' },
     { label: 'Official registration form', to: '/register' },

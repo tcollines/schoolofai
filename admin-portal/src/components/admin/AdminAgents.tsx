@@ -6,6 +6,7 @@ import {
     TrendingUp, UserCheck, UserPlus, Users, Video, X
 } from 'lucide-react';
 import { supabaseClient } from '../../lib/supabaseClient';
+import { COURSE_NAME, canonicalCourse } from '../../lib/peopleMetrics';
 import AdminAuthPrompt, { MissingDbNotice } from './AdminAuthPrompt';
 import AgentLinksPanel from './AgentLinksPanel';
 
@@ -392,7 +393,7 @@ const AdminAgents: React.FC = () => {
                 c.phone || '',
                 c.email || '',
                 c.location || '',
-                c.course || 'AI Fundamentals (free)',
+                canonicalCourse(c.course) || COURSE_NAME,
                 c.registered_by || selectedAgent.name,
                 c.source || 'Registered by agent',
                 c.stage,
@@ -1030,7 +1031,7 @@ const AdminAgents: React.FC = () => {
                                     ['Registered by agent', selectedAgent.registered, 'bg-brand'],
                                     ['Waiting to sign up', selectedAgent.waiting ?? Math.max(0, selectedAgent.registered - selectedAgent.accounts), 'bg-amber-500'],
                                     ['Accounts opened', selectedAgent.accounts, 'bg-blue-500'],
-                                    ['In free course', selectedAgent.enrolled, 'bg-indigo-500'],
+                                    ['In Fundamentals of AI', selectedAgent.enrolled, 'bg-indigo-500'],
                                     ['Studying lessons', selectedAgent.recorded, 'bg-emerald-500'],
                                     ['Joined live class', selectedAgent.live, 'bg-sky-500'],
                                     ['Completed & certified', selectedAgent.completed, 'bg-teal-500'],
@@ -1220,7 +1221,7 @@ const AdminAgents: React.FC = () => {
                                                     {c.location || '—'}
                                                 </td>
                                                 <td className="py-2.5 px-3 text-xs text-stone-600 dark:text-slate-300 hidden sm:table-cell">
-                                                    {c.course || 'AI Fundamentals (free)'}
+                                                    {canonicalCourse(c.course) || COURSE_NAME}
                                                 </td>
                                                 <td className="py-2.5 px-3 text-xs font-medium text-stone-700 dark:text-slate-200 hidden md:table-cell">
                                                     {c.registered_by || selectedAgent.name}

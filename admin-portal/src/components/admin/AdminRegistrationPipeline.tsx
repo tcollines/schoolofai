@@ -6,7 +6,7 @@ import {
 } from 'lucide-react';
 import { supabaseClient } from '../../lib/supabaseClient';
 import { CHANNELS, channelOf } from './peopleChannels';
-import { GLOSSARY, GROUP_ORDER, GroupId, HQ_GROUPS, inGroup, isOnline, normalizeGroup, rowLabel } from '../../lib/peopleMetrics';
+import { COURSE_NAME, GLOSSARY, GROUP_ORDER, GroupId, HQ_GROUPS, inGroup, isOnline, normalizeGroup, rowLabel } from '../../lib/peopleMetrics';
 import type { LessonsFor } from '../../lib/physicalAttendance';
 import HqLessons from './HqLessons';
 
@@ -47,8 +47,8 @@ export interface StudentRow {
 
 const STAGES: { id: Stage; tab: string; help: string; badge: string }[] = [
     { id: 'Registered', tab: 'Registered, no account', help: 'Registered by an agent, lead form, or outreach — no login account yet. Follow up to help them open their account.', badge: 'bg-amber-100 text-amber-800 dark:bg-amber-950/50 dark:text-amber-300' },
-    { id: 'Account opened', tab: 'Account opened', help: 'Created an account but has not opened the free AI Fundamentals course yet.', badge: 'bg-brand-soft text-blue-800 dark:bg-blue-950/50 dark:text-blue-300' },
-    { id: 'In course', tab: 'In course (not started)', help: 'Enrolled in AI Fundamentals, 0 lessons completed so far.', badge: 'bg-brand-soft text-indigo-800 dark:bg-indigo-950/50 dark:text-indigo-300' },
+    { id: 'Account opened', tab: 'Account opened', help: 'Created an account but has not opened Fundamentals of AI yet.', badge: 'bg-brand-soft text-blue-800 dark:bg-blue-950/50 dark:text-blue-300' },
+    { id: 'In course', tab: 'In course (not started)', help: 'Enrolled in Fundamentals of AI, 0 lessons completed so far.', badge: 'bg-brand-soft text-indigo-800 dark:bg-indigo-950/50 dark:text-indigo-300' },
     { id: 'Studying', tab: 'Studying', help: 'Actively progressing through lessons and module quizzes.', badge: 'bg-violet-100 text-violet-800 dark:bg-violet-950/50 dark:text-violet-300' },
     { id: 'Joined live', tab: 'Joined live', help: 'Attended at least one live class session (via app, email link, WhatsApp, or admin check-in).', badge: 'bg-sky-100 text-sky-800 dark:bg-sky-950/50 dark:text-sky-300' },
     { id: 'Passed final', tab: 'Passed final', help: 'Passed the final assessment (80%+) and ready to claim their certificate.', badge: 'bg-teal-100 text-teal-800 dark:bg-teal-950/50 dark:text-teal-300' },
@@ -382,7 +382,7 @@ const AdminRegistrationPipeline: React.FC<{ course: string; data?: PipelineData;
                                             {r.location && <span className="block text-xs text-stone-500 dark:text-slate-400">{r.location}</span>}
                                             {(r.courses || []).length > 0 && (
                                                 <span className="mt-1 flex flex-wrap gap-1">
-                                                    {(r.courses || []).map(c => <span key={c} className="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-stone-100 dark:bg-slate-800 text-stone-600 dark:text-slate-300">{c}{r.paid_enrolled && !c.toLowerCase().includes('free') && !c.toLowerCase().includes('general') ? ' · paid' : ''}</span>)}
+                                                    {(r.courses || []).map(c => <span key={c} className="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-stone-100 dark:bg-slate-800 text-stone-600 dark:text-slate-300">{c}{r.paid_enrolled && c !== COURSE_NAME && !c.toLowerCase().includes('general') ? ' · paid' : ''}</span>)}
                                                 </span>
                                             )}
                                         </td>
@@ -529,7 +529,7 @@ const AdminRegistrationPipeline: React.FC<{ course: string; data?: PipelineData;
                                 <div className="mt-2 flex flex-wrap gap-1.5">
                                     {r.app_installed && <span className="inline-flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded bg-violet-100 text-violet-700 dark:bg-violet-950/60 dark:text-violet-300"><Smartphone size={11} /> App</span>}
                                     {(r.live_count || 0) > 0 && <span className="inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-full bg-sky-100 text-sky-800 dark:bg-sky-950/50 dark:text-sky-300"><Video size={11} /> {r.live_count} live</span>}
-                                    {(r.courses || []).map(c => <span key={c} className="text-[11px] font-semibold px-2 py-0.5 rounded bg-stone-100 dark:bg-slate-800 text-stone-600 dark:text-slate-300">{c}{r.paid_enrolled && !c.toLowerCase().includes('free') && !c.toLowerCase().includes('general') ? ' · paid' : ''}</span>)}
+                                    {(r.courses || []).map(c => <span key={c} className="text-[11px] font-semibold px-2 py-0.5 rounded bg-stone-100 dark:bg-slate-800 text-stone-600 dark:text-slate-300">{c}{r.paid_enrolled && c !== COURSE_NAME && !c.toLowerCase().includes('general') ? ' · paid' : ''}</span>)}
                                 </div>
                                 {r.has_account && (
                                     <div className="mt-3">

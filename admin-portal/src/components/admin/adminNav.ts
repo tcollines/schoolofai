@@ -48,7 +48,7 @@ export const groupOf = (tab: string): string => GROUP_OF[tab] || 'more';
 export const PAGE_TITLES: Record<string, string> = {
     today: 'Today', week: 'My week', more: 'More', dashboard: 'Full dashboard',
     people: 'People', enrollments: 'Enrollments', registrations: 'Registrations',
-    learning: 'Learning', 'free-course': 'Free course', 'live-classes': 'Live classes',
+    learning: 'Learning', 'free-course': 'Fundamentals of AI', 'live-classes': 'Live classes',
     courses: 'Course setup', cohorts: 'Cohorts', exams: 'Exam setup', events: 'Ongoing events', instructors: 'Instructors',
     team: 'Team', agents: 'Agent monitoring', staff: 'Staff and links',
     analytics: 'Traffic and clicks', partners: 'Partners', mails: 'Mails', wallet: 'Wallet and ledger',

@@ -4,7 +4,7 @@ import { Loader2, RefreshCw } from 'lucide-react';
 import { COURSE } from '../../content/aiFundamentals';
 import AdminRegistrationPipeline, { HqControl, StudentRow } from './AdminRegistrationPipeline';
 import { CHANNELS, channelOf } from './peopleChannels';
-import { GLOSSARY, GroupId, computePeopleMetrics, kampalaDay, loadPeople, pct } from '../../lib/peopleMetrics';
+import { GLOSSARY, GroupId, canonicalCourse, computePeopleMetrics, kampalaDay, loadPeople, pct } from '../../lib/peopleMetrics';
 import { PhysicalRow, applyLocalMark, fetchPhysicalAttendance, indexPhysical, setPhysicalLesson } from '../../lib/physicalAttendance';
 
 type Person = StudentRow;
@@ -22,7 +22,9 @@ const AdminPeople: React.FC = () => {
     const [loading, setLoading] = useState(true);
     const [range, setRange] = useState<Range>('all');
     const [physicalRows, setPhysicalRows] = useState<PhysicalRow[]>([]);
-    const courseFilter = searchParams.get('course') || 'all';
+    // Old links (?course=AI Fundamentals (free)) and new ones (?course=Fundamentals of AI) both work
+    const courseParam = searchParams.get('course');
+    const courseFilter = courseParam && courseParam !== 'all' ? canonicalCourse(courseParam) : 'all';
 
     const load = useCallback(async () => {
         setLoading(true);

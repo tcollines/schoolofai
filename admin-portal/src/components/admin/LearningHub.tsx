@@ -13,7 +13,7 @@ import AdminInstructors from './AdminInstructors';
 const TABS: HubTab[] = [
     { id: 'stats', label: 'Course stats' },
     { id: 'hq', label: 'Front desk' },
-    { id: 'free', label: 'Free course' },
+    { id: 'free', label: 'Fundamentals of AI' },
     { id: 'live', label: 'Live classes' },
     { id: 'courses', label: 'Courses' },
     { id: 'cohorts', label: 'Cohorts' },

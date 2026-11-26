@@ -17,14 +17,31 @@ import type { CallIndex } from './callLog';
 
 export type PersonRow = StudentRow;
 
-export const FREE_COURSE_TITLE = 'AI Fundamentals (free)';
+/** The one display name for the programme. The free online course IS Fundamentals of AI. */
+export const COURSE_NAME = 'Fundamentals of AI';
+/** Kept so older imports still work: the free course is now simply Fundamentals of AI. */
+export const FREE_COURSE_TITLE = COURSE_NAME;
+
+/** Maps every old name of the programme to the one name. Case and spaces do not matter, and the slug works too.
+ *  Other course names are returned as they are (trimmed). An empty value stays empty. */
+export function canonicalCourse(title: string | null | undefined): string {
+    const t = (title || '').trim();
+    if (!t) return '';
+    const k = t.toLowerCase().replace(/\s+/g, ' ');
+    const aliases = ['ai fundamentals (free)', 'ai fundamentals', 'fundamentals of ai (paid class)', 'fundamentals of ai', 'ai-fundamentals', 'free ai fundamentals', 'free ai fundamentals course'];
+    return aliases.includes(k) ? COURSE_NAME : t;
+}
+
+/** A list of course names with every alias mapped to its canonical name, each course once. */
+export const canonicalCourses = (titles: (string | null | undefined)[] | null | undefined): string[] =>
+    Array.from(new Set((titles || []).map(canonicalCourse).filter(Boolean)));
 
 /** Everyone on the platform as one list: the free-course roster merged with people in other courses and paid enrolments. */
 export async function loadPeople(courseSlug = 'ai-fundamentals'): Promise<{ rows: PersonRow[]; error: string | null }> {
     let res = await supabaseClient.rpc('admin_course_stage_students', { p_course: courseSlug });
     if (res.error) res = await supabaseClient.rpc('admin_registration_pipeline', { p_course: courseSlug });
     if (res.error) return { rows: [], error: res.error.message };
-    const free = ((res.data || []) as PersonRow[]).map(r => ({ ...r, courses: [FREE_COURSE_TITLE] }));
+    const free = ((res.data || []) as PersonRow[]).map(r => ({ ...r, courses: [COURSE_NAME] }));
     const other = await supabaseClient.rpc('admin_other_people');
     const byKey = new Map<string, PersonRow>(free.map(r => [r.key, r] as [string, PersonRow]));
     const merged: PersonRow[] = [...free];
@@ -32,11 +49,13 @@ export async function loadPeople(courseSlug = 'ai-fundamentals'): Promise<{ rows
         ((other.data || []) as PersonRow[]).forEach(o => {
             const hit = byKey.get(o.key);
             if (hit) {
-                hit.courses = Array.from(new Set([...(hit.courses || []), ...(o.courses || [])]));
+                hit.courses = canonicalCourses([...(hit.courses || []), ...(o.courses || [])]);
                 hit.paid_enrolled = hit.paid_enrolled || o.paid_enrolled;
             } else { merged.push(o); byKey.set(o.key, o); }
         });
     }
+    // One name per course and each person once per course, so a person found under two old names counts once
+    merged.forEach(r => { r.courses = canonicalCourses(r.courses); });
     return { rows: merged.sort((a, b) => (a.registered_at < b.registered_at ? 1 : -1)), error: null };
 }
 

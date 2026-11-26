@@ -206,7 +206,7 @@ const AdminStaff: React.FC = () => {
                 <ul className="mt-4 space-y-3">
                     {sortedFunnel.map(f => {
                         const max = Math.max(1, f.registered, f.accounts);
-                        const rows: [string, number][] = [['Link clicks', f.clicks], ['Registered', f.registered], ['Accounts', f.accounts], ['In free course', f.enrolled], ['Recorded lessons', f.recorded], ['Joined live', f.live], ['Active 7d', f.active_7d], ['Completed', f.completed]];
+                        const rows: [string, number][] = [['Link clicks', f.clicks], ['Registered', f.registered], ['Accounts', f.accounts], ['In Fundamentals of AI', f.enrolled], ['Recorded lessons', f.recorded], ['Joined live', f.live], ['Active 7d', f.active_7d], ['Completed', f.completed]];
                         return (
                             <li key={f.id} className={`rounded-[14px] border border-stone-100 dark:border-slate-800 p-4 ${f.active ? '' : 'opacity-50'}`}>
                                 <div className="flex flex-wrap items-center justify-between gap-2">

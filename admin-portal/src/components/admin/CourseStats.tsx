@@ -2,17 +2,17 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Loader2, RefreshCw } from 'lucide-react';
 import {
-    FREE_COURSE_TITLE, GLOSSARY, GroupId, PersonRow, computePeopleMetrics, hqLessons, isOnline, loadPeople, pct, startedOnline,
+    COURSE_NAME, GLOSSARY, GroupId, PersonRow, canonicalCourse, computePeopleMetrics, hqLessons, isOnline, loadPeople, pct, startedOnline,
 } from '../../lib/peopleMetrics';
 import { LESSONS, PhysicalRow, buildPersonLookup, fetchPhysicalAttendance, indexPhysical } from '../../lib/physicalAttendance';
 import { CallRow, fetchCallLog, indexCalls } from '../../lib/callLog';
 import { channelOf } from './peopleChannels';
 
 const card = 'bg-white dark:bg-night-2 rounded-[22px]';
-const PROGRAMME = 'Fundamentals of AI';
+const PROGRAMME = COURSE_NAME;
 
-/** The free programme is called "Fundamentals of AI". A paid class that already has that exact name is shown as paid so the two never look the same. */
-const courseLabel = (c: string) => (c === FREE_COURSE_TITLE ? PROGRAMME : c.trim().toLowerCase() === PROGRAMME.toLowerCase() ? `${PROGRAMME} (paid class)` : c);
+/** There is exactly one course called Fundamentals of AI: the free online course and the class at HQ are the same programme. */
+const courseLabel = (c: string) => canonicalCourse(c);
 
 /** Highest module a person reached online: m1 to m6, 0 if none. */
 const reachedModule = (r: PersonRow, k: number) => {
@@ -72,7 +72,7 @@ const CourseStats: React.FC = () => {
     const [error, setError] = useState<string | null>(null);
     const [hqNote, setHqNote] = useState<string | null>(null);
     const [loading, setLoading] = useState(true);
-    const [course, setCourse] = useState<string>(FREE_COURSE_TITLE);
+    const [course, setCourse] = useState<string>(COURSE_NAME);
 
     const load = useCallback(async () => {
         setLoading(true);
@@ -92,8 +92,8 @@ const CourseStats: React.FC = () => {
         (rows || []).forEach(p => (p.courses || []).forEach(c => m.set(c, (m.get(c) || 0) + 1)));
         const list = [...m.entries()].sort((a, b) => b[1] - a[1]);
         // The programme always comes first, even before anyone is in it
-        if (!m.has(FREE_COURSE_TITLE)) list.unshift([FREE_COURSE_TITLE, 0]);
-        else { const i = list.findIndex(x => x[0] === FREE_COURSE_TITLE); list.unshift(list.splice(i, 1)[0]); }
+        if (!m.has(COURSE_NAME)) list.unshift([COURSE_NAME, 0]);
+        else { const i = list.findIndex(x => x[0] === COURSE_NAME); list.unshift(list.splice(i, 1)[0]); }
         return list;
     }, [rows]);
 
@@ -101,7 +101,7 @@ const CourseStats: React.FC = () => {
     const lessonsFor = physical || undefined;
     const callIndex = useMemo(() => indexCalls(callRows), [callRows]);
     const m = useMemo(() => computePeopleMetrics(pop, lessonsFor, callIndex), [pop, lessonsFor, callIndex]);
-    const isProgramme = course === FREE_COURSE_TITLE;
+    const isProgramme = course === COURSE_NAME;
     const q = `course=${encodeURIComponent(course)}`;
     const link = (g: GroupId) => `/people?${q}&stage=${g}`;
 
@@ -154,7 +154,7 @@ const CourseStats: React.FC = () => {
         <div className="space-y-5">
             <div className="flex flex-wrap items-end justify-between gap-3">
                 <div>
-                    <h1 className="m-0 text-2xl font-extrabold">Course stats</h1>
+                    <h1 className="m-0 text-2xl font-extrabold">Course stats {isProgramme && <span className="align-middle ml-1 text-xs font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 dark:bg-emerald-950/50 dark:text-emerald-300">Free online course</span>}</h1>
                     <p className="m-0 mt-1 text-sm text-stone-500 dark:text-slate-400">How many people join each course, how they learn (online, or at HQ), and who goes on to pay.</p>
                 </div>
                 <div className="flex items-center gap-2 w-full sm:w-auto">
