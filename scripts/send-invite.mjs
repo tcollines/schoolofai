@@ -13,12 +13,14 @@ const list = JSON.parse(env('INVITE_RECIPIENTS', '[]'));
 
 function build(r) {
     const name = first(r.name), agent = first(r.agent);
+    // Optional per-person line about the live classes, for people who join between class days. Default is the usual schedule.
+    const classes = String(r.classes || '').trim() || 'live classes on Wednesday and Friday at 2:00 pm East Africa Time';
     const subject = 'One last step to open your free AI Fundamentals account';
     const text = [`Hello ${name},`, '',
         `${agent} from Welile School of AI registered you for our free AI Fundamentals course. One last step: open your own account so you can start learning.`, '',
         `Open your account here (it takes about a minute): ${r.link}`, '',
         'You can use your Google account or an email and password. If you use email, we will send you a link to confirm it. Check your spam folder if you do not see it.', '',
-        'What you get: free lessons you can do on your phone, live classes on Wednesday and Friday at 2:00 pm East Africa Time, and a free certificate.', '',
+        `What you get: free lessons you can do on your phone, ${classes}, and a free certificate.`, '',
         'If you would rather not hear from us, just reply to this email and we will leave you alone.', '',
         'Warm regards,', BRAND].join('\n');
     const html = `<!doctype html><html><body style="margin:0;padding:0;background:${PAPER};"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:${PAPER};"><tr><td align="center" style="padding:24px 12px;">
@@ -29,7 +31,7 @@ function build(r) {
 <p style="margin:0 0 12px;">Hello ${esc(name)},</p>
 <p style="margin:0 0 12px;">${esc(agent)} from Welile School of AI registered you for our free <strong>AI Fundamentals</strong> course. One last step: open your own account so you can start learning.</p>
 <p style="margin:0 0 12px;">You can use your <strong>Google account</strong>, or an email and password. If you use email, we will send you a link to confirm it. Check your spam folder if you do not see it.</p>
-<p style="margin:0 0 12px;">What you get: free lessons on your phone, live classes on <strong>Wednesday and Friday at 2:00 pm</strong> East Africa Time, and a free certificate.</p></td></tr>
+<p style="margin:0 0 12px;">What you get: free lessons on your phone, ${esc(classes)}, and a free certificate.</p></td></tr>
 <tr><td style="padding:4px 28px 6px;"><a href="${esc(r.link)}" style="display:inline-block;background:${VIOLET};color:#ffffff;text-decoration:none;font-family:Arial,Helvetica,sans-serif;font-size:16px;font-weight:bold;padding:12px 22px;border-radius:10px;">Open my account</a></td></tr>
 <tr><td style="padding:18px 28px 26px;font-family:Arial,Helvetica,sans-serif;color:#6b6580;font-size:12px;line-height:1.6;">You are receiving this because ${esc(agent)} registered you with your permission. If you would rather not hear from us, reply to this email and we will leave you alone.</td></tr>
 </table></td></tr></table></body></html>`;
