@@ -6,12 +6,14 @@ import { FrontDeskTiles } from './FrontDeskToday';
 import FrontDeskAttendance from './FrontDeskAttendance';
 import FrontDeskWalkIn from './FrontDeskWalkIn';
 import FrontDeskCalls from './FrontDeskCalls';
+import FrontDeskPaperForms from './FrontDeskPaperForms';
 
 export type { FrontDeskData };
 
-type Mode = 'walkin' | 'calls' | 'attendance';
+type Mode = 'walkin' | 'paper' | 'calls' | 'attendance';
 const MODES: { id: Mode; label: string; help: string }[] = [
     { id: 'walkin', label: 'Walk-in', help: 'Someone came to HQ' },
+    { id: 'paper', label: 'Paper forms', help: 'Old paper sign-ups' },
     { id: 'calls', label: 'Calls', help: 'Follow people up' },
     { id: 'attendance', label: 'Attendance', help: 'Tick who came' },
 ];
@@ -39,7 +41,7 @@ const HqAttendance: React.FC = () => {
 
             <FrontDeskTiles stats={stats} />
 
-            <div className="grid grid-cols-3 gap-2" role="tablist" aria-label="Front desk">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2" role="tablist" aria-label="Front desk">
                 {MODES.map(m => (
                     <button
                         key={m.id}
@@ -58,6 +60,7 @@ const HqAttendance: React.FC = () => {
             {data.loading && data.rows.length === 0 && <div className="flex items-center gap-2 text-stone-500"><Loader2 className="animate-spin" size={18} /> Loading...</div>}
 
             {mode === 'walkin' && <FrontDeskWalkIn data={data} />}
+            {mode === 'paper' && <FrontDeskPaperForms data={data} />}
             {mode === 'calls' && <FrontDeskCalls data={data} />}
             {mode === 'attendance' && <FrontDeskAttendance data={data} />}
         </div>

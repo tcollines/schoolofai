@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Loader2, MessageCircle, Phone, PhoneCall, UserPlus } from 'lucide-react';
+import { FileText, Loader2, MessageCircle, Phone, PhoneCall, UserPlus } from 'lucide-react';
 import { DeskStats } from './frontDeskData';
 
 const card = 'bg-white dark:bg-night-2 rounded-[22px]';
@@ -33,14 +33,17 @@ const FrontDeskToday: React.FC<{
     loading: boolean;
     onWalkIn: () => void;
     onCalls: () => void;
+    /** Opens the screen for entering registrations taken on paper forms. */
+    onPaperForms: () => void;
     /** Opens the Calls tab with this person's log-call panel ready. */
     onLogCall: (key: string, name: string) => void;
-}> = ({ stats, loading, onWalkIn, onCalls, onLogCall }) => (
+}> = ({ stats, loading, onWalkIn, onCalls, onPaperForms, onLogCall }) => (
     <div className="space-y-4">
         <FrontDeskTiles stats={stats} />
 
         <div className="grid grid-cols-1 gap-3">
             <button onClick={onWalkIn} className="min-h-[64px] rounded-[16px] bg-brand text-white text-lg font-extrabold inline-flex items-center justify-center gap-2"><UserPlus size={22} /> Register a walk-in</button>
+            <button onClick={onPaperForms} className="min-h-[64px] rounded-[16px] bg-white dark:bg-night-2 border-2 border-emerald-600 text-emerald-700 dark:text-emerald-400 text-lg font-extrabold inline-flex items-center justify-center gap-2"><FileText size={22} /> Enter paper forms</button>
             <button onClick={onCalls} className="min-h-[64px] rounded-[16px] bg-white dark:bg-night-2 border-2 border-violet-600 text-violet-700 dark:text-violet-300 text-lg font-extrabold inline-flex items-center justify-center gap-2"><PhoneCall size={22} /> Make calls</button>
         </div>
 

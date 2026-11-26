@@ -1,19 +1,22 @@
 import React, { useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { ClipboardCheck, Home, LayoutGrid, LogOut, Phone, RefreshCw, ShieldCheck, UserPlus } from 'lucide-react';
+import { ClipboardCheck, FileText, Home, LayoutGrid, LogOut, Phone, RefreshCw, ShieldCheck, UserPlus } from 'lucide-react';
 import AdminBottomNav, { BOTTOM_NAV_SPACE } from './AdminBottomNav';
 import { useDeskStats, useFrontDeskData } from './frontDeskData';
 import FrontDeskToday from './FrontDeskToday';
 import FrontDeskWalkIn from './FrontDeskWalkIn';
 import FrontDeskCalls from './FrontDeskCalls';
 import FrontDeskAttendance from './FrontDeskAttendance';
+import FrontDeskPaperForms from './FrontDeskPaperForms';
 
-type Tab = 'today' | 'walkin' | 'calls' | 'attendance';
-const TABS: { id: Tab; label: string; icon: React.ReactNode }[] = [
-    { id: 'today', label: 'Today', icon: <Home size={22} /> },
-    { id: 'walkin', label: 'Walk-in', icon: <UserPlus size={22} /> },
-    { id: 'calls', label: 'Calls', icon: <Phone size={22} /> },
-    { id: 'attendance', label: 'Attendance', icon: <ClipboardCheck size={22} /> },
+type Tab = 'today' | 'walkin' | 'paper' | 'calls' | 'attendance';
+// `short` is the word under the icon in the phone bar, where five items share the width
+const TABS: { id: Tab; label: string; short: string; icon: React.ReactNode }[] = [
+    { id: 'today', label: 'Today', short: 'Today', icon: <Home size={22} /> },
+    { id: 'walkin', label: 'Walk-in', short: 'Walk-in', icon: <UserPlus size={22} /> },
+    { id: 'paper', label: 'Paper forms', short: 'Paper', icon: <FileText size={22} /> },
+    { id: 'calls', label: 'Calls', short: 'Calls', icon: <Phone size={22} /> },
+    { id: 'attendance', label: 'Attendance', short: 'Attendance', icon: <ClipboardCheck size={22} /> },
 ];
 
 /** The Front desk dashboard: a simple phone-first screen for the person who runs HQ.
@@ -42,7 +45,7 @@ const FrontDeskShell: React.FC<{
 
     const hour = new Date(Date.now() + 3 * 3600 * 1000).getUTCHours();
     const greet = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
-    const items = TABS.map(t => ({ id: t.id, label: t.label, icon: t.icon, onSelect: () => go(t.id) }));
+    const items = TABS.map(t => ({ id: t.id, label: t.short, icon: t.icon, onSelect: () => go(t.id) }));
     const sheetBtn = 'w-full min-h-[56px] px-4 rounded-[14px] text-left text-base font-bold inline-flex items-center gap-3 border border-stone-200 dark:border-slate-700 bg-white dark:bg-night-2';
 
     return (
@@ -76,11 +79,13 @@ const FrontDeskShell: React.FC<{
                             loading={data.loading}
                             onWalkIn={() => go('walkin')}
                             onCalls={() => go('calls')}
+                            onPaperForms={() => go('paper')}
                             onLogCall={(key, name) => go('calls', { open: key, q: name })}
                         />
                     </>
                 )}
                 {tab === 'walkin' && <FrontDeskWalkIn data={data} />}
+                {tab === 'paper' && <FrontDeskPaperForms data={data} />}
                 {tab === 'calls' && <FrontDeskCalls data={data} />}
                 {tab === 'attendance' && <FrontDeskAttendance data={data} />}
             </main>
