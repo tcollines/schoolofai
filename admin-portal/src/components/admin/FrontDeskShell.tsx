@@ -16,7 +16,7 @@ const TABS: { id: Tab; label: string; short: string; icon: React.ReactNode }[] =
     { id: 'walkin', label: 'Walk-in', short: 'Walk-in', icon: <UserPlus size={22} /> },
     { id: 'paper', label: 'Paper forms', short: 'Paper', icon: <FileText size={22} /> },
     { id: 'calls', label: 'Calls', short: 'Calls', icon: <Phone size={22} /> },
-    { id: 'attendance', label: 'Attendance', short: 'Attendance', icon: <ClipboardCheck size={22} /> },
+    { id: 'attendance', label: 'Attendance', short: 'Present', icon: <ClipboardCheck size={22} /> },
 ];
 
 /** The Front desk dashboard: a simple phone-first screen for the person who runs HQ.

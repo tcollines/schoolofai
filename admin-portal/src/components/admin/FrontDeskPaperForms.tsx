@@ -267,7 +267,7 @@ const FrontDeskPaperForms: React.FC<{ data: FrontDeskData }> = ({ data }) => {
             {error && <p role="alert" className="m-0 rounded-[12px] bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-900 p-3 text-sm text-red-700 dark:text-red-300">{error}</p>}
 
             {/* Save: always in reach, above the bottom bar on a phone */}
-            <div className="sticky bottom-[104px] lg:bottom-4 z-20">
+            <div className={`sticky bottom-[104px] lg:bottom-4 z-20 ${students.length === 0 ? 'hidden' : ''}`}>
                 <button
                     onClick={() => setConfirm(true)}
                     disabled={!sheetReady || students.length === 0 || saving}
