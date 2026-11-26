@@ -77,7 +77,7 @@ export const GLOSSARY: Record<GroupId, { label: string; definition: string }> = 
     hq: { label: 'Attended at HQ', definition: 'Attended at least one of the 3 physical lessons at HQ. Marked by staff when they follow someone up.' },
     hq3: { label: 'All 3 HQ lessons', definition: 'Attended all 3 physical lessons at HQ (together they cover Modules 1 to 6).' },
     both: { label: 'Both online and HQ', definition: 'Has started lessons online and has also attended at least one lesson at HQ.' },
-    notyet: { label: 'Not started learning', definition: 'Has not started lessons online and has not attended any lesson at HQ yet.' },
+    notyet: { label: 'Not learning anywhere yet', definition: 'Has not started lessons online and has not attended any lesson at HQ yet.' },
 };
 
 /** Tab order for the person-by-person list: routes first, then the journey, then paid. */
